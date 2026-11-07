@@ -1,6 +1,6 @@
 # Creavent
 
-Creavent (working title: Flee) is a web platform that brings vendor-based community events together in one place.
+Creavent is a web platform that brings vendor-based community events together in one place.
 
 - **Organizers** plan and promote their events.
 - **Vendors** find events and secure spots.
