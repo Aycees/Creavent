@@ -110,7 +110,7 @@ Password accounts also need:
 
 There is no magic-link sign-in.
 
-Signup also records the accepted terms and privacy versions (`legal_acceptances`) and the age confirmation. A signed-in user whose accepted version is older than the current one is sent to `/account/legal` before any other page (spec §1).
+Signup also records the accepted terms and privacy versions (`legal_acceptances`) and the age confirmation. The signup page's "Sell at events" or "Run events" choice only pre-selects the role in onboarding (spec §1). It is not stored. A signed-in user whose accepted version is older than the current one is sent to `/account/legal` before any other page (spec §1).
 
 ### 4.2 Auth library
 
@@ -119,7 +119,7 @@ Better Auth runs inside the NestJS API with its Prisma adapter. It handles Googl
 ### 4.3 Sessions
 
 - Sessions are stored in Postgres and sent as an `httpOnly`, `Secure`, `SameSite=Lax` cookie. No JWTs.
-- Because sessions are checked on every request, a suspended user (spec §2) is locked out immediately.
+- Because sessions are checked on every request, a suspended role (spec §2.1) loses access immediately. Suspension is per role, so the user's other role keeps working.
 - **Same site for web and API.** Next.js forwards `/api/*` to the API, so the browser only sees one site. This is needed during development, because Render's `*.onrender.com` addresses cannot share cookies with each other. It is kept after the domain is bought, because it works the same way and needs no CORS setup.
 
 ### 4.4 Permissions
@@ -148,7 +148,7 @@ The payment deadline is shown, not enforced (spec §6.4). Each assignment stores
 ### 5.3 Migrations and seed data
 
 - Migrations are created with `prisma migrate dev` and applied with `prisma migrate deploy`, run as the API's Render **pre-deploy command**. A failed migration stops the deploy.
-- A seed script creates the product categories, test users for each role (organizers approved and not approved), and events in each status. It is used locally and on staging only.
+- A seed script creates the product categories, the event types (Flea market, Bazaar, Pop-up), test users for each role (organizers approved and not approved), and events in each status. It is used locally and on staging only.
 
 ## 6. Background jobs and email
 
@@ -191,8 +191,8 @@ The upload rules are in [Feature specification §11](feature-specification.md#11
 - **Data:** server components for public pages. TanStack Query on signed-in screens.
 - **Forms:** react-hook-form with the shared Zod schemas.
 - **Floor plan:** two uploaded images per event (spec §3.4), shown as plain images. Slots are a list in the database, with no positions.
-- **Public pages and SEO:** event and organizer pages are cached by Next.js (ISR) and refreshed when the organizer publishes or edits. They include Open Graph tags so links share well on Facebook.
-- **Search:** Postgres full-text search with filters for location (city) and date, as in spec §7. No separate search service and no map search in the MVP.
+- **Public pages and SEO:** event, organizer, and vendor pages are cached by Next.js (ISR) and refreshed when the organizer or vendor publishes or edits. A vendor page also changes when the vendor's slot is reserved or removed, or when an event is announced or canceled. They include Open Graph tags so links share well on Facebook.
+- **Search:** Postgres full-text search with filters for event type, location (city), and date, as in spec §7. The listing's List and Calendar views use the same filtered data. No separate search service and no map search in the MVP. There is no vendor search (spec §7.2).
 - **Language:** English only. No translation setup.
 
 ## 9. Environments, deploys, and backups
@@ -236,7 +236,7 @@ The upload rules are in [Feature specification §11](feature-specification.md#11
 | Kind | Tool | What it covers |
 |---|---|---|
 | Integration | Vitest and Testcontainers (real Postgres) | Status changes, assignments, overdue flags, price locking, permissions per endpoint |
-| End-to-end | Playwright | The main path: sign up, get approved as an organizer, apply, assign a slot, upload proof, approve, announce |
+| End-to-end | Playwright | The main path: sign up, finish onboarding, get approved as an organizer, apply, assign a slot, upload proof, approve, announce |
 | Unit | Vitest | Pure logic only (deadline math, slot rules) |
 
 The assignment and payment rules are where the product can break, so most tests go there.

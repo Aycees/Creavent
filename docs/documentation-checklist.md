@@ -2,6 +2,8 @@
 
 Tracks the documents needed before development and UI design. Check a box once the document is created.
 
+Last updated: 2026-11-12
+
 Legend: ⚠️ = the item is partly deferred until the final revenue model is decided after the MVP (see [Revenue model decision](#revenue-model-decision)).
 
 ## Done
@@ -16,29 +18,32 @@ Legend: ⚠️ = the item is partly deferred until the final revenue model is de
 ## Phase 1: Foundation
 
 - [ ] User flows and user stories with acceptance criteria (`docs/user-flows.md`)
-  - [x] User flows with edge cases (first draft, 2026-11-11)
+  - [x] User flows with edge cases (first draft, 2026-11-11; updated 2026-11-12 for onboarding, vendor pages, event types, and the event listing)
   - [x] Include the manual payment flow: vendor uploads proof, organizer approves or rejects
   - [ ] User stories with acceptance criteria
 - [ ] Domain model and business rules (`docs/domain-model.md`) ⚠️ partially
-  - [ ] Entities and statuses (Event, Application, Slot, Slot Assignment, Vendor Profile, Payment, Payment Proof, Notification, Report, Organizer Approval, Admin Audit Log, Event Policy)
+  - [ ] Entities and statuses (Event, Event Type, Application, Slot, Slot Assignment, Vendor Profile, Payment, Payment Proof, Notification, Report, Organizer Approval, Admin Audit Log, Event Policy)
   - [ ] Organizer approval rules (what's required, who approves)
   - [ ] Slot assignment rules (assignment, release, removal; no-shows are left to organizer policy)
   - [ ] Record retention and archiving rules
-  - [ ] Visibility rules (public, draft, private data)
+  - [ ] Visibility rules (public, draft, private data, and what the public vendor page shows)
   - [ ] Manual payment approval and refund rules (MVP)
   - [ ] Platform fees and payouts ⚠️ (deferred, post-MVP)
 - [ ] Glossary (`docs/glossary.md`)
 
 ## Phase 2: UI design
 
-- [x] Information architecture and sitemap (`docs/sitemap.md`) (first draft, 2026-11-12)
+- [x] Information architecture and sitemap (`docs/sitemap.md`) (first draft, 2026-11-12; updated the same day for vendor pages, onboarding, event types, and the event listing)
 - [ ] Design brief and brand basics (`docs/design-brief.md`)
   - [ ] Audience and tone
-  - [ ] Logo, colors, typography
+  - [x] Logo direction: "Market grid" (chosen 2026-11-12, recorded in `docs/project-details.md`)
+  - [ ] Colors, typography
   - [ ] Reference sites
   - [ ] Mobile-first guidelines
-- [ ] Payment proof upload and approval screens (MVP)
-- [ ] Slot list and assignment, floor plan image upload, and admin organizer approval screens (MVP)
+- [x] UI mockup of every MVP screen, desktop and phone: "Creavent UI Mockup (MVP)" (2026-11-12). The docs were aligned with it the same day (see `docs/open-questions.md`, section K)
+- [x] Payment proof upload and approval screens (MVP)
+- [x] Slot list and assignment, floor plan image upload, and admin organizer approval screens (MVP). Event setup has the Details (dates and hours, applications close, ingress), Payments (payment options, deadline), and Slots tabs drawn. The Requirements, Policy, and Floor plan tabs are listed but not drawn on their own
+- [x] Onboarding screens, vendor page, and event listing (list, calendar, "Next 7 days") screens (MVP)
 - [ ] Contract signing screens ⚠️ (deferred, post-MVP)
 - [ ] Pricing, checkout, and payout screens ⚠️ (deferred, post-MVP)
 

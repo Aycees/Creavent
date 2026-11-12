@@ -28,21 +28,17 @@ All questions in this section are resolved. See "Resolved" below.
 
 | # | Question | Suggested |
 |---|---|---|
-| E1 | **Sending domain and sender name** for Resend, and who owns the domain? | Decided to wait: decide when a domain is chosen. The domain is not used during development (see H1). |
+| E1 | **Sending domain and sender name** for Resend, and who owns the domain? | Deferred again on 2026-11-12: decide when the domain is bought, before staging needs to send real email. Suggested: sender name "Creavent", address `notifications@<domain>`. Until then, development uses Resend's test sender (see H1). |
 
 E2 to E4 are resolved. See "Resolved" below.
 
 ## F. Product scope and market
 
-| # | Question | Suggested |
-|---|---|---|
-| F3 | **How will the team measure the MVP learning questions** in [Revenue model](revenue-model.md#2-what-the-mvp-should-teach-us) while analytics are out of scope? | Deferred on 2026-11-09 until the revenue model is revisited. Suggested then: the team queries the database and reads the admin views by hand. |
-
-F1, F2 and F4 are resolved. See "Resolved" below.
+All questions in this section are resolved. See "Resolved" below (F3 was decided on 2026-11-12).
 
 ## G. Legal and compliance (needs a lawyer)
 
-These are tracked in detail, with the full question list for the lawyer, in [Legal](legal.md). Development continues in the meantime, with seed data only.
+These are tracked in detail, with the full question list for the lawyer, in [Legal](legal.md). **Deferred on 2026-11-12:** every legal question and document is settled before the platform launches to the public. Until then, development works around them with seed data and placeholders (see [Legal §1](legal.md#1-the-rule-until-the-review-is-done)). They block the public launch, not development.
 
 | # | Question | Suggested |
 |---|---|---|
@@ -60,11 +56,23 @@ All questions in this section are resolved. See "Resolved" below.
 
 | # | Question | Suggested |
 |---|---|---|
-| I2 | **Public file domain:** the public bucket needs a custom domain on Cloudflare. R2's built-in public address is rate limited and meant for development only. | Pick the domain first (H1), then serve public files from a subdomain such as `files.<domain>`. Use the built-in address in development only. |
+| I2 | **Public file domain:** the public bucket needs a custom domain on Cloudflare. R2's built-in public address is rate limited and meant for development only. | Deferred again on 2026-11-12 with E1: pick the domain first (H1), then serve public files from `files.<domain>`. Use the built-in address in development only. Needed before staging is shared with testers. |
+
+## J. Public pages, onboarding, and event types
+
+All questions in this section are resolved. See "Resolved" below (J1 to J12, decided on 2026-11-12).
+
+## K. Mockup alignment
+
+All questions in this section are resolved. See "Resolved" below (K1 to K12, decided on 2026-11-12). The mockup fixes are listed under "Mockup fixes" below.
+
+## L. Multi-day events and payment options
+
+All questions in this section are resolved. See "Resolved" below (L1 to L4, decided on 2026-11-12).
 
 ## Resolved
 
-Decisions are written into the [Feature specification](feature-specification.md) (sections 1, 2, 2.1, 3.1, 3.3, 3.4, 4.2, 5, 6.1, 6.3, 6.4, 6.6, 7, 8, 9, 10, and 11).
+Decisions are written into the [Feature specification](feature-specification.md) (sections 1, 1.1, 2, 2.1, 3.1, 3.3, 3.4, 4.2, 5, 6.1, 6.3, 6.4, 6.6, 7, 7.2, 7.3, 8, 9, 10, and 11).
 
 **MVP simplification on 2026-11-12.** Several earlier decisions below were replaced when the MVP was simplified (spec §9). Each replaced row says so. In short: no identity verification (organizers are approved from public links, and vendors need no approval), organizer assignment is the only slot mode, floor plans are two uploaded images, payment deadlines are shown but not enforced, no messaging, no attendee accounts, fewer admin tools, and no HEIC.
 
@@ -97,7 +105,7 @@ Decisions are written into the [Feature specification](feature-specification.md)
 | B8 | *Replaced by S2.* Changing the mode clears every unpaid hold in one step, after a warning that lists the affected vendors, who are emailed. Reserved slots block the change. Changed from "remove every hold first" on 2026-11-12. | 2026-11-12 |
 | C1 | *Replaced by S2.* The floor plan is visible only once the organizer publishes it: to vendors while the event is open to vendors, and to attendees once it is announced. Vendor names appear only on reserved slots (payment approved by the organizer). Held slots show as "on hold" with no name. The accepted-vendors list shows vendors with a reserved slot only. Vendors see the same names. | 2026-11-09 |
 | C2 | *Replaced by S5.* Following an organizer sends an email when they announce a new event. Optional emails carry an unsubscribe link. | 2026-11-09 |
-| C3 | The listing shows upcoming events by date, with filters by location and date. | 2026-11-09 |
+| C3 | The listing shows upcoming events by date, with filters by location and date. (Updated for DD-C and DD-D: also filtered by event type, with List and Calendar views.) | 2026-11-09 |
 | C4 | Users sign in with Google, or with an email and password (verified at signup). No magic links. Changed from magic link on 2026-11-11. | 2026-11-11 |
 | C5 | Only logged-in users can report a user or event. (Updated for S5: attendees use the support email.) | 2026-11-09 |
 | C7 | Google sign-in on an account whose email was never verified verifies it and removes the old password. | 2026-11-12 |
@@ -110,6 +118,7 @@ Decisions are written into the [Feature specification](feature-specification.md)
 | E2 | *Updated for S3 and S5: there are no optional emails, reminders, or message emails.* Required emails (verification, application, payment, deadline, hold, removal, cancellation and changes, messages) always send. Optional emails (followed-organizer events) have an unsubscribe link. | 2026-11-09 |
 | E3 | The email is verified at signup. (Updated for S7: no bounce banner.) | 2026-11-09 |
 | E4 | *Replaced by S4.* Messages show an in-app unread indicator in addition to the email. | 2026-11-09 |
+| F3 | The MVP learning questions are answered with saved SQL queries kept in the repo (active and repeat organizers, events with applications, applications per event, slots filled, time to approve payments, rejected proofs, slot prices), run by hand each month. Event page views come from the hosting or Cloudflare traffic stats. No analytics service and no admin metrics page. | 2026-11-12 |
 | F1 | Launch in Davao City first. Currency is PHP, time zone is Asia/Manila, and the interface is in English with simple wording. | 2026-11-09 |
 | F2 | *Replaced by S2.* The floor plan editor is desktop-only (view-only on mobile). Everything else is mobile-first. | 2026-11-09 |
 | F4 | The MVP is free for everyone. The terms of use say fees may be introduced later with notice. | 2026-11-09 |
@@ -119,6 +128,70 @@ Decisions are written into the [Feature specification](feature-specification.md)
 | I4 | Event covers, organizer logos, avatars, vendor photos, and floor plan images are public. Proofs of payment, payment QR codes, and application documents are private. (Updated for S1 and S2.) | 2026-11-11 |
 | I5 | *Updated for S7.* Images accepted: JPEG, PNG, WebP, and HEIC (see I1). Documents may also be PDF. Public images get a `large` and a `small` size, and event covers are 16:9. Originals are not kept. | 2026-11-11 |
 | I6 | No virus scanning in the MVP. PDFs are only allowed in private purposes and are served as downloads. | 2026-11-11 |
+
+**Design decisions on 2026-11-12 (DD-A to DD-G).** Written into the spec the same day. Follow-up questions are in section J.
+
+| # | Decision | Date |
+|---|---|---|
+| DD-A | Public vendor pages are in the MVP at `/vendors/[slug]`, with no directory or search. They show profile content, "Find them next at", and "Where they've sold" (reserved slot at an announced event only). Phone, email, applications, documents, and payments are never shown. Hidden while the vendor is suspended or deleted. Vendors are told in onboarding and the terms. Replaces the earlier "not public in the MVP" rule. | 2026-11-12 |
+| DD-B | Vendors have `social_links` (optional) and an editable `slug`. | 2026-11-12 |
+| DD-C | Each event has one event type (Flea market, Bazaar, Pop-up), managed in seed data in an `event_types` table. Flea markets stay the focus. Attendees can filter by type. | 2026-11-12 |
+| DD-D | The event listing has List and Calendar views, a "Next 7 days" strip, and a "Sell at these events" link with a count. | 2026-11-12 |
+| DD-E | Signup asks "Sell at events" or "Run events", which only pre-selects the role in onboarding. The log in page has vendor and organizer account entry points. | 2026-11-12 |
+| DD-F | Vendor and organizer onboarding are 4 steps each, start after email confirmation, and save progress ("Finish later"). Permits are not saved to the profile. | 2026-11-12 |
+| DD-G | The logo is "Market grid", replacing the design system's "no other symbol" rule. | 2026-11-12 |
+
+**Follow-up questions on 2026-11-12 (J1 to J12).** Raised by DD-A to DD-G and decided the same day by accepting the suggested answers.
+
+| # | Decision | Date |
+|---|---|---|
+| J1 | Events canceled after they were announced are not shown on the vendor page. | 2026-11-12 |
+| J2 | Slugs (vendors, organizers, events): lowercase letters, numbers, and hyphens, 3 to 40 characters. Reserved words are blocked. A number is added when the slug is taken. Slugs are editable and the old link redirects. | 2026-11-12 |
+| J3 | The signup choice is not stored. It is only passed to onboarding. | 2026-11-12 |
+| J4 | Onboarding fields are saved as entered, and the last completed step is kept per role (`user_roles.onboarding_step`). | 2026-11-12 |
+| J5 | With both roles, the vendor flow runs first, then the organizer flow. Step 1 is shown once, and each flow shows its own "Step N of 4". | 2026-11-12 |
+| J6 | A vendor cannot apply until the shop name, mobile number, and at least one category are set. An organizer cannot create an event until the display name and mobile number are set. | 2026-11-12 |
+| J7 | Vendor city is optional and edited on the profile page, not in onboarding. | 2026-11-12 |
+| J8 | Signed-out visitors see the number of events open to vendors (number only). The link goes to Browse events for a signed-in vendor. | 2026-11-12 |
+| J9 | The weekend is Saturday and Sunday. Other days of the current week go under Later. | 2026-11-12 |
+| J10 | A vendor whose page is not shown stays in the event's vendor list without a link. A deleted account shows "Deleted user". | 2026-11-12 |
+| J11 | The event type can be changed until the event is announced. | 2026-11-12 |
+| J12 | Profile rows stay as empty shells after account deletion (`slug` null, `social_links` empty). | 2026-11-12 |
+
+**Mockup alignment on 2026-11-12 (K1 to K12).** The docs were compared with every screen of the "Creavent UI Mockup (MVP)". Where the mockup showed something the docs did not cover, the mockup was followed and written into the spec.
+
+| # | Decision | Date |
+|---|---|---|
+| K1 | Events can have an optional applications close date (no later than the event start). After it, vendors can't apply. The organizer can still close applications by hand. | 2026-11-12 |
+| K2 | Events have optional ingress details for vendors (for example, "From 3 PM, Gate 2"), shown to vendors with a slot. | 2026-11-12 |
+| K3 | Slots have an optional note. Organizers can add a numbered row of slots at once. Vendors see slots grouped by row with open counts. | 2026-11-12 |
+| K4 | A required document can apply to one category only (for example, a sanitary permit for food vendors). | 2026-11-12 |
+| K5 | The "Open to vendors" checklist has five required steps: details with cover, requirements (at least one category), policy, at least one slot, and payment instructions. The vendor floor plan is optional. | 2026-11-12 |
+| K6 | Event setup has "Preview as vendor". | 2026-11-12 |
+| K7 | With the proof, the vendor enters the amount sent (pre-filled) and an optional reference number, and the organizer sees both. | 2026-11-12 |
+| K8 | The organizer dashboard shows to-do counts per event and Upcoming and Past event tabs. The vendor dashboard is specified (spec §4.6). | 2026-11-12 |
+| K9 | The public event page shows each accepted vendor's category and slot number, a category filter, "Get directions", "Copy link", and a "Details updated" date. The listing has date presets and counts per type. | 2026-11-12 |
+| K10 | Suspension is per role (vendor or organizer), with a reason shown to the user. Hiding an event needs a reason, which is emailed to the organizer. | 2026-11-12 |
+| K11 | Admins add reports received by support email, so all reports are in one queue. Reports have a reference number, are grouped by target, and have an internal note. Organizer reviews have an optional internal note. | 2026-11-12 |
+| K12 | The links an organizer submits for approval are their public social links on the organizer page. Vendors who applied see the organizer's name, mobile, and contact email on their application page. | 2026-11-12 |
+
+**Multi-day events and payment options on 2026-11-12 (L1 to L4).**
+
+| # | Decision | Date |
+|---|---|---|
+| L1 | Events run 1 to 7 days in a row, with the same opening and closing time every day. No past-midnight hours, no different hours per day, and no non-consecutive dates. Stored in the existing `starts_at` and `ends_at`. | 2026-11-12 |
+| L2 | Vendors are locked in for the whole multi-day event: one slot, one price, one payment. No single-day slots. A multi-day event shows on each of its days in the calendar and "Next 7 days" strip, goes under a weekend when any of its days is that Saturday or Sunday, and matches a date filter when any of its days does. The payment deadline and applications close date are capped at the first day's opening. | 2026-11-12 |
+| L3 | Organizers add one or more payment options (GCash, bank transfer, QR, and so on). When uploading proof, the vendor selects the option they paid with, and the organizer sees it when reviewing (`payment_proofs.payment_method_id`). | 2026-11-12 |
+| L4 | The mockup fixes are made in the mockup: "Vintage" as the category name, the payment option on the proof upload and review, and screen-reader labels on the badge seals (the badges were already there). Two Friday to Sunday markets are added to the mockup as multi-day examples. | 2026-11-12 |
+
+## Mockup fixes
+
+Done on 2026-11-12 (L4). The mockup was updated to match the spec:
+- Event cards already showed the "Approved by Creavent" badge (some as an icon-only seal). The earlier note that some were missing was wrong. The seals that had no screen-reader label now have one, and the calendar day panel shows the badge too.
+- Two events now show multi-day: Pasalubong and Handmade Fair (Fri, Nov 20 to Sun, Nov 22) on the listing and calendar, and Lanang Holiday Flea (Fri, Dec 18 to Sun, Dec 20) on the vendor event page, where each slot covers all 3 days.
+- The vendor event page uses the category name "Vintage", like onboarding and the seed list.
+- The vendor picks the payment option they paid with when uploading proof, and the organizer's proof review shows it (L3).
+- Event setup now has a Details tab (desktop and phone) with start and end date, daily opening and closing time, venue, vendor contact details, applications close date, and ingress details, and a Payments tab (desktop, with the existing phone screen updated) with payment options (GCash, Maya, bank transfer, other) and the deadline.
 
 ## Deferred with their features
 
