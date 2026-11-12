@@ -2,7 +2,7 @@
 
 **Status:** First draft. Kept simple on purpose: the main path for each task, plus the edge cases ordinary users are likely to hit. The rules behind each step are in the [Feature specification](feature-specification.md). If this file and the spec disagree, the spec wins.
 
-Last updated: 2026-11-11
+Last updated: 2026-11-12
 
 User stories with acceptance criteria are not written yet. They can be added per flow once these flows are agreed.
 
@@ -34,14 +34,16 @@ The full path to a confirmed spot: **1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 
 ## 1. Sign up and add a role
 
-1. The user signs up with email or Google, then verifies their email.
+1. The user signs up with Google, or with their name, email, and a password. They accept the terms and privacy notice and confirm they are 18 or older. Then they verify their email.
 2. Attendees stop here. They can now save and follow events.
 3. To sell or organize, the user adds a role from their account: **vendor**, **organizer**, or both.
 4. With both roles, a switch moves the user between the vendor and organizer dashboards.
 
 **Edge cases**
-- **Magic link expired or opened on another device:** the user sees "This link has expired" and a button to send a new one. **(screen)**
-- **Signs in with Google using an email that already has an account:** it opens the same account, not a new one. Spec §1.
+- **Verification link expired:** the user sees "This link has expired" and a button to send a new one. **(screen)**
+- **Forgot password:** the user asks for a reset link by email, then sets a new password. The link expires. **(screen)**
+- **Signs in with Google using an email that already has an account:** it opens the same account, not a new one. If that account was never verified, Google verifies it and the old password stops working. Spec §1.
+- **The terms or privacy notice changed since they last signed in:** they see the new version and accept it before continuing. Spec §1.
 - **Email typo at signup:** the email isn't verified, so the account stays unconfirmed until the user fixes it. If emails bounce later, a banner asks them to update the address. Spec §8.1.
 
 ## 2. Get verified
@@ -67,14 +69,14 @@ The full path to a confirmed spot: **1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 2. Set vendor requirements: allowed product categories, limits on similar vendors, required permits.
 3. Write the cancellation and withdrawal policy.
 4. Choose the slot selection mode: open selection, category selection, or organizer assignment.
-5. Build the floor plan: slots (with sizes, numbers, and categories in modes 2 and 3), walkways, and other areas. Set prices and the slots-per-vendor limit.
+5. Build the floor plan: slots (with sizes, numbers, and categories in modes 2 and 3), walkways, and other areas. Set prices.
 6. Add payment instructions (account details or QR code) and the payment deadline (24 hours by default).
 7. Publish the floor plan, then **open the event to vendors**. Vendors can now find it and apply. Attendees can't see it yet.
 
 **Edge cases**
 - **Organizer on a phone opens the floor plan:** it's view-only, with a note "Edit the floor plan on a computer". Everything else works on mobile. Spec §3.4.
 - **Required setup is missing (no payment instructions, no slots, no policy):** "Open to vendors" lists what's missing. **(screen)**
-- **Organizer wants to change the mode after vendors hold slots:** blocked until every hold is released or removed. A warning lists the affected vendors. Spec §5.
+- **Organizer wants to change the mode after vendors hold slots:** a warning lists the affected vendors. Confirming clears their holds and emails them. If any slot is already reserved, the change is blocked until the organizer removes that vendor. Spec §5.
 - **Organizer changes the price or GCash number after vendors hold slots:** only new holds use the new values. Vendors who already hold slots keep what they were shown. Spec §6.1.
 - **Organizer tries to delete or resize a held or reserved slot:** blocked with "Remove the vendor from this slot first". Spec §3.4.
 
@@ -91,6 +93,7 @@ The full path to a confirmed spot: **1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 - **Vendor isn't verified yet:** "Apply" is replaced with "Get verified to apply". Spec §4.2.
 - **Vendor's product category isn't allowed at this event:** the event page says which categories are accepted before they apply. **(screen)**
 - **Applications are closed:** "Apply" is replaced with "Applications closed". The vendor can still message the organizer. **(screen)**
+- **Vendor changes their mind before a decision:** they withdraw the application, and the organizer gets an email. They can apply again later. Spec §4.2.
 - **Vendor was declined before:** they can apply again. Spec §3.3.
 - **Vendor was removed before:** they can apply again only if the organizer allowed it. Otherwise they see "You can't reapply to this event". Spec §3.3.
 
@@ -124,7 +127,7 @@ The full path to a confirmed spot: **1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 - **Two vendors tap the same slot at the same moment:** the first one gets it. The second sees "This slot was just taken. Pick another." Spec §5.
 - **Approved, but no slots are open (or none in the vendor's category):** the vendor sees "No slots open right now. Message the organizer or check back later." There's no waitlist. Spec §4.3.
 - **Vendor wants a different slot:** they release the hold and pick again. There's no "move" button. Spec §5.
-- **Vendor tries to hold more slots than the limit:** the extra slots can't be held, and a note says "Up to N slots per vendor". Spec §5.
+- **Vendor already holds a slot and tries to hold another:** the second slot can't be held, and a note says "You can hold one slot per event. Release your current slot to pick another." Spec §5.
 - **Event is already announced:** vendors can't pick slots anymore. Only the organizer can assign open slots. Spec §5.
 - **Mode 3: the vendor misses the assignment email:** a reminder email goes out when 6 hours are left. Spec §8.1.
 
@@ -150,7 +153,7 @@ The full path to a confirmed spot: **1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 - **Proof rejected close to the event:** the 12-hour window ends at the event start if that comes first. Spec §5.
 - **Deadline passes with no proof:** the hold expires, the slot opens again, and both sides get an email. Spec §6.4.
 - **Vendor needs more time:** they message the organizer, who can extend that vendor's deadline. Spec §6.3.
-- **Vendor holds two slots and pays once for both:** *not decided yet.* See [open question A8](open-questions.md#a-payments). Until then, the vendor uploads the same screenshot for each slot.
+- **Vendor paid in cash, or someone else paid for them:** the organizer approves without a proof image and adds a note, for example "Paid cash at the office". Spec §6.3.
 - **The organizer's payment details looked suspicious:** the vendor can report the organizer with the report button. Spec §6.6.
 
 ## 8. Announce the event
@@ -195,7 +198,8 @@ The full path to a confirmed spot: **1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 
 1. Open Creavent → see upcoming announced events, soonest first. Filter by location and date.
 2. Open an event: schedule, location, description, organizer with verified badge, floor plan, and the vendor list.
-3. Optional: sign in (magic link or Google) to **save** the event, or **follow** the event or the organizer.
+3. Tap the organizer to open their organizer page: about, social links, upcoming and past events. Spec §7.1.
+4. Optional: sign in (Google, or email and password) to **save** the event, or **follow** the event or the organizer.
 
 **Edge cases**
 - **Attendee wants to ask the organizer a question:** there's no contact option in the MVP. The page shows the public details only. Spec §7.

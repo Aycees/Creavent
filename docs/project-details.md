@@ -16,6 +16,7 @@ Creavent is a web platform that brings vendor-based community events together in
 - **Devices:** mobile-first for vendors and attendees. The organizer's floor plan editor is desktop-only, and organizers see the floor plan view-only on mobile.
 - **MVP pricing:** the MVP is free for everyone. The terms of use say that fees may be introduced later with notice.
 - **MVP notifications:** email, sent through Resend. Required emails (verification, payment, deadlines, changes) always send, and optional ones have an unsubscribe link. Messages also show an in-app unread indicator.
+- **Hosting and files:** the web app, API, and database are hosted on Render. Uploaded files (event covers, vendor photos, proofs of payment, and documents) are stored in Cloudflare R2 through the S3 SDK. See [File uploads](feature-specification.md#11-file-uploads) and [Architecture](architecture.md).
 
 The platform is described in general terms (events, organizers, vendors, attendees) so it can grow beyond flea markets later.
 
@@ -43,10 +44,10 @@ Plans, promotes, and runs events.
 - Set vendor requirements (product categories, limits on similar vendors, required permits)
 - Open vendor applications, then approve or decline them. There is no cap on applications
 - Build a floor plan with slots of different sizes, walkways, and other areas, and publish it
-- Choose a slot selection mode: open selection, category selection, or organizer assignment. The mode can be changed later only after all holds are released
-- Set slot pricing, per slot if needed (the full price is paid by the vendor), and a limit on slots per vendor (default 1)
+- Choose a slot selection mode: open selection, category selection, or organizer assignment. Changing the mode later clears unpaid holds after a warning, and reserved slots block it
+- Set slot pricing, per slot if needed (the full price is paid by the vendor)
 - Publish payment instructions (any account or QR) and set the payment deadline (24 hours by default). The price and instructions are locked onto each slot when it is held
-- Review proof of payment and approve or reject it. The deadline stops while proof waits for review, and a rejected vendor gets 12 hours to re-upload
+- Review proof of payment and approve or reject it. The deadline stops while proof waits for review, and a rejected vendor gets 12 hours to re-upload. A payment made in cash can be approved without proof, with a note
 - Remove a vendor (for example, a cancellation). Their payment records are kept (archived) for both sides
 - Write their own cancellation and withdrawal policy and show it on the event page
 - Message vendors and keep the event page details up to date
@@ -57,8 +58,8 @@ Finds events to join and manages participation.
 
 - Add the vendor role to their account, get verified, and create a profile
 - Browse and search upcoming events
-- View event requirements, then apply and submit permits. Reapply after a decline (after a removal, only if the organizer allows it)
-- View the floor plan and choose and hold a slot, or wait for the organizer to assign one. A vendor can hold more than one slot if the organizer's per-vendor limit allows
+- View event requirements, then apply and submit permits. Withdraw an application before the organizer decides. Reapply after a decline (after a removal, only if the organizer allows it)
+- View the floor plan and choose and hold a slot, or wait for the organizer to assign one. A vendor can hold only one slot per event (for now)
 - Release a held slot, or message the organizer to withdraw after reserving
 - Pay the organizer directly and upload proof of payment before the deadline
 - Message the organizer
@@ -71,9 +72,9 @@ Discovers events and plans visits. An account is optional.
 
 - Browse upcoming announced events by date, filtered by location and date range
 - View event details, the floor plan once the organizer publishes it (vendor names appear only on reserved slots), and the list of accepted vendors (reserved slots only)
-- See verified organizers
+- See verified organizers, and open an organizer's page (details, social links, upcoming and past events)
 - See the latest event details
-- Optionally sign in (email magic link or Google) to save events, or follow events and organizers and get an email when a followed organizer announces a new event
+- Optionally sign in (Google, or email and password) to save events, or follow events and organizers and get an email when a followed organizer announces a new event
 - Report an event or user (signed-in users only)
 - Attendees cannot contact organizers in the MVP
 

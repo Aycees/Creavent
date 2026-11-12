@@ -10,6 +10,8 @@ Legend: ⚠️ = the item is partly deferred until the final revenue model is de
 - [x] Feature specification: detailed MVP behavior, rules, notifications, out of scope (`docs/feature-specification.md`)
 - [x] Open questions log for future discussion (`docs/open-questions.md`)
 - [x] Revenue model and strategy (`docs/revenue-model.md`): MVP decision made, final model deferred
+- [x] Data model (`docs/data-model.md`): first draft
+- [x] Technical architecture (`docs/architecture.md`)
 
 ## Phase 1: Foundation
 
@@ -29,7 +31,7 @@ Legend: ⚠️ = the item is partly deferred until the final revenue model is de
 
 ## Phase 2: UI design
 
-- [ ] Information architecture and sitemap (`docs/sitemap.md`)
+- [x] Information architecture and sitemap (`docs/sitemap.md`) (first draft, 2026-11-12)
 - [ ] Design brief and brand basics (`docs/design-brief.md`)
   - [ ] Audience and tone
   - [ ] Logo, colors, typography
@@ -42,15 +44,15 @@ Legend: ⚠️ = the item is partly deferred until the final revenue model is de
 
 ## Phase 3: Technical
 
-- [ ] Technical architecture (`docs/architecture.md`)
-  - [ ] Stack, hosting, auth, file storage (proof-of-payment images and verification documents)
-  - [ ] Email through Resend, and scheduled jobs for hold expiry and deadline reminders
-  - [ ] Role-based access, including admin access to all roles and an audit log
-  - [ ] Floor plan editor approach
-  - [ ] Payments approach: manual proof upload for MVP; online payment integration ⚠️ deferred
-- [ ] Data model / ERD (`docs/data-model.md`) ⚠️ partially
-  - [ ] Payment and payment proof tables (MVP)
-  - [ ] Fee tables ⚠️ (design the fields, leave unused until online payments)
+- [x] Technical architecture (`docs/architecture.md`)
+  - [x] Stack, hosting, auth, file storage (proof-of-payment images and verification documents). Decided so far: Render for web, API, and database; Cloudflare R2 with the S3 SDK for files (spec §11)
+  - [x] Email through Resend, and scheduled jobs for hold expiry and deadline reminders
+  - [x] Role-based access, including admin access to all roles and an audit log
+  - [x] Floor plan editor approach
+  - [x] Payments approach: manual proof upload for MVP; online payment integration ⚠️ deferred
+- [x] Data model / ERD (`docs/data-model.md`) (first draft, 2026-11-11)
+  - [x] Payment and payment proof tables (MVP)
+  - [x] Fee fields ⚠️ (designed on `payments`, unused until online payments)
 - [ ] API outline (`docs/api.md`)
 
 ## Phase 4: Supporting (can run in parallel)
@@ -58,8 +60,8 @@ Legend: ⚠️ = the item is partly deferred until the final revenue model is de
 - [ ] Success metrics (`docs/success-metrics.md`) ⚠️ partially
   - [ ] MVP metrics: active organizers, events published, applications, slots filled, repeat organizers
   - [ ] Revenue metrics ⚠️ (deferred)
-- [ ] Legal and compliance notes (`docs/legal.md`) ⚠️ partially
-  - [ ] MVP: Creavent holds no funds; privacy rules for proof-of-payment images and verification documents
+- [ ] Legal and compliance notes (`docs/legal.md`) ⚠️ partially (question list written 2026-11-12, lawyer review pending)
+  - [x] MVP: Creavent holds no funds; privacy rules for proof-of-payment images and verification documents
   - [ ] Terms of use and privacy policy (retention, no-liability for payments)
   - [ ] Philippine Data Privacy Act and E-Commerce Act checks (see `docs/open-questions.md`)
   - [ ] Online payments, fund holding, and tax (VAT) ⚠️ (deferred, confirm with local accountant and lawyer)

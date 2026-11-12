@@ -15,8 +15,12 @@ The MVP is built around flea markets and flea market organizers. The platform is
 - [Project details](docs/project-details.md): description, scope, the features for each role, and the features to be implemented after the MVP.
 - [Feature specification](docs/feature-specification.md): detailed MVP behavior, rules, notifications, out-of-scope items, and open questions.
 - [User flows](docs/user-flows.md): the main path for each task, with the edge cases ordinary users are likely to hit.
+- [Data model](docs/data-model.md): tables, statuses, rules the database enforces, and retention.
+- [Sitemap](docs/sitemap.md): every page in the MVP, who can open it, and the navigation.
+- [Legal](docs/legal.md): positions and questions for the legal review before real users' data is collected.
 - [Open questions](docs/open-questions.md): unresolved questions to discuss in future sessions.
 - [Revenue model](docs/revenue-model.md): MVP payment approach, all candidate revenue strategies, and open questions.
+- [Architecture](docs/architecture.md): tech stack, code structure, auth, jobs, files, environments, backups, and testing.
 - [Documentation checklist](docs/documentation-checklist.md): documents still needed before development and UI design.
 
 ## Status

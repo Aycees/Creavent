@@ -1,0 +1,75 @@
+# Creavent Legal and Compliance Notes
+
+**Status:** Working notes, not legal advice. Development continues while the team discusses these questions. Every item here needs a Philippine lawyer's confirmation **before real users' data is collected** (section 1).
+
+Last updated: 2026-11-12
+
+## 1. The rule until the review is done
+
+- Build and test with seed data and test accounts only, on local and staging.
+- **Do not collect real IDs, selfies, permits, or payment screenshots** until the privacy notice and terms of use are reviewed. A pilot with friendly organizers counts as real data.
+- Placeholders in the app (minimum age, retention periods, terms and privacy text) are settings or content, so the lawyer's answers do not need code changes ([Data model §5.12](data-model.md#512-audit-log-and-settings)).
+
+## 2. Positions to confirm
+
+What Creavent already does, written so the lawyer can confirm or correct it.
+
+| # | Position | Where it is decided |
+|---|---|---|
+| P1 | Creavent never processes, holds, or refunds money. Vendors pay organizers directly. Disputes are between the two. | [Revenue model §1](revenue-model.md#1-mvp-decision), spec §6 |
+| P2 | Organizers are verified with a government ID, a selfie holding it, and a proof of operation. The badge means "documents checked", not a guarantee. | Spec §2.1 |
+| P3 | A notice is shown with every set of payment instructions: Creavent does not hold or guarantee payments. | Spec §6.6 |
+| P4 | Private files (IDs, selfies, permits, proofs, payment QR codes) are seen only by the people listed in spec §11.1, through links that expire in 5 minutes. | Spec §6.5, §11 |
+| P5 | Photo metadata (including GPS location) is removed from every image. | Spec §11.5 |
+| P6 | Every admin action on behalf of a user, and every admin view of a verification document, is logged. | Spec §2 |
+| P7 | Payment records are deleted 90 days after the event. | Spec §6.7 |
+| P8 | Verification documents are kept until a period is set (currently no limit). | [Data model §8](data-model.md#8-retention-and-archiving) |
+| P9 | Users can deactivate or delete their account. Deletion wipes personal data but keeps records others rely on. | Spec §1 |
+| P10 | Deleted data stays in database backups for up to 30 days. | [Architecture §9.3](architecture.md#93-backups) |
+| P11 | Users accept the terms and privacy notice at signup, and each accepted version is recorded. | Spec §1 |
+| P12 | Users confirm they are at least 18 at signup. | Spec §1 |
+
+## 3. Questions for the team (before the lawyer)
+
+| # | Question | Notes |
+|---|---|---|
+| T1 | **Who is the legal entity** running Creavent: a registered business (DTI or SEC), a sole proprietor, or not set up yet? | Decides who the "personal information controller" is in the privacy notice, and who signs the terms. |
+| T2 | **Who is the Data Protection Officer?** | Required for any organization that handles personal data. Can be a team member. |
+| T3 | **Minimum age for attendees:** 18 like everyone else, or lower? | Vendors and organizers are 18+ in any case, because they handle IDs and money. |
+| T4 | **When is launch** (or the first pilot with real users)? | The lawyer review has to finish before then. |
+| T5 | **Budget for legal help:** one consultation plus a review of the drafts, or ongoing? | The minimum is in section 5. |
+
+## 4. Questions for the lawyer
+
+| # | Question | Why it matters |
+|---|---|---|
+| L1 | **Data Privacy Act (RA 10173):** are government ID images and ID numbers "sensitive personal information"? What consent and security does that require? | IDs are collected from every vendor and organizer. Penalties include prison terms. |
+| L2 | **Selfie with ID:** is a selfie used to match an ID face "biometric data"? | Raises the bar for consent and storage. |
+| L3 | **NPC registration:** does Creavent need to register its data processing systems with the National Privacy Commission at launch, or only above a threshold? | The thresholds depend on how many people's sensitive data is processed. |
+| L4 | **Retention:** how long may verification documents be kept after an account closes? Is 90 days right for payment records? (G2) | Replaces the placeholders P7 and P8. |
+| L5 | **Breach plan:** what must be reported to the NPC and to users, and how fast? | Needed before launch. |
+| L6 | **Internet Transactions Act (RA 11967):** does Creavent count as an e-marketplace or digital platform, even though it never handles money? What duties follow (seller verification, complaint handling, takedowns)? | Could add obligations to the MVP. |
+| L7 | **Liability for the verified badge:** if a verified organizer scams vendors, could Creavent be held responsible? How should "verified" and the payment notice be worded? | Vendors are told to trust verified organizers. Broad disclaimers can be struck down. |
+| L8 | **Terms of use:** what must they contain to be enforceable under Philippine law (roles, suspension, no part in payments, fees later with notice, retention)? (G4) | Templates from other countries often do not fit. |
+| L9 | **Clickwrap acceptance:** is a checkbox at signup, with a recorded version, enough under the E-Commerce Act (RA 8792)? | This is how P11 works. |
+| L10 | **Minimum age:** is 18 required for vendors and organizers? What applies to minors as attendees? | Confirms P12 and T3. |
+| L11 | **Privacy notice:** what must it say (purposes, sharing with organizers and admins, retention, backups, rights, DPO contact)? (G3) | Drafted from section 2, finalized by the lawyer. |
+| L12 | **Users' data rights:** what must the app support (access, correction, export, deletion), and how fast must requests be answered? | Deletion exists. Export may need to be added. |
+| L13 | **Service providers abroad:** data is stored with Render (Singapore) and Cloudflare R2, and email goes through Resend. Is anything needed for storing personal data outside the Philippines? | Cross-border transfer rules. |
+| L14 | **E-signatures (post-MVP):** is a typed name plus a drawn signature valid? (G1) | Only before contract signing is built. |
+| L15 | **Tax (post-MVP):** when do fees trigger VAT and BIR registration? (G5) | Only before fees start. |
+
+## 5. Minimum legal work before launch
+
+1. Answer T1 to T5 within the team.
+2. One consultation with a lawyer who knows data privacy, using section 4 as the agenda.
+3. Lawyer review of the privacy notice and terms of use, drafted from sections 2 and 4.
+4. Appoint the DPO and write a short breach plan.
+5. Update the placeholders (minimum age, retention, terms and privacy versions) in the admin settings.
+6. A check-in later, before fees, online payments, or contract signing are added.
+
+## 6. Documents to draft
+
+- **Privacy notice** (`/privacy`): drafted from section 2, finalized after L1 to L5, L11 to L13.
+- **Terms of use** (`/terms`): drafted from section 2, finalized after L6 to L10.
+- **Breach plan:** internal, after L5.

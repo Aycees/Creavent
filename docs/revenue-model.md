@@ -2,7 +2,7 @@
 
 **Status:** Draft. The MVP approach is decided. The long-term revenue model is not, and will be finalized after the MVP shows how organizers and vendors actually use the platform.
 
-Last updated: 2026-11-09
+Last updated: 2026-11-12
 
 ## 1. MVP decision
 
@@ -27,10 +27,6 @@ For the MVP, Creavent does **not** earn revenue. The goal is to gain users and l
 - No revenue from payments during the MVP.
 - Organizers can verify payments incorrectly or be slow to approve. Mistakes and disputes stay between the two parties.
 - Nothing stops organizers and vendors from working around the platform, because payment is not routed through it. Creavent's value in the MVP has to come from discovery, applications, floor plans, and organization, not from the payment itself.
-
-### Launch pricing display
-
-Show a "service fee: ₱0 (launch offer)" wherever a fee will eventually appear, so users are not surprised when fees start.
 
 ## 2. What the MVP should teach us
 
@@ -180,3 +176,4 @@ A starting view, not a decision.
 |---|---|
 | 2026-11-07 | MVP focuses on gaining users. Payments are manual: vendors upload proof of payment, organizers approve. No platform fee and no payment gateway in the MVP. The final revenue model is deferred until after the MVP. |
 | 2026-11-09 | To keep the MVP simple, contract signing, the deposit option, the waitlist, and event announcements move to "Features to be implemented" in [Project details](project-details.md#features-to-be-implemented). Payments are full price only. |
+| 2026-11-12 | No "service fee: ₱0 (launch offer)" display in the MVP, because no screen shows a fee yet. The terms of use still say fees may come later with notice. |
