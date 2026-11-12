@@ -33,13 +33,17 @@ What Creavent already does, written so the lawyer can confirm or correct it.
 
 ## 3. Questions for the team (before the lawyer)
 
-| # | Question | Notes |
-|---|---|---|
-| T1 | **Who is the legal entity** running Creavent: a registered business (DTI or SEC), a sole proprietor, or not set up yet? | Decides who the "personal information controller" is in the privacy notice, and who signs the terms. |
-| T2 | **Who is the Data Protection Officer?** | Required for any organization that handles personal data. Can be a team member. |
-| T3 | **Minimum age for attendees:** settled for the MVP, since attendees have no accounts. Revisit when attendee accounts are added. | Vendors and organizers are 18+, because they handle permits and money. |
-| T4 | **When is launch** (or the first pilot with real users)? | The lawyer review has to finish before then. |
-| T5 | **Budget for legal help:** one consultation plus a review of the drafts, or ongoing? | The minimum is in section 5. |
+Answered by the team on 2026-11-12. **All legal concerns and documents will be handled before the platform launches to the public.** Until then, development works around them (section 1), and the open answers below are filled in later.
+
+| # | Question | Notes | Answer (2026-11-12) |
+|---|---|---|---|
+| T1 | **Who is the legal entity** running Creavent: a registered business (DTI or SEC), a sole proprietor, or not set up yet? | Decides who the "personal information controller" is in the privacy notice, and who signs the terms. | Not set up yet. Set up before launch. |
+| T2 | **Who is the Data Protection Officer?** | Required for any organization that handles personal data. Can be a team member. | Not decided. Appoint before launch. |
+| T3 | **Minimum age for attendees:** settled for the MVP, since attendees have no accounts. Revisit when attendee accounts are added. | Vendors and organizers are 18+, because they handle permits and money. | Settled. |
+| T4 | **When is launch** (or the first pilot with real users)? | The lawyer review has to finish before then. | No date yet. The pilot waits for the entity, the DPO, and the legal review. |
+| T5 | **Budget for legal help:** one consultation plus a review of the drafts, or ongoing? | The minimum is in section 5. | Not decided. Settled before launch. |
+
+**Before public launch (blocking):** T1, T2, T4, T5, the lawyer questions in section 4 (L2, L14, and L15 can wait for their post-MVP features), and the documents in section 6.
 
 ## 4. Questions for the lawyer
 
@@ -68,7 +72,7 @@ What Creavent already does, written so the lawyer can confirm or correct it.
 2. One consultation with a lawyer who knows data privacy, using section 4 as the agenda.
 3. Lawyer review of the privacy notice and terms of use, drafted from sections 2 and 4.
 4. Appoint the DPO and write a short breach plan.
-5. Update the placeholders (minimum age, retention, terms and privacy versions) in the admin settings.
+5. Update the placeholders (minimum age, retention, terms and privacy versions) in the configuration values ([Data model §5.11](data-model.md#511-configuration)). There are no admin settings pages.
 6. A check-in later, before fees, online payments, or contract signing are added.
 
 ## 6. Documents to draft

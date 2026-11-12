@@ -42,7 +42,7 @@ Legend: ⚠️ = the item is partly deferred until the final revenue model is de
   - [ ] Mobile-first guidelines
 - [x] UI mockup of every MVP screen, desktop and phone: "Creavent UI Mockup (MVP)" (2026-11-12). The docs were aligned with it the same day (see `docs/open-questions.md`, section K)
 - [x] Payment proof upload and approval screens (MVP)
-- [x] Slot list and assignment, floor plan image upload, and admin organizer approval screens (MVP). The floor plan tab is listed in event setup but not drawn on its own
+- [x] Slot list and assignment, floor plan image upload, and admin organizer approval screens (MVP). Event setup has the Details (dates and hours, applications close, ingress), Payments (payment options, deadline), and Slots tabs drawn. The Requirements, Policy, and Floor plan tabs are listed but not drawn on their own
 - [x] Onboarding screens, vendor page, and event listing (list, calendar, "Next 7 days") screens (MVP)
 - [ ] Contract signing screens ⚠️ (deferred, post-MVP)
 - [ ] Pricing, checkout, and payout screens ⚠️ (deferred, post-MVP)

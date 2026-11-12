@@ -28,21 +28,17 @@ All questions in this section are resolved. See "Resolved" below.
 
 | # | Question | Suggested |
 |---|---|---|
-| E1 | **Sending domain and sender name** for Resend, and who owns the domain? | Decided to wait: decide when a domain is chosen. The domain is not used during development (see H1). |
+| E1 | **Sending domain and sender name** for Resend, and who owns the domain? | Deferred again on 2026-11-12: decide when the domain is bought, before staging needs to send real email. Suggested: sender name "Creavent", address `notifications@<domain>`. Until then, development uses Resend's test sender (see H1). |
 
 E2 to E4 are resolved. See "Resolved" below.
 
 ## F. Product scope and market
 
-| # | Question | Suggested |
-|---|---|---|
-| F3 | **How will the team measure the MVP learning questions** in [Revenue model](revenue-model.md#2-what-the-mvp-should-teach-us) while analytics are out of scope? | Deferred on 2026-11-09 until the revenue model is revisited. Suggested then: the team queries the database and reads the admin views by hand. |
-
-F1, F2 and F4 are resolved. See "Resolved" below.
+All questions in this section are resolved. See "Resolved" below (F3 was decided on 2026-11-12).
 
 ## G. Legal and compliance (needs a lawyer)
 
-These are tracked in detail, with the full question list for the lawyer, in [Legal](legal.md). Development continues in the meantime, with seed data only.
+These are tracked in detail, with the full question list for the lawyer, in [Legal](legal.md). **Deferred on 2026-11-12:** every legal question and document is settled before the platform launches to the public. Until then, development works around them with seed data and placeholders (see [Legal §1](legal.md#1-the-rule-until-the-review-is-done)). They block the public launch, not development.
 
 | # | Question | Suggested |
 |---|---|---|
@@ -60,7 +56,7 @@ All questions in this section are resolved. See "Resolved" below.
 
 | # | Question | Suggested |
 |---|---|---|
-| I2 | **Public file domain:** the public bucket needs a custom domain on Cloudflare. R2's built-in public address is rate limited and meant for development only. | Pick the domain first (H1), then serve public files from a subdomain such as `files.<domain>`. Use the built-in address in development only. |
+| I2 | **Public file domain:** the public bucket needs a custom domain on Cloudflare. R2's built-in public address is rate limited and meant for development only. | Deferred again on 2026-11-12 with E1: pick the domain first (H1), then serve public files from `files.<domain>`. Use the built-in address in development only. Needed before staging is shared with testers. |
 
 ## J. Public pages, onboarding, and event types
 
@@ -122,6 +118,7 @@ Decisions are written into the [Feature specification](feature-specification.md)
 | E2 | *Updated for S3 and S5: there are no optional emails, reminders, or message emails.* Required emails (verification, application, payment, deadline, hold, removal, cancellation and changes, messages) always send. Optional emails (followed-organizer events) have an unsubscribe link. | 2026-11-09 |
 | E3 | The email is verified at signup. (Updated for S7: no bounce banner.) | 2026-11-09 |
 | E4 | *Replaced by S4.* Messages show an in-app unread indicator in addition to the email. | 2026-11-09 |
+| F3 | The MVP learning questions are answered with saved SQL queries kept in the repo (active and repeat organizers, events with applications, applications per event, slots filled, time to approve payments, rejected proofs, slot prices), run by hand each month. Event page views come from the hosting or Cloudflare traffic stats. No analytics service and no admin metrics page. | 2026-11-12 |
 | F1 | Launch in Davao City first. Currency is PHP, time zone is Asia/Manila, and the interface is in English with simple wording. | 2026-11-09 |
 | F2 | *Replaced by S2.* The floor plan editor is desktop-only (view-only on mobile). Everything else is mobile-first. | 2026-11-09 |
 | F4 | The MVP is free for everyone. The terms of use say fees may be introduced later with notice. | 2026-11-09 |
@@ -194,6 +191,7 @@ Done on 2026-11-12 (L4). The mockup was updated to match the spec:
 - Two events now show multi-day: Pasalubong and Handmade Fair (Fri, Nov 20 to Sun, Nov 22) on the listing and calendar, and Lanang Holiday Flea (Fri, Dec 18 to Sun, Dec 20) on the vendor event page, where each slot covers all 3 days.
 - The vendor event page uses the category name "Vintage", like onboarding and the seed list.
 - The vendor picks the payment option they paid with when uploading proof, and the organizer's proof review shows it (L3).
+- Event setup now has a Details tab (desktop and phone) with start and end date, daily opening and closing time, venue, vendor contact details, applications close date, and ingress details, and a Payments tab (desktop, with the existing phone screen updated) with payment options (GCash, Maya, bank transfer, other) and the deadline.
 
 ## Deferred with their features
 

@@ -44,7 +44,7 @@ Questions the MVP should answer before the revenue model is finalized. These fee
 
 **Suggested trigger for revisiting monetization** (a guess, adjust it): about 8–10 active organizers and 25 or more events with applications through the platform, with some repeat organizers.
 
-Note: analytics dashboards are out of scope for the MVP (see [Feature specification](feature-specification.md#9-out-of-scope-for-the-mvp)). How these questions get measured is still undecided. See [Open questions](open-questions.md).
+Note: analytics dashboards are out of scope for the MVP (see [Feature specification](feature-specification.md#9-out-of-scope-for-the-mvp)). They are measured with saved SQL queries kept in the repo and run by hand, plus the hosting or Cloudflare traffic stats for event page views (decided 2026-11-12, F3 in [Open questions](open-questions.md)).
 
 ## 3. Revenue strategies (catalog)
 
