@@ -25,4 +25,35 @@ The MVP is built around flea markets and flea market organizers. The platform is
 
 ## Status
 
-Early planning. No application code yet.
+Codebase set up: monorepo, web and API skeletons, and the design system from the UI mockup. No features built yet.
+
+## Development
+
+Requirements: Node 24, pnpm 9, Docker (for local Postgres).
+
+```
+apps/web         Next.js (App Router), Tailwind v4, shadcn/ui (Radix)
+apps/api         NestJS with Prisma (schema not written yet)
+packages/shared  Zod schemas and types shared by web and api
+```
+
+First run:
+
+```bash
+pnpm install
+cp apps/api/.env.example apps/api/.env
+pnpm db:up
+pnpm dev
+```
+
+The web app runs on http://localhost:3000 and forwards `/api/*` to the API on port 3001 ([Architecture §4.3](docs/architecture.md#43-sessions)).
+
+Other commands: `pnpm build`, `pnpm lint`, `pnpm typecheck`, `pnpm test`.
+
+### Design system
+
+- **Tokens** live in `apps/web/src/styles/tokens.css`, taken from the mockup's `creavent.css` and the [Design brief](docs/design-brief.md). Tailwind's default colors, type sizes, radii, shadows, and breakpoints are turned off, so only Creavent tokens work: `bg-surface`, `text-ink`, `text-h2`, `rounded-lg`, `shadow-sm`, and one breakpoint, `md` (760 px).
+- **Components** live in `apps/web/src/components/ui`. Shadcn components are restyled to the tokens. Creavent-only pieces (logo, date stamp, badge, approved mark, slot tile, steps, chip, choice card) are written by hand.
+- **Showcase:** http://localhost:3000/dev/ui shows every token and component. It is not served in production.
+- **Icons:** Phosphor, regular weight. Import from `@phosphor-icons/react/dist/ssr` in server components and from `@phosphor-icons/react` in client components.
+- **Adding a shadcn component:** `pnpm dlx shadcn@latest add <name>` inside `apps/web`, then replace shadcn's color names (`bg-primary`, `text-muted-foreground`, `ring-ring`) with Creavent tokens. Those names don't exist here, so unconverted classes do nothing.
