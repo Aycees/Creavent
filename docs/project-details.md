@@ -28,7 +28,7 @@ The platform is described in general terms (events, organizers, vendors, attende
 
 - **Logo direction (chosen 2026-11-12): Market grid.** A 3 x 3 grid of small squares, with the center square in ember and the last square outlined. It sits next to a lowercase "creavent" wordmark in Geist.
 - This mark replaces the design system's earlier "no other symbol" rule.
-- Colors, typography, and the rest of the brand basics are still to be written (see [Documentation checklist](documentation-checklist.md)).
+- Colors, typography, components, and the rest of the design system are in the [Design brief](design-brief.md).
 
 This page is a summary. The detailed behavior, rules, and open questions are in the [Feature specification](feature-specification.md).
 

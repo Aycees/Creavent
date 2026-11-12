@@ -34,12 +34,12 @@ Legend: ⚠️ = the item is partly deferred until the final revenue model is de
 ## Phase 2: UI design
 
 - [x] Information architecture and sitemap (`docs/sitemap.md`) (first draft, 2026-11-12; updated the same day for vendor pages, onboarding, event types, and the event listing)
-- [ ] Design brief and brand basics (`docs/design-brief.md`)
-  - [ ] Audience and tone
+- [x] Design brief and brand basics (`docs/design-brief.md`) (first draft, 2026-11-12, from the mockup's design system)
+  - [x] Audience and tone
   - [x] Logo direction: "Market grid" (chosen 2026-11-12, recorded in `docs/project-details.md`)
-  - [ ] Colors, typography
-  - [ ] Reference sites
-  - [ ] Mobile-first guidelines
+  - [x] Colors, typography, spacing, components, icons
+  - [ ] Reference sites (none recorded; the mockup is the reference)
+  - [x] Mobile-first guidelines
 - [x] UI mockup of every MVP screen, desktop and phone: "Creavent UI Mockup (MVP)" (2026-11-12). The docs were aligned with it the same day (see `docs/open-questions.md`, section K)
 - [x] Payment proof upload and approval screens (MVP)
 - [x] Slot list and assignment, floor plan image upload, and admin organizer approval screens (MVP). Event setup has the Details (dates and hours, applications close, ingress), Payments (payment options, deadline), and Slots tabs drawn. The Requirements, Policy, and Floor plan tabs are listed but not drawn on their own
