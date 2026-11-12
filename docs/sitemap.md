@@ -64,7 +64,7 @@ Admin
   - Calendar is a month grid with today marked, events shown in each day, and a panel that lists the selected day's events. On phones it is a compact month with dots on event days, and the selected day's events are listed below.
 - **"Next 7 days" strip** beside the page title: the next 7 days with today marked, a mark on days that have announced events, and a link to the calendar.
 - **"Sell at these events"** link to sign up, showing how many events are open to vendors. Signed-out visitors see the number only. For a signed-in vendor the link goes to `/vendor/events`.
-- Each card: cover, name, event type tag, date, venue and city, organizer name with the "Approved by Creavent" badge.
+- Each card: cover, name, event type tag, date (or date range and number of days for a multi-day event), venue and city, organizer name with the "Approved by Creavent" badge.
 - Links to event pages and organizer pages.
 
 ### `/events/[slug]` Event page
@@ -120,21 +120,21 @@ Opens after the email is confirmed (spec §1.1). Both flows share step 1, "How w
 
 | Tab | Contents | Spec |
 |---|---|---|
-| Details | Name, event type (Flea market by default), date and time, venue, description, cover, vendor contact details, applications close date, ingress details | §3.1 |
+| Details | Name, event type (Flea market by default), start and end date (1 to 7 days), daily opening and closing time, venue, description, cover, vendor contact details, applications close date, ingress details | §3.1 |
 | Requirements | Allowed categories, limit per category, required documents (all vendors or one category) | §3.2 |
 | Policy | Cancellation and withdrawal policy | §3.7 |
-| Payments | Payment methods (account details, QR), deadline hours | §6.1 |
+| Payments | Payment options vendors can pick from (channel, account details, QR), deadline hours | §6.1 |
 | Slots | Slot list (number, size, note, price), default price, "Add a row of slots", slot preview | §3.4 |
 | Floor plan | Upload the vendor floor plan and the public floor plan images | §3.4 |
 
 Header actions, depending on status: **Preview as vendor**, **Open to vendors** (an "Open to vendors" checklist shows the five required steps: details with cover, requirements, policy, at least one slot, payment instructions. It needs organizer approval), **Open or close applications**, **Announce** (warns about unpaid slots), **Cancel event**.
 
-`/organizer/events/[id]/vendors` has tabs for Applications, Vendors and slots, and Event setup, and header actions **Close applications** and **Announce event**. It starts with **slots at a glance** (how many slots are reserved, assigned, overdue, and open). It then shows approved vendors without a slot (with **Assign slot**), and every slot with its vendor, amount, payment status (Waiting, Proof submitted, Proof rejected with the reason, **Overdue**), and deadline, filtered by All, Needs attention, Reserved, or Open. The proof review panel shows the receipt, amount due, the amount and reference the vendor entered, and **Approve payment** or **Reject**. Approving a payment without a proof image is the **Mark paid** action, which needs a note (spec §6.3). **Remove** frees the slot.
+`/organizer/events/[id]/vendors` has tabs for Applications, Vendors and slots, and Event setup, and header actions **Close applications** and **Announce event**. It starts with **slots at a glance** (how many slots are reserved, assigned, overdue, and open). It then shows approved vendors without a slot (with **Assign slot**), and every slot with its vendor, amount, payment status (Waiting, Proof submitted, Proof rejected with the reason, **Overdue**), and deadline, filtered by All, Needs attention, Reserved, or Open. The proof review panel shows the receipt, amount due, the option the vendor paid with, the amount and reference they entered, and **Approve payment** or **Reject**. Approving a payment without a proof image is the **Mark paid** action, which needs a note (spec §6.3). **Remove** frees the slot.
 
 ### Dashboards and lists
 - `/organizer` shows to-do counts per event (applications to review, proofs to check, overdue payments, approved vendors with no slot), and Upcoming and Past event tabs with status, slot fill, and next step (spec §3.8).
 - `/vendor` shows what needs action, the applications table, the next confirmed event with ingress details, and events open to vendors (spec §4.6).
-- `/vendor/applications/[id]` shows the slot, amount due, payment methods with copy buttons, the proof upload (amount sent, reference number), the deadline, a progress timeline, the organizer's contact, and **Release slot** (spec §4.6, §6.2).
+- `/vendor/applications/[id]` shows the slot, amount due, payment methods with copy buttons, the proof upload (option paid with, amount sent, reference number), the deadline, a progress timeline, the organizer's contact, and **Release slot** (spec §4.6, §6.2).
 - `/vendor/events` shows, for each event, the vendor's remaining spots in their categories when the organizer set a limit (spec §4.2).
 
 ## 5. Navigation

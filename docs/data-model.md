@@ -447,7 +447,7 @@ erDiagram
 | cover_file_id | uuid FK → files null | Required before opening to vendors (spec §3.1). |
 | vendor_floor_plan_file_id | uuid FK → files null | Layout with empty slots. Shown to signed-in vendors while the event is open to vendors or announced (spec §3.4). |
 | public_floor_plan_file_id | uuid FK → files null | Layout with vendors placed. Shown to attendees once the event is announced. |
-| starts_at, ends_at | timestamptz | Single-day or single-span events only. Multi-day slots are out of scope. `starts_at` caps every payment deadline. |
+| starts_at, ends_at | timestamptz | `starts_at` is the opening of the first day, and `ends_at` is the closing of the last day. The event runs every day in between, with the same hours (the time of day of each), so no other columns are needed (spec §3.1.1). `starts_at` caps every payment deadline. |
 | venue_name, address_line, city, province | text | `city` drives the attendee location filter (Davao City first). |
 | latitude, longitude | numeric(9,6) null | For a map later. |
 | vendor_contact_info | text | Shown to signed-in vendors, never to attendees. |
@@ -485,7 +485,7 @@ erDiagram
 | is_required | boolean | Default true. |
 | sort_order | int | |
 
-**event_payment_methods**: the organizer's payment instructions (spec §6.1). Free-form, any channel.
+**event_payment_methods**: the organizer's payment options (spec §6.1). Any channel. Vendors pick one when they upload proof. The snapshot on each assignment keeps each option's `id`.
 
 | Attribute | Type | Notes |
 |---|---|---|
@@ -628,6 +628,7 @@ erDiagram
         uuid vendor_profile_id FK
         uuid uploaded_by FK
         uuid file_id FK
+        uuid payment_method_id FK "option paid with"
         numeric amount_claimed "null"
         text reference_number "null"
         text note "null"
@@ -689,6 +690,7 @@ erDiagram
 | vendor_profile_id | uuid FK → vendor_profiles | |
 | uploaded_by | uuid FK → users | The vendor. |
 | file_id | uuid FK → files | Purpose `payment_proof`. |
+| payment_method_id | uuid FK → event_payment_methods | The payment option the vendor says they paid with (spec §6.2). Required. Must be one of the options in the assignment's `payment_instructions_snapshot`. Methods are never deleted, only made inactive, so the link stays valid. |
 | amount_claimed | numeric(10,2) null | The amount the vendor says they sent. The form pre-fills it with the amount due. |
 | reference_number | text null | Optional GCash or bank reference, shown to the organizer for checking. |
 | note | text null | |
@@ -801,6 +803,7 @@ Rules the database itself should guarantee. Other rules (for example, "an organi
 | 6.10 | A file is attached only when it is ready, matches the place, and belongs to the person attaching it. | App check before setting any `*_file_id` or inserting into `vendor_profile_photos` or `application_documents`: `status = 'ready'`, the `purpose` fits (for example, `events.cover_file_id` takes only `event_cover`), and `uploaded_by` is the current user. | §11.3 |
 | 6.11 | Upload limits per place hold (for example, 8 photos per vendor profile). | App check against the limits in the spec table, at the Ask step and again when attaching. | §11.1 |
 | 6.12 | The applications close date is not after the event start. | Check `applications_close_at IS NULL OR applications_close_at <= starts_at`. | §3.3 |
+| 6.13 | An event runs 1 to 7 days in a row, and closes later than it opens each day. | Check in Asia/Manila time: `ends_at::date - starts_at::date` between 0 and 6, and `ends_at::time > starts_at::time`. | §3.1.1 |
 
 **Useful indexes**
 
@@ -824,6 +827,7 @@ Values worked out from other tables instead of being stored.
 | **Vendor page: "Find them next at"** | Among the same events, the one with `status` `announced` and the earliest `starts_at` still ahead, with the slot `label`. |
 | **Vendor page: events sold at** | The number of events in "Where they've sold". |
 | **Vendor page visible** | The vendor's `user_roles` row is not suspended, and the user is not deleted. |
+| **Event days** | Every date from `starts_at` to `ends_at` (Asia/Manila), each open from the time of `starts_at` to the time of `ends_at`. Used for the calendar, the "Next 7 days" strip, weekend grouping, and date filters, where an event matches if any of its days does. |
 | **Accepting applications** | `status` `open_to_vendors` or `announced`, `applications_open` true, `moderation_state` `visible`, and `applications_close_at` null or still ahead. |
 | **Category spots left** (vendor events page and event page) | `event_categories.max_vendors` minus the count of `approved` applications in that category. Shown only when `max_vendors` is set. A guide only. |
 | **Organizer dashboard counts** (per event) | Applications to review: `submitted` applications, with the oldest `submitted_at`. Proofs to check: `submitted` proofs, with the sum of `amount_due`. Overdue payments: see "Overdue payment". Approved vendors with no slot: see below, with the count of `open` slots. |

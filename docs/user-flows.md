@@ -90,12 +90,12 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 
 *Organizer. Works on a phone.*
 
-1. Create a draft: name, event type (Flea market, Bazaar, or Pop-up; Flea market is pre-selected), date and time, location, description, cover image, contact details for vendors, and optionally an applications close date and ingress details (for example, "From 3 PM, Gate 2").
+1. Create a draft: name, event type (Flea market, Bazaar, or Pop-up; Flea market is pre-selected), dates and daily hours (1 to 7 days in a row, same hours each day, for example Fri to Sun, 4 PM to 10 PM), location, description, cover image, contact details for vendors, and optionally an applications close date and ingress details (for example, "From 3 PM, Gate 2").
 2. Set vendor requirements: allowed product categories, limits on similar vendors, required permits (each for every vendor, or for one category only).
 3. Write the cancellation and withdrawal policy.
 4. Add slots: number, size, optional note, and price (one price for all slots, or per slot). **Add a row of slots** creates a numbered range at once (for example, C-01 to C-06).
 5. Optional: upload the vendor floor plan image (layout with empty, numbered slots).
-6. Add payment instructions (account details or QR code) and the payment deadline (24 hours by default).
+6. Add one or more payment options (for example, GCash and a bank account, each with account details or a QR code) and the payment deadline (24 hours by default).
 7. Optional: **Preview as vendor** to check what vendors will see.
 8. **Open the event to vendors.** Vendors can now find it and apply. Attendees can't see it yet.
 
@@ -103,6 +103,8 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - **Required setup is missing:** the "Open to vendors" checklist shows "4 of 5 required steps done" and lists what's missing (name, date, venue and cover; requirements; policy; at least one slot; payment instructions). **(screen)**
 - **Organizer changes the price or GCash number after slots are assigned:** only new assignments use the new values. Vendors who already have slots keep what they were shown. Spec §6.1.
 - **Organizer tries to delete or rename an assigned or reserved slot:** blocked with "Remove the vendor from this slot first". Spec §3.4.
+- **The market runs Friday to Sunday:** the organizer sets a start and end date. Each slot covers all three days and is paid once. Vendors can't book a single day. Spec §3.1.1.
+- **The hours differ on Sunday, or the market runs past midnight:** not supported. The organizer uses the main hours and explains the difference in the description. Spec §3.1.1. **(screen)**
 - **Slot numbers on the image don't match the slot list:** the system doesn't check. The organizer fixes the image or the list. **(screen: the upload step reminds them)**
 
 ## 4. Find an event and apply
@@ -153,12 +155,12 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 
 **Vendor**
 1. The payment screen shows the amount due, the organizer's account details or QR code (with copy buttons), the deadline ("Pay by Sat, 3 Jan, 6:00 PM", and the time left), and a notice that Creavent doesn't hold or guarantee payments.
-2. The vendor pays through GCash, a bank, or another channel.
-3. The vendor uploads a screenshot of the payment, with the amount sent and an optional reference number. Status: **Submitted**.
+2. The vendor pays using one of the organizer's payment options (for example, GCash or a bank transfer).
+3. The vendor uploads a screenshot of the payment, selects the option they paid with, and enters the amount sent and an optional reference number. Status: **Submitted**.
 
 **Organizer**
 4. An email arrives: "Proof of payment uploaded".
-5. The organizer compares the screenshot with the amount due, and checks the reference number in their own GCash or bank history.
+5. The organizer sees which option the vendor paid with, compares the screenshot with the amount due, and checks the reference number in that account's history.
 6. **Approve** → the slot is **Reserved**, and the vendor appears on the accepted-vendor list.
    **Reject** with a reason → the vendor can upload new proof.
 
@@ -210,7 +212,7 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 
 *Attendee. No account.*
 
-1. Open Creavent → see upcoming announced events, soonest first. Switch between **List** (This weekend, Next weekend, Later) and **Calendar**, and use the "Next 7 days" strip. Filter by event type (All, Flea markets, Bazaars, Pop-ups), location, and date. Spec §7.3.
+1. Open Creavent → see upcoming announced events, soonest first. Switch between **List** (This weekend, Next weekend, Later) and **Calendar**, and use the "Next 7 days" strip. A Friday to Sunday market shows on each of its days in the calendar. Filter by event type (All, Flea markets, Bazaars, Pop-ups), location, and date. Spec §7.3.
 2. Open an event: type, schedule, location with directions, description, organizer with the "Approved by Creavent" badge, public floor plan image, and the vendor list with each vendor's category and slot number (filter by category).
 3. Tap the organizer to open their organizer page: about, social links, upcoming and past events. Spec §7.1.
 4. Tap a vendor's name in the vendor list to open their vendor page: shop details, photos, social links, where to find them next, and where they've sold. Spec §7.2.

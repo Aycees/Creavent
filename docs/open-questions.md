@@ -68,7 +68,11 @@ All questions in this section are resolved. See "Resolved" below (J1 to J12, dec
 
 ## K. Mockup alignment
 
-All questions in this section are resolved. See "Resolved" below (K1 to K12, decided on 2026-11-12). Small fixes for the mockup itself are listed under "Mockup fixes" at the end of this file.
+All questions in this section are resolved. See "Resolved" below (K1 to K12, decided on 2026-11-12). The mockup fixes are listed under "Mockup fixes" below.
+
+## L. Multi-day events and payment options
+
+All questions in this section are resolved. See "Resolved" below (L1 to L4, decided on 2026-11-12).
 
 ## Resolved
 
@@ -174,13 +178,22 @@ Decisions are written into the [Feature specification](feature-specification.md)
 | K11 | Admins add reports received by support email, so all reports are in one queue. Reports have a reference number, are grouped by target, and have an internal note. Organizer reviews have an optional internal note. | 2026-11-12 |
 | K12 | The links an organizer submits for approval are their public social links on the organizer page. Vendors who applied see the organizer's name, mobile, and contact email on their application page. | 2026-11-12 |
 
+**Multi-day events and payment options on 2026-11-12 (L1 to L4).**
+
+| # | Decision | Date |
+|---|---|---|
+| L1 | Events run 1 to 7 days in a row, with the same opening and closing time every day. No past-midnight hours, no different hours per day, and no non-consecutive dates. Stored in the existing `starts_at` and `ends_at`. | 2026-11-12 |
+| L2 | Vendors are locked in for the whole multi-day event: one slot, one price, one payment. No single-day slots. A multi-day event shows on each of its days in the calendar and "Next 7 days" strip, goes under a weekend when any of its days is that Saturday or Sunday, and matches a date filter when any of its days does. The payment deadline and applications close date are capped at the first day's opening. | 2026-11-12 |
+| L3 | Organizers add one or more payment options (GCash, bank transfer, QR, and so on). When uploading proof, the vendor selects the option they paid with, and the organizer sees it when reviewing (`payment_proofs.payment_method_id`). | 2026-11-12 |
+| L4 | The mockup fixes are made in the mockup: "Vintage" as the category name, the payment option on the proof upload and review, and screen-reader labels on the badge seals (the badges were already there). Two Friday to Sunday markets are added to the mockup as multi-day examples. | 2026-11-12 |
+
 ## Mockup fixes
 
-Small things in the mockup that disagree with the spec. Fix them in the mockup. The spec is not changed for these.
-
-- **Event listing:** some cards (for example, Pasalubong and Handmade Fair, Toril Sunday Ukay) have no "Approved by Creavent" badge. Every announced event is run by an approved organizer, so every card shows it.
-- **Category names:** the vendor event page says "Vintage and collectibles", but onboarding and the seed list say "Vintage". Use "Vintage".
-- **Proof review:** the organizer panel shows "₱1,500 via GCash", but the vendor never picks a payment method when uploading proof. Show the amount only, or add a method choice to the upload form if this is wanted later.
+Done on 2026-11-12 (L4). The mockup was updated to match the spec:
+- Event cards already showed the "Approved by Creavent" badge (some as an icon-only seal). The earlier note that some were missing was wrong. The seals that had no screen-reader label now have one, and the calendar day panel shows the badge too.
+- Two events now show multi-day: Pasalubong and Handmade Fair (Fri, Nov 20 to Sun, Nov 22) on the listing and calendar, and Lanang Holiday Flea (Fri, Dec 18 to Sun, Dec 20) on the vendor event page, where each slot covers all 3 days.
+- The vendor event page uses the category name "Vintage", like onboarding and the seed list.
+- The vendor picks the payment option they paid with when uploading proof, and the organizer's proof review shows it (L3).
 
 ## Deferred with their features
 

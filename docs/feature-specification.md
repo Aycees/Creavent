@@ -129,7 +129,7 @@ Notes:
 
 ### 3.1 Account and event setup
 - Add the organizer role, fill in the organizer profile that feeds the public organizer page (section 7.1), and request approval (section 2.1).
-- Create and manage events: name, event type, date and time, location, description, cover image, contact details (shown to vendors, not to attendees), an optional applications close date (section 3.3), and optional ingress details for vendors (for example, "From 3 PM, Gate 2"), shown to vendors with a slot
+- Create and manage events: name, event type, dates and daily hours (section 3.1.1), location, description, cover image, contact details (shown to vendors, not to attendees), an optional applications close date (section 3.3), and optional ingress details for vendors (for example, "From 3 PM, Gate 2"), shown to vendors with a slot
 - **Event type:** each event has one type. The initial list is Flea market, Bazaar, and Pop-up. Flea markets stay the MVP focus. The organizer picks the type on the Details tab of event setup, and Flea market is the default. The type can be changed until the event is announced. The type list is managed in seed data and configuration, like product categories (no admin page). The type shows as a small tag on event cards, event rows, event pages, and organizer dashboards. Attendees can filter by type (section 7.3).
 - Event states: `draft` → `open to vendors` → `announced` → `completed`, or `canceled`
   - **Open to vendors:** signed-in vendors can find the event, apply, and pay for their assigned slot. Attendees cannot see it. This is when the organizer fills and finalizes the vendor list. Opening needs organizer approval. The setup screen has an **"Open to vendors" checklist** ("4 of 5 required steps done") with five required steps: name, date, venue and cover; vendor requirements (at least one accepted category); the cancellation and withdrawal policy; at least one slot; and payment instructions. The vendor floor plan is listed as optional.
@@ -139,6 +139,19 @@ Notes:
   - Cancel an event. Applied and confirmed vendors are notified by email. Any refunds are handled between the organizer and vendors.
   - Completed events remain on the platform as past events.
 - Event page, shared by link. Signed-in vendors can see it once the event is open to vendors. Attendees can see it once the event is announced.
+
+### 3.1.1 Dates and multi-day events
+
+Weekend markets often run several days in a row, for example Friday to Sunday.
+- An event runs on **1 to 7 days in a row**. The organizer picks a start date, an end date, and one opening and closing time used for every day (for example, Fri, Nov 20 to Sun, Nov 22, 4 PM to 10 PM daily).
+- The closing time is later than the opening time on the same day. Markets that run past midnight are not supported in the MVP.
+- **Vendors are locked in for the whole event.** A slot covers every day, has one price, and is paid once. There are no single-day slots.
+- Events on separate dates (for example, two Saturdays) are separate events. Recurring events are out of scope (section 9).
+- **How it shows:**
+  - Single day: "Sat, Nov 14 · 5 PM to 11 PM".
+  - Multi-day: "Fri, Nov 20 to Sun, Nov 22 · 4 PM to 10 PM daily". Date stamps show the range ("Nov 20 to 22") and the number of days ("3 days").
+- Changing the dates or the hours sends the "event changed" email (section 8.1).
+- The payment deadline and the applications close date are capped at the opening of the first day.
 
 ### 3.2 Vendor requirements
 - Set requirements per event: allowed product categories, limit on similar vendors per category, required permits or documents. A required document can apply to every vendor or only to one category (for example, a sanitary permit for food and drinks only)
@@ -251,20 +264,20 @@ Rules:
 Creavent does not process, hold, or refund money. The organizer and vendor handle payment and any disputes between themselves.
 
 ### 6.1 Organizer setup (per event)
-- **Payment instructions:** free-form. The organizer can enter any account or channel (GCash, bank, Maya, other) and upload a QR code image, add account name and number, and add notes. There is no restriction to GCash or bank.
+- **Payment options:** the organizer adds one or more options where vendors can send payment, each with a channel (GCash, Maya, bank transfer, other), an account name and number, an optional QR code image, and notes (for example, "GCash, Joanna L." or "BPI bank transfer"). There is no restriction to GCash or bank. At least one option is needed to open the event to vendors.
 - **Price:** vendors pay the **full slot price**. Deposits are not in the MVP (see section 9).
-- **Payment deadline:** default is **24 hours** from when the slot is assigned. The organizer can set a different number of hours for the event. The deadline never runs past the event start.
+- **Payment deadline:** default is **24 hours** from when the slot is assigned. The organizer can set a different number of hours for the event. The deadline never runs past the event start (the opening of the first day).
 - Payment instructions are shown to a vendor right after they are assigned a slot.
 - **Locked at assignment:** when a slot is assigned, its price and the payment instructions are copied onto the assignment. If the organizer later changes the price or the payment details, only new assignments use the new values. A vendor who already has a slot always sees the amount and account they were given.
 
 ### 6.2 Vendor flow
 1. Receive a slot. The deadline is shown ("Pay by Sat, 3 Jan, 6:00 PM").
 2. See the amount due, the instructions, and the deadline.
-3. Pay outside the platform and upload proof of payment (image), with the amount sent (pre-filled with the amount due) and an optional reference number. Each payment method has a copy button for the account number.
+3. Pick one of the organizer's payment options, pay outside the platform, and upload proof of payment (image). With the proof, the vendor selects the option they paid with (required), and enters the amount sent (pre-filled with the amount due) and an optional reference number. Each option has a copy button for the account number.
 4. Wait for the organizer's decision.
 
 ### 6.3 Organizer review
-- Review the proof image against the amount due, with the amount and reference number the vendor entered. The screen reminds the organizer to check the reference in their own GCash or bank history before approving
+- Review the proof image against the amount due, with the payment option the vendor paid with, and the amount and reference number they entered. The screen reminds the organizer to check that account's history (for example, their GCash) for the reference before approving
 - Approve → slot becomes `reserved`
 - Reject, with a reason → the vendor can upload new proof. The reason should say what to fix (for example, "short by ₱100" or "screenshot is unreadable").
 - **Mark paid (approve without proof):** the organizer can mark a payment as approved without a proof image (for example, cash paid on site, or paid by someone else), with a required note such as "Paid cash at the office". The slot becomes `reserved`.
@@ -339,12 +352,12 @@ The vendor edits the page from their vendor profile (section 4.1). There is no c
 
 ### 7.3 Event listing
 
-The home page (`/`) lists upcoming announced events, soonest first. Attendees can filter by event type (All, Flea markets, Bazaars, Pop-ups), city, and date range. The type options are All plus the active event types, each with its number of events. The date options are Any date, This weekend, Next 2 weeks, the next month (for example, December), and Pick dates.
+The home page (`/`) lists upcoming announced events, soonest first. Attendees can filter by event type (All, Flea markets, Bazaars, Pop-ups), city, and date range. The type options are All plus the active event types, each with its number of events. The date options are Any date, This weekend, Next 2 weeks, the next month (for example, December), and Pick dates. A multi-day event matches a date filter when any of its days falls in the range (section 3.1.1).
 
 - **List and Calendar views**, switched with a toggle.
-  - **List** groups events as This weekend, Next weekend, and Later. The weekend is Saturday and Sunday. Events on other days of the current week go under Later.
-  - **Calendar** is a month grid with today marked, events shown in each day, and a panel that lists the selected day's events. On phones, it is a compact month with dots on event days, and the selected day's events are listed below it.
-- **"Next 7 days" strip** beside the page title: the next 7 days with today marked, a mark on days that have announced events, and a link to the calendar.
+  - **List** groups events as This weekend, Next weekend, and Later. The weekend is Saturday and Sunday. Events on other days of the current week go under Later. A multi-day event goes under a weekend when any of its days is that Saturday or Sunday (a Friday to Sunday market is under that weekend), and it is listed once, by its first day.
+  - **Calendar** is a month grid with today marked, events shown in each day (a multi-day event shows on every one of its days), and a panel that lists the selected day's events. On phones, it is a compact month with dots on event days, and the selected day's events are listed below it.
+- **"Next 7 days" strip** beside the page title: the next 7 days with today marked, a mark on days that have announced events (counting every day of a multi-day event), and a link to the calendar.
 - **"Sell at these events"** link to sign up as a vendor, showing how many events are open to vendors. Signed-out visitors see the number only (no names or details), because the events themselves stay hidden until announced. For a signed-in vendor the link goes to Browse events.
 - Each event card and row shows the event type tag.
 
@@ -404,7 +417,7 @@ All notifications are sent by email through [Resend](https://resend.com). There 
 - Ratings and reviews
 - Push and SMS notifications
 - Recurring events and event series
-- Multi-day events with day-specific slots
+- Single-day slots or prices in multi-day events, different hours on different days, events past midnight, and events on non-consecutive dates (section 3.1.1)
 
 ## 10. Decisions and open questions
 
@@ -446,6 +459,7 @@ All notifications are sent by email through [Resend](https://resend.com). There 
 - Price and payment instructions are locked onto a slot when it is assigned. Assigned and reserved slots cannot be deleted or renamed.
 - Events go `draft` → `open to vendors` → `announced`. Organizers finalize vendors before announcing to attendees.
 - No payment deadline runs past the event start.
+- Events run 1 to 7 days in a row with the same hours every day. Vendors are locked in for the whole event, with one slot, one price, and one payment (section 3.1.1).
 - A suspended organizer's upcoming events are hidden by an admin, who emails affected vendors.
 - One account can hold the vendor role, the organizer role, or both.
 - Files are stored in Cloudflare R2 through the S3 SDK, and the API on Render handles every upload (section 11). Event covers, organizer logos, avatars, vendor photos, and floor plan images are public. Proofs of payment, payment QR codes, and application documents are private.
@@ -476,6 +490,7 @@ All notifications are sent by email through [Resend](https://resend.com). There 
   - The organizer dashboard, vendor dashboard, and event page contents follow the mockup (sections 3.8, 4.6, 7, 7.3).
   - Suspension is per role with a reason shown to the user, hiding an event emails the organizer the reason, and admins add reports from the support inbox (sections 2, 2.1, 2.2).
   - The links an organizer submits for approval are their public social links (section 2.1).
+- **Multi-day events and payment options (2026-11-12):** events run 1 to 7 days in a row with the same daily hours, and vendors are locked in for the whole event (section 3.1.1). Vendors select which payment option they paid with when uploading proof (section 6.2). See [Open questions](open-questions.md#l-multi-day-events-and-payment-options).
 
 ### Open
 1. Confirm the record retention period (90 days) and data handling with a lawyer under the Philippine Data Privacy Act, including health certificates uploaded as permits.
