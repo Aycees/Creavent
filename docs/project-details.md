@@ -1,5 +1,7 @@
 # Creavent
 
+Last updated: 2026-11-12
+
 ## Description
 
 Creavent is a web platform that brings vendor-based community events together in one place. Organizers plan and promote their events, vendors find events and secure spots, and attendees discover where to go and who will be there.
@@ -7,7 +9,8 @@ Creavent is a web platform that brings vendor-based community events together in
 ## Scope
 
 - **Initial focus:** flea markets and flea market organizers. The MVP and early development are built around them, and the MVP is centered on organizers.
-- **Future direction:** other vendor-based events such as bazaars, pop-ups, and similar gatherings.
+- **Event types:** events are general. Each event has one type, and the initial list is Flea market, Bazaar, and Pop-up. Flea markets stay the focus (the default type). The list is managed in seed data, so more types can be added later. See [Feature specification §3.1](feature-specification.md#31-account-and-event-setup).
+- **Future direction:** other vendor-based events and gatherings beyond these three types.
 - **Not in scope for now:** ticketed or paid entry for attendees. See the full out-of-scope list in the [Feature specification](feature-specification.md#9-out-of-scope-for-the-mvp).
 - **MVP payments:** manual. Vendors pay organizers directly through any channel the organizer sets up (QR code, e-wallet, bank account) and upload proof of payment. Vendors pay the full slot price (no deposits). Organizers approve or reject the proof. There is no platform fee and no online payment integration. Refunds and disputes are handled between the two parties. See [Revenue model](revenue-model.md).
 - **MVP contracts:** none. There is no contract upload or e-signature in the MVP. Each organizer writes a cancellation and withdrawal policy that is shown on the event page, and vendors accept it by applying. See [Features to be implemented](#features-to-be-implemented).
@@ -21,6 +24,12 @@ Creavent is a web platform that brings vendor-based community events together in
 
 The platform is described in general terms (events, organizers, vendors, attendees) so it can grow beyond flea markets later.
 
+## Brand
+
+- **Logo direction (chosen 2026-11-12): Market grid.** A 3 x 3 grid of small squares, with the center square in ember and the last square outlined. It sits next to a lowercase "creavent" wordmark in Geist.
+- This mark replaces the design system's earlier "no other symbol" rule.
+- Colors, typography, and the rest of the brand basics are still to be written (see [Documentation checklist](documentation-checklist.md)).
+
 This page is a summary. The detailed behavior, rules, and open questions are in the [Feature specification](feature-specification.md).
 
 ## Roles and Features
@@ -31,20 +40,21 @@ Keeps the platform trustworthy. Can view everything other roles can see, includi
 
 - Approve organizers from their social media and past event links (target review time 1 to 2 business days)
 - Re-review resubmissions and support emails from rejected organizers
-- Suspend or reinstate accounts
-- Hide events that break the rules
-- Handle user reports
+- Suspend or reinstate a user's vendor or organizer role, with a reason shown to the user
+- Hide events that break the rules, with a reason emailed to the organizer
+- Handle user reports from the report button and the support inbox
 
 ### Organizer
 
 Plans, promotes, and runs events.
 
-- Add the organizer role to their account and get approved (draft events are allowed before approval, but opening an event to vendors needs it). One account can be both an organizer and a vendor
-- Create and manage events (draft, open to vendors, announced, completed, canceled). Fill and finalize the vendor list first, then announce the event to attendees
+- Add the organizer role to their account through a 4-step onboarding, and get approved (draft events are allowed before approval, but opening an event to vendors needs it). One account can be both an organizer and a vendor
+- Create and manage events (draft, open to vendors, announced, completed, canceled), and pick an event type for each (Flea market by default). Fill and finalize the vendor list first, then announce the event to attendees
+- See to-do counts per event on a dashboard: applications to review, proofs to check, overdue payments, and approved vendors with no slot
 - Promote events through a public event page once announced
 - Set vendor requirements (product categories, limits on similar vendors, required permits). Requirements are shown only to signed-in vendors
-- Open vendor applications, then approve or decline them. There is no cap on applications
-- Add slots as a list (number, size, price) and assign approved vendors to them
+- Open vendor applications (with an optional close date), then approve or decline them. There is no cap on applications
+- Add slots as a list (number, size, note, price), a row at a time if needed, and assign approved vendors to them
 - Upload two floor plan images: one with empty slots for vendors, and one with vendors placed for attendees
 - Set slot pricing, per slot if needed (the full price is paid by the vendor)
 - Publish payment instructions (any account or QR) and set the payment deadline (24 hours by default). The price and instructions are locked onto each slot when it is assigned. Overdue payments are flagged, not expired automatically
@@ -57,8 +67,9 @@ Plans, promotes, and runs events.
 
 Finds events to join and manages participation.
 
-- Add the vendor role to their account and create a profile. No approval needed
-- Browse and search upcoming events
+- Add the vendor role to their account through a 4-step onboarding and create a profile. No approval needed
+- Have a public vendor page (shop details, photos, social media links, the next event, and where they've sold), so attendees can get to know them. Phone number and email are never public
+- Browse and search upcoming events, and see how many spots remain in their category
 - View event requirements, then apply and upload permits. Withdraw an application before the organizer decides. Reapply after a decline (after a removal, only if the organizer allows it)
 - Get a slot assigned by the organizer. A vendor can have only one slot per event (for now)
 - Release an assigned slot before payment is approved, or contact the organizer to withdraw after reserving
@@ -71,9 +82,10 @@ Finds events to join and manages participation.
 
 Discovers events and plans visits. No account in the MVP.
 
-- Browse upcoming announced events by date, filtered by location and date range
+- Browse upcoming announced events by date in a list or a calendar, filtered by event type, location, and date range
 - View event details, the public floor plan image once the event is announced, and the list of accepted vendors (reserved slots only)
 - See organizers "Approved by Creavent", and open an organizer's page (details, social links, upcoming and past events)
+- Open a vendor's page from the accepted-vendor list. There is no vendor directory or search
 - See the latest event details
 - Report an event or user through the support email
 - Attendees cannot contact organizers in the MVP

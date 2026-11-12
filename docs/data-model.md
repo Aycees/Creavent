@@ -34,6 +34,8 @@ Agreed on 2026-11-11, and simplified for the MVP on 2026-11-12 (spec §9).
 | Topic | Decision | Where in the model |
 |---|---|---|
 | Product categories | One platform-wide list, set in seed data. Vendors, events, and applications pick from it. | `categories` |
+| Event types | One platform-wide list, set in seed data (Flea market, Bazaar, Pop-up). Each event has one. A table rather than an enum, because the list is managed in seed data like `categories`, can be marked inactive, and adding a type needs no enum migration. | `event_types`, `events.event_type_id` |
+| Public vendor page | Every vendor has a public page at `/vendors/<slug>`. It shows profile content and two lists worked out from slot assignments. Phone, email, applications, documents, and payments are never shown. | `vendor_profiles.slug`, `vendor_profiles.social_links`, section 7 |
 | One slot per vendor | A vendor can have only one slot per event (for now), so each proof belongs to exactly one payment. | partial UK on `slot_assignments`, `payment_proofs.payment_id` |
 | Cash or payment without proof | The organizer can approve a payment without a proof image, with a note (for example, cash on site). | `payments.method`, `payments.decision_note` |
 | Event policy | Free text, one per event, so it is a column on `events` rather than its own table. The text the vendor accepted is copied onto their application. | `events.policy_text`, `applications.policy_text_snapshot` |
@@ -61,6 +63,7 @@ erDiagram
     vendor_profiles ||--o{ vendor_profile_photos : "shows"
 
     organizer_profiles ||--o{ events : "runs"
+    event_types ||--o{ events : "classifies"
     events ||--o{ event_categories : "allows"
     categories ||--o{ event_categories : ""
     events ||--o{ event_document_requirements : "requires"
@@ -105,6 +108,7 @@ erDiagram
 | `proof_status` | `submitted`, `approved`, `rejected` | §6.3 |
 | `fee_payer` | `vendor`, `organizer` (unused in the MVP) | Revenue model §7 |
 | `report_target` | `user`, `event` | §7 |
+| `report_source` | `report_button`, `support_email` | §2.2 |
 | `report_reason` | `fake_account`, `scam`, `inappropriate_content`, `other` | §2 |
 | `report_status` | `open`, `dismissed`, `actioned` | §2 |
 | `report_action` | `none`, `event_hidden`, `user_suspended`, `other` | §2 |
@@ -158,6 +162,7 @@ erDiagram
         timestamptz suspended_at "null"
         uuid suspended_by FK "null"
         text suspension_reason "null"
+        int onboarding_step "null, last completed step"
     }
     users ||--o{ auth_identities : ""
     users ||--o{ legal_acceptances : ""
@@ -172,8 +177,8 @@ erDiagram
 | email | citext UK | Verified at signup. Signing in with Google using the same email opens the same account. If `email_verified_at` is still null, Google sign-in sets it and removes the password (spec §1). |
 | email_verified_at | timestamptz null | Null until the email is confirmed. |
 | full_name | text | |
-| phone | text null | Required before the user can add a role (app check). Shown to organizers on applications. |
-| avatar_file_id | uuid FK → files null | |
+| phone | text null | Mobile number. Required for either role, and asked in onboarding (spec §1.1) (app check). Shown to organizers on applications, never on a public page. |
+| avatar_file_id | uuid FK → files null | The avatar or logo asked for in vendor onboarding. Shown on the public vendor page. |
 | is_admin | boolean | Default false. Set by the Creavent team only, never by signup. |
 | age_confirmed_at | timestamptz | When the user confirmed they meet the minimum age (configuration value `minimum_age`) at signup. |
 | last_login_at | timestamptz null | |
@@ -181,7 +186,7 @@ erDiagram
 
 **Deleting an account.** There is no self-serve option in the MVP (spec §1). The user emails support, and the team runs a documented deletion script:
 
-- `email`, `full_name`, `phone`, `avatar_file_id` are cleared or replaced with placeholders ("Deleted user"). `auth_identities` rows are deleted. Profiles and profile photos are deleted.
+- `email`, `full_name`, `phone`, `avatar_file_id` are cleared or replaced with placeholders ("Deleted user"). `auth_identities` rows are deleted. Profile photos are deleted. On the vendor and organizer profiles, `social_links` is cleared and `slug` is set to null, so the public page stops working. The profile rows are kept as empty shells (names and text cleared), because applications, assignments, and events point to them, like the `users` row.
 - The `users` row is kept as an empty shell, because applications, payments, reports, and audit logs point to it.
 - Reports, audit logs, and legal acceptances are kept. Payment records and application documents follow the normal 90-day rule (section 8).
 - Not done while the user has an active slot assignment, or runs an event that is `open_to_vendors` or `announced`. Pending applications are withdrawn.
@@ -222,11 +227,12 @@ A user whose latest acceptance is older than the current version is asked to acc
 | reviewed_at | timestamptz null | |
 | rejection_reason | text null | Shown to the organizer. Cleared on resubmission. |
 | admin_notes | text null | Internal only. |
-| suspended_at | timestamptz null | Not null = suspended. Suspended roles cannot manage events or applications. |
+| suspended_at | timestamptz null | Not null = suspended. Suspension is per role: a suspended vendor role cannot apply or manage slots, and a suspended organizer role cannot manage events or applications. The other role keeps working. |
 | suspended_by | uuid FK → users null | The admin. |
-| suspension_reason | text null | |
+| suspension_reason | text null | Shown to the user in the app (spec §2.1). |
+| onboarding_step | int null | The last onboarding step the user completed for this role (1 to 4). Null before the first step. The fields of each step are saved as they are entered (spec §1.1). |
 
-A resubmission overwrites the review columns. Each decision is also written to `audit_logs`, which keeps the history.
+A resubmission clears `rejection_reason` and keeps `reviewed_at` until the next decision, which overwrites the review columns. Each decision is also written to `audit_logs`, which keeps the history.
 
 ### 5.2 Files
 
@@ -262,7 +268,7 @@ erDiagram
         uuid id PK
         uuid user_id FK "UK"
         text display_name
-        text slug UK
+        text slug UK "null after deletion"
         text about "null"
         text city "null"
         uuid logo_file_id FK "null"
@@ -272,8 +278,11 @@ erDiagram
         uuid id PK
         uuid user_id FK "UK"
         text shop_name
+        text slug UK "null after deletion"
         text description "null"
         text products "null"
+        text city "null"
+        jsonb social_links "list of URLs, default []"
     }
     vendor_profile_categories {
         uuid vendor_profile_id PK,FK
@@ -290,7 +299,7 @@ erDiagram
     vendor_profiles ||--o{ vendor_profile_photos : ""
 ```
 
-**categories**: the platform-wide product category list (Food, Clothing, Vintage, and so on). Set in seed data and changed by a new seed or migration. A category is never deleted, only made inactive, because old events and applications point to it.
+**categories**: the platform-wide product category list. The initial seed is Preloved clothing, Vintage, Handmade and crafts, Food and drinks, Plants, Books and toys, and Other (spec §4.1). Set in seed data and changed by a new seed or migration. A category is never deleted, only made inactive, because old events and applications point to it.
 
 | Attribute | Type | Notes |
 |---|---|---|
@@ -307,35 +316,48 @@ erDiagram
 | id | uuid PK | |
 | user_id | uuid FK → users, UK | |
 | display_name | text | |
-| slug | text UK | For the organizer page link, `/organizers/<slug>`. |
+| slug | text UK null | For the organizer page link, `/organizers/<slug>`. Generated from the display name and editable (onboarding step 2). Null after the account is deleted. Slug rules are in spec §7.2. An old slug redirects to the new one. |
 | about | text null | |
 | city | text null | Where they usually hold events. |
 | logo_file_id | uuid FK → files null | |
-| social_links | jsonb | List of URLs: social media pages and past event posts. Default `[]`. At least one is required to request approval. Shown on the organizer page. |
+| social_links | jsonb | List of URLs: social media pages and past event posts. Default `[]`. At least one is required to request approval. These are the links the admin reviews, and they are shown on the organizer page. |
 
 The badge comes from `user_roles` (role `organizer`, `approval_status` `approved`, not suspended). "Joined" on the organizer page is the profile's `created_at`. A deleted organizer's page is not shown.
 
-**vendor_profiles**: one per user (spec §4.1). Not public in the MVP. Organizers see it when reviewing applications.
+**vendor_profiles**: one per user (spec §4.1). It feeds the public vendor page (spec §7.2), and organizers see it when reviewing applications. The vendor's avatar is `users.avatar_file_id`. The phone number and email live on `users` and are never shown on the page.
 
 | Attribute | Type | Notes |
 |---|---|---|
 | id | uuid PK | |
 | user_id | uuid FK → users, UK | |
-| shop_name | text | Shown on the accepted-vendor list. |
-| description | text null | |
-| products | text null | Free text about what they sell. |
+| shop_name | text | Shown on the accepted-vendor list and the vendor page. |
+| slug | text UK null | For the vendor page link, `/vendors/<slug>`. Generated from `shop_name` and editable. Null after the account is deleted. Slug rules are in spec §7.2. An old slug redirects to the new one. |
+| description | text null | The "about your shop" text, up to 300 characters. Shown on the vendor page. |
+| products | text null | Free text about what they sell. Shown on the vendor page. |
+| city | text null | Shown on the vendor page. Optional. Edited on the profile page, not asked in onboarding. |
+| social_links | jsonb | List of URLs. Default `[]`, optional. Shown on the vendor page. Cleared when the account is deleted. Mirrors `organizer_profiles.social_links`. |
+
+"Joined" on the vendor page is the profile's `created_at`. The page is not shown while the vendor's `user_roles` row is suspended or the account is deleted.
 
 **vendor_profile_categories**: the categories a vendor sells in. Composite PK (`vendor_profile_id`, `category_id`).
 
-**vendor_profile_photos**: `id`, `vendor_profile_id` FK, `file_id` FK → files, `sort_order`.
+**vendor_profile_photos**: `id`, `vendor_profile_id` FK, `file_id` FK → files, `sort_order`. At most 8 per profile (section 6.11). The photos are public (spec §7.2).
 
 ### 5.4 Events
 
 ```mermaid
 erDiagram
+    event_types {
+        uuid id PK
+        text name UK
+        text slug UK
+        boolean is_active
+        int sort_order
+    }
     events {
         uuid id PK
         uuid organizer_profile_id FK
+        uuid event_type_id FK
         text name
         text slug UK
         text description
@@ -358,6 +380,8 @@ erDiagram
         uuid moderated_by FK "null"
         text moderation_reason "null"
         boolean applications_open
+        timestamptz applications_close_at "null"
+        text ingress_info "null, vendors with a slot"
         numeric default_slot_price "null"
         int payment_deadline_hours "default 24"
         char currency "default PHP"
@@ -394,10 +418,21 @@ erDiagram
         boolean is_active
         int sort_order
     }
+    event_types ||--o{ events : ""
     events ||--o{ event_categories : ""
     events ||--o{ event_document_requirements : ""
     events ||--o{ event_payment_methods : ""
 ```
+
+**event_types**: the platform-wide list of event types (spec §3.1). The initial seed is Flea market, Bazaar, and Pop-up. Set in seed data and changed by a new seed or migration, with no admin page. A type is never deleted, only made inactive, because old events point to it.
+
+| Attribute | Type | Notes |
+|---|---|---|
+| id | uuid PK | |
+| name | text UK | For example, "Flea market". |
+| slug | text UK | For the attendee filter. |
+| is_active | boolean | Inactive types can't be picked for new events or shown as a filter. |
+| sort_order | int | |
 
 **events** (spec §3.1)
 
@@ -405,10 +440,11 @@ erDiagram
 |---|---|---|
 | id | uuid PK | |
 | organizer_profile_id | uuid FK → organizer_profiles | |
+| event_type_id | uuid FK → event_types | Required. The event setup form pre-selects Flea market. Drives the type tag and the attendee type filter (spec §7.3). |
 | name | text | |
 | slug | text UK | For the shareable event link. |
 | description | text | |
-| cover_file_id | uuid FK → files null | |
+| cover_file_id | uuid FK → files null | Required before opening to vendors (spec §3.1). |
 | vendor_floor_plan_file_id | uuid FK → files null | Layout with empty slots. Shown to signed-in vendors while the event is open to vendors or announced (spec §3.4). |
 | public_floor_plan_file_id | uuid FK → files null | Layout with vendors placed. Shown to attendees once the event is announced. |
 | starts_at, ends_at | timestamptz | Single-day or single-span events only. Multi-day slots are out of scope. `starts_at` caps every payment deadline. |
@@ -420,6 +456,8 @@ erDiagram
 | moderation_state | moderation_state | `visible` by default. `hidden` = an admin hid it for breaking rules or because the organizer was suspended (spec §2.1). |
 | moderated_at, moderated_by, moderation_reason | timestamptz / uuid FK → users / text, all null | Who hid it and why. |
 | applications_open | boolean | The organizer opens and closes applications (spec §3.3). Default false. |
+| applications_close_at | timestamptz null | Optional. After this time no new applications are accepted, even if `applications_open` is true. No later than `starts_at`. |
+| ingress_info | text null | Optional setup details for vendors, for example "From 3 PM, Gate 2". Shown to vendors with an active assignment. |
 | default_slot_price | numeric(10,2) null | "One price for all slots". A slot's own `price` overrides it. |
 | payment_deadline_hours | int | Default 24. |
 | currency | char(3) | Default `PHP`. |
@@ -472,6 +510,7 @@ erDiagram
 | label | text | Slot number. UK with `event_id` among slots that are not deleted. |
 | price | numeric(10,2) null | Null = use `events.default_slot_price`. |
 | size_label | text null | Human-readable size, for example "2m x 2m". |
+| note | text null | For example, "Near the entrance" or "Food row, with power". Shown to vendors and on the assignment. |
 | sort_order | int | |
 | deleted_at | timestamptz null | Soft delete, because past assignments point to the slot. Not allowed while the slot has an active assignment. |
 
@@ -590,6 +629,7 @@ erDiagram
         uuid uploaded_by FK
         uuid file_id FK
         numeric amount_claimed "null"
+        text reference_number "null"
         text note "null"
         proof_status status
         timestamptz uploaded_at
@@ -649,7 +689,8 @@ erDiagram
 | vendor_profile_id | uuid FK → vendor_profiles | |
 | uploaded_by | uuid FK → users | The vendor. |
 | file_id | uuid FK → files | Purpose `payment_proof`. |
-| amount_claimed | numeric(10,2) null | Optional amount the vendor says they sent. |
+| amount_claimed | numeric(10,2) null | The amount the vendor says they sent. The form pre-fills it with the amount due. |
+| reference_number | text null | Optional GCash or bank reference, shown to the organizer for checking. |
 | note | text null | |
 | status | proof_status | The organizer approves or rejects the proof. |
 | uploaded_at | timestamptz | |
@@ -672,12 +713,16 @@ A payment can have several proofs over time (a rejected one, then a new one).
 
 ### 5.8 Reports and moderation
 
-**reports**: only signed-in users (vendors and organizers) can report (spec §7). Attendees use the support email.
+**reports**: signed-in users report with the report button. Attendees use the support email, and an admin adds those emails as reports (spec §2.2).
 
 | Attribute | Type | Notes |
 |---|---|---|
 | id | uuid PK | |
-| reporter_user_id | uuid FK → users | |
+| number | int UK | Shown as a reference, for example RPT-0142. From a sequence. |
+| source | report_source | `report_button` or `support_email`. |
+| reporter_user_id | uuid FK → users null | Set for the report button. Null for support emails. |
+| reporter_email | citext null | For support emails: the sender's address. |
+| created_by | uuid FK → users null | For support emails: the admin who added it. |
 | target_type | report_target | |
 | target_user_id | uuid FK → users null | Set when `target_type` = `user`. |
 | target_event_id | uuid FK → events null | Set when `target_type` = `event`. |
@@ -686,9 +731,9 @@ A payment can have several proofs over time (a rejected one, then a new one).
 | status | report_status | Default `open`. |
 | action_taken | report_action null | |
 | resolved_by, resolved_at | uuid FK → users / timestamptz, null | |
-| resolution_note | text null | |
+| resolution_note | text null | Internal note on what the admin checked and why. |
 
-Check: exactly one target column is set, and it matches `target_type`.
+Check: exactly one target column is set, and it matches `target_type`. Open reports with the same target are shown and resolved together.
 
 Moderation actions are stored where they apply: `user_roles.suspended_*` for suspensions, and `events.moderation_*` for hidden events. Each is also written to `audit_logs`.
 
@@ -709,7 +754,7 @@ Moderation actions are stored where they apply: `user_roles.suspended_*` for sus
 | error | text null | |
 | sent_at | timestamptz null | |
 
-`notification_type` values, one per row in spec §8.1, plus the account emails sent by the auth library: `email_verification`, `password_reset`, `organizer_approved`, `organizer_rejected`, `application_submitted`, `application_withdrawn`, `application_approved`, `application_declined`, `slot_assigned`, `slot_released`, `proof_uploaded`, `payment_approved`, `payment_rejected`, `vendor_removed`, `event_changed`, `event_canceled`.
+`notification_type` values, one per row in spec §8.1, plus the account emails sent by the auth library: `email_verification`, `password_reset`, `organizer_approved`, `organizer_rejected`, `application_submitted`, `application_withdrawn`, `application_approved`, `application_declined`, `slot_assigned`, `slot_released`, `proof_uploaded`, `payment_approved`, `payment_rejected`, `vendor_removed`, `event_changed`, `event_canceled`, `event_hidden`.
 
 ### 5.10 Audit log
 
@@ -755,6 +800,7 @@ Rules the database itself should guarantee. Other rules (for example, "an organi
 | 6.9 | Money amounts are never negative. | Check `amount_due >= 0`, `price >= 0`, and so on. | |
 | 6.10 | A file is attached only when it is ready, matches the place, and belongs to the person attaching it. | App check before setting any `*_file_id` or inserting into `vendor_profile_photos` or `application_documents`: `status = 'ready'`, the `purpose` fits (for example, `events.cover_file_id` takes only `event_cover`), and `uploaded_by` is the current user. | §11.3 |
 | 6.11 | Upload limits per place hold (for example, 8 photos per vendor profile). | App check against the limits in the spec table, at the Ask step and again when attaching. | §11.1 |
+| 6.12 | The applications close date is not after the event start. | Check `applications_close_at IS NULL OR applications_close_at <= starts_at`. | §3.3 |
 
 **Useful indexes**
 
@@ -773,7 +819,18 @@ Values worked out from other tables instead of being stored.
 |---|---|
 | **Slot status** | No active assignment → `open`. Active assignment with status `assigned` → `assigned`. Status `reserved` → `reserved`. Best kept as a view, `slot_availability`, joining `slots` to their active assignment. |
 | **Overdue payment** | Active assignment with status `assigned`, payment `pending` or `rejected`, and `deadline_at` in the past. Shown to the organizer only. |
-| **Accepted-vendor list** | Vendors with a `reserved` assignment at the event. |
+| **Accepted-vendor list** | Vendors with a `reserved` assignment at the event. Each name links to the vendor page. |
+| **Vendor page: "Where they've sold"** | Events where the vendor has a `reserved` assignment, and the event `status` is `announced` or `completed` and `moderation_state` is `visible`. Never `draft` or `open_to_vendors`, and never an event canceled before it was announced. An assignment ends as `canceled` when its event is canceled, so events canceled after announcement are left out too. |
+| **Vendor page: "Find them next at"** | Among the same events, the one with `status` `announced` and the earliest `starts_at` still ahead, with the slot `label`. |
+| **Vendor page: events sold at** | The number of events in "Where they've sold". |
+| **Vendor page visible** | The vendor's `user_roles` row is not suspended, and the user is not deleted. |
+| **Accepting applications** | `status` `open_to_vendors` or `announced`, `applications_open` true, `moderation_state` `visible`, and `applications_close_at` null or still ahead. |
+| **Category spots left** (vendor events page and event page) | `event_categories.max_vendors` minus the count of `approved` applications in that category. Shown only when `max_vendors` is set. A guide only. |
+| **Organizer dashboard counts** (per event) | Applications to review: `submitted` applications, with the oldest `submitted_at`. Proofs to check: `submitted` proofs, with the sum of `amount_due`. Overdue payments: see "Overdue payment". Approved vendors with no slot: see below, with the count of `open` slots. |
+| **Vendor dashboard status** | From the latest application and its active assignment: `submitted`, `declined`, `withdrawn`, `removed` as stored; `approved` with no assignment = "Approved"; assignment `assigned` = "Slot assigned"; `reserved` = "Reserved". |
+| **Admin: resubmission** | Organizer role with `approval_status` `pending_review` and `reviewed_at` set (an earlier review exists). |
+| **Admin: waiting time** | Business days since `approval_submitted_at`, compared with the 2-day target. |
+| **Slots at a glance** | Counts of `open`, `assigned`, and `reserved` slots (see "Slot status") and of overdue payments for the event. |
 | **Category counter** ("Food: 4 of 5 accepted") | Count of `approved` applications with that category in `application_categories`, compared with `event_categories.max_vendors`. |
 | **Approved vendors without a slot** | `approved` applications with no active assignment. |
 | **"Approved by Creavent" badge** | Organizer's `user_roles` row has `approval_status` `approved` and `suspended_at` is null. |
@@ -802,7 +859,7 @@ Values worked out from other tables instead of being stored.
 
 ## 9. Decisions on questions this model raised
 
-Decided on 2026-11-11. Written into the [Feature specification](feature-specification.md) on 2026-11-12, and updated the same day when the MVP was simplified.
+Decided on 2026-11-11. Written into the [Feature specification](feature-specification.md) on 2026-11-12, and updated the same day when the MVP was simplified and when the docs were aligned with the UI mockup (`events.applications_close_at`, `events.ingress_info`, `slots.note`, `payment_proofs.reference_number`, report source and number, `event_hidden` email).
 
 | # | Question | Decision | Where in the model |
 |---|---|---|---|
@@ -813,4 +870,4 @@ Decided on 2026-11-11. Written into the [Feature specification](feature-specific
 | 5 | Store a history of event date, time, and location changes? | No. Changes only send emails. | No table |
 | 6 | Keep a history of organizer approval reviews? | No separate table. The latest review is on `user_roles`, and every decision is in `audit_logs`. | Section 5.1 |
 
-No open items remain for this model, other than the lawyer check under section 8.
+No open items remain for this model, other than the lawyer check under section 8. The follow-up questions from the 2026-11-12 design decisions were decided the same day (see [Open questions](open-questions.md#j-public-pages-onboarding-and-event-types)).

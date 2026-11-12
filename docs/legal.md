@@ -29,6 +29,7 @@ What Creavent already does, written so the lawyer can confirm or correct it.
 | P10 | Deleted data stays in database backups for up to 30 days. | [Architecture §9.3](architecture.md#93-backups) |
 | P11 | Users accept the terms and privacy notice at signup, and each accepted version is recorded. | Spec §1 |
 | P12 | Users confirm they are at least 18 at signup. | Spec §1 |
+| P13 | A vendor's profile content is public on their vendor page: avatar, shop name, categories, about text, products, up to 8 photos, social media links, city, and the events where they have a reserved slot at an announced event. Vendors are told this during onboarding and in the terms of use. A vendor's phone number, email, applications, application documents, and payments are never public. | Spec §1.1, §7.2 |
 
 ## 3. Questions for the team (before the lawyer)
 
@@ -51,14 +52,15 @@ What Creavent already does, written so the lawyer can confirm or correct it.
 | L5 | **Breach plan:** what must be reported to the NPC and to users, and how fast? | Needed before launch. |
 | L6 | **Internet Transactions Act (RA 11967):** does Creavent count as an e-marketplace or digital platform, even though it never handles money? What duties follow (seller verification, complaint handling, takedowns)? | Could add obligations to the MVP. |
 | L7 | **Liability for the "Approved by Creavent" badge:** if an approved organizer scams vendors, could Creavent be held responsible? How should the badge explanation and the payment notice be worded? | Vendors are told to check the badge before paying. Broad disclaimers can be struck down. |
-| L8 | **Terms of use:** what must they contain to be enforceable under Philippine law (roles, suspension, no part in payments, fees later with notice, retention)? (G4) | Templates from other countries often do not fit. |
+| L8 | **Terms of use:** what must they contain to be enforceable under Philippine law (roles, suspension, no part in payments, fees later with notice, retention, and that a vendor's profile content is public)? (G4) | Templates from other countries often do not fit. |
 | L9 | **Clickwrap acceptance:** is a checkbox at signup, with a recorded version, enough under the E-Commerce Act (RA 8792)? | This is how P11 works. |
 | L10 | **Minimum age:** is 18 required for vendors and organizers? | Confirms P12. |
-| L11 | **Privacy notice:** what must it say (purposes, sharing with organizers and admins, retention, backups, rights, DPO contact)? (G3) | Drafted from section 2, finalized by the lawyer. |
+| L11 | **Privacy notice:** what must it say (purposes, sharing with organizers and admins, public vendor and organizer pages, retention, backups, rights, DPO contact)? (G3) | Drafted from section 2, finalized by the lawyer. |
 | L12 | **Users' data rights:** what must the app support (access, correction, export, deletion), and how fast must requests be answered? | Deletion exists. Export may need to be added. |
 | L13 | **Service providers abroad:** data is stored with Render (Singapore) and Cloudflare R2, and email goes through Resend. Is anything needed for storing personal data outside the Philippines? | Cross-border transfer rules. |
 | L14 | **E-signatures (post-MVP):** is a typed name plus a drawn signature valid? (G1) | Only before contract signing is built. |
 | L15 | **Tax (post-MVP):** when do fees trigger VAT and BIR registration? (G5) | Only before fees start. |
+| L16 | **Public vendor pages:** is a notice in onboarding plus a clause in the terms enough for vendor content to be public (photos that may show people, about text, social links, city)? Is the vendor's consent needed for each item? | Vendors are told in onboarding and in the terms (P13). Vendor pages are new on 2026-11-12. |
 
 ## 5. Minimum legal work before launch
 
@@ -71,6 +73,7 @@ What Creavent already does, written so the lawyer can confirm or correct it.
 
 ## 6. Documents to draft
 
-- **Privacy notice** (`/privacy`): drafted from section 2, finalized after L1 to L5, L11 to L13.
-- **Terms of use** (`/terms`): drafted from section 2, finalized after L6 to L10.
+- **Privacy notice** (`/privacy`): drafted from section 2, finalized after L1 to L5, L11 to L13, and L16. It says which vendor and organizer profile content is public.
+- **Terms of use** (`/terms`): drafted from section 2, finalized after L6 to L10 and L16. It says that a vendor's profile content is public.
+- **Onboarding text:** the short "these are public" notices on the vendor onboarding steps (spec §1.1), worded with the lawyer.
 - **Breach plan:** internal, after L5.
