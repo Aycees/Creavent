@@ -50,7 +50,6 @@ Next.js (web)  ── /api/* rewrite ──►  NestJS (api)  ──►  Postgre
 | Job queue | pg-boss (runs on Postgres, no Redis) |
 | Email | Resend, templates in React Email |
 | Files | Cloudflare R2 through the S3 SDK, images processed with sharp |
-| Floor plan | react-konva (desktop editor), SVG (view-only plan) |
 | Hosting | Render, Singapore region |
 | Errors and logs | Sentry, pino |
 | Tests | Vitest, Testcontainers (real Postgres), Playwright |
@@ -73,12 +72,12 @@ packages/
 
 ### 3.2 Backend modules
 
-One NestJS app, no microservices. One module per area: `auth`, `users`, `verification`, `events`, `applications`, `slots`, `payments`, `messaging`, `notifications`, `files`, `reports`, `admin`. A module can be split out later if it grows.
+One NestJS app, no microservices. One module per area: `auth`, `users`, `approvals`, `events`, `applications`, `slots`, `payments`, `notifications`, `files`, `reports`, `admin`. A module can be split out later if it grows.
 
 ### 3.3 What runs where
 
 - **Next.js renders pages only.** It never imports Prisma or touches the database.
-- **All business rules live in the API.** This includes permissions, status changes, deadlines, and price locking.
+- **All business rules live in the API.** This includes permissions, status changes, deadline math, and price locking.
 
 ### 3.4 API
 
@@ -88,7 +87,7 @@ One NestJS app, no microservices. One module per area: `auth`, `users`, `verific
 
 ### 3.5 Status changes
 
-Events, applications, slot holds, and payments each have a status (data model section 4). For each one:
+Events, applications, slot assignments, and payments each have a status (data model section 4). For each one:
 
 - One place in the code lists the allowed changes (for example, a payment can go from `submitted` to `approved` or `rejected`).
 - Every change goes through one function that checks the rule, writes the new status, and records side effects (outbox emails, audit log) in the same transaction.
@@ -125,35 +124,31 @@ Better Auth runs inside the NestJS API with its Prisma adapter. It handles Googl
 
 ### 4.4 Permissions
 
-- NestJS guards check that the user is signed in, has the needed role (vendor, organizer, admin), and that the role is verified and not suspended.
+- NestJS guards check that the user is signed in, has the needed role (vendor, organizer, admin), and that the role is not suspended. Opening an event to vendors also needs the organizer role to be approved.
 - Small permission checks per resource answer questions like "is this user the organizer of this event?" or "does this application belong to this vendor?". No CASL.
-- Admins pass every check (spec §2).
+- Admins pass every read check (spec §2). Their changes go only through admin endpoints, never through vendor or organizer endpoints.
 - Every new endpoint needs its permission check and a test for it (section 11).
 
 ### 4.5 Audit log
 
-Every admin action on behalf of a user, every admin decision (verification, suspension, report), and every admin view of a verification document writes a row to the audit log through one shared helper: who, what, which record, when, and the values before and after.
+Every admin decision (organizer approval, suspension, hidden event, report) and every admin view of an application document or proof of payment writes a row to the audit log through one shared helper: who, what, which record, when, and the values before and after.
 
 ## 5. Data and correctness
 
-### 5.1 Slot holds
+### 5.1 Slot assignments
 
-Two vendors must never hold the same slot. A **partial unique index** allows only one active hold or reservation per slot, so the database rejects the second hold. The hold is created inside a transaction. The vendor who loses sees a "this slot was just taken" message.
+A slot belongs to one vendor at a time, and a vendor has one slot per event. **Partial unique indexes** allow only one active assignment per slot and per vendor per event, so the database rejects a second one even if an organizer double-clicks or two tabs are open. The assignment is created inside a transaction.
 
 Prisma's schema file cannot express partial indexes, so they are added as raw SQL in the migration. The same applies to any other partial index or check constraint in [Data model §6](data-model.md#6-rules-enforced-by-the-data).
 
-### 5.2 Deadlines and expiry
+### 5.2 Deadlines
 
-The 24-hour payment deadline, the 12-hour re-upload window, and the paused clock while proof is under review (spec §6) must stay correct even if a job runs late or the worker is down.
-
-- Each hold stores its deadline (`slot_holds.deadline_at`, [Data model §5.7](data-model.md#57-slot-holds-and-payments)).
-- **A hold counts as expired whenever it is read** if its status is `held`, its payment is `pending` or `rejected`, and its deadline has passed. Every query and every check uses this rule. Nothing waits for a job to mark it. A hold whose proof is `submitted` never counts as expired.
-- A scheduled job later releases expired holds, sends the emails, and cleans up. If the job is late, the only effect is a late email.
+The payment deadline is shown, not enforced (spec §6.4). Each assignment stores `deadline_at` ([Data model §5.7](data-model.md#57-slot-assignments-and-payments)), and "overdue" is worked out when the organizer's vendor list is read. No job expires anything, so a late or stopped worker cannot break a deadline.
 
 ### 5.3 Migrations and seed data
 
 - Migrations are created with `prisma migrate dev` and applied with `prisma migrate deploy`, run as the API's Render **pre-deploy command**. A failed migration stops the deploy.
-- A seed script creates test users for each role, verified and unverified, plus events in each status. It is used locally and on staging only.
+- A seed script creates the product categories, test users for each role (organizers approved and not approved), and events in each status. It is used locally and on staging only.
 
 ## 6. Background jobs and email
 
@@ -164,11 +159,8 @@ pg-boss stores jobs in Postgres. The worker service runs them.
 | Job | When |
 |---|---|
 | Send email | When an `email_notifications` row is queued (section 6.2) |
-| Release expired holds and email both sides | Every minute |
-| Payment reminder ("6 hours left") | Every few minutes, sent once per hold |
 | Mark announced events `completed` after they end | Hourly |
-| Delete payment records 90 days after the event (spec §6.7) | Daily |
-| Wipe personal data of deleted accounts | Daily |
+| Delete payment records and application documents 90 days after the event (spec §6.7) | Daily |
 | Remove removed and abandoned uploads (spec §11.7) | Daily |
 | Database backup | Nightly (section 9.3) |
 
@@ -177,16 +169,12 @@ The jobs and the rows they read are described in [Data model §7](data-model.md#
 ### 6.2 Email
 
 - Provider: **Resend**. Templates: **React Email**.
-- **Outbox:** code never calls Resend directly during a request. It writes an `email_notifications` row with status `queued` ([Data model §5.11](data-model.md#511-email-notifications)) in the same transaction as the change that caused it (a hold, an approval, a rejection). A job sends it and retries on failure. A Resend outage never fails a user's action, and no email is lost. The row's `dedupe_key` stops scheduled jobs from sending the same email twice.
-- A Resend webhook records hard bounces (`email_status` `bounced`, `users.email_bounced_at`), which turns on the "update your email" banner (spec §8.1).
+- **Outbox:** code never calls Resend directly during a request. It writes an `email_notifications` row with status `queued` ([Data model §5.9](data-model.md#59-email-notifications)) in the same transaction as the change that caused it (an assignment, an approval, a rejection). A job sends it and retries on failure. A Resend outage never fails a user's action, and no email is lost.
 - The sending domain is chosen with the app domain (open question E1).
 
 ### 6.3 Live updates
 
-No websockets in the MVP.
-
-- The slot picker refetches when the tab regains focus and every 15 to 30 seconds. Conflicting holds are rejected by the database (section 5.1).
-- The unread-message indicator polls a small unread-count endpoint.
+No websockets and no polling in the MVP. Signed-in screens refetch when the tab regains focus (TanStack Query's default).
 
 ## 7. Files
 
@@ -194,15 +182,15 @@ The upload rules are in [Feature specification §11](feature-specification.md#11
 
 - **Upload:** Ask, Upload, Complete, Attach, as in spec §11.3. The browser uploads straight to the `incoming/` area of the private bucket with a signed URL. On Complete, the API checks the real file type (from the file's first bytes) and the size.
 - **Buckets:** the public and private buckets of spec §11.2, plus a third private bucket per environment for database backups (section 9.3). The public bucket uses R2's built-in address in development and a custom domain once one exists (open question I2).
-- **Processing:** the API uses sharp during the Complete step, with a limit on how many images it processes at once (spec §11.5). Re-encoding to WebP **removes all photo metadata, including the GPS location**, which matters most for IDs and selfies. HEIC handling is open question I1.
+- **Processing:** the API uses sharp during the Complete step, with a limit on how many images it processes at once (spec §11.5). Re-encoding to WebP **removes all photo metadata, including the GPS location**, which matters most for permits and payment screenshots. HEIC is not accepted in the MVP (spec §11.1).
 - File paths are never reused. Replacing a file creates a new one.
 
 ## 8. Frontend
 
-- **UI:** Tailwind and shadcn/ui. Mobile-first, except the floor plan editor (desktop only, spec F2).
+- **UI:** Tailwind and shadcn/ui. Mobile-first for every role.
 - **Data:** server components for public pages. TanStack Query on signed-in screens.
 - **Forms:** react-hook-form with the shared Zod schemas.
-- **Floor plan:** react-konva for the desktop editor, SVG for the view-only plan on mobile and on public pages. Each slot is a database row with its position and size, which the hold rules in section 5.1 rely on.
+- **Floor plan:** two uploaded images per event (spec §3.4), shown as plain images. Slots are a list in the database, with no positions.
 - **Public pages and SEO:** event and organizer pages are cached by Next.js (ISR) and refreshed when the organizer publishes or edits. They include Open Graph tags so links share well on Facebook.
 - **Search:** Postgres full-text search with filters for location (city) and date, as in spec §7. No separate search service and no map search in the MVP.
 - **Language:** English only. No translation setup.
@@ -230,7 +218,7 @@ The upload rules are in [Feature specification §11](feature-specification.md#11
 
 - **Database:** the worker runs `pg_dump` every night and uploads the file to the backups bucket in R2. Dumps are kept for **30 days** through an R2 lifecycle rule, so there is always a dated copy from before any bad data.
 - **Restore drill:** restore a dump into a fresh database at least once before launch, and write down the steps.
-- **Files:** IDs, selfies, and proofs live in R2, not in the database, so database dumps do not cover them. File paths are never reused (section 7), so a file cannot be overwritten by mistake.
+- **Files:** permits and proofs live in R2, not in the database, so database dumps do not cover them. File paths are never reused (section 7), so a file cannot be overwritten by mistake.
 - **Deleted data in backups:** data that is deleted (payment records after 90 days, wiped accounts) stays in the dumps for up to 30 more days. The privacy notice should say so (open question G3).
 - Production and staging use a paid Render Postgres plan. Render's free database is not meant for real data.
 
@@ -241,20 +229,19 @@ The upload rules are in [Feature specification §11](feature-specification.md#11
 - **Uptime:** an external uptime check on the web app and on an API health endpoint.
 - **Rate limits** (NestJS throttler): login, signup, password reset, email verification resend, uploads, and reports.
 - **Security headers:** helmet on the API, and matching headers on the web app.
-- **Verification documents:** each time an admin opens one (ID, selfie, permit), a `verification_document.view` row is written to the audit log (spec §2). This supports the Data Privacy Act work (open question G3).
+- **Private documents:** each time an admin opens an application document or a proof of payment, a `*.view` row is written to the audit log (spec §2). This supports the Data Privacy Act work (open question G3).
 
 ## 11. Testing
 
 | Kind | Tool | What it covers |
 |---|---|---|
-| Integration | Vitest and Testcontainers (real Postgres) | Status changes, holds, deadlines, the paused clock, price locking, permissions per endpoint |
-| End-to-end | Playwright | The main path: sign up, get verified, apply, hold, upload proof, approve, announce |
+| Integration | Vitest and Testcontainers (real Postgres) | Status changes, assignments, overdue flags, price locking, permissions per endpoint |
+| End-to-end | Playwright | The main path: sign up, get approved as an organizer, apply, assign a slot, upload proof, approve, announce |
 | Unit | Vitest | Pure logic only (deadline math, slot rules) |
 
-The hold, payment, and deadline rules are where the product can break, so most tests go there.
+The assignment and payment rules are where the product can break, so most tests go there.
 
 ## 12. Open points
 
 - **Better Auth and the data model.** Better Auth has its own `user`, `session`, `account`, and `verification` tables. Its `user` table must be mapped onto our `users` table, and its `account` table likely replaces `auth_identities`. Settle this when writing the Prisma schema, then update the [Data model](data-model.md).
 - **Domain, sending domain, and public file domain** wait for H1, E1, and I2.
-- **HEIC uploads** wait for I1.

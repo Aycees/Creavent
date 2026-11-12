@@ -13,10 +13,11 @@ Creavent is a web platform that brings vendor-based community events together in
 - **MVP contracts:** none. There is no contract upload or e-signature in the MVP. Each organizer writes a cancellation and withdrawal policy that is shown on the event page, and vendors accept it by applying. See [Features to be implemented](#features-to-be-implemented).
 - **Name and domain:** "Creavent" is the final name. No domain is used during development. One is chosen later.
 - **Launch area and language:** Davao City first. Currency is PHP (₱), time zone is Asia/Manila, and the interface is in English with simple wording. Other cities and languages (Filipino, Bisaya) come later.
-- **Devices:** mobile-first for vendors and attendees. The organizer's floor plan editor is desktop-only, and organizers see the floor plan view-only on mobile.
+- **Devices:** mobile-first for everyone, including organizers. There is no floor plan editor: organizers upload floor plan images.
 - **MVP pricing:** the MVP is free for everyone. The terms of use say that fees may be introduced later with notice.
-- **MVP notifications:** email, sent through Resend. Required emails (verification, payment, deadlines, changes) always send, and optional ones have an unsubscribe link. Messages also show an in-app unread indicator.
-- **Hosting and files:** the web app, API, and database are hosted on Render. Uploaded files (event covers, vendor photos, proofs of payment, and documents) are stored in Cloudflare R2 through the S3 SDK. See [File uploads](feature-specification.md#11-file-uploads) and [Architecture](architecture.md).
+- **MVP notifications:** email only, sent through Resend. Every MVP email is required (account, approval, application, payment, and event changes). There is no in-app messaging: organizers and vendors see each other's contact details.
+- **MVP trust:** no identity verification (no IDs or selfies). Admins approve organizers from their social media and past event links, and approved organizers show an "Approved by Creavent" badge. Vendors need no approval.
+- **Hosting and files:** the web app, API, and database are hosted on Render. Uploaded files (event covers, floor plan images, vendor photos, proofs of payment, and permits) are stored in Cloudflare R2 through the S3 SDK. See [File uploads](feature-specification.md#11-file-uploads) and [Architecture](architecture.md).
 
 The platform is described in general terms (events, organizers, vendors, attendees) so it can grow beyond flea markets later.
 
@@ -26,61 +27,75 @@ This page is a summary. The detailed behavior, rules, and open questions are in 
 
 ### Admin
 
-Keeps the platform trustworthy. Has full access to everything every other role can see and do, including proof of payment.
+Keeps the platform trustworthy. Can view everything other roles can see, including proof of payment and permits.
 
-- Verify organizer and vendor accounts (target review time 1 to 2 business days). Organizer checks are strict, since they guard against fraud: legitimate documents, a valid ID, a matching selfie, and social media or past event history
-- Re-review resubmissions and support emails from rejected users
+- Approve organizers from their social media and past event links (target review time 1 to 2 business days)
+- Re-review resubmissions and support emails from rejected organizers
 - Suspend or reinstate accounts
-- Remove events that break the rules
+- Hide events that break the rules
 - Handle user reports
 
 ### Organizer
 
 Plans, promotes, and runs events.
 
-- Add the organizer role to their account and get verified (draft events are allowed before verification, but opening an event to vendors needs it). One account can be both an organizer and a vendor
+- Add the organizer role to their account and get approved (draft events are allowed before approval, but opening an event to vendors needs it). One account can be both an organizer and a vendor
 - Create and manage events (draft, open to vendors, announced, completed, canceled). Fill and finalize the vendor list first, then announce the event to attendees
 - Promote events through a public event page once announced
-- Set vendor requirements (product categories, limits on similar vendors, required permits)
+- Set vendor requirements (product categories, limits on similar vendors, required permits). Requirements are shown only to signed-in vendors
 - Open vendor applications, then approve or decline them. There is no cap on applications
-- Build a floor plan with slots of different sizes, walkways, and other areas, and publish it
-- Choose a slot selection mode: open selection, category selection, or organizer assignment. Changing the mode later clears unpaid holds after a warning, and reserved slots block it
+- Add slots as a list (number, size, price) and assign approved vendors to them
+- Upload two floor plan images: one with empty slots for vendors, and one with vendors placed for attendees
 - Set slot pricing, per slot if needed (the full price is paid by the vendor)
-- Publish payment instructions (any account or QR) and set the payment deadline (24 hours by default). The price and instructions are locked onto each slot when it is held
-- Review proof of payment and approve or reject it. The deadline stops while proof waits for review, and a rejected vendor gets 12 hours to re-upload. A payment made in cash can be approved without proof, with a note
-- Remove a vendor (for example, a cancellation). Their payment records are kept (archived) for both sides
-- Write their own cancellation and withdrawal policy and show it on the event page
-- Message vendors and keep the event page details up to date
+- Publish payment instructions (any account or QR) and set the payment deadline (24 hours by default). The price and instructions are locked onto each slot when it is assigned. Overdue payments are flagged, not expired automatically
+- Review proof of payment and approve or reject it. A payment made in cash can be approved without proof, with a note
+- Remove a vendor (for example, a cancellation or an overdue payment). Their payment records are kept (archived) for both sides
+- Write their own cancellation and withdrawal policy and show it to vendors on the event page
+- Keep the event page details up to date
 
 ### Vendor
 
 Finds events to join and manages participation.
 
-- Add the vendor role to their account, get verified, and create a profile
+- Add the vendor role to their account and create a profile. No approval needed
 - Browse and search upcoming events
-- View event requirements, then apply and submit permits. Withdraw an application before the organizer decides. Reapply after a decline (after a removal, only if the organizer allows it)
-- View the floor plan and choose and hold a slot, or wait for the organizer to assign one. A vendor can hold only one slot per event (for now)
-- Release a held slot, or message the organizer to withdraw after reserving
+- View event requirements, then apply and upload permits. Withdraw an application before the organizer decides. Reapply after a decline (after a removal, only if the organizer allows it)
+- Get a slot assigned by the organizer. A vendor can have only one slot per event (for now)
+- Release an assigned slot before payment is approved, or contact the organizer to withdraw after reserving
 - Pay the organizer directly and upload proof of payment before the deadline
-- Message the organizer
+- See the organizer's contact details for each event
 - Track applications, payments, and upcoming events
 - Receive email notifications
 
 ### Attendee
 
-Discovers events and plans visits. An account is optional.
+Discovers events and plans visits. No account in the MVP.
 
 - Browse upcoming announced events by date, filtered by location and date range
-- View event details, the floor plan once the organizer publishes it (vendor names appear only on reserved slots), and the list of accepted vendors (reserved slots only)
-- See verified organizers, and open an organizer's page (details, social links, upcoming and past events)
+- View event details, the public floor plan image once the event is announced, and the list of accepted vendors (reserved slots only)
+- See organizers "Approved by Creavent", and open an organizer's page (details, social links, upcoming and past events)
 - See the latest event details
-- Optionally sign in (Google, or email and password) to save events, or follow events and organizers and get an email when a followed organizer announces a new event
-- Report an event or user (signed-in users only)
+- Report an event or user through the support email
 - Attendees cannot contact organizers in the MVP
 
 ## Features to be implemented
 
 Planned for after the MVP is finished. They are deliberately left out of the MVP to keep it simple but effective. The MVP flow works without them: vendors pay organizers directly and upload proof of payment, and each organizer's cancellation and withdrawal policy is shown on the event page.
+
+### Deferred to keep the MVP simple
+
+Decided on 2026-11-12. Each can be added once users ask for it:
+
+- **Identity verification:** government ID and selfie checks for organizers and vendors, after the legal review. Until then, organizers are approved from public links
+- **Vendor slot selection:** vendors pick and hold an open slot (open selection), or one matching their category (category selection)
+- **Floor plan editor:** draw slots, walkways, and areas, with vendor names shown on reserved slots
+- **Payment deadline enforcement:** automatic expiry of unpaid slots, reminder emails, retry windows after a rejected proof, and deadline extensions
+- **In-app messaging** between organizers and vendors, with unread indicators
+- **Attendee accounts:** save events, follow events and organizers, and get emails when a followed organizer announces an event
+- **Admin tools:** "view as this user", acting on behalf of users, and admin pages for categories and settings
+- **Automatic freeze** of a suspended organizer's events
+- **Self-serve account deactivation and deletion**
+- **HEIC uploads, multiple image sizes, and bounced-email tracking**
 
 ### Waitlist
 

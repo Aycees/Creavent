@@ -39,7 +39,7 @@ Questions the MVP should answer before the revenue model is finalized. These fee
 | Do vendors find and apply to events here? | Vendor signups; applications per event; slots filled per event |
 | Is manual payment approval painful? | Time to approve; rejected or disputed proofs; organizer feedback |
 | What are people willing to pay for? | Interviews with organizers and vendors; what they request |
-| Is there real attendee traffic? | Event page views; follows and saves (this unlocks sponsor revenue later) |
+| Is there real attendee traffic? | Event page views (this unlocks sponsor revenue later). Follows and saves come with attendee accounts, after the MVP |
 | What are the real slot prices? | Slot price per event, so fee models can be tested with real numbers |
 
 **Suggested trigger for revisiting monetization** (a guess, adjust it): about 8–10 active organizers and 25 or more events with applications through the platform, with some repeat organizers.
@@ -177,3 +177,4 @@ A starting view, not a decision.
 | 2026-11-07 | MVP focuses on gaining users. Payments are manual: vendors upload proof of payment, organizers approve. No platform fee and no payment gateway in the MVP. The final revenue model is deferred until after the MVP. |
 | 2026-11-09 | To keep the MVP simple, contract signing, the deposit option, the waitlist, and event announcements move to "Features to be implemented" in [Project details](project-details.md#features-to-be-implemented). Payments are full price only. |
 | 2026-11-12 | No "service fee: ₱0 (launch offer)" display in the MVP, because no screen shows a fee yet. The terms of use still say fees may come later with notice. |
+| 2026-11-12 | Identity verification is deferred from the MVP (organizers are approved from public links instead), so "paid vendor verification" can only start once verification is built after the legal review. |

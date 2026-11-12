@@ -20,9 +20,9 @@ Legend: ⚠️ = the item is partly deferred until the final revenue model is de
   - [x] Include the manual payment flow: vendor uploads proof, organizer approves or rejects
   - [ ] User stories with acceptance criteria
 - [ ] Domain model and business rules (`docs/domain-model.md`) ⚠️ partially
-  - [ ] Entities and statuses (Event, Application, Slot, Floor Plan, Vendor Profile, Payment, Payment Proof, Message, Notification, Report, Verification Submission, Admin Audit Log, Event Policy)
-  - [ ] Verification rules (what's required, who approves)
-  - [ ] Slot reservation rules (holds, release, removal; no-shows are left to organizer policy)
+  - [ ] Entities and statuses (Event, Application, Slot, Slot Assignment, Vendor Profile, Payment, Payment Proof, Notification, Report, Organizer Approval, Admin Audit Log, Event Policy)
+  - [ ] Organizer approval rules (what's required, who approves)
+  - [ ] Slot assignment rules (assignment, release, removal; no-shows are left to organizer policy)
   - [ ] Record retention and archiving rules
   - [ ] Visibility rules (public, draft, private data)
   - [ ] Manual payment approval and refund rules (MVP)
@@ -38,17 +38,17 @@ Legend: ⚠️ = the item is partly deferred until the final revenue model is de
   - [ ] Reference sites
   - [ ] Mobile-first guidelines
 - [ ] Payment proof upload and approval screens (MVP)
-- [ ] Floor plan editor, slot selection (three modes), and admin verification screens (MVP)
+- [ ] Slot list and assignment, floor plan image upload, and admin organizer approval screens (MVP)
 - [ ] Contract signing screens ⚠️ (deferred, post-MVP)
 - [ ] Pricing, checkout, and payout screens ⚠️ (deferred, post-MVP)
 
 ## Phase 3: Technical
 
 - [x] Technical architecture (`docs/architecture.md`)
-  - [x] Stack, hosting, auth, file storage (proof-of-payment images and verification documents). Decided so far: Render for web, API, and database; Cloudflare R2 with the S3 SDK for files (spec §11)
-  - [x] Email through Resend, and scheduled jobs for hold expiry and deadline reminders
+  - [x] Stack, hosting, auth, file storage (proof-of-payment images and permits). Decided so far: Render for web, API, and database; Cloudflare R2 with the S3 SDK for files (spec §11)
+  - [x] Email through Resend, and scheduled jobs (retention, cleanup, completing events)
   - [x] Role-based access, including admin access to all roles and an audit log
-  - [x] Floor plan editor approach
+  - [x] Floor plan approach (uploaded images in the MVP)
   - [x] Payments approach: manual proof upload for MVP; online payment integration ⚠️ deferred
 - [x] Data model / ERD (`docs/data-model.md`) (first draft, 2026-11-11)
   - [x] Payment and payment proof tables (MVP)
@@ -61,7 +61,7 @@ Legend: ⚠️ = the item is partly deferred until the final revenue model is de
   - [ ] MVP metrics: active organizers, events published, applications, slots filled, repeat organizers
   - [ ] Revenue metrics ⚠️ (deferred)
 - [ ] Legal and compliance notes (`docs/legal.md`) ⚠️ partially (question list written 2026-11-12, lawyer review pending)
-  - [x] MVP: Creavent holds no funds; privacy rules for proof-of-payment images and verification documents
+  - [x] MVP: Creavent holds no funds; privacy rules for proof-of-payment images and permits
   - [ ] Terms of use and privacy policy (retention, no-liability for payments)
   - [ ] Philippine Data Privacy Act and E-Commerce Act checks (see `docs/open-questions.md`)
   - [ ] Online payments, fund holding, and tax (VAT) ⚠️ (deferred, confirm with local accountant and lawyer)
