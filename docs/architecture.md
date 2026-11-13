@@ -2,7 +2,7 @@
 
 **Status:** Decided for the MVP. Agreed on 2026-11-11. It follows the [Feature specification](feature-specification.md) and the [Data model](data-model.md). If this file and the spec disagree, the spec wins.
 
-Last updated: 2026-11-12
+Last updated: 2026-11-13
 
 ## Contents
 
@@ -118,6 +118,13 @@ Signup also records the accepted terms and privacy versions (`legal_acceptances`
 ### 4.2 Auth library
 
 Better Auth runs inside the NestJS API with its Prisma adapter. It handles Google sign-in, password hashing, email verification, password reset, and sessions. Auth emails go through the same outbox as other emails (section 6.2). If Better Auth stops fitting, the fallback is our own auth with Passport.
+
+How it maps onto the data model (decided 2026-11-13):
+
+- Better Auth's user table is our `users` table. Its `name` is `full_name`, and its ids are uuids made by Postgres. Our own columns (`phone`, `is_admin`, `age_confirmed_at`, and the rest) are declared to it as extra fields that signup can't set.
+- Its `account` table replaces `auth_identities`, and it adds `sessions` and `verifications` ([Data model §5.1](data-model.md#51-accounts-and-roles)).
+- Its handler is mounted at `/api/auth/*` before Nest's body parser. Everything else under `/api` is ours.
+- **Google and an unverified account.** Better Auth links a Google sign-in to an existing account with the same email. Spec §1 wants this even when the account's email was never verified, and then removes its password. That needs `requireLocalEmailVerified: false`, which Better Auth marks as deprecated. A hook on the new Google account deletes the old `credential` account in that case. If a Better Auth upgrade removes the option, this rule needs a new approach.
 
 ### 4.3 Sessions
 
@@ -246,5 +253,4 @@ The assignment and payment rules are where the product can break, so most tests 
 
 ## 12. Open points
 
-- **Better Auth and the data model.** Better Auth has its own `user`, `session`, `account`, and `verification` tables. Its `user` table must be mapped onto our `users` table, and its `account` table likely replaces `auth_identities`. Settle this when writing the Prisma schema, then update the [Data model](data-model.md).
 - **Domain, sending domain, and public file domain** wait for H1, E1, and I2.

@@ -1,6 +1,6 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { inject } from 'vitest';
-import { PrismaClient } from '../../generated/prisma/client.js';
+import { PrismaClient } from '../../src/generated/prisma/client.js';
 
 // A Prisma client connected to the run's test database.
 export function createTestPrisma(): PrismaClient {
