@@ -116,13 +116,13 @@ export function LoginForm({ googleSignIn, next }: { googleSignIn: boolean; next?
         <div className="grid grid-cols-2 gap-2.5">
           <Button asChild variant="secondary">
             <Link href="/signup?as=vendor">
-              <StorefrontIcon aria-hidden="true" />
+              <StorefrontIcon aria-hidden="true" className="hidden md:block" />
               Vendor account
             </Link>
           </Button>
           <Button asChild variant="secondary">
             <Link href="/signup?as=organizer">
-              <CalendarBlankIcon aria-hidden="true" />
+              <CalendarBlankIcon aria-hidden="true" className="hidden md:block" />
               Organizer account
             </Link>
           </Button>

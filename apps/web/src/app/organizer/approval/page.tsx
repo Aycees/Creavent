@@ -1,9 +1,9 @@
 import type { Metadata } from "next"
 
-import { PlaceholderPage } from "@/components/layout/placeholder-page"
+import { ApprovalStatus } from "@/components/onboarding/approval-status"
 
 export const metadata: Metadata = { title: "Approval · Creavent" }
 
 export default function ApprovalPage() {
-  return <PlaceholderPage title="Approval" slice="1.6 (organizer onboarding)" />
+  return <ApprovalStatus />
 }

@@ -29,7 +29,9 @@ export function SessionGate({
   const router = useRouter()
   const pathname = usePathname()
   const { data: me, isPending } = useMe()
-  const target = me ? redirectFor(me, pathname, area) : me === null ? `/login?next=${encodeURIComponent(pathname)}` : null
+  // The query string is kept, so ?role= survives a trip through log in.
+  const here = typeof window === "undefined" ? pathname : pathname + window.location.search
+  const target = me ? redirectFor(me, pathname, area) : me === null ? `/login?next=${encodeURIComponent(here)}` : null
 
   React.useEffect(() => {
     if (target) router.replace(target)
