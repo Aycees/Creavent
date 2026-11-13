@@ -57,11 +57,19 @@ pnpm --filter @creavent/api dev:worker
 
 Without a Resend key, set `EMAIL_DRIVER=log` in `apps/api/.env` and the worker prints each email, links included. Uploads need the R2 settings in `apps/api/.env.example`. Google sign-in shows only when `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are set.
 
-Seed accounts for every Phase 1 screen (an admin, a vendor, organizers in each approval state), all with `SEED_PASSWORD`:
+Seed accounts for every Phase 1 screen, all with `SEED_PASSWORD` from `apps/api/.env`: `admin@creavent.test` (admin), `vendor@creavent.test` (vendor), `organizer@creavent.test` (approved organizer), and `pending@`, `pending2@`, `rejected@`, `later@creavent.test` (organizers in the other approval states). Seeding again leaves existing accounts as they are.
 
 ```bash
-pnpm --filter @creavent/api db:seed
+pnpm db:seed
 ```
+
+To start over with an empty local database (every account and upload record is deleted), then the seed:
+
+```bash
+pnpm db:reset
+```
+
+`db:reset` refuses to run unless `DATABASE_URL` points at this machine. Files already uploaded to R2 stay in the buckets.
 
 If another Postgres already uses port 5432, put `POSTGRES_PORT=5435` in a `.env` at the repo root and use that port in `DATABASE_URL`.
 

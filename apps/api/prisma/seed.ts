@@ -1,10 +1,17 @@
-// Seed data for local development and staging only (architecture §5.3): an
-// admin, a vendor, and organizers in each approval state, so every Phase 1
-// screen can be seen without clicking through signup. Run with
-// `pnpm --filter @creavent/api db:seed` after a build. Safe to run again.
+// Seed data for local development and staging only (architecture §5.3), so
+// every Phase 1 screen can be seen without clicking through signup:
+//
+//   admin@creavent.test      admin
+//   vendor@creavent.test     vendor, onboarding finished
+//   organizer@creavent.test  organizer, approved
+//   pending@, pending2@, rejected@, later@creavent.test
+//                            organizers in each other approval state
+//
+// All use SEED_PASSWORD from apps/api/.env. Run with `pnpm db:seed` from the
+// repo root. Safe to run again: existing accounts are left as they are.
 import { hashPassword } from 'better-auth/crypto';
-import type { ApprovalStatus } from './generated/prisma/client.js';
-import { PrismaService } from './prisma/prisma.service.js';
+import type { ApprovalStatus } from '../src/generated/prisma/client.js';
+import { PrismaService } from '../src/prisma/prisma.service.js';
 
 if (process.env.NODE_ENV === 'production' && process.env.ALLOW_SEED !== 'staging') {
   throw new Error('The seed is for local and staging databases only');
@@ -76,11 +83,13 @@ await prisma.userRole.upsert({
   create: { userId: vendor.id, role: 'vendor', onboardingStep: 4 },
 });
 
-await organizer('approved@creavent.test', 'Matina Night Flea', 'approved', 10);
+await organizer('organizer@creavent.test', 'Matina Night Flea', 'approved', 10);
 await organizer('pending@creavent.test', 'Bazaar ng Mintal', 'pending_review', 3);
 await organizer('pending2@creavent.test', 'Lanang Holiday Flea', 'pending_review', 1);
 await organizer('rejected@creavent.test', 'Bajada Ukay', 'rejected', 5);
 await organizer('later@creavent.test', 'Toril Sunday Market', 'not_submitted', 0);
 
 await prisma.$disconnect();
-console.log('Seeded. Accounts use SEED_PASSWORD: admin@, vendor@, approved@, pending@, pending2@, rejected@, later@creavent.test');
+console.log(
+  'Seeded. Accounts use SEED_PASSWORD: admin@, vendor@, organizer@, pending@, pending2@, rejected@, later@creavent.test',
+);
