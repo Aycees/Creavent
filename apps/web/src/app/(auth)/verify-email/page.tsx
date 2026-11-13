@@ -1,14 +1,14 @@
 import type { Metadata } from "next"
+import { Suspense } from "react"
 
-import { PlaceholderPage } from "@/components/layout/placeholder-page"
-import { Container } from "@/components/ui/container"
+import { VerifyEmailScreen } from "@/components/auth/screens"
 
 export const metadata: Metadata = { title: "Confirm your email · Creavent" }
 
-export default function ConfirmYourEmailPage() {
+export default function Page() {
   return (
-    <Container className="py-8 md:py-12">
-      <PlaceholderPage title="Confirm your email" slice="1.3 (sign up and sign in)" />
-    </Container>
+    <Suspense>
+      <VerifyEmailScreen />
+    </Suspense>
   )
 }

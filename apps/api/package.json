@@ -21,7 +21,7 @@
     "test:cov": "vitest run --coverage",
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
-    "dev": "nest start --watch",
+    "dev": "nest start --watch --env-file .env",
     "typecheck": "tsc --noEmit",
     "generate:api": "nest build && node dist/openapi.js && openapi-typescript openapi.json -o ../../packages/shared/src/api/schema.ts",
     "dev:worker": "node --env-file-if-exists=.env --watch dist/worker.js",

@@ -1,14 +1,14 @@
 import type { Metadata } from "next"
+import { Suspense } from "react"
 
-import { PlaceholderPage } from "@/components/layout/placeholder-page"
-import { Container } from "@/components/ui/container"
+import { SignUpScreen } from "@/components/auth/screens"
 
 export const metadata: Metadata = { title: "Sign up · Creavent" }
 
-export default function SignUpPage() {
+export default function Page() {
   return (
-    <Container className="py-8 md:py-12">
-      <PlaceholderPage title="Sign up" slice="1.3 (sign up and sign in)" />
-    </Container>
+    <Suspense>
+      <SignUpScreen />
+    </Suspense>
   )
 }

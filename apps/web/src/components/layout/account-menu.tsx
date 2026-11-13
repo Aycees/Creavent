@@ -1,6 +1,8 @@
 "use client"
 
+import { useQueryClient } from "@tanstack/react-query"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -11,10 +13,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import type { ShellUser } from "@/lib/placeholder-user"
+import { authClient } from "@/lib/auth-client"
+import type { ShellUser } from "@/lib/shell-user"
 
 // Account menu (sitemap §5): Account, a "Become a ..." entry for each missing role, Log out.
 export function AccountMenu({ user }: { user: ShellUser }) {
+  const router = useRouter()
+  const queryClient = useQueryClient()
+
+  async function logOut() {
+    await authClient.signOut()
+    queryClient.clear()
+    router.replace("/")
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -31,17 +43,16 @@ export function AccountMenu({ user }: { user: ShellUser }) {
         </DropdownMenuItem>
         {!user.roles.includes("vendor") && (
           <DropdownMenuItem asChild>
-            <Link href="/onboarding">Become a vendor</Link>
+            <Link href="/onboarding?role=vendor">Become a vendor</Link>
           </DropdownMenuItem>
         )}
         {!user.roles.includes("organizer") && (
           <DropdownMenuItem asChild>
-            <Link href="/onboarding">Become an organizer</Link>
+            <Link href="/onboarding?role=organizer">Become an organizer</Link>
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />
-        {/* Signing out is wired up in slice 1.3. */}
-        <DropdownMenuItem>Log out</DropdownMenuItem>
+        <DropdownMenuItem onSelect={logOut}>Log out</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

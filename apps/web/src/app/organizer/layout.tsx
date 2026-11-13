@@ -1,10 +1,5 @@
-import { AppShell } from "@/components/layout/app-shell"
-import { placeholderCounts, placeholderUser } from "@/lib/placeholder-user"
+import { SignedInShell } from "@/components/layout/signed-in-shell"
 
 export default function OrganizerLayout({ children }: LayoutProps<"/organizer">) {
-  return (
-    <AppShell area="organizer" user={placeholderUser} counts={placeholderCounts}>
-      {children}
-    </AppShell>
-  )
+  return <SignedInShell area="organizer">{children}</SignedInShell>
 }

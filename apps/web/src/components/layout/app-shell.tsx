@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import type { ShellUser } from "@/lib/placeholder-user"
+import type { ShellUser } from "@/lib/shell-user"
 import { cn } from "@/lib/utils"
 import { appNav, areaLabels, type Area } from "./app-nav"
 import { SideMenu } from "./side-menu"

@@ -1,14 +1,14 @@
 import type { Metadata } from "next"
+import { Suspense } from "react"
 
-import { PlaceholderPage } from "@/components/layout/placeholder-page"
-import { Container } from "@/components/ui/container"
+import { ResetPasswordScreen } from "@/components/auth/screens"
 
-export const metadata: Metadata = { title: "Reset password · Creavent" }
+export const metadata: Metadata = { title: "Set a new password · Creavent" }
 
-export default function ResetPasswordPage() {
+export default function Page() {
   return (
-    <Container className="py-8 md:py-12">
-      <PlaceholderPage title="Reset password" slice="1.3 (sign up and sign in)" />
-    </Container>
+    <Suspense>
+      <ResetPasswordScreen />
+    </Suspense>
   )
 }
