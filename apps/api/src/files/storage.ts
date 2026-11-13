@@ -14,8 +14,10 @@ export interface ObjectStorage {
 
 export const STORAGE = Symbol('STORAGE');
 
+// Values are trimmed: a stray space pasted into .env would otherwise end up
+// inside every image address.
 function required(name: string) {
-  const value = process.env[name];
+  const value = process.env[name]?.trim();
   if (!value) throw new Error(`${name} is not set (docs/deployment.md lists the R2 settings)`);
   return value;
 }
