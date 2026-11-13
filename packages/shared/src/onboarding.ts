@@ -116,7 +116,11 @@ export const onboardingStateSchema = z.object({
       contactEmail: z.string().nullable(),
       approvalStatus: approvalStatusSchema,
       approvalSubmittedAt: z.string().nullable(),
+      reviewedAt: z.string().nullable(),
       rejectionReason: z.string().nullable(),
+      // The links the admin reviewed at the last decision, so the page can
+      // mark them.
+      reviewedLinks: z.array(z.string()),
     })
     .nullable(),
 });
@@ -135,5 +139,20 @@ export function slugify(name: string) {
   return base.length >= 3 ? base : `${base}${base ? '-' : ''}shop`.slice(0, 40);
 }
 
-export const updatePhoneSchema = z.object({ phone: phoneSchema });
-export type UpdatePhoneInput = z.input<typeof updatePhoneSchema>;
+// Profile edit pages (mockup VendorProfileEdit, OrgProfileEdit). The whole
+// profile is saved at once with Save changes.
+export const vendorProfileUpdateSchema = vendorShopSchema.extend({
+  slug: slugSchema,
+  avatarFileId: z.uuid().nullable(),
+  photoFileIds: z.array(z.uuid()).max(8, 'Add up to 8 photos'),
+  socialLinks: socialLinksSchema,
+});
+export type VendorProfileUpdateInput = z.input<typeof vendorProfileUpdateSchema>;
+
+export const organizerProfileUpdateSchema = organizerPageSchema.extend({
+  socialLinks: socialLinksSchema.min(1, 'Keep at least one link'),
+  contactEmail: z.email('Enter a valid email'),
+});
+export type OrganizerProfileUpdateInput = z.input<typeof organizerProfileUpdateSchema>;
+
+export const slugCheckSchema = z.object({ available: z.boolean() });

@@ -88,6 +88,7 @@ export class ApprovalsService {
           reviewedById: adminId,
           reviewedAt: new Date(),
           rejectionReason: decision.approve ? null : decision.reason,
+          reviewedLinks: (role.user.organizerProfile?.socialLinks ?? []) as string[],
           ...(decision.note !== undefined && decision.note !== null ? { adminNotes: decision.note } : {}),
         },
       });

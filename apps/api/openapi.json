@@ -503,6 +503,9 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 100
+                  },
+                  "phone": {
+                    "type": "string"
                   }
                 },
                 "required": [
@@ -670,9 +673,9 @@
         ]
       }
     },
-    "/api/me/phone": {
+    "/api/me/avatar": {
       "put": {
-        "operationId": "AccountsController_updatePhone",
+        "operationId": "AccountsController_updateAvatar",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -681,12 +684,15 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "phone": {
-                    "type": "string"
+                  "avatarFileId": {
+                    "nullable": true,
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                   }
                 },
                 "required": [
-                  "phone"
+                  "avatarFileId"
                 ]
               }
             }
@@ -790,6 +796,153 @@
                     "needsLegal",
                     "hasPassword",
                     "roles"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Accounts"
+        ]
+      }
+    },
+    "/api/account": {
+      "get": {
+        "operationId": "AccountsController_details",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "passwordChangedAt": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "googleLinked": {
+                      "type": "boolean"
+                    },
+                    "legal": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "document": {
+                            "type": "string",
+                            "enum": [
+                              "terms",
+                              "privacy"
+                            ]
+                          },
+                          "version": {
+                            "type": "string"
+                          },
+                          "acceptedAt": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "document",
+                          "version",
+                          "acceptedAt"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "vendor": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "shopName": {
+                          "type": "string"
+                        },
+                        "since": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "shopName",
+                        "since"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "organizer": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "displayName": {
+                          "type": "string"
+                        },
+                        "since": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "displayName",
+                        "since"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "passwordChangedAt",
+                    "googleLinked",
+                    "legal",
+                    "vendor",
+                    "organizer"
                   ],
                   "additionalProperties": false
                 }
@@ -1319,9 +1472,19 @@
                           "nullable": true,
                           "type": "string"
                         },
+                        "reviewedAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
                         "rejectionReason": {
                           "nullable": true,
                           "type": "string"
+                        },
+                        "reviewedLinks": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
                         }
                       },
                       "required": [
@@ -1334,7 +1497,9 @@
                         "contactEmail",
                         "approvalStatus",
                         "approvalSubmittedAt",
-                        "rejectionReason"
+                        "reviewedAt",
+                        "rejectionReason",
+                        "reviewedLinks"
                       ],
                       "additionalProperties": false
                     }
@@ -1615,9 +1780,19 @@
                           "nullable": true,
                           "type": "string"
                         },
+                        "reviewedAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
                         "rejectionReason": {
                           "nullable": true,
                           "type": "string"
+                        },
+                        "reviewedLinks": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
                         }
                       },
                       "required": [
@@ -1630,7 +1805,9 @@
                         "contactEmail",
                         "approvalStatus",
                         "approvalSubmittedAt",
-                        "rejectionReason"
+                        "reviewedAt",
+                        "rejectionReason",
+                        "reviewedLinks"
                       ],
                       "additionalProperties": false
                     }
@@ -1924,9 +2101,19 @@
                           "nullable": true,
                           "type": "string"
                         },
+                        "reviewedAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
                         "rejectionReason": {
                           "nullable": true,
                           "type": "string"
+                        },
+                        "reviewedLinks": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
                         }
                       },
                       "required": [
@@ -1939,7 +2126,9 @@
                         "contactEmail",
                         "approvalStatus",
                         "approvalSubmittedAt",
-                        "rejectionReason"
+                        "reviewedAt",
+                        "rejectionReason",
+                        "reviewedLinks"
                       ],
                       "additionalProperties": false
                     }
@@ -2224,9 +2413,19 @@
                           "nullable": true,
                           "type": "string"
                         },
+                        "reviewedAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
                         "rejectionReason": {
                           "nullable": true,
                           "type": "string"
+                        },
+                        "reviewedLinks": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
                         }
                       },
                       "required": [
@@ -2239,7 +2438,9 @@
                         "contactEmail",
                         "approvalStatus",
                         "approvalSubmittedAt",
-                        "rejectionReason"
+                        "reviewedAt",
+                        "rejectionReason",
+                        "reviewedLinks"
                       ],
                       "additionalProperties": false
                     }
@@ -2519,9 +2720,19 @@
                           "nullable": true,
                           "type": "string"
                         },
+                        "reviewedAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
                         "rejectionReason": {
                           "nullable": true,
                           "type": "string"
+                        },
+                        "reviewedLinks": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
                         }
                       },
                       "required": [
@@ -2534,7 +2745,9 @@
                         "contactEmail",
                         "approvalStatus",
                         "approvalSubmittedAt",
-                        "rejectionReason"
+                        "reviewedAt",
+                        "rejectionReason",
+                        "reviewedLinks"
                       ],
                       "additionalProperties": false
                     }
@@ -2832,9 +3045,19 @@
                           "nullable": true,
                           "type": "string"
                         },
+                        "reviewedAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
                         "rejectionReason": {
                           "nullable": true,
                           "type": "string"
+                        },
+                        "reviewedLinks": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
                         }
                       },
                       "required": [
@@ -2847,7 +3070,9 @@
                         "contactEmail",
                         "approvalStatus",
                         "approvalSubmittedAt",
-                        "rejectionReason"
+                        "reviewedAt",
+                        "rejectionReason",
+                        "reviewedLinks"
                       ],
                       "additionalProperties": false
                     }
@@ -3125,9 +3350,19 @@
                           "nullable": true,
                           "type": "string"
                         },
+                        "reviewedAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
                         "rejectionReason": {
                           "nullable": true,
                           "type": "string"
+                        },
+                        "reviewedLinks": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
                         }
                       },
                       "required": [
@@ -3140,7 +3375,9 @@
                         "contactEmail",
                         "approvalStatus",
                         "approvalSubmittedAt",
-                        "rejectionReason"
+                        "reviewedAt",
+                        "rejectionReason",
+                        "reviewedLinks"
                       ],
                       "additionalProperties": false
                     }
@@ -3421,9 +3658,19 @@
                           "nullable": true,
                           "type": "string"
                         },
+                        "reviewedAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
                         "rejectionReason": {
                           "nullable": true,
                           "type": "string"
+                        },
+                        "reviewedLinks": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
                         }
                       },
                       "required": [
@@ -3436,7 +3683,9 @@
                         "contactEmail",
                         "approvalStatus",
                         "approvalSubmittedAt",
-                        "rejectionReason"
+                        "reviewedAt",
+                        "rejectionReason",
+                        "reviewedLinks"
                       ],
                       "additionalProperties": false
                     }
@@ -3504,6 +3753,1075 @@
         },
         "tags": [
           "Onboarding"
+        ]
+      }
+    },
+    "/api/profile": {
+      "get": {
+        "operationId": "ProfilesController_state",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "categories": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "name": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "phone": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "avatar": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "url": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "url"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "vendor": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "shopName": {
+                          "type": "string"
+                        },
+                        "slug": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "categoryIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          }
+                        },
+                        "description": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "products": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "photos": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "url": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "url"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "socialLinks": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "shopName",
+                        "slug",
+                        "categoryIds",
+                        "description",
+                        "products",
+                        "photos",
+                        "socialLinks"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "organizer": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "displayName": {
+                          "type": "string"
+                        },
+                        "slug": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "logo": {
+                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "url": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "url"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "city": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "about": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "socialLinks": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "contactEmail": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "approvalStatus": {
+                          "type": "string",
+                          "enum": [
+                            "not_submitted",
+                            "pending_review",
+                            "approved",
+                            "rejected"
+                          ]
+                        },
+                        "approvalSubmittedAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "reviewedAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "rejectionReason": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "reviewedLinks": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "displayName",
+                        "slug",
+                        "logo",
+                        "city",
+                        "about",
+                        "socialLinks",
+                        "contactEmail",
+                        "approvalStatus",
+                        "approvalSubmittedAt",
+                        "reviewedAt",
+                        "rejectionReason",
+                        "reviewedLinks"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "categories",
+                    "phone",
+                    "avatar",
+                    "vendor",
+                    "organizer"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Profiles"
+        ]
+      }
+    },
+    "/api/profile/slug-available": {
+      "get": {
+        "operationId": "ProfilesController_slugAvailable",
+        "parameters": [
+          {
+            "name": "kind",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "slug",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "available": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "available"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Profiles"
+        ]
+      }
+    },
+    "/api/vendor/profile": {
+      "put": {
+        "operationId": "ProfilesController_vendor",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "shopName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 60
+                  },
+                  "categoryIds": {
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    }
+                  },
+                  "description": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 300
+                  },
+                  "products": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "slug": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 40,
+                    "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                  },
+                  "avatarFileId": {
+                    "nullable": true,
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "photoFileIds": {
+                    "maxItems": 8,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    }
+                  },
+                  "socialLinks": {
+                    "maxItems": 10,
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "shopName",
+                  "categoryIds",
+                  "slug",
+                  "avatarFileId",
+                  "photoFileIds",
+                  "socialLinks"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "categories": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "name": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "phone": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "avatar": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "url": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "url"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "vendor": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "shopName": {
+                          "type": "string"
+                        },
+                        "slug": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "categoryIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          }
+                        },
+                        "description": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "products": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "photos": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "url": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "url"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "socialLinks": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "shopName",
+                        "slug",
+                        "categoryIds",
+                        "description",
+                        "products",
+                        "photos",
+                        "socialLinks"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "organizer": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "displayName": {
+                          "type": "string"
+                        },
+                        "slug": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "logo": {
+                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "url": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "url"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "city": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "about": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "socialLinks": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "contactEmail": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "approvalStatus": {
+                          "type": "string",
+                          "enum": [
+                            "not_submitted",
+                            "pending_review",
+                            "approved",
+                            "rejected"
+                          ]
+                        },
+                        "approvalSubmittedAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "reviewedAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "rejectionReason": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "reviewedLinks": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "displayName",
+                        "slug",
+                        "logo",
+                        "city",
+                        "about",
+                        "socialLinks",
+                        "contactEmail",
+                        "approvalStatus",
+                        "approvalSubmittedAt",
+                        "reviewedAt",
+                        "rejectionReason",
+                        "reviewedLinks"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "categories",
+                    "phone",
+                    "avatar",
+                    "vendor",
+                    "organizer"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Profiles"
+        ]
+      }
+    },
+    "/api/organizer/profile": {
+      "put": {
+        "operationId": "ProfilesController_organizer",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "displayName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 60
+                  },
+                  "slug": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 40,
+                    "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                  },
+                  "logoFileId": {
+                    "nullable": true,
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "city": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 60
+                  },
+                  "about": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 600
+                  },
+                  "socialLinks": {
+                    "minItems": 1,
+                    "maxItems": 10,
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "contactEmail": {
+                    "type": "string",
+                    "format": "email",
+                    "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                  }
+                },
+                "required": [
+                  "displayName",
+                  "slug",
+                  "logoFileId",
+                  "socialLinks",
+                  "contactEmail"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "categories": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "name": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "phone": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "avatar": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "url": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "url"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "vendor": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "shopName": {
+                          "type": "string"
+                        },
+                        "slug": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "categoryIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          }
+                        },
+                        "description": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "products": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "photos": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "url": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "url"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "socialLinks": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "shopName",
+                        "slug",
+                        "categoryIds",
+                        "description",
+                        "products",
+                        "photos",
+                        "socialLinks"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "organizer": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "displayName": {
+                          "type": "string"
+                        },
+                        "slug": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "logo": {
+                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "url": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "url"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "city": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "about": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "socialLinks": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "contactEmail": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "approvalStatus": {
+                          "type": "string",
+                          "enum": [
+                            "not_submitted",
+                            "pending_review",
+                            "approved",
+                            "rejected"
+                          ]
+                        },
+                        "approvalSubmittedAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "reviewedAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "rejectionReason": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "reviewedLinks": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "displayName",
+                        "slug",
+                        "logo",
+                        "city",
+                        "about",
+                        "socialLinks",
+                        "contactEmail",
+                        "approvalStatus",
+                        "approvalSubmittedAt",
+                        "reviewedAt",
+                        "rejectionReason",
+                        "reviewedLinks"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "categories",
+                    "phone",
+                    "avatar",
+                    "vendor",
+                    "organizer"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Profiles"
         ]
       }
     },

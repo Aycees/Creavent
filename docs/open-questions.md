@@ -22,9 +22,7 @@ All questions in this section are resolved. See "Resolved" below.
 
 ## D. Admin and operations
 
-| # | Question | Suggested |
-|---|---|---|
-| D9 | Raised while building Phase 1 (2026-11-13). Can an approved organizer change their display name, page link, or social links, and if so, does the change go back to review? The admin approved those exact pages, and the badge follows the name. For now, the app refuses changes to them while a review is pending or after approval, and asks the organizer to email support. City, about, and logo stay editable. | Let organizers edit them from their profile, and send a changed name or links back to `pending_review` (the badge hides until re-approved). The page link can change freely. |
+All questions in this section are resolved. See "Resolved" below.
 
 ## E. Email and notifications (Resend)
 
@@ -185,6 +183,10 @@ Decisions are written into the [Feature specification](feature-specification.md)
 | L2 | Vendors are locked in for the whole multi-day event: one slot, one price, one payment. No single-day slots. A multi-day event shows on each of its days in the calendar and "Next 7 days" strip, goes under a weekend when any of its days is that Saturday or Sunday, and matches a date filter when any of its days does. The payment deadline and applications close date are capped at the first day's opening. | 2026-11-12 |
 | L3 | Organizers add one or more payment options (GCash, bank transfer, QR, and so on). When uploading proof, the vendor selects the option they paid with, and the organizer sees it when reviewing (`payment_proofs.payment_method_id`). | 2026-11-12 |
 | L4 | The mockup fixes are made in the mockup: "Vintage" as the category name, the payment option on the proof upload and review, and screen-reader labels on the badge seals (the badges were already there). Two Friday to Sunday markets are added to the mockup as multi-day examples. | 2026-11-12 |
+
+### D9. Editing an approved organizer's name and links (resolved 2026-11-13)
+
+An approved organizer can edit everything on their organizer profile. Changing the display name, or adding a link the admin didn't review, sends them back to `pending_review`, and the "Approved by Creavent" badge hides until an admin approves again. Removing a link, and changing the page link, city, about, logo, or contact email, keep the approval. The links reviewed at each decision are kept in `user_roles.reviewed_links`. Onboarding still refuses these changes while a review is pending or after approval, because the profile page is where they are edited.
 
 ## Mockup fixes
 

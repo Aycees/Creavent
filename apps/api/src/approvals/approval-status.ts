@@ -21,3 +21,16 @@ export function assertApprovalChange(from: ApprovalStatus | null, to: ApprovalSt
     );
   }
 }
+
+// An approved organizer who changes their name, or adds a link the admin
+// didn't review, goes back to review (open question D9, decided 2026-11-13).
+// Removing a link, or changing anything else, keeps the approval.
+export function needsReReview(
+  status: ApprovalStatus | null,
+  before: { displayName: string; reviewedLinks: string[] },
+  after: { displayName: string; socialLinks: string[] },
+) {
+  if (status !== 'approved') return false;
+  if (before.displayName !== after.displayName) return true;
+  return after.socialLinks.some((link) => !before.reviewedLinks.includes(link));
+}

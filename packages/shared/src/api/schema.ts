@@ -68,7 +68,7 @@ export interface paths {
         patch: operations["AccountsController_updateProfile"];
         trace?: never;
     };
-    "/api/me/phone": {
+    "/api/me/avatar": {
         parameters: {
             query?: never;
             header?: never;
@@ -76,7 +76,23 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        put: operations["AccountsController_updatePhone"];
+        put: operations["AccountsController_updateAvatar"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/account": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AccountsController_details"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -238,6 +254,70 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["OnboardingController_organizerApproval"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ProfilesController_state"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/profile/slug-available": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ProfilesController_slugAvailable"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vendor/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["ProfilesController_vendor"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organizer/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["ProfilesController_organizer"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -525,6 +605,7 @@ export interface operations {
             content: {
                 "application/json": {
                     fullName: string;
+                    phone?: string;
                 };
             };
         };
@@ -576,7 +657,7 @@ export interface operations {
             };
         };
     };
-    AccountsController_updatePhone: {
+    AccountsController_updateAvatar: {
         parameters: {
             query?: never;
             header?: never;
@@ -586,7 +667,8 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    phone: string;
+                    /** Format: uuid */
+                    avatarFileId: string | null;
                 };
             };
         };
@@ -616,6 +698,59 @@ export interface operations {
                             suspended: boolean;
                             suspensionReason: string | null;
                         }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    AccountsController_details: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        passwordChangedAt: string | null;
+                        googleLinked: boolean;
+                        legal: {
+                            /** @enum {string} */
+                            document: "terms" | "privacy";
+                            version: string;
+                            acceptedAt: string;
+                        }[];
+                        vendor: {
+                            shopName: string;
+                            since: string;
+                        } | null;
+                        organizer: {
+                            displayName: string;
+                            since: string;
+                        } | null;
                     };
                 };
             };
@@ -799,7 +934,9 @@ export interface operations {
                             /** @enum {string} */
                             approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
                             approvalSubmittedAt: string | null;
+                            reviewedAt: string | null;
                             rejectionReason: string | null;
+                            reviewedLinks: string[];
                         } | null;
                     };
                 };
@@ -883,7 +1020,9 @@ export interface operations {
                             /** @enum {string} */
                             approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
                             approvalSubmittedAt: string | null;
+                            reviewedAt: string | null;
                             rejectionReason: string | null;
+                            reviewedLinks: string[];
                         } | null;
                     };
                 };
@@ -970,7 +1109,9 @@ export interface operations {
                             /** @enum {string} */
                             approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
                             approvalSubmittedAt: string | null;
+                            reviewedAt: string | null;
                             rejectionReason: string | null;
+                            reviewedLinks: string[];
                         } | null;
                     };
                 };
@@ -1056,7 +1197,9 @@ export interface operations {
                             /** @enum {string} */
                             approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
                             approvalSubmittedAt: string | null;
+                            reviewedAt: string | null;
                             rejectionReason: string | null;
+                            reviewedLinks: string[];
                         } | null;
                     };
                 };
@@ -1141,7 +1284,9 @@ export interface operations {
                             /** @enum {string} */
                             approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
                             approvalSubmittedAt: string | null;
+                            reviewedAt: string | null;
                             rejectionReason: string | null;
+                            reviewedLinks: string[];
                         } | null;
                     };
                 };
@@ -1230,7 +1375,9 @@ export interface operations {
                             /** @enum {string} */
                             approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
                             approvalSubmittedAt: string | null;
+                            reviewedAt: string | null;
                             rejectionReason: string | null;
+                            reviewedLinks: string[];
                         } | null;
                     };
                 };
@@ -1316,7 +1463,9 @@ export interface operations {
                             /** @enum {string} */
                             approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
                             approvalSubmittedAt: string | null;
+                            reviewedAt: string | null;
                             rejectionReason: string | null;
+                            reviewedLinks: string[];
                         } | null;
                     };
                 };
@@ -1401,7 +1550,318 @@ export interface operations {
                             /** @enum {string} */
                             approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
                             approvalSubmittedAt: string | null;
+                            reviewedAt: string | null;
                             rejectionReason: string | null;
+                            reviewedLinks: string[];
+                        } | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    ProfilesController_state: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        phone: string | null;
+                        avatar: {
+                            /** Format: uuid */
+                            id: string;
+                            url: string;
+                        } | null;
+                        vendor: {
+                            shopName: string;
+                            slug: string | null;
+                            categoryIds: string[];
+                            description: string | null;
+                            products: string | null;
+                            photos: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            }[];
+                            socialLinks: string[];
+                        } | null;
+                        organizer: {
+                            displayName: string;
+                            slug: string | null;
+                            logo: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            city: string | null;
+                            about: string | null;
+                            socialLinks: string[];
+                            contactEmail: string | null;
+                            /** @enum {string} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            approvalSubmittedAt: string | null;
+                            reviewedAt: string | null;
+                            rejectionReason: string | null;
+                            reviewedLinks: string[];
+                        } | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    ProfilesController_slugAvailable: {
+        parameters: {
+            query: {
+                kind: string;
+                slug: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        available: boolean;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    ProfilesController_vendor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    shopName: string;
+                    categoryIds: string[];
+                    description?: string | null;
+                    products?: string | null;
+                    slug: string;
+                    /** Format: uuid */
+                    avatarFileId: string | null;
+                    photoFileIds: string[];
+                    socialLinks: string[];
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        phone: string | null;
+                        avatar: {
+                            /** Format: uuid */
+                            id: string;
+                            url: string;
+                        } | null;
+                        vendor: {
+                            shopName: string;
+                            slug: string | null;
+                            categoryIds: string[];
+                            description: string | null;
+                            products: string | null;
+                            photos: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            }[];
+                            socialLinks: string[];
+                        } | null;
+                        organizer: {
+                            displayName: string;
+                            slug: string | null;
+                            logo: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            city: string | null;
+                            about: string | null;
+                            socialLinks: string[];
+                            contactEmail: string | null;
+                            /** @enum {string} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            approvalSubmittedAt: string | null;
+                            reviewedAt: string | null;
+                            rejectionReason: string | null;
+                            reviewedLinks: string[];
+                        } | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    ProfilesController_organizer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    displayName: string;
+                    slug: string;
+                    /** Format: uuid */
+                    logoFileId: string | null;
+                    city?: string | null;
+                    about?: string | null;
+                    socialLinks: string[];
+                    /** Format: email */
+                    contactEmail: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        phone: string | null;
+                        avatar: {
+                            /** Format: uuid */
+                            id: string;
+                            url: string;
+                        } | null;
+                        vendor: {
+                            shopName: string;
+                            slug: string | null;
+                            categoryIds: string[];
+                            description: string | null;
+                            products: string | null;
+                            photos: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            }[];
+                            socialLinks: string[];
+                        } | null;
+                        organizer: {
+                            displayName: string;
+                            slug: string | null;
+                            logo: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            city: string | null;
+                            about: string | null;
+                            socialLinks: string[];
+                            contactEmail: string | null;
+                            /** @enum {string} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            approvalSubmittedAt: string | null;
+                            reviewedAt: string | null;
+                            rejectionReason: string | null;
+                            reviewedLinks: string[];
                         } | null;
                     };
                 };

@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import type { MeResponse } from '@creavent/shared';
+import type { AccountDetails, MeResponse } from '@creavent/shared';
 import { appConfig } from '../config.js';
 import { needsLegal, recordLegalAcceptance } from '../auth/legal.js';
-import { FilesService } from '../files/files.service.js';
+import { assertAttachable, FilesService } from '../files/files.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
 @Injectable()
@@ -42,14 +42,41 @@ export class AccountsService {
     };
   }
 
-  async updateProfile(userId: string, fullName: string) {
-    await this.prisma.user.update({ where: { id: userId }, data: { fullName } });
+  async updateProfile(userId: string, input: { fullName: string; phone?: string }) {
+    await this.prisma.user.update({ where: { id: userId }, data: input });
     return this.me(userId);
   }
 
-  async updatePhone(userId: string, phone: string) {
-    await this.prisma.user.update({ where: { id: userId }, data: { phone } });
+  async updateAvatar(userId: string, avatarFileId: string | null) {
+    await this.prisma.$transaction(async (tx) => {
+      if (avatarFileId) await assertAttachable(tx, avatarFileId, userId, 'avatar');
+      await tx.user.update({ where: { id: userId }, data: { avatarFileId } });
+    });
     return this.me(userId);
+  }
+
+  // The account page's sign-in and history details (mockup Account).
+  async details(userId: string): Promise<AccountDetails> {
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      include: { accounts: true, legalAcceptances: { orderBy: { acceptedAt: 'desc' } }, roles: true, vendorProfile: true, organizerProfile: true },
+    });
+    const password = user.accounts.find((a) => a.providerId === 'credential');
+    const latest = (document: 'terms' | 'privacy') => user.legalAcceptances.find((a) => a.document === document);
+    const roleSince = (role: 'vendor' | 'organizer') => user.roles.find((r) => r.role === role)?.createdAt.toISOString();
+    return {
+      passwordChangedAt: password ? password.updatedAt.toISOString() : null,
+      googleLinked: user.accounts.some((a) => a.providerId === 'google'),
+      legal: (['terms', 'privacy'] as const).flatMap((document) => {
+        const a = latest(document);
+        return a ? [{ document, version: a.version, acceptedAt: a.acceptedAt.toISOString() }] : [];
+      }),
+      vendor: user.vendorProfile && roleSince('vendor') ? { shopName: user.vendorProfile.shopName, since: roleSince('vendor')! } : null,
+      organizer:
+        user.organizerProfile && roleSince('organizer')
+          ? { displayName: user.organizerProfile.displayName, since: roleSince('organizer')! }
+          : null,
+    };
   }
 
   // Accepts the current versions and confirms the age, for users who signed

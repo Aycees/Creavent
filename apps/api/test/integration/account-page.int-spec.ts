@@ -44,16 +44,6 @@ describe('account page', () => {
     expect((await browser.patch('/api/me').send({ fullName: ' ' })).status).toBe(400);
   });
 
-  it('changes the mobile number', async () => {
-    const user = await createUser(prisma);
-    const browser = await signInAs(app, user.email);
-
-    const res = await browser.put('/api/me/phone').send({ phone: '0918 111 2222' });
-
-    expect(res.status).toBe(200);
-    expect(res.body.phone).toBe('+639181112222');
-  });
-
   it('changes the email only after the old address approves and the new one confirms', async () => {
     const user = await createUser(prisma, { email: 'old@example.com' });
     const browser = await signInAs(app, user.email);

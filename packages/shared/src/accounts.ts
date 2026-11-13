@@ -89,5 +89,21 @@ export type PublicConfig = z.infer<typeof publicConfigSchema>;
 // /account: the profile fields a user edits (sitemap §2).
 export const updateProfileSchema = z.object({
   fullName: z.string().trim().min(1, 'Enter your full name').max(100),
+  // A Philippine mobile number (see phoneSchema). Optional, so a user who
+  // hasn't added a role yet can save only their name.
+  phone: z.string().optional(),
 });
 export type UpdateProfileInput = z.input<typeof updateProfileSchema>;
+
+export const avatarUpdateSchema = z.object({ avatarFileId: z.uuid().nullable() });
+export type AvatarUpdateInput = z.input<typeof avatarUpdateSchema>;
+
+// The account page's sign-in and history details (mockup Account).
+export const accountDetailsSchema = z.object({
+  passwordChangedAt: z.string().nullable(),
+  googleLinked: z.boolean(),
+  legal: z.array(z.object({ document: z.enum(['terms', 'privacy']), version: z.string(), acceptedAt: z.string() })),
+  vendor: z.object({ shopName: z.string(), since: z.string() }).nullable(),
+  organizer: z.object({ displayName: z.string(), since: z.string() }).nullable(),
+});
+export type AccountDetails = z.infer<typeof accountDetailsSchema>;

@@ -73,7 +73,9 @@ export class OnboardingService {
               contactEmail: organizerRole.contactEmail,
               approvalStatus: organizerRole.approvalStatus ?? 'not_submitted',
               approvalSubmittedAt: organizerRole.approvalSubmittedAt?.toISOString() ?? null,
+              reviewedAt: organizerRole.reviewedAt?.toISOString() ?? null,
               rejectionReason: organizerRole.rejectionReason,
+              reviewedLinks: (organizerRole.reviewedLinks ?? []) as string[],
             }
           : null,
     };
@@ -203,7 +205,7 @@ export class OnboardingService {
     return this.state(userId);
   }
 
-  private async requireRole(tx: Tx, userId: string, role: RoleType) {
+  async requireRole(tx: Tx, userId: string, role: RoleType) {
     const found = await tx.userRole.findUnique({ where: { userId_role: { userId, role } } });
     if (!found) throw new ForbiddenException(`Add the ${role} role first`);
     if (found.suspendedAt) throw new ForbiddenException(`Your ${role} role is suspended`);

@@ -1,9 +1,11 @@
-import { Body, Controller, Get, HttpCode, Patch, Post, Put, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, HttpCode, Patch, Post, Put, UseGuards } from '@nestjs/common';
 import {
   acceptLegalSchema,
   meResponseSchema,
   publicConfigSchema,
-  updatePhoneSchema,
+  accountDetailsSchema,
+  avatarUpdateSchema,
+  phoneSchema,
   updateProfileSchema,
   type AcceptLegalInput,
   type PublicConfig,
@@ -29,14 +31,32 @@ export class AccountsController {
   @UseGuards(AuthGuard)
   @ResponseSchema(meResponseSchema)
   updateProfile(@CurrentUser() user: SessionUser, @Body({ schema: updateProfileSchema }) body: z.output<typeof updateProfileSchema>) {
-    return this.accounts.updateProfile(user.id, body.fullName);
+    let phone: string | undefined;
+    if (body.phone !== undefined) {
+      const parsed = phoneSchema.safeParse(body.phone);
+      if (!parsed.success) {
+        throw new BadRequestException({
+          message: 'Validation failed',
+          details: [{ path: 'phone', message: parsed.error.issues[0]?.message ?? 'Enter a mobile number' }],
+        });
+      }
+      phone = parsed.data;
+    }
+    return this.accounts.updateProfile(user.id, { fullName: body.fullName, ...(phone ? { phone } : {}) });
   }
 
-  @Put('me/phone')
+  @Put('me/avatar')
   @UseGuards(AuthGuard)
   @ResponseSchema(meResponseSchema)
-  updatePhone(@CurrentUser() user: SessionUser, @Body({ schema: updatePhoneSchema }) body: z.output<typeof updatePhoneSchema>) {
-    return this.accounts.updatePhone(user.id, body.phone);
+  updateAvatar(@CurrentUser() user: SessionUser, @Body({ schema: avatarUpdateSchema }) body: z.output<typeof avatarUpdateSchema>) {
+    return this.accounts.updateAvatar(user.id, body.avatarFileId);
+  }
+
+  @Get('account')
+  @UseGuards(AuthGuard)
+  @ResponseSchema(accountDetailsSchema)
+  details(@CurrentUser() user: SessionUser) {
+    return this.accounts.details(user.id);
   }
 
   @Post('me/legal')

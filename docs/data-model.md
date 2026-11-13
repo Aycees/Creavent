@@ -235,6 +235,7 @@ A user whose latest acceptance is older than the current version is asked to acc
 | reviewed_by | uuid FK → users null | The admin. |
 | reviewed_at | timestamptz null | |
 | rejection_reason | text null | Shown to the organizer. Cleared on resubmission. |
+| reviewed_links | jsonb null | The organizer's links at the admin's last decision. Adding a link that isn't here sends an approved organizer back to review (spec §2.1). |
 | admin_notes | text null | Internal only. |
 | suspended_at | timestamptz null | Not null = suspended. Suspension is per role: a suspended vendor role cannot apply or manage slots, and a suspended organizer role cannot manage events or applications. The other role keeps working. |
 | suspended_by | uuid FK → users null | The admin. |

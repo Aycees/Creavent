@@ -163,6 +163,9 @@ model UserRole {
   reviewedById        String?         @map("reviewed_by") @db.Uuid
   reviewedAt          DateTime?       @map("reviewed_at") @db.Timestamptz
   rejectionReason     String?         @map("rejection_reason")
+  // The organizer's links when the admin last decided. Adding a link that
+  // isn't here sends an approved organizer back to review (open question D9).
+  reviewedLinks       Json?           @map("reviewed_links")
   adminNotes          String?         @map("admin_notes")
   suspendedAt         DateTime?       @map("suspended_at") @db.Timestamptz
   suspendedById       String?         @map("suspended_by") @db.Uuid
