@@ -1,0 +1,58 @@
+import type { UploadPurpose } from '@creavent/shared';
+import sharp, { type Metadata, type ResizeOptions } from 'sharp';
+
+// A guard against files built to exhaust memory (spec §11.4).
+const MAX_PIXELS = 50_000_000;
+
+export class UploadRejected extends Error {}
+
+// How each purpose is stored (spec §11.5).
+const resize: Record<UploadPurpose, ResizeOptions> = {
+  avatar: { width: 256, height: 256, fit: 'cover', position: 'centre', withoutEnlargement: true },
+  organizer_logo: { width: 512, height: 512, fit: 'inside', withoutEnlargement: true },
+  vendor_photo: { width: 1600, height: 1600, fit: 'inside', withoutEnlargement: true },
+};
+
+// Only so many images are processed at once, so a busy moment can't run the
+// API out of memory (spec §11.5).
+const MAX_CONCURRENT = 2;
+let running = 0;
+const waiting: (() => void)[] = [];
+
+async function withSlot<T>(work: () => Promise<T>): Promise<T> {
+  if (running >= MAX_CONCURRENT) await new Promise<void>((resolve) => waiting.push(resolve));
+  running += 1;
+  try {
+    return await work();
+  } finally {
+    running -= 1;
+    waiting.shift()?.();
+  }
+}
+
+// Decodes the upload, checks its size, rotates it upright, resizes it for its
+// purpose, and re-encodes it as WebP. Re-encoding drops all metadata,
+// including a phone photo's GPS location.
+export function processImage(input: Buffer, purpose: UploadPurpose, minWidth?: number, minHeight?: number) {
+  return withSlot(async () => {
+    let meta: Metadata;
+    try {
+      meta = await sharp(input, { limitInputPixels: MAX_PIXELS }).metadata();
+    } catch {
+      throw new UploadRejected("This file isn't a photo we can open");
+    }
+    if ((meta.pages ?? 1) > 1) throw new UploadRejected('Animated images are not accepted');
+    const upright = (meta.orientation ?? 1) >= 5;
+    const width = (upright ? meta.height : meta.width) ?? 0;
+    const height = (upright ? meta.width : meta.height) ?? 0;
+    if ((minWidth && width < minWidth) || (minHeight && height < minHeight)) {
+      throw new UploadRejected(`This photo is too small. Use at least ${minWidth} x ${minHeight}`);
+    }
+    const { data, info } = await sharp(input, { limitInputPixels: MAX_PIXELS })
+      .rotate()
+      .resize(resize[purpose])
+      .webp({ quality: 82 })
+      .toBuffer({ resolveWithObject: true });
+    return { body: data, width: info.width, height: info.height };
+  });
+}

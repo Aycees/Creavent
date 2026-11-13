@@ -4,7 +4,13 @@ import type {
   RoleType,
 } from '../../src/generated/prisma/client.js';
 
+import { hashPassword } from 'better-auth/crypto';
+
+// The password every factory user has, for signInAs().
+export const TEST_PASSWORD = 'test-password-123';
+
 let counter = 0;
+let passwordHash: string | undefined;
 
 // A verified user with no roles. Pass overrides for anything else.
 export async function createUser(
@@ -18,7 +24,8 @@ export async function createUser(
   }> = {},
 ) {
   counter += 1;
-  return prisma.user.create({
+  passwordHash ??= await hashPassword(TEST_PASSWORD);
+  const user = await prisma.user.create({
     data: {
       email: `user${counter}@example.com`,
       fullName: `Test User ${counter}`,
@@ -27,6 +34,18 @@ export async function createUser(
       ...overrides,
     },
   });
+  // A password, so tests can sign in as this user with signInAs().
+  await prisma.account.create({
+    data: { userId: user.id, providerId: 'credential', accountId: user.id, password: passwordHash },
+  });
+  // Current agreements, so the user isn't sent to /account/legal.
+  await prisma.legalAcceptance.createMany({
+    data: [
+      { userId: user.id, document: 'terms', version: '2026-11-12' },
+      { userId: user.id, document: 'privacy', version: '2026-11-12' },
+    ],
+  });
+  return user;
 }
 
 export async function addRole(
