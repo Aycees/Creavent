@@ -5,7 +5,7 @@
 # before launch (docs/development-plan.md §6).
 #
 # The worker service (pg-boss jobs, emails, nightly backups) is added with
-# slice 1.2, when it gets an entry point.
+# feature 1.2, when it gets an entry point.
 
 projects:
   - name: creavent

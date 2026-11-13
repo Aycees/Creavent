@@ -34,7 +34,7 @@ Done once, by a workspace admin, when the team decides to deploy.
    - Both services need a paid plan. The API needs one for the pre-deploy command and to receive private network traffic.
    - The database needs a paid plan ([Architecture §9.3](architecture.md#93-backups)). Render's free database is not meant for real data.
 3. **Create the Blueprint.** In the Render Dashboard: New, Blueprint, connect the GitHub repo, branch `main`. Render reads `render.yaml` and shows what it will create. Check the list matches section 1.
-4. **Fill the secrets.** Open the `creavent-staging-secrets` environment group and add each secret value. Values are typed in the Dashboard only, never committed. Render does not allow `sync: false` placeholders inside a group, so the group starts empty. Each slice that needs a secret lists its key in its PR.
+4. **Fill the secrets.** Open the `creavent-staging-secrets` environment group and add each secret value. Values are typed in the Dashboard only, never committed. Render does not allow `sync: false` placeholders inside a group, so the group starts empty. Each phase that needs a secret lists its keys in its PR.
 5. **First deploy.** Check the build logs show Node 24 and pnpm 9, the pre-deploy step runs the migrations, and the health check passes.
 6. **Seed staging.** Run the seed script once against the staging database ([Architecture §5.3](architecture.md#53-migrations-and-seed-data)), once the seed script exists.
 
@@ -50,9 +50,9 @@ Changes after setup go through `render.yaml` on `main`, not the Dashboard, excep
 
 | Item | Brought by |
 |---|---|
-| Worker service (jobs, email sending, nightly backups) | Slice 1.2 adds it to `render.yaml`, when it has an entry point. |
-| R2 buckets and keys | Slice 1.4 (file uploads). Keys go in the environment group. |
-| Resend API key and sending domain | Slice 1.2 (test sender). The real sending domain waits for open question E1. |
+| Worker service (jobs, email sending, nightly backups) | Feature 1.2 adds it to `render.yaml`, when it has an entry point. |
+| R2 buckets and keys | Feature 1.4 (file uploads). Keys go in the environment group. |
+| Resend API key and sending domain | Feature 1.2 (test sender). The real sending domain waits for open question E1. |
 | Domain | Open question H1, item 6.2. Until then, services use `*.onrender.com`. |
-| Backups | Slice 5.5 (nightly `pg_dump` to R2). Restore drill in item 6.5. |
+| Backups | Feature 5.5 (nightly `pg_dump` to R2). Restore drill in item 6.5. |
 | Production | Item 6.3: a second environment in `render.yaml`, with its own database and environment group. |
