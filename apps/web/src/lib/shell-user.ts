@@ -7,6 +7,8 @@ export type ShellUser = {
   name: string
   initials: string
   roles: readonly Role[]
+  isAdmin?: boolean
+  avatarUrl?: string | null
 }
 
 export function initialsOf(name: string) {
@@ -15,5 +17,11 @@ export function initialsOf(name: string) {
 }
 
 export function toShellUser(me: MeResponse): ShellUser {
-  return { name: me.fullName, initials: initialsOf(me.fullName), roles: me.roles.map((r) => r.role) }
+  return {
+    name: me.fullName,
+    initials: initialsOf(me.fullName),
+    roles: me.roles.map((r) => r.role),
+    isAdmin: me.isAdmin,
+    avatarUrl: me.avatarUrl,
+  }
 }

@@ -2,7 +2,7 @@
 
 **Status:** First draft, agreed on 2026-11-12 and simplified the same day (spec §9). Lists every page in the MVP, who can open it, and how pages connect. The rules behind each page are in the [Feature specification](feature-specification.md), and the steps are in the [User flows](user-flows.md). If this file and the spec disagree, the spec wins.
 
-Last updated: 2026-11-12
+Last updated: 2026-11-13
 
 ## 1. Principles
 
@@ -143,6 +143,7 @@ Header actions, depending on status: **Preview as vendor**, **Open to vendors** 
 |---|---|---|
 | Public, signed out | Logo, Events, Log in, Sign up | |
 | Signed in, no role | Logo, Events, account menu | Account menu: Account, Become a vendor, Become an organizer, Log out |
+| Account menu, any signed-in user | | Vendor dashboard and Organizer dashboard (for each role the user has), Admin (admins), Account, Become a vendor or Become an organizer (for each role the user doesn't have), Log out (added 2026-11-13) |
 | Vendor | Logo, role switch, account menu | Dashboard, Browse events, Applications, Profile |
 | Organizer | Logo, role switch, account menu | Dashboard, Events, Profile, Approval (shows the approval status) |
 | Admin | Logo, "Admin" label, search (users, organizers, events), account menu | Overview, Approvals, Reports, Users, Events (Approvals and Reports show counts) |

@@ -85,7 +85,7 @@ describe("OnboardingFlow", () => {
   it("submits an organizer for review from the last step", async () => {
     serve({ ...signedInMe, roles: [role("organizer", 3)] }, {
       ...emptyState,
-      organizer: { displayName: "Bazaar ng Mintal", slug: "bazaar-ng-mintal", logo: null, city: null, about: null, socialLinks: [], contactEmail: "b@example.com", approvalStatus: "not_submitted", approvalSubmittedAt: null, rejectionReason: null },
+      organizer: { displayName: "Bazaar ng Mintal", slug: "bazaar-ng-mintal", logo: null, city: null, about: null, socialLinks: [], contactEmail: "b@example.com", approvalStatus: "not_submitted", approvalSubmittedAt: null, reviewedAt: null, rejectionReason: null, reviewedLinks: [] },
     })
     vi.mocked(api.POST).mockResolvedValue({ data: emptyState, response: { status: 200 } } as never)
     renderWithQuery(<OnboardingFlow wanted={null} confirmed={false} />)
@@ -102,7 +102,7 @@ describe("OnboardingFlow", () => {
   it('saves the links without a review on "Do this later"', async () => {
     serve({ ...signedInMe, roles: [role("organizer", 3)] }, {
       ...emptyState,
-      organizer: { displayName: "B", slug: "bbb", logo: null, city: null, about: null, socialLinks: ["https://facebook.com/b"], contactEmail: "b@example.com", approvalStatus: "not_submitted", approvalSubmittedAt: null, rejectionReason: null },
+      organizer: { displayName: "B", slug: "bbb", logo: null, city: null, about: null, socialLinks: ["https://facebook.com/b"], contactEmail: "b@example.com", approvalStatus: "not_submitted", approvalSubmittedAt: null, reviewedAt: null, rejectionReason: null, reviewedLinks: [] },
     })
     vi.mocked(api.POST).mockResolvedValue({ data: emptyState, response: { status: 200 } } as never)
     renderWithQuery(<OnboardingFlow wanted={null} confirmed={false} />)
@@ -117,7 +117,7 @@ describe("OnboardingFlow", () => {
   it("shows the pending review screen after an organizer submitted", async () => {
     serve({ ...signedInMe, roles: [{ ...role("organizer", 4), approvalStatus: "pending_review" }] }, {
       ...emptyState,
-      organizer: { displayName: "Bazaar ng Mintal", slug: "bazaar-ng-mintal", logo: null, city: null, about: null, socialLinks: ["https://facebook.com/b"], contactEmail: "b@example.com", approvalStatus: "pending_review", approvalSubmittedAt: "2026-11-13T07:40:00.000Z", rejectionReason: null },
+      organizer: { displayName: "Bazaar ng Mintal", slug: "bazaar-ng-mintal", logo: null, city: null, about: null, socialLinks: ["https://facebook.com/b"], contactEmail: "b@example.com", approvalStatus: "pending_review", approvalSubmittedAt: "2026-11-13T07:40:00.000Z", reviewedAt: null, rejectionReason: null, reviewedLinks: [] },
     })
     renderWithQuery(<OnboardingFlow wanted={null} confirmed={false} />)
 
