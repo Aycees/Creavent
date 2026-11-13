@@ -51,7 +51,7 @@ describe("AccountPage", () => {
     expect(api.PATCH).toHaveBeenCalledWith("/api/me", { body: { fullName: "Maria Clara" } })
   })
 
-  it("sends a confirmation link to a new email address", async () => {
+  it("asks the current address to approve a new email address", async () => {
     vi.mocked(authClient.changeEmail).mockResolvedValue({ data: {}, error: null } as never)
     renderWithQuery(<AccountPage />)
 
@@ -59,7 +59,8 @@ describe("AccountPage", () => {
     await userEvent.click(within(section("Email")).getByRole("button", { name: "Send confirmation link" }))
 
     expect(authClient.changeEmail).toHaveBeenCalledWith({ newEmail: "new@example.com", callbackURL: "/account" })
-    expect(await screen.findByText(/We sent a link to new@example.com/)).toBeInTheDocument()
+    expect(await screen.findByText("We sent a link to maria@example.com to approve the change.")).toBeInTheDocument()
+    expect(screen.getByText(/send one to new@example.com/)).toBeInTheDocument()
   })
 
   it("changes the password with the current one", async () => {

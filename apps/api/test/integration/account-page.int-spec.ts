@@ -54,22 +54,31 @@ describe('account page', () => {
     expect(res.body.phone).toBe('+639181112222');
   });
 
-  it('changes the email only after the new address is confirmed', async () => {
+  it('changes the email only after the old address approves and the new one confirms', async () => {
     const user = await createUser(prisma, { email: 'old@example.com' });
     const browser = await signInAs(app, user.email);
+    const emailOf = async () => (await prisma.user.findUniqueOrThrow({ where: { id: user.id } })).email;
 
-    const res = await browser
-      .post('/api/auth/change-email')
-      .send({ newEmail: 'new@example.com', callbackURL: '/account' });
+    const res = await browser.post('/api/auth/change-email').send({ newEmail: 'new@example.com', callbackURL: '/account' });
 
     expect(res.status).toBe(200);
-    expect((await prisma.user.findUniqueOrThrow({ where: { id: user.id } })).email).toBe('old@example.com');
-    const email = await vi.waitFor(() =>
+    const approval = await vi.waitFor(() =>
+      prisma.emailNotification.findFirstOrThrow({ where: { type: 'email_change_confirmation' } }),
+    );
+    expect(approval.toEmail).toBe('old@example.com');
+    expect(approval.payload).toMatchObject({ newEmail: 'new@example.com' });
+    expect(await emailOf()).toBe('old@example.com');
+
+    const approveLink = new URL((approval.payload as { url: string }).url);
+    await browser.get(approveLink.pathname + approveLink.search);
+    expect(await emailOf()).toBe('old@example.com');
+
+    const confirm = await vi.waitFor(() =>
       prisma.emailNotification.findFirstOrThrow({ where: { type: 'email_verification', toEmail: 'new@example.com' } }),
     );
-    const link = new URL((email.payload as { url: string }).url);
-    await browser.get(link.pathname + link.search);
-    expect((await prisma.user.findUniqueOrThrow({ where: { id: user.id } })).email).toBe('new@example.com');
+    const confirmLink = new URL((confirm.payload as { url: string }).url);
+    await browser.get(confirmLink.pathname + confirmLink.search);
+    expect(await emailOf()).toBe('new@example.com');
   });
 
   it('changes the password with the current one', async () => {

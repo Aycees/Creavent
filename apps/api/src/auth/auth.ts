@@ -103,9 +103,22 @@ export function createAuth(prisma: PrismaService, outbox: OutboxService, config:
     },
     user: {
       fields: { name: 'fullName' },
-      // A new address gets a verification link and takes effect once it is
-      // opened (spec §8.1).
-      changeEmail: { enabled: true },
+      // The old address approves the change first, then the new one gets a
+      // verification link, so a stolen session alone can't move the account
+      // to another email (spec §8.1).
+      changeEmail: {
+        enabled: true,
+        sendChangeEmailConfirmation: async ({ user, newEmail, url }) => {
+          await prisma.$transaction((tx) =>
+            outbox.queue(tx, {
+              userId: user.id,
+              toEmail: user.email,
+              type: 'email_change_confirmation',
+              payload: { name: user.name, newEmail, url, supportEmail: config.supportEmail },
+            }),
+          );
+        },
+      },
       additionalFields: {
         phone: { type: 'string', required: false, input: false },
         isAdmin: { type: 'boolean', required: false, input: false, defaultValue: false },

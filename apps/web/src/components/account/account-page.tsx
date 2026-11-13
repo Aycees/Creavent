@@ -83,7 +83,10 @@ function EmailForm({ me }: { me: MeResponse }) {
         You sign in with <span className="font-semibold">{me.email}</span>
       </p>
       {sentTo ? (
-        <Alert tone="success">We sent a link to {sentTo}. Your email changes when you open it.</Alert>
+        <Alert tone="success">
+          <span>We sent a link to {me.email} to approve the change.</span>
+          <span>After that, we&apos;ll send one to {sentTo}. Your email changes when you open it.</span>
+        </Alert>
       ) : (
         <form
           noValidate

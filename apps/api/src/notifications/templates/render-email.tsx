@@ -19,6 +19,22 @@ const templates = {
       </>
     ),
   },
+  email_change_confirmation: {
+    payload: z.object({ name: z.string(), newEmail: z.string(), url: z.string(), supportEmail: z.string() }),
+    subject: () => 'Approve your new email address',
+    body: (p: { name: string; newEmail: string; url: string; supportEmail: string }) => (
+      <>
+        <Paragraph>Hi {p.name},</Paragraph>
+        <Paragraph>
+          Someone asked to change your Creavent email to {p.newEmail}. If it was you, approve it, and we&apos;ll send a
+          link to the new address to finish.
+        </Paragraph>
+        <ActionButton href={p.url}>Approve the change</ActionButton>
+        <Paragraph>{' '}</Paragraph>
+        <Paragraph>If it wasn&apos;t you, ignore this email and change your password. Your email stays the same.</Paragraph>
+      </>
+    ),
+  },
   password_reset: {
     payload: z.object({ name: z.string(), url: z.string(), supportEmail: z.string() }),
     subject: () => 'Reset your password',

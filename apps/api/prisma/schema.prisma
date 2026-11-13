@@ -320,6 +320,7 @@ enum EmailStatus {
 // Values are added as the features that send them are built.
 enum NotificationType {
   email_verification
+  email_change_confirmation
   password_reset
   organizer_approved
   organizer_rejected
