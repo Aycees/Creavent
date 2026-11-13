@@ -11,6 +11,7 @@ import {
   type RoleType,
 } from '@creavent/shared';
 import type { z } from 'zod';
+import { assertApprovalChange } from '../approvals/approval-status.js';
 import { assertAttachable, FilesService } from '../files/files.service.js';
 import { PrismaService, type Tx } from '../prisma/prisma.service.js';
 import { freeSlug, slugAvailable } from './slugs.js';
@@ -187,11 +188,7 @@ export class OnboardingService {
       }
       await tx.organizerProfile.update({ where: { userId }, data: { socialLinks: input.socialLinks } });
       if (input.submit) {
-        if (role.approvalStatus === 'approved' || role.approvalStatus === 'pending_review') {
-          throw new ConflictException(
-            role.approvalStatus === 'approved' ? 'You are already approved' : 'Your request is already waiting for review',
-          );
-        }
+        assertApprovalChange(role.approvalStatus, 'pending_review');
         const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
         if (!user.phone || !role.contactEmail) {
           throw new BadRequestException('Add your mobile number and contact email first');

@@ -228,6 +228,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/approvals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ApprovalsController_queue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/approvals/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ApprovalsController_detail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/approvals/{userId}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ApprovalsController_approve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/approvals/{userId}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ApprovalsController_reject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1199,6 +1263,260 @@ export interface operations {
                             approvalSubmittedAt: string | null;
                             rejectionReason: string | null;
                         } | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    ApprovalsController_queue: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            /** Format: uuid */
+                            userId: string;
+                            displayName: string;
+                            city: string | null;
+                            linksCount: number;
+                            submittedAt: string;
+                            resubmission: boolean;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    ApprovalsController_detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        userId: string;
+                        displayName: string;
+                        slug: string | null;
+                        city: string | null;
+                        about: string | null;
+                        logoUrl: string | null;
+                        socialLinks: string[];
+                        fullName: string;
+                        loginEmail: string;
+                        contactEmail: string | null;
+                        phone: string | null;
+                        accountCreatedAt: string;
+                        roles: ("vendor" | "organizer")[];
+                        /** @enum {string} */
+                        status: "not_submitted" | "pending_review" | "approved" | "rejected";
+                        submittedAt: string | null;
+                        reviewedAt: string | null;
+                        rejectionReason: string | null;
+                        adminNotes: string | null;
+                        queue: {
+                            position: number | null;
+                            total: number;
+                            /** Format: uuid */
+                            nextUserId: string | null;
+                        };
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    ApprovalsController_approve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    note?: string | null;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        userId: string;
+                        displayName: string;
+                        slug: string | null;
+                        city: string | null;
+                        about: string | null;
+                        logoUrl: string | null;
+                        socialLinks: string[];
+                        fullName: string;
+                        loginEmail: string;
+                        contactEmail: string | null;
+                        phone: string | null;
+                        accountCreatedAt: string;
+                        roles: ("vendor" | "organizer")[];
+                        /** @enum {string} */
+                        status: "not_submitted" | "pending_review" | "approved" | "rejected";
+                        submittedAt: string | null;
+                        reviewedAt: string | null;
+                        rejectionReason: string | null;
+                        adminNotes: string | null;
+                        queue: {
+                            position: number | null;
+                            total: number;
+                            /** Format: uuid */
+                            nextUserId: string | null;
+                        };
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    ApprovalsController_reject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    reason: string;
+                    note?: string | null;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        userId: string;
+                        displayName: string;
+                        slug: string | null;
+                        city: string | null;
+                        about: string | null;
+                        logoUrl: string | null;
+                        socialLinks: string[];
+                        fullName: string;
+                        loginEmail: string;
+                        contactEmail: string | null;
+                        phone: string | null;
+                        accountCreatedAt: string;
+                        roles: ("vendor" | "organizer")[];
+                        /** @enum {string} */
+                        status: "not_submitted" | "pending_review" | "approved" | "rejected";
+                        submittedAt: string | null;
+                        reviewedAt: string | null;
+                        rejectionReason: string | null;
+                        adminNotes: string | null;
+                        queue: {
+                            position: number | null;
+                            total: number;
+                            /** Format: uuid */
+                            nextUserId: string | null;
+                        };
                     };
                 };
             };

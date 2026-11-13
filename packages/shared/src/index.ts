@@ -2,6 +2,7 @@
 // Schemas are added here as each feature is built.
 export * from './accounts.js';
 export * from './api/client.js';
+export * from './approvals.js';
 export * from './errors.js';
 export * from './files.js';
 export * from './health.js';
