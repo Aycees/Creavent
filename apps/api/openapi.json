@@ -434,9 +434,9 @@
         ]
       }
     },
-    "/api/legal": {
+    "/api/public-config": {
       "get": {
-        "operationId": "AccountsController_legal",
+        "operationId": "AccountsController_publicConfig",
         "parameters": [],
         "responses": {
           "200": {
@@ -459,13 +459,17 @@
                     },
                     "supportEmail": {
                       "type": "string"
+                    },
+                    "googleSignIn": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
                     "termsVersion",
                     "privacyVersion",
                     "minimumAge",
-                    "supportEmail"
+                    "supportEmail",
+                    "googleSignIn"
                   ],
                   "additionalProperties": false
                 }

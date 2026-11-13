@@ -165,6 +165,43 @@ describe('accounts: sign up and sign in', () => {
     expect(tries.at(-1)?.status).toBe(429);
   });
 
+  it('ignores client-made X-Forwarded-For entries left of the proxy-added one', async () => {
+    await signUpAndVerify();
+    const tries = [];
+    for (let i = 0; i < 6; i += 1) {
+      tries.push(
+        await agent(app)
+          .set('X-Forwarded-For', `198.51.100.${i}, 203.0.113.200`)
+          .post('/api/auth/sign-in/email')
+          .send({ email: `someone${i}@example.com`, password: 'wrong-password' }),
+      );
+    }
+    const otherClient = await agent(app)
+      .set('X-Forwarded-For', '198.51.100.1, 203.0.113.201')
+      .post('/api/auth/sign-in/email')
+      .send({ email: 'another@example.com', password: 'wrong-password' });
+
+    expect(tries.at(-1)?.status).toBe(429);
+    expect(otherClient.status).toBe(401);
+  });
+
+  it('locks one email after 5 failed tries, even from different addresses', async () => {
+    await signUpAndVerify();
+    for (let i = 0; i < 5; i += 1) {
+      await agent(app)
+        .set('X-Forwarded-For', `198.51.100.${i}`)
+        .post('/api/auth/sign-in/email')
+        .send({ email: maria.email, password: 'wrong-password' });
+    }
+
+    const res = await agent(app)
+      .set('X-Forwarded-For', '198.51.100.99')
+      .post('/api/auth/sign-in/email')
+      .send({ email: 'Maria.Santos@example.com', password: maria.password });
+
+    expect(res.status).toBe(429);
+  });
+
   it('answers 401 on /api/me without a session', async () => {
     const res = await agent(app).get('/api/me');
 

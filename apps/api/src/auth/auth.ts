@@ -7,10 +7,37 @@ import type { PrismaService } from '../prisma/prisma.service.js';
 import { recordLegalAcceptance } from './legal.js';
 
 const SIGN_UP_PATH = '/sign-up/email';
+const SIGN_IN_PATH = '/sign-in/email';
+
+function emailOf(body: unknown) {
+  const email = (body as { email?: unknown } | undefined)?.email;
+  return typeof email === 'string' ? email.trim().toLowerCase() : '';
+}
+
+// Per-email lockout after 5 failed sign-ins in 15 minutes, on top of the
+// per-IP limit, so changing addresses doesn't allow more guesses. Kept in
+// memory: the MVP runs one API instance.
+export function createLockout(maxFailures = 5, windowMs = 15 * 60 * 1000) {
+  const failures = new Map<string, number[]>();
+  const recent = (email: string) => {
+    const since = Date.now() - windowMs;
+    const list = (failures.get(email) ?? []).filter((t) => t > since);
+    failures.set(email, list);
+    return list;
+  };
+  return {
+    isLocked: (email: string) => email !== '' && recent(email).length >= maxFailures,
+    fail: (email: string) => {
+      if (email) failures.set(email, [...recent(email), Date.now()]);
+    },
+    clear: (email: string) => failures.delete(email),
+  };
+}
 
 // Better Auth inside the API (docs/architecture.md §4.2). It owns sign-up,
 // sign-in, Google, email verification, password reset, and sessions.
 export function createAuth(prisma: PrismaService, outbox: OutboxService, config: AppConfig) {
+  const signInLockout = createLockout();
   const secret = process.env.BETTER_AUTH_SECRET;
   if (!secret && process.env.NODE_ENV === 'production') {
     throw new Error('BETTER_AUTH_SECRET is required in production');
@@ -52,7 +79,13 @@ export function createAuth(prisma: PrismaService, outbox: OutboxService, config:
     database: prismaAdapter(prisma, { provider: 'postgresql' }),
     advanced: {
       database: { generateId: 'uuid' },
-      ipAddress: { ipAddressHeaders: ['x-forwarded-for'] },
+      // The client IP is the right-most X-Forwarded-For entry not added by our
+      // own proxies (the Next.js server, Render's private network). Entries a
+      // client made up sit to its left and are ignored.
+      ipAddress: {
+        ipAddressHeaders: ['x-forwarded-for'],
+        trustedProxies: ['127.0.0.0/8', '::1/128', '10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16', 'fc00::/7'],
+      },
     },
     user: {
       fields: { name: 'fullName' },
@@ -111,6 +144,14 @@ export function createAuth(prisma: PrismaService, outbox: OutboxService, config:
     },
     hooks: {
       before: createAuthMiddleware(async (ctx) => {
+        if (ctx.path === SIGN_IN_PATH) {
+          if (signInLockout.isLocked(emailOf(ctx.body))) {
+            throw new APIError('TOO_MANY_REQUESTS', {
+              message: 'Too many failed tries. Wait 15 minutes and try again.',
+            });
+          }
+          return;
+        }
         if (ctx.path !== SIGN_UP_PATH) return;
         const body = ctx.body as { ageConfirmed?: unknown; acceptLegal?: unknown } | undefined;
         if (body?.ageConfirmed !== true || body?.acceptLegal !== true) {
@@ -118,6 +159,13 @@ export function createAuth(prisma: PrismaService, outbox: OutboxService, config:
             message: 'Accept the terms of use and privacy notice, and confirm you are 18 or older',
           });
         }
+      }),
+      after: createAuthMiddleware(async (ctx) => {
+        if (ctx.path !== SIGN_IN_PATH) return;
+        const email = emailOf(ctx.body);
+        const returned = ctx.context.returned;
+        if (returned instanceof APIError && returned.statusCode === 401) signInLockout.fail(email);
+        else if (!(returned instanceof APIError)) signInLockout.clear(email);
       }),
     },
     databaseHooks: {

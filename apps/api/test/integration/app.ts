@@ -14,7 +14,8 @@ let ipCounter = 0;
 // memory per process, so tests would otherwise share them.
 export async function createTestApp(): Promise<INestApplication<App>> {
   ipCounter += 1;
-  clientIp = `10.0.${Math.floor(ipCounter / 250)}.${ipCounter % 250}`;
+  // Public addresses (TEST-NET-3): private ones are trusted proxies.
+  clientIp = `203.0.113.${ipCounter % 250}`;
   process.env.DATABASE_URL = inject('databaseUrl');
   process.env.BETTER_AUTH_SECRET ??= 'test-secret-that-is-at-least-32-characters';
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();

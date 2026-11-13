@@ -52,14 +52,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/legal": {
+    "/api/public-config": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["AccountsController_legal"];
+        get: operations["AccountsController_publicConfig"];
         put?: never;
         post?: never;
         delete?: never;
@@ -240,7 +240,7 @@ export interface operations {
             };
         };
     };
-    AccountsController_legal: {
+    AccountsController_publicConfig: {
         parameters: {
             query?: never;
             header?: never;
@@ -259,6 +259,7 @@ export interface operations {
                         privacyVersion: string;
                         minimumAge: number;
                         supportEmail: string;
+                        googleSignIn: boolean;
                     };
                 };
             };

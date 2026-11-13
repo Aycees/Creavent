@@ -75,10 +75,13 @@ export const meResponseSchema = z.object({
 });
 export type MeResponse = z.infer<typeof meResponseSchema>;
 
-export const legalVersionsSchema = z.object({
+// Platform values the signed-out pages show (data model §5.11).
+export const publicConfigSchema = z.object({
   termsVersion: z.string(),
   privacyVersion: z.string(),
   minimumAge: z.number().int(),
   supportEmail: z.string(),
+  // Google sign-in shows only when the API has Google credentials.
+  googleSignIn: z.boolean(),
 });
-export type LegalVersions = z.infer<typeof legalVersionsSchema>;
+export type PublicConfig = z.infer<typeof publicConfigSchema>;

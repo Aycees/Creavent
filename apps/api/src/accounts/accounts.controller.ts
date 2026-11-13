@@ -1,10 +1,10 @@
 import { Body, Controller, Get, HttpCode, Post, UseGuards } from '@nestjs/common';
 import {
   acceptLegalSchema,
-  legalVersionsSchema,
   meResponseSchema,
+  publicConfigSchema,
   type AcceptLegalInput,
-  type LegalVersions,
+  type PublicConfig,
 } from '@creavent/shared';
 import { AuthGuard, CurrentUser, type SessionUser } from '../auth/auth.guard.js';
 import { appConfig } from '../config.js';
@@ -34,11 +34,11 @@ export class AccountsController {
     return this.accounts.me(user.id);
   }
 
-  // The current versions and values the signup and legal pages show.
-  @Get('legal')
-  @ResponseSchema(legalVersionsSchema)
-  legal(): LegalVersions {
+  @Get('public-config')
+  @ResponseSchema(publicConfigSchema)
+  publicConfig(): PublicConfig {
     const { termsVersion, privacyVersion, minimumAge, supportEmail } = appConfig();
-    return { termsVersion, privacyVersion, minimumAge, supportEmail };
+    const googleSignIn = Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
+    return { termsVersion, privacyVersion, minimumAge, supportEmail, googleSignIn };
   }
 }

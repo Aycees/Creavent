@@ -86,13 +86,14 @@ describe('accounts: legal acceptance and Google sign-in', () => {
     expect(user.ageConfirmedAt).not.toBeNull();
   });
 
-  it('serves the current legal versions and support email', async () => {
-    const res = await agent(app).get('/api/legal');
+  it('serves the current legal versions, support email, and whether Google is on', async () => {
+    const res = await agent(app).get('/api/public-config');
 
     expect(res.body).toMatchObject({
       termsVersion: '2026-11-12',
       privacyVersion: '2026-11-12',
       minimumAge: 18,
+      googleSignIn: false,
     });
   });
 
