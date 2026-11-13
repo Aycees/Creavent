@@ -10,6 +10,7 @@ import { MemoryStorage } from './memory-storage.js';
 import { setupApp } from '../../src/setup-app.js';
 
 let clientIp = '';
+let signIns = 0;
 let ipCounter = 0;
 
 // The whole API against the run's test database, as the web app reaches it.
@@ -39,7 +40,12 @@ export const ORIGIN = 'http://localhost:3000';
 // A signed-in browser for an existing user (made with the factories).
 export async function signInAs(app: INestApplication<App>, email: string) {
   const browser = agent(app);
-  const res = await browser.post('/api/auth/sign-in/email').send({ email, password: TEST_PASSWORD });
+  // Its own address, so tests that sign in many users stay under the per-IP limit.
+  signIns += 1;
+  const res = await browser
+    .post('/api/auth/sign-in/email')
+    .set('X-Forwarded-For', `198.18.${Math.floor(signIns / 250)}.${signIns % 250}`)
+    .send({ email, password: TEST_PASSWORD });
   if (res.status !== 200) throw new Error(`sign-in failed: ${res.status} ${res.text}`);
   return browser;
 }

@@ -173,6 +173,32 @@ describe('admin approvals', () => {
     expect((await roleOf(organizer.id)).approvalStatus).toBe('pending_review');
   });
 
+  it('never ends approved with a name the admin did not see, when the organizer edits at the same moment', async () => {
+    const { browser } = await admin();
+    for (let i = 0; i < 5; i += 1) {
+      const organizer = await pendingOrganizer(`Market${i}`, new Date());
+      const organizerBrowser = await signInAs(app, organizer.email);
+
+      await Promise.all([
+        browser.post(`/api/admin/approvals/${organizer.id}/approve`).send({ seen: seen(`Market${i}`) }),
+        organizerBrowser.put('/api/organizer/profile').send({
+          displayName: 'Someone Famous',
+          slug: `market${i}`,
+          logoFileId: null,
+          city: 'Davao City',
+          about: null,
+          socialLinks: ['https://facebook.com/a', 'https://facebook.com/b'],
+          contactEmail: 'x@example.com',
+        }),
+      ]);
+
+      const role = await roleOf(organizer.id);
+      const profile = await prisma.organizerProfile.findUniqueOrThrow({ where: { userId: organizer.id } });
+      expect(profile.displayName).toBe('Someone Famous');
+      expect(role.approvalStatus).toBe('pending_review');
+    }
+  });
+
   it('marks a request reviewed before as a resubmission', async () => {
     const { browser } = await admin();
     const organizer = await pendingOrganizer('Mintal', new Date());

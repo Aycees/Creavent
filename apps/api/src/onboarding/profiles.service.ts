@@ -1,7 +1,7 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import type { organizerProfileUpdateSchema, vendorProfileUpdateSchema } from '@creavent/shared';
 import type { z } from 'zod';
-import { needsReReview } from '../approvals/approval-status.js';
+import { lockOrganizer, needsReReview } from '../approvals/approval-status.js';
 import { assertAttachable } from '../files/files.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { OnboardingService } from './onboarding.service.js';
@@ -56,6 +56,7 @@ export class ProfilesService {
 
   async updateOrganizer(userId: string, input: z.output<typeof organizerProfileUpdateSchema>) {
     await this.prisma.$transaction(async (tx) => {
+      await lockOrganizer(tx, userId);
       const role = await this.onboarding.requireRole(tx, userId, 'organizer');
       if (!(await slugAvailable(tx, 'organizer', input.slug, userId))) throw new ConflictException(TAKEN);
       if (input.logoFileId) await assertAttachable(tx, input.logoFileId, userId, 'organizer_logo');

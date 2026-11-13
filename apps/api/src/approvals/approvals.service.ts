@@ -5,7 +5,7 @@ import { appConfig } from '../config.js';
 import { FilesService } from '../files/files.service.js';
 import { OutboxService } from '../notifications/outbox.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { assertApprovalChange } from './approval-status.js';
+import { assertApprovalChange, lockOrganizer } from './approval-status.js';
 
 const queueWhere = { role: 'organizer' as const, approvalStatus: 'pending_review' as const };
 const queueOrder = [{ approvalSubmittedAt: 'asc' as const }, { id: 'asc' as const }];
@@ -79,6 +79,7 @@ export class ApprovalsService {
   ) {
     const config = appConfig();
     await this.prisma.$transaction(async (tx) => {
+      await lockOrganizer(tx, userId);
       const role = await tx.userRole.findUnique({
         where: { userId_role: { userId, role: 'organizer' } },
         include: { user: { include: { organizerProfile: true } } },
