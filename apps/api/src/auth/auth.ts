@@ -103,6 +103,9 @@ export function createAuth(prisma: PrismaService, outbox: OutboxService, config:
     },
     user: {
       fields: { name: 'fullName' },
+      // A new address gets a verification link and takes effect once it is
+      // opened (spec §8.1).
+      changeEmail: { enabled: true },
       additionalFields: {
         phone: { type: 'string', required: false, input: false },
         isAdmin: { type: 'boolean', required: false, input: false, defaultValue: false },

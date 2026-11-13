@@ -85,3 +85,9 @@ export const publicConfigSchema = z.object({
   googleSignIn: z.boolean(),
 });
 export type PublicConfig = z.infer<typeof publicConfigSchema>;
+
+// /account: the profile fields a user edits (sitemap §2).
+export const updateProfileSchema = z.object({
+  fullName: z.string().trim().min(1, 'Enter your full name').max(100),
+});
+export type UpdateProfileInput = z.input<typeof updateProfileSchema>;

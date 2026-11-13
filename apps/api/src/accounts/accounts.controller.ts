@@ -1,11 +1,14 @@
-import { Body, Controller, Get, HttpCode, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Patch, Post, Put, UseGuards } from '@nestjs/common';
 import {
   acceptLegalSchema,
   meResponseSchema,
   publicConfigSchema,
+  updatePhoneSchema,
+  updateProfileSchema,
   type AcceptLegalInput,
   type PublicConfig,
 } from '@creavent/shared';
+import type { z } from 'zod';
 import { AuthGuard, CurrentUser, type SessionUser } from '../auth/auth.guard.js';
 import { appConfig } from '../config.js';
 import { ResponseSchema } from '../response-schema.decorator.js';
@@ -20,6 +23,20 @@ export class AccountsController {
   @ResponseSchema(meResponseSchema)
   me(@CurrentUser() user: SessionUser) {
     return this.accounts.me(user.id);
+  }
+
+  @Patch('me')
+  @UseGuards(AuthGuard)
+  @ResponseSchema(meResponseSchema)
+  updateProfile(@CurrentUser() user: SessionUser, @Body({ schema: updateProfileSchema }) body: z.output<typeof updateProfileSchema>) {
+    return this.accounts.updateProfile(user.id, body.fullName);
+  }
+
+  @Put('me/phone')
+  @UseGuards(AuthGuard)
+  @ResponseSchema(meResponseSchema)
+  updatePhone(@CurrentUser() user: SessionUser, @Body({ schema: updatePhoneSchema }) body: z.output<typeof updatePhoneSchema>) {
+    return this.accounts.updatePhone(user.id, body.phone);
   }
 
   @Post('me/legal')

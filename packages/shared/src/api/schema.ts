@@ -65,6 +65,22 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
+        patch: operations["AccountsController_updateProfile"];
+        trace?: never;
+    };
+    "/api/me/phone": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["AccountsController_updatePhone"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
         patch?: never;
         trace?: never;
     };
@@ -450,6 +466,130 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        fullName: string;
+                        email: string;
+                        phone: string | null;
+                        avatarUrl: string | null;
+                        isAdmin: boolean;
+                        needsLegal: boolean;
+                        hasPassword: boolean;
+                        roles: {
+                            /** @enum {string} */
+                            role: "vendor" | "organizer";
+                            /** @enum {string|null} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected" | null;
+                            rejectionReason: string | null;
+                            onboardingStep: number | null;
+                            suspended: boolean;
+                            suspensionReason: string | null;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    AccountsController_updateProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    fullName: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        fullName: string;
+                        email: string;
+                        phone: string | null;
+                        avatarUrl: string | null;
+                        isAdmin: boolean;
+                        needsLegal: boolean;
+                        hasPassword: boolean;
+                        roles: {
+                            /** @enum {string} */
+                            role: "vendor" | "organizer";
+                            /** @enum {string|null} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected" | null;
+                            rejectionReason: string | null;
+                            onboardingStep: number | null;
+                            suspended: boolean;
+                            suspensionReason: string | null;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    AccountsController_updatePhone: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    phone: string;
+                };
+            };
+        };
         responses: {
             200: {
                 headers: {

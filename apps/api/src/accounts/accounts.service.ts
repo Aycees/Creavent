@@ -42,6 +42,16 @@ export class AccountsService {
     };
   }
 
+  async updateProfile(userId: string, fullName: string) {
+    await this.prisma.user.update({ where: { id: userId }, data: { fullName } });
+    return this.me(userId);
+  }
+
+  async updatePhone(userId: string, phone: string) {
+    await this.prisma.user.update({ where: { id: userId }, data: { phone } });
+    return this.me(userId);
+  }
+
   // Accepts the current versions and confirms the age, for users who signed
   // up with Google or signed in after the terms changed (spec §1).
   async acceptLegal(userId: string) {

@@ -134,3 +134,6 @@ export function slugify(name: string) {
     .replace(/-+$/, '');
   return base.length >= 3 ? base : `${base}${base ? '-' : ''}shop`.slice(0, 40);
 }
+
+export const updatePhoneSchema = z.object({ phone: phoneSchema });
+export type UpdatePhoneInput = z.input<typeof updatePhoneSchema>;
