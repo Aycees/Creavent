@@ -208,6 +208,7 @@ erDiagram
 | accounts | How a user signs in, one row per method. `provider_id` is `credential` (email and password, with the password hash in `password`) or `google` (with the Google account ID in `account_id`). UK (`provider_id`, `account_id`). Google sign-in removes the `credential` row of an account whose email was never verified (spec §1). |
 | sessions | One row per signed-in browser, with the cookie's token. Checked on every request, so a deleted row signs the browser out. |
 | verifications | Email verification and password reset tokens, with their expiry. |
+| sign_in_attempts | One row per sign-in try with a password (`email`, `created_at`), for the per-email lockout (architecture §4.1). Rows older than the window are deleted. Not part of Better Auth. |
 
 **legal_acceptances**: each time a user accepts a version of the terms of use or the privacy notice (spec §1). Rows are never updated or deleted, so the record shows who accepted which wording and when. Kept after account deletion, like audit logs.
 
@@ -307,7 +308,7 @@ erDiagram
     vendor_profiles ||--o{ vendor_profile_photos : ""
 ```
 
-**categories**: the platform-wide product category list. The initial seed is Preloved clothing, Vintage, Handmade and crafts, Food and drinks, Plants, Books and toys, and Other (spec §4.1). Set in seed data and changed by a new seed or migration. A category is never deleted, only made inactive, because old events and applications point to it.
+**categories**: the platform-wide product category list. The initial list ships as a migration, because every environment needs it: Preloved clothing, Vintage, Handmade and crafts, Food and drinks, Plants, Books and toys, and Other (spec §4.1). Set in seed data and changed by a new seed or migration. A category is never deleted, only made inactive, because old events and applications point to it.
 
 | Attribute | Type | Notes |
 |---|---|---|
@@ -764,7 +765,7 @@ Moderation actions are stored where they apply: `user_roles.suspended_*` for sus
 | error | text null | |
 | sent_at | timestamptz null | |
 
-`notification_type` values, one per row in spec §8.1, plus the account emails sent by the auth library: `email_verification`, `password_reset`, `organizer_approved`, `organizer_rejected`, `application_submitted`, `application_withdrawn`, `application_approved`, `application_declined`, `slot_assigned`, `slot_released`, `proof_uploaded`, `payment_approved`, `payment_rejected`, `vendor_removed`, `event_changed`, `event_canceled`, `event_hidden`.
+`notification_type` values, one per row in spec §8.1, plus the account emails sent by the auth library: `email_verification`, `email_change_confirmation` (to the old address, approving an email change), `password_reset`, `organizer_approved`, `organizer_rejected`, `application_submitted`, `application_withdrawn`, `application_approved`, `application_declined`, `slot_assigned`, `slot_released`, `proof_uploaded`, `payment_approved`, `payment_rejected`, `vendor_removed`, `event_changed`, `event_canceled`, `event_hidden`.
 
 ### 5.10 Audit log
 

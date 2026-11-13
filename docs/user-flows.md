@@ -2,9 +2,9 @@
 
 **Status:** First draft. Kept simple on purpose: the main path for each task, plus the edge cases ordinary users are likely to hit. The rules behind each step are in the [Feature specification](feature-specification.md). If this file and the spec disagree, the spec wins.
 
-Last updated: 2026-11-12
+Last updated: 2026-11-13
 
-User stories with acceptance criteria are not written yet. They can be added per flow once these flows are agreed.
+Acceptance criteria are written per flow as each phase is built. Flows 1, 2, and the approval part of 11 have them (Phase 1). Each criterion has a test in `apps/api/test/integration` or next to the screen in `apps/web/src`.
 
 ## How to read this
 
@@ -71,6 +71,20 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - **The terms or privacy notice changed since they last signed in:** they see the new version and accept it before continuing. Spec §1.
 - **Email typo at signup:** the email isn't verified, so the account stays unconfirmed until the user fixes it. **(screen)**
 
+**Acceptance criteria (Phase 1)**
+- Signup needs a full name, a valid email, a password of 8 to 128 characters, "I'm 18 or older", and the terms and privacy acceptance. Both agreements are recorded with the current versions, and the age confirmation with its time.
+- After signup the user sees "Check your inbox" and can send the link again. They can't log in until the email is confirmed. The link works for 24 hours, signs them in, and opens onboarding with the signup choice pre-selected.
+- An expired or used link shows "This link has expired" with a way to send a new one.
+- An email that already has an account is told so, with a Log in link.
+- Log in with a wrong password says "Wrong email or password." 5 failed tries for one email, from any address, lock that email for 15 minutes; a password reset lifts the lock. Each address is also rate limited.
+- Forgot password always answers the same way, whether or not the email has an account. The reset link works for 1 hour, once, and signs the user out everywhere.
+- A Google signup, or a user whose accepted terms or privacy version is older than the current one, sees `/account/legal` before any other page.
+- Google sign-in with the email of an account that was never confirmed opens that account, confirms the email, and removes its password.
+- Onboarding step 1 adds the chosen roles (organizers start at `not_submitted`). Each step saves its fields, the furthest step per role is kept, and the user continues from there. With both roles, the vendor flow runs first.
+- Vendor: shop name and at least one category are required, the about text is at most 300 characters, the page link comes from the shop name (a number is added if taken), photos can be skipped, and the mobile number must be a Philippine mobile number. Only the user's own ready files of the right kind can be attached.
+- Organizer: the page link is checked against taken and reserved words, and the mobile number and contact email are required before a review can be requested.
+- The vendor done screen shows the profile preview and the "Finish your profile" checklist. The organizer done screen shows "Pending review" and the timeline, or a nudge to get approved after "Do this later".
+
 ## 2. Get approved as an organizer
 
 *This is step 4 of organizer onboarding (flow 1). An organizer who chose "Do this later" starts here from `/organizer/approval`.*
@@ -85,6 +99,11 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - **No social media or past events to show:** the admin may contact the organizer before deciding, or reject with a reason like "Add a page that shows your past events". Spec §2.1.
 - **An organizer who isn't approved tries to open an event:** the button is disabled with "Get approved to open this event to vendors". They can keep editing the draft. Spec §3.1.
 - **A rejected organizer disagrees:** they resubmit with better links or email support. Spec §2.1.
+
+**Acceptance criteria (Phase 1)**
+- Submit for review needs at least one link, saves the links on the organizer page, and sets the status to `pending_review`. "Do this later" saves the links and leaves it at `not_submitted`.
+- A rejected organizer sees the reason and can resubmit, which clears it. An approved or pending organizer can't request again.
+- While a review is pending or after approval, the display name, page link, and links can't be changed through onboarding (open question D9).
 
 ## 3. Create an event and open it to vendors
 
@@ -231,6 +250,12 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 
 **Organizer approval**
 1. Open the approval queue → check the organizer's links and profile → approve, or reject with a reason.
+
+
+**Acceptance criteria for organizer approval (Phase 1)**
+- Only admins can open the queue or decide. The queue lists `pending_review` organizers oldest first, with links count, business days waiting against the 2-day target, and resubmissions marked.
+- The detail page shows the links to check, the profile, the contact details, the account, and "N of M in queue" with Next.
+- Approve or reject (a reason is required) writes the review, an audit log row with the before and after status, and the approved or rejected email in one transaction. Only a `pending_review` request can be decided.
 
 **Reports**
 1. A report arrives from the report button, or the admin adds one from a support email.

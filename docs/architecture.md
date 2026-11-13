@@ -113,7 +113,7 @@ Password accounts also need:
 
 There is no magic-link sign-in.
 
-Signup also records the accepted terms and privacy versions (`legal_acceptances`) and the age confirmation. The signup page's "Sell at events" or "Run events" choice only pre-selects the role in onboarding (spec §1). It is not stored. A signed-in user whose accepted version is older than the current one is sent to `/account/legal` before any other page (spec §1).
+Signup also records the accepted terms and privacy versions (`legal_acceptances`) and the age confirmation. A Google signup has no form, so those are asked on `/account/legal` right after it (decided 2026-11-13). The signup page's "Sell at events" or "Run events" choice only pre-selects the role in onboarding (spec §1). It is not stored. A signed-in user whose accepted version is older than the current one is sent to `/account/legal` before any other page (spec §1).
 
 ### 4.2 Auth library
 
@@ -254,3 +254,4 @@ The assignment and payment rules are where the product can break, so most tests 
 ## 12. Open points
 
 - **Domain, sending domain, and public file domain** wait for H1, E1, and I2.
+- **Signed-in pages read the session in the browser.** The layouts wait for `/api/me` before showing a page. Next.js's instant-navigation check warns about this in development. Moving session reads to the server, as Next.js's "Authentication with Cache Components" guide describes, would remove the warning and the loading step.

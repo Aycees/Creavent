@@ -261,15 +261,15 @@ Check a feature when its commit is on the phase branch with its tests passing. C
 - [x] **M0** CI and the app shells work (2026-11-13)
 
 **Phase 1: Accounts and approval**
-- [ ] 1.1 Auth schema
-- [ ] 1.2 Email outbox
-- [ ] 1.3 Sign up and sign in
-- [ ] 1.4 File uploads
-- [ ] 1.5 Vendor onboarding
-- [ ] 1.6 Organizer onboarding
-- [ ] 1.7 Admin approvals
-- [ ] 1.8 Account page
-- [ ] **M1** An organizer signs up and gets approved
+- [x] 1.1 Auth schema (branch `feat/phase-1-accounts`)
+- [x] 1.2 Email outbox (branch `feat/phase-1-accounts`)
+- [x] 1.3 Sign up and sign in (branch `feat/phase-1-accounts`)
+- [x] 1.4 File uploads (branch `feat/phase-1-accounts`; tested against an in-memory store, not yet against R2)
+- [x] 1.5 Vendor onboarding (branch `feat/phase-1-accounts`)
+- [x] 1.6 Organizer onboarding (branch `feat/phase-1-accounts`)
+- [x] 1.7 Admin approvals (branch `feat/phase-1-accounts`)
+- [x] 1.8 Account page (branch `feat/phase-1-accounts`)
+- [ ] **M1** An organizer signs up and gets approved (works on a local run of the branch, 2026-11-13; checked when the phase PR is merged)
 
 **Phase 2: Events**
 - [ ] 2.1 Create a draft

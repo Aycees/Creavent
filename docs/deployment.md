@@ -41,18 +41,32 @@ Done once, by a workspace admin, when the team decides to deploy.
 
 Changes after setup go through `render.yaml` on `main`, not the Dashboard, except secret values.
 
-## 3. Migrations
+## 3. Secrets and settings (Phase 1)
+
+Add these to `creavent-staging-secrets`. `apps/api/.env.example` describes each one.
+
+| Key | Used by | Notes |
+|---|---|---|
+| `BETTER_AUTH_SECRET` | API | 32+ random characters. Required in production. |
+| `WEB_URL` | API, worker | The web service's address. Email links and Google's redirect use it. |
+| `RESEND_API_KEY`, `EMAIL_FROM` | Worker | The worker refuses to start without the key. |
+| `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` | API | An R2 API token for the two staging buckets. |
+| `R2_PUBLIC_BUCKET`, `R2_PRIVATE_BUCKET`, `R2_PUBLIC_URL` | API | The private bucket needs a CORS rule allowing `PUT` from `WEB_URL` with the `Content-Type` header. |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | API | Optional. Redirect URI: `<WEB_URL>/api/auth/callback/google`. |
+| `SUPPORT_EMAIL`, `TERMS_VERSION`, `PRIVACY_VERSION`, `MINIMUM_AGE` | API | Configuration with defaults (data model §5.11). |
+| `SEED_PASSWORD`, `ALLOW_SEED=staging` | One-off seed run | Only when seeding staging. |
+
+## 4. Migrations
 
 - The API's pre-deploy command runs `prisma migrate deploy`. It runs after the build and before the new version starts.
 - A failed migration stops the deploy, and the old version keeps running.
 - Migrations are never edited after merge. Risky changes are split into two releases ([Development plan §6](development-plan.md#6-branches-pull-requests-and-deploys)).
 
-## 4. Not covered yet
+## 5. Not covered yet
 
 | Item | Brought by |
 |---|---|
-| R2 buckets and keys | Feature 1.4 (file uploads). Keys go in the environment group. |
-| Resend API key and sending domain | Feature 1.2 (test sender). The real sending domain waits for open question E1. |
+| Resend sending domain | Resend's test sender until open question E1. |
 | Domain | Open question H1, item 6.2. Until then, services use `*.onrender.com`. |
 | Backups | Feature 5.5 (nightly `pg_dump` to R2). Restore drill in item 6.5. |
 | Production | Item 6.3: a second environment in `render.yaml`, with its own database and environment group. |
