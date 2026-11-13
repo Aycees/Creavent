@@ -36,7 +36,7 @@ export function createLockout(maxFailures = 5, windowMs = 15 * 60 * 1000, maxEnt
   // recently tried email that is not locked. A locked email is never dropped,
   // so filling the store with other emails can't lift a lock.
   const makeRoom = () => {
-    for (const email of [...tries.keys()]) recent(email);
+    for (const email of tries.keys()) recent(email);
     if (tries.size < maxEntries) return true;
     for (const [email, list] of tries) {
       if (list.length < maxFailures) {
