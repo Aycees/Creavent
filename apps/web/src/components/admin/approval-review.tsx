@@ -73,7 +73,7 @@ export function ApprovalReview({ userId }: { userId: string }) {
     if (!d) return
     setError(null)
     if (outcome === "reject") {
-      const parsed = rejectSchema.safeParse({ reason, note })
+      const parsed = rejectSchema.pick({ reason: true }).safeParse({ reason })
       if (!parsed.success) return setReasonError(parsed.error.issues[0]?.message ?? "Tell the organizer what to fix")
     }
     setReasonError(null)
