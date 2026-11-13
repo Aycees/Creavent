@@ -145,6 +145,10 @@ export class OnboardingService {
         throw new ConflictException('This link is taken. Try another.');
       }
       if (input.logoFileId) await assertAttachable(tx, input.logoFileId, userId, 'organizer_logo');
+      const current = await tx.organizerProfile.findUnique({ where: { userId } });
+      if (current && (current.displayName !== input.displayName || current.slug !== input.slug)) {
+        await this.assertNotReviewed(tx, userId);
+      }
       const data = {
         displayName: input.displayName,
         slug: input.slug,
@@ -177,7 +181,10 @@ export class OnboardingService {
   async organizerApproval(userId: string, input: z.output<typeof organizerApprovalSchema>) {
     await this.prisma.$transaction(async (tx) => {
       const role = await this.requireRole(tx, userId, 'organizer');
-      await this.organizerProfile(tx, userId);
+      const profile = await this.organizerProfile(tx, userId);
+      if (JSON.stringify(profile.socialLinks) !== JSON.stringify(input.socialLinks)) {
+        await this.assertNotReviewed(tx, userId);
+      }
       await tx.organizerProfile.update({ where: { userId }, data: { socialLinks: input.socialLinks } });
       if (input.submit) {
         if (role.approvalStatus === 'approved' || role.approvalStatus === 'pending_review') {
@@ -204,6 +211,19 @@ export class OnboardingService {
     if (!found) throw new ForbiddenException(`Add the ${role} role first`);
     if (found.suspendedAt) throw new ForbiddenException(`Your ${role} role is suspended`);
     return found;
+  }
+
+  // The name, page link, and links are what the admin reviews (spec §2.1).
+  // While a review is pending or after approval they stay as reviewed, so the
+  // badge can't move to a different page. How organizers change them later is
+  // an open question (docs/open-questions.md).
+  private async assertNotReviewed(tx: Tx, userId: string) {
+    const role = await tx.userRole.findUniqueOrThrow({ where: { userId_role: { userId, role: 'organizer' } } });
+    if (role.approvalStatus === 'pending_review' || role.approvalStatus === 'approved') {
+      throw new ConflictException(
+        'Your name, page link, and links were sent for review. Email support to change them.',
+      );
+    }
   }
 
   private async vendorProfile(tx: Tx, userId: string) {

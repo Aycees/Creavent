@@ -2,7 +2,7 @@
 
 Questions found while checking that the docs line up. They are not blocking the current docs, but each one needs a decision before the related work starts (user flows, domain model, UI, development).
 
-Last updated: 2026-11-12
+Last updated: 2026-11-13
 
 How to use this file: discuss a question in a session, write the decision into the right doc ([Feature specification](feature-specification.md), [Project details](project-details.md), or [Revenue model](revenue-model.md)), then move the question to the "Resolved" section at the bottom with the date.
 
@@ -22,7 +22,9 @@ All questions in this section are resolved. See "Resolved" below.
 
 ## D. Admin and operations
 
-All questions in this section are resolved. See "Resolved" below.
+| # | Question | Suggested |
+|---|---|---|
+| D9 | Raised while building Phase 1 (2026-11-13). Can an approved organizer change their display name, page link, or social links, and if so, does the change go back to review? The admin approved those exact pages, and the badge follows the name. For now, the app refuses changes to them while a review is pending or after approval, and asks the organizer to email support. City, about, and logo stay editable. | Let organizers edit them from their profile, and send a changed name or links back to `pending_review` (the badge hides until re-approved). The page link can change freely. |
 
 ## E. Email and notifications (Resend)
 

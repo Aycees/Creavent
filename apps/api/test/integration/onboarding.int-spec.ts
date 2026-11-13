@@ -333,6 +333,25 @@ describe('onboarding', () => {
       expect(await roleOf(user.id, 'organizer')).toMatchObject({ approvalStatus: 'pending_review', rejectionReason: null });
     });
 
+    it.each(['pending_review', 'approved'] as const)(
+      'keeps the reviewed name, link, and links fixed while %s',
+      async (approvalStatus) => {
+        const { user, browser } = await readyForApproval();
+        await browser.post('/api/onboarding/organizer/approval').send({ socialLinks: ['facebook.com/real'], submit: false });
+        await prisma.userRole.update({ where: { userId_role: { userId: user.id, role: 'organizer' } }, data: { approvalStatus } });
+
+        const renamed = await browser.put('/api/onboarding/organizer/page').send({ ...page, displayName: 'Someone Famous' });
+        const relinked = await browser.post('/api/onboarding/organizer/approval').send({ socialLinks: ['facebook.com/other'], submit: false });
+        const aboutOnly = await browser.put('/api/onboarding/organizer/page').send({ ...page, about: 'Now twice a month.' });
+
+        expect(renamed.status).toBe(409);
+        expect(relinked.status).toBe(409);
+        expect(aboutOnly.status).toBe(200);
+        const profile = await prisma.organizerProfile.findUniqueOrThrow({ where: { userId: user.id } });
+        expect(profile).toMatchObject({ displayName: 'Bazaar ng Mintal', socialLinks: ['https://facebook.com/real'], about: 'Now twice a month.' });
+      },
+    );
+
     it('does not let an approved organizer go back to pending', async () => {
       const { user, browser } = await readyForApproval();
       await prisma.userRole.update({ where: { userId_role: { userId: user.id, role: 'organizer' } }, data: { approvalStatus: 'approved' } });
