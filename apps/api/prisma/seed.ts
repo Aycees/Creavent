@@ -59,6 +59,10 @@ async function organizer(email: string, displayName: string, status: ApprovalSta
       contactEmail: email,
       approvalSubmittedAt: status === 'not_submitted' ? null : new Date(Date.now() - daysAgo * 86_400_000),
       rejectionReason: status === 'rejected' ? 'Add a page that shows your past events' : null,
+      // Decided requests carry the review, so the profile marks reviewed links.
+      ...(status === 'approved' || status === 'rejected'
+        ? { reviewedAt: new Date(Date.now() - (daysAgo - 1) * 86_400_000), reviewedLinks: [`https://facebook.com/${slug}`] }
+        : {}),
     },
   });
 }
