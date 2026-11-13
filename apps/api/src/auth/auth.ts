@@ -22,7 +22,7 @@ function emailOf(body: unknown) {
 // counted before the password check and taken back if it succeeds, so tries
 // sent in parallel can't get past the cap. A password reset lifts the lock,
 // because it proves the person owns the inbox. Kept in memory, with a cap on
-// entries: the MVP runs one API instance.
+// entries that never drops a locked email: the MVP runs one API instance.
 export function createLockout(maxFailures = 5, windowMs = 15 * 60 * 1000, maxEntries = 10_000) {
   const tries = new Map<string, number[]>();
   const recent = (email: string) => {
@@ -32,16 +32,33 @@ export function createLockout(maxFailures = 5, windowMs = 15 * 60 * 1000, maxEnt
     else tries.set(email, list);
     return list;
   };
+  // Frees one entry when the store is full: expired ones first, then the least
+  // recently tried email that is not locked. A locked email is never dropped,
+  // so filling the store with other emails can't lift a lock.
+  const makeRoom = () => {
+    for (const email of [...tries.keys()]) recent(email);
+    if (tries.size < maxEntries) return true;
+    for (const [email, list] of tries) {
+      if (list.length < maxFailures) {
+        tries.delete(email);
+        return true;
+      }
+    }
+    return false;
+  };
   return {
     // Counts a try. False when the email is locked, and then nothing is counted.
     tryStart(email: string) {
       if (email === '') return true;
       const list = recent(email);
       if (list.length >= maxFailures) return false;
-      if (!tries.has(email) && tries.size >= maxEntries) {
-        const oldest = tries.keys().next().value;
-        if (oldest !== undefined) tries.delete(oldest);
+      if (!tries.has(email) && tries.size >= maxEntries && !makeRoom()) {
+        // Every entry is a locked email: don't track this one rather than
+        // drop a lock. The per-IP limit still applies to it.
+        return true;
       }
+      // Delete and re-insert, so the map's order is least recently tried first.
+      tries.delete(email);
       tries.set(email, [...list, Date.now()]);
       return true;
     },
