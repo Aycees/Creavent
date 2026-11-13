@@ -2,6 +2,7 @@ import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { APIError, createAuthMiddleware } from 'better-auth/api';
 import type { AppConfig } from '../config.js';
+import { describeDevice } from '../notifications/describe-device.js';
 import type { OutboxService } from '../notifications/outbox.service.js';
 import type { PrismaService } from '../prisma/prisma.service.js';
 import { recordLegalAcceptance } from './legal.js';
@@ -71,13 +72,14 @@ export function createAuth(prisma: PrismaService, outbox: OutboxService, config:
     user: { id: string; email: string; name: string },
     type: 'email_verification' | 'password_reset',
     url: string,
+    extra: Record<string, string> = {},
   ) {
     await prisma.$transaction((tx) =>
       outbox.queue(tx, {
         userId: user.id,
         toEmail: user.email,
         type,
-        payload: { name: user.name, url, supportEmail: config.supportEmail },
+        payload: { name: user.name, url, supportEmail: config.supportEmail, ...extra },
       }),
     );
   }
@@ -136,8 +138,13 @@ export function createAuth(prisma: PrismaService, outbox: OutboxService, config:
       autoSignIn: false,
       resetPasswordTokenExpiresIn: 60 * 60,
       revokeSessionsOnPasswordReset: true,
-      sendResetPassword: async ({ user, url }) => {
-        await queueAuthEmail(user, 'password_reset', url);
+      sendResetPassword: async ({ user, url }, request) => {
+        // When and from what the reset was asked for, shown in the email.
+        const device = describeDevice(request?.headers.get('user-agent'));
+        await queueAuthEmail(user, 'password_reset', url, {
+          requestedAt: new Date().toISOString(),
+          ...(device ? { device } : {}),
+        });
       },
       onPasswordReset: async ({ user }) => {
         await signInLockout.clear(user.email.toLowerCase());
