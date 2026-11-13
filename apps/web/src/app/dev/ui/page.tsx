@@ -2,6 +2,8 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { ClockIcon, MapPinIcon } from "@phosphor-icons/react/dist/ssr"
 
+import { PhoneHeader } from "@/components/layout/phone-header"
+import { StickyActionBar } from "@/components/layout/sticky-action-bar"
 import { Alert } from "@/components/ui/alert"
 import { ApprovedMark } from "@/components/ui/approved-mark"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -279,6 +281,21 @@ export default function DevUiPage() {
         <div className="grid max-w-xl grid-cols-2 gap-4">
           <PhotoPlaceholder ratio="3/2" label="Event cover · 3:2" className="rounded-xl" />
           <PhotoPlaceholder ratio="1/1" label="Vendor photo" className="rounded-lg" />
+        </div>
+      </Section>
+
+      <Section title="Phone header and sticky action bar">
+        <p className="text-sm text-muted">The bar is fixed to the screen in pages; shown in place here.</p>
+        <div className="w-full max-w-[390px] overflow-hidden rounded-xl border border-border bg-canvas">
+          <PhoneHeader title="Bajada Christmas Flea" backHref="/dev/ui" backLabel="Back to events" />
+          <p className="p-4 text-sm text-muted">Page content</p>
+          <StickyActionBar className="static">
+            <div className="min-w-0 flex-1">
+              <p className="text-label font-semibold">Sat, Dec 12 · 9 AM</p>
+              <p className="text-cap text-muted">Bajada Covered Court</p>
+            </div>
+            <Button>Get directions</Button>
+          </StickyActionBar>
         </div>
       </Section>
 
