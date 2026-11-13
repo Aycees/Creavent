@@ -15,20 +15,25 @@ const resize: Record<UploadPurpose, ResizeOptions> = {
 
 // Only so many images are processed at once, so a busy moment can't run the
 // API out of memory (spec §11.5).
-const MAX_CONCURRENT = 2;
-let running = 0;
-const waiting: (() => void)[] = [];
-
-async function withSlot<T>(work: () => Promise<T>): Promise<T> {
-  if (running >= MAX_CONCURRENT) await new Promise<void>((resolve) => waiting.push(resolve));
-  running += 1;
-  try {
-    return await work();
-  } finally {
-    running -= 1;
-    waiting.shift()?.();
-  }
+// A slot freed by finished work goes straight to the next waiter, so new work
+// can't slip in between and go over the limit.
+export function createLimiter(max: number) {
+  let running = 0;
+  const waiting: (() => void)[] = [];
+  return async function limit<T>(work: () => Promise<T>): Promise<T> {
+    if (running < max) running += 1;
+    else await new Promise<void>((resolve) => waiting.push(resolve));
+    try {
+      return await work();
+    } finally {
+      const next = waiting.shift();
+      if (next) next();
+      else running -= 1;
+    }
+  };
 }
+
+const withSlot = createLimiter(2);
 
 // Decodes the upload, checks its size, rotates it upright, resizes it for its
 // purpose, and re-encodes it as WebP. Re-encoding drops all metadata,
