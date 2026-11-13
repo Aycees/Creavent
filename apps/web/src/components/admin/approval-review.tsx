@@ -65,6 +65,10 @@ export function ApprovalReview({ userId }: { userId: string }) {
   const firstName = d.fullName.split(" ")[0]
   const days = d.submittedAt ? businessDaysSince(d.submittedAt) : 0
 
+  // What the admin is looking at, so the API can refuse a decision on a
+  // request the organizer changed in the meantime.
+  const seen = { displayName: d.displayName, socialLinks: d.socialLinks }
+
   async function decide() {
     if (!d) return
     setError(null)
@@ -76,10 +80,13 @@ export function ApprovalReview({ userId }: { userId: string }) {
     setSaving(true)
     const res =
       outcome === "approve"
-        ? await api.POST("/api/admin/approvals/{userId}/approve", { params: { path: { userId } }, body: { note } })
-        : await api.POST("/api/admin/approvals/{userId}/reject", { params: { path: { userId } }, body: { reason, note } })
+        ? await api.POST("/api/admin/approvals/{userId}/approve", { params: { path: { userId } }, body: { note, seen } })
+        : await api.POST("/api/admin/approvals/{userId}/reject", { params: { path: { userId } }, body: { reason, note, seen } })
     setSaving(false)
-    if (!res.data) return setError((res.error as { message?: string } | undefined)?.message ?? "Something went wrong. Try again.")
+    if (!res.data) {
+      if (res.response.status === 409) await queryClient.invalidateQueries({ queryKey: approvalQueueKey })
+      return setError((res.error as { message?: string } | undefined)?.message ?? "Something went wrong. Try again.")
+    }
     toast.success(outcome === "approve" ? `${d.displayName} is approved` : `${d.displayName} was asked to resubmit`)
     await queryClient.invalidateQueries({ queryKey: approvalQueueKey })
     router.push(d.queue.nextUserId ? `/admin/approvals/${d.queue.nextUserId}` : "/admin/approvals")

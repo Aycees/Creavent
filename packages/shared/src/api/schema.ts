@@ -2009,6 +2009,10 @@ export interface operations {
             content: {
                 "application/json": {
                     note?: string | null;
+                    seen: {
+                        displayName: string;
+                        socialLinks: string[];
+                    };
                 };
             };
         };
@@ -2081,6 +2085,10 @@ export interface operations {
                 "application/json": {
                     reason: string;
                     note?: string | null;
+                    seen: {
+                        displayName: string;
+                        socialLinks: string[];
+                    };
                 };
             };
         };

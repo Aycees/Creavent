@@ -31,7 +31,7 @@ export class ApprovalsController {
     @Param('userId', ParseUUIDPipe) userId: string,
     @Body({ schema: approveSchema }) body: z.output<typeof approveSchema>,
   ) {
-    return this.approvals.decide(admin.id, userId, { approve: true, note: body.note });
+    return this.approvals.decide(admin.id, userId, body.seen, { approve: true, note: body.note });
   }
 
   @Post(':userId/reject')
@@ -42,6 +42,6 @@ export class ApprovalsController {
     @Param('userId', ParseUUIDPipe) userId: string,
     @Body({ schema: rejectSchema }) body: z.output<typeof rejectSchema>,
   ) {
-    return this.approvals.decide(admin.id, userId, { approve: false, reason: body.reason, note: body.note });
+    return this.approvals.decide(admin.id, userId, body.seen, { approve: false, reason: body.reason, note: body.note });
   }
 }

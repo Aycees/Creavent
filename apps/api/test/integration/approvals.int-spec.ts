@@ -45,6 +45,8 @@ describe('admin approvals', () => {
     return user;
   }
 
+  const seen = (name: string) => ({ displayName: name, socialLinks: ['https://facebook.com/a', 'https://facebook.com/b'] });
+
   async function roleOf(userId: string) {
     return prisma.userRole.findUniqueOrThrow({ where: { userId_role: { userId, role: 'organizer' } } });
   }
@@ -55,7 +57,7 @@ describe('admin approvals', () => {
 
     expect((await agent(app).get('/api/admin/approvals')).status).toBe(401);
     expect((await notAdmin.get('/api/admin/approvals')).status).toBe(403);
-    expect((await notAdmin.post(`/api/admin/approvals/${organizer.id}/approve`).send({})).status).toBe(403);
+    expect((await notAdmin.post(`/api/admin/approvals/${organizer.id}/approve`).send({ seen: seen('Mintal') })).status).toBe(403);
     expect((await roleOf(organizer.id)).approvalStatus).toBe('pending_review');
   });
 
@@ -96,7 +98,7 @@ describe('admin approvals', () => {
     const { user: adminUser, browser } = await admin();
     const organizer = await pendingOrganizer('Mintal', new Date());
 
-    const res = await browser.post(`/api/admin/approvals/${organizer.id}/approve`).send({ note: 'Checked 3 past events' });
+    const res = await browser.post(`/api/admin/approvals/${organizer.id}/approve`).send({ note: 'Checked 3 past events', seen: seen('Mintal') });
 
     expect(res.status).toBe(200);
     expect(await roleOf(organizer.id)).toMatchObject({
@@ -121,7 +123,7 @@ describe('admin approvals', () => {
 
     const res = await browser
       .post(`/api/admin/approvals/${organizer.id}/reject`)
-      .send({ reason: 'Add a page that shows your past events', note: 'Page is 2 days old' });
+      .send({ reason: 'Add a page that shows your past events', note: 'Page is 2 days old', seen: seen('Mintal') });
 
     expect(res.status).toBe(200);
     expect(await roleOf(organizer.id)).toMatchObject({
@@ -138,7 +140,7 @@ describe('admin approvals', () => {
     const { browser } = await admin();
     const organizer = await pendingOrganizer('Mintal', new Date());
 
-    const res = await browser.post(`/api/admin/approvals/${organizer.id}/reject`).send({ reason: ' ' });
+    const res = await browser.post(`/api/admin/approvals/${organizer.id}/reject`).send({ reason: ' ', seen: seen('Mintal') });
 
     expect(res.status).toBe(400);
     expect((await roleOf(organizer.id)).approvalStatus).toBe('pending_review');
@@ -147,13 +149,28 @@ describe('admin approvals', () => {
   it('only decides requests that are waiting for review', async () => {
     const { browser } = await admin();
     const organizer = await pendingOrganizer('Mintal', new Date());
-    await browser.post(`/api/admin/approvals/${organizer.id}/approve`).send({});
+    await browser.post(`/api/admin/approvals/${organizer.id}/approve`).send({ seen: seen('Mintal') });
 
-    const again = await browser.post(`/api/admin/approvals/${organizer.id}/reject`).send({ reason: 'No' });
+    const again = await browser.post(`/api/admin/approvals/${organizer.id}/reject`).send({ reason: 'No', seen: seen('Mintal') });
 
     expect(again.status).toBe(409);
     expect((await roleOf(organizer.id)).approvalStatus).toBe('approved');
     expect(await prisma.emailNotification.count()).toBe(1);
+  });
+
+  it('refuses a decision when the organizer changed their name or links since the admin opened it', async () => {
+    const { browser } = await admin();
+    const organizer = await pendingOrganizer('Mintal', new Date());
+    await prisma.organizerProfile.update({
+      where: { userId: organizer.id },
+      data: { displayName: 'Someone Famous', socialLinks: ['https://facebook.com/famous'] },
+    });
+
+    const res = await browser.post(`/api/admin/approvals/${organizer.id}/approve`).send({ seen: seen('Mintal') });
+
+    expect(res.status).toBe(409);
+    expect(res.body.message).toBe('This request changed since you opened it. Reload to see the new details.');
+    expect((await roleOf(organizer.id)).approvalStatus).toBe('pending_review');
   });
 
   it('marks a request reviewed before as a resubmission', async () => {

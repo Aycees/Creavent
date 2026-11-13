@@ -205,7 +205,9 @@ describe('profile edit', () => {
       const admin = await createUser(prisma, { isAdmin: true });
       const adminBrowser = await signInAs(app, admin.email);
 
-      await adminBrowser.post(`/api/admin/approvals/${user.id}/approve`).send({});
+      await adminBrowser
+        .post(`/api/admin/approvals/${user.id}/approve`)
+        .send({ seen: { displayName: 'Bazaar ng Mintal', socialLinks: ['https://facebook.com/mintal'] } });
       const state = await (await signInAs(app, user.email)).get('/api/profile');
 
       expect(state.body.organizer.reviewedLinks).toEqual(['https://facebook.com/mintal']);

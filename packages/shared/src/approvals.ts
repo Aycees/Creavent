@@ -48,11 +48,16 @@ const noteSchema = z
   .nullable()
   .optional();
 
-export const approveSchema = z.object({ note: noteSchema });
+// The name and links the admin was looking at. A decision is refused if the
+// organizer changed them since, so an approval always covers what was seen.
+const seenSchema = z.object({ displayName: z.string(), socialLinks: z.array(z.string()) });
+
+export const approveSchema = z.object({ note: noteSchema, seen: seenSchema });
 export type ApproveInput = z.input<typeof approveSchema>;
 
 export const rejectSchema = z.object({
   reason: z.string().trim().min(1, 'Tell the organizer what to fix').max(1000),
   note: noteSchema,
+  seen: seenSchema,
 });
 export type RejectInput = z.input<typeof rejectSchema>;

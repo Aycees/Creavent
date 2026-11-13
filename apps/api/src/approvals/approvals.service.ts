@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import type { ApprovalDetail, ApprovalQueueItem } from '@creavent/shared';
 import { writeAuditLog } from '../audit/audit-log.js';
 import { appConfig } from '../config.js';
@@ -71,7 +71,12 @@ export class ApprovalsService {
     };
   }
 
-  async decide(adminId: string, userId: string, decision: { approve: true; note?: string | null } | { approve: false; reason: string; note?: string | null }) {
+  async decide(
+    adminId: string,
+    userId: string,
+    seen: { displayName: string; socialLinks: string[] },
+    decision: { approve: true; note?: string | null } | { approve: false; reason: string; note?: string | null },
+  ) {
     const config = appConfig();
     await this.prisma.$transaction(async (tx) => {
       const role = await tx.userRole.findUnique({
@@ -81,6 +86,14 @@ export class ApprovalsService {
       if (!role) throw new NotFoundException('Organizer not found');
       const to = decision.approve ? 'approved' : 'rejected';
       assertApprovalChange(role.approvalStatus, to);
+      // The organizer can edit while waiting: decide only on what the admin saw.
+      const profile = role.user.organizerProfile;
+      if (
+        (profile?.displayName ?? role.user.fullName) !== seen.displayName ||
+        JSON.stringify(profile?.socialLinks ?? []) !== JSON.stringify(seen.socialLinks)
+      ) {
+        throw new ConflictException('This request changed since you opened it. Reload to see the new details.');
+      }
       await tx.userRole.update({
         where: { id: role.id },
         data: {

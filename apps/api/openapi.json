@@ -5176,8 +5176,29 @@
                     "nullable": true,
                     "type": "string",
                     "maxLength": 2000
+                  },
+                  "seen": {
+                    "type": "object",
+                    "properties": {
+                      "displayName": {
+                        "type": "string"
+                      },
+                      "socialLinks": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": [
+                      "displayName",
+                      "socialLinks"
+                    ]
                   }
-                }
+                },
+                "required": [
+                  "seen"
+                ]
               }
             }
           }
@@ -5410,10 +5431,29 @@
                     "nullable": true,
                     "type": "string",
                     "maxLength": 2000
+                  },
+                  "seen": {
+                    "type": "object",
+                    "properties": {
+                      "displayName": {
+                        "type": "string"
+                      },
+                      "socialLinks": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": [
+                      "displayName",
+                      "socialLinks"
+                    ]
                   }
                 },
                 "required": [
-                  "reason"
+                  "reason",
+                  "seen"
                 ]
               }
             }

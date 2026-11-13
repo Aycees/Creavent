@@ -92,7 +92,7 @@ describe("ApprovalReview", () => {
 
     expect(api.POST).toHaveBeenCalledWith("/api/admin/approvals/{userId}/approve", {
       params: { path: { userId } },
-      body: { note: "Checked 3 past events" },
+      body: { note: "Checked 3 past events", seen: { displayName: "Bazaar ng Mintal", socialLinks: detail.socialLinks } },
     })
     await vi.waitFor(() => expect(push).toHaveBeenCalledWith(`/admin/approvals/${nextId}`))
   })
@@ -108,7 +108,7 @@ describe("ApprovalReview", () => {
 
     expect(api.POST).toHaveBeenCalledWith("/api/admin/approvals/{userId}/reject", {
       params: { path: { userId } },
-      body: { reason: expect.stringContaining("past events"), note: "" },
+      body: { reason: expect.stringContaining("past events"), note: "", seen: { displayName: "Bazaar ng Mintal", socialLinks: detail.socialLinks } },
     })
   })
 
