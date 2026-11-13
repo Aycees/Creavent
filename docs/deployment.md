@@ -14,13 +14,14 @@ One Render project, `creavent`, with one environment, `staging`, in Singapore:
 |---|---|---|
 | `creavent-web-staging` | Web service (Node) | Next.js. Public. Forwards `/api/*` to the API over the private network. |
 | `creavent-api-staging` | Web service (Node) | NestJS. Runs migrations before each deploy. Health check at `/api/health`. |
+| `creavent-worker-staging` | Background worker (Node) | The same NestJS codebase, started from `dist/worker.js`. Runs pg-boss jobs: sends queued emails now, scheduled jobs and backups later. Serves no HTTP. |
 | `creavent-db-staging` | Postgres 17 | The database. Reachable only from Render's private network. |
-| `creavent-staging-secrets` | Environment group | Secret values, filled in the Render Dashboard. Attached to both services. |
+| `creavent-staging-secrets` | Environment group | Secret values, filled in the Render Dashboard. Attached to every service. |
 
 How they connect:
 
 - **Web to API:** the web service gets `API_HOSTPORT` (the API's private `host:port`) from the Blueprint. Its build and start commands turn it into `API_URL=http://<host:port>`, which `apps/web/next.config.ts` uses for the `/api` rewrite ([Architecture §4.3](architecture.md#43-sessions)). Blueprints have no variable interpolation, so this is done in the commands.
-- **API to database:** `DATABASE_URL` comes from the database's internal connection string.
+- **API and worker to database:** `DATABASE_URL` comes from the database's internal connection string.
 - **Builds:** each service installs from the repo root with pnpm and builds its app and `packages/shared` with a pnpm filter. Node 24 comes from `.nvmrc`.
 - **Build filters:** a service only rebuilds when its app, `packages/shared`, or the root package files change. Markdown changes, including everything in `docs/`, never trigger a build.
 - **Auto-deploy:** a merge to `main` deploys staging ([Development plan §6](development-plan.md#6-branches-pull-requests-and-deploys)).
@@ -31,7 +32,7 @@ Done once, by a workspace admin, when the team decides to deploy.
 
 1. **Check the health endpoint exists.** The API's health check is `/api/health`. Render will not mark a deploy healthy without it.
 2. **Choose plans.** Every `plan` in `render.yaml` is a placeholder. Edit them on `main` before creating the Blueprint:
-   - Both services need a paid plan. The API needs one for the pre-deploy command and to receive private network traffic.
+   - All three services need a paid plan. The API needs one for the pre-deploy command and to receive private network traffic.
    - The database needs a paid plan ([Architecture §9.3](architecture.md#93-backups)). Render's free database is not meant for real data.
 3. **Create the Blueprint.** In the Render Dashboard: New, Blueprint, connect the GitHub repo, branch `main`. Render reads `render.yaml` and shows what it will create. Check the list matches section 1.
 4. **Fill the secrets.** Open the `creavent-staging-secrets` environment group and add each secret value. Values are typed in the Dashboard only, never committed. Render does not allow `sync: false` placeholders inside a group, so the group starts empty. Each phase that needs a secret lists its keys in its PR.
@@ -50,7 +51,6 @@ Changes after setup go through `render.yaml` on `main`, not the Dashboard, excep
 
 | Item | Brought by |
 |---|---|
-| Worker service (jobs, email sending, nightly backups) | Feature 1.2 adds it to `render.yaml`, when it has an entry point. |
 | R2 buckets and keys | Feature 1.4 (file uploads). Keys go in the environment group. |
 | Resend API key and sending domain | Feature 1.2 (test sender). The real sending domain waits for open question E1. |
 | Domain | Open question H1, item 6.2. Until then, services use `*.onrender.com`. |

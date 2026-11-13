@@ -3,9 +3,6 @@
 #
 # Only staging is defined. Production is added as a second environment
 # before launch (docs/development-plan.md §6).
-#
-# The worker service (pg-boss jobs, emails, nightly backups) is added with
-# feature 1.2, when it gets an entry point.
 
 projects:
   - name: creavent
@@ -54,6 +51,32 @@ projects:
             preDeployCommand: pnpm --filter @creavent/api exec prisma migrate deploy
             startCommand: pnpm --filter @creavent/api run start:prod
             healthCheckPath: /api/health
+            buildFilter:
+              paths:
+                - apps/api/**
+                - packages/shared/**
+                - package.json
+                - pnpm-lock.yaml
+                - pnpm-workspace.yaml
+                - .nvmrc
+              ignoredPaths:
+                - "**/*.md"
+            envVars:
+              - key: DATABASE_URL
+                fromDatabase:
+                  name: creavent-db-staging
+                  property: connectionString
+              - fromGroup: creavent-staging-secrets
+
+          # NestJS worker from the same codebase: pg-boss jobs (emails now,
+          # scheduled jobs and backups later). Never serves HTTP (architecture §1).
+          - type: worker
+            name: creavent-worker-staging
+            runtime: node
+            region: singapore
+            plan: 0.5c-512mb # Placeholder: the team chooses the plan.
+            buildCommand: pnpm install --frozen-lockfile && pnpm --filter @creavent/api exec prisma generate && pnpm --filter "@creavent/api..." run build
+            startCommand: pnpm --filter @creavent/api run start:worker
             buildFilter:
               paths:
                 - apps/api/**
