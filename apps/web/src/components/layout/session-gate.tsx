@@ -1,7 +1,7 @@
 "use client"
 
 import type { MeResponse } from "@creavent/shared"
-import { usePathname, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import * as React from "react"
 
 import { homePath, useMe } from "@/lib/queries"
@@ -16,41 +16,46 @@ function redirectFor(me: MeResponse, pathname: string, area?: GateArea): string 
   return null
 }
 
-const loading = (
-  <div role="status" className="p-8 text-sm text-muted">
-    Loading…
-  </div>
-)
-
 // Signed-in pages only. The API decides who may do what; this only sends
 // people to the right page: log in, accept new terms (spec §1), or add the
-// role this area needs. It reads the URL, so it renders inside Suspense.
-export function SessionGate(props: { area?: GateArea; children: (me: MeResponse) => React.ReactNode }) {
-  return (
-    <React.Suspense fallback={loading}>
-      <Gate {...props} />
-    </React.Suspense>
-  )
-}
-
-function Gate({
+// role this area needs.
+//
+// The page is always rendered, and only hidden until the session is checked,
+// so Next.js can prerender it and check it for instant navigation. The URL is
+// read from window once the session has loaded (in the browser only), so no
+// URL hook needs a Suspense boundary.
+export function SessionGate({
   area,
   children,
 }: {
   area?: GateArea
-  children: (me: MeResponse) => React.ReactNode
+  children: (me: MeResponse | undefined) => React.ReactNode
 }) {
   const router = useRouter()
-  const pathname = usePathname()
-  const { data: me, isPending } = useMe()
-  // The query string is kept, so ?role= survives a trip through log in.
-  const here = typeof window === "undefined" ? pathname : pathname + window.location.search
-  const target = me ? redirectFor(me, pathname, area) : me === null ? `/login?next=${encodeURIComponent(here)}` : null
+  const { data: me } = useMe()
+  let target: string | null = null
+  if (me === null) {
+    // The query string is kept, so ?role= survives a trip through log in.
+    target = `/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`
+  } else if (me) {
+    target = redirectFor(me, window.location.pathname, area)
+  }
+  const ready = Boolean(me) && !target
 
   React.useEffect(() => {
     if (target) router.replace(target)
   }, [target, router])
 
-  if (isPending || !me || target) return loading
-  return <>{children(me)}</>
+  return (
+    <>
+      {!ready && (
+        <div role="status" className="p-8 text-sm text-muted">
+          Loading…
+        </div>
+      )}
+      <div hidden={!ready} className="contents">
+        {children(me ?? undefined)}
+      </div>
+    </>
+  )
 }
