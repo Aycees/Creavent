@@ -28,8 +28,9 @@ class ResendEmailSender implements EmailSender {
   }
 }
 
-// Without a Resend key in development, emails are written to the worker's log
-// so their links can still be opened.
+// Only when EMAIL_DRIVER=log is set (local development without a Resend key):
+// emails go to the worker's log so their links can still be opened. Never
+// chosen by default, because the log would hold sign-in links.
 class LogEmailSender implements EmailSender {
   private readonly logger = new Logger('Email');
 
@@ -39,14 +40,17 @@ class LogEmailSender implements EmailSender {
 }
 
 export function createEmailSender(): EmailSender {
+  if (process.env.EMAIL_DRIVER === 'log') {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('EMAIL_DRIVER=log is not allowed in production');
+    }
+    return new LogEmailSender();
+  }
   const apiKey = process.env.RESEND_API_KEY;
-  if (apiKey) {
-    // Resend's test sender until the sending domain exists (open question E1).
-    const from = process.env.EMAIL_FROM ?? 'Creavent <onboarding@resend.dev>';
-    return new ResendEmailSender(apiKey, from);
+  if (!apiKey) {
+    throw new Error('Set RESEND_API_KEY, or EMAIL_DRIVER=log for local development');
   }
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('RESEND_API_KEY is required in production');
-  }
-  return new LogEmailSender();
+  // Resend's test sender until the sending domain exists (open question E1).
+  const from = process.env.EMAIL_FROM ?? 'Creavent <onboarding@resend.dev>';
+  return new ResendEmailSender(apiKey, from);
 }
