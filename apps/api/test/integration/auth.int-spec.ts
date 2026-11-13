@@ -202,6 +202,48 @@ describe('accounts: sign up and sign in', () => {
     expect(res.status).toBe(429);
   });
 
+  it('counts parallel tries, so at most 5 reach the password check', async () => {
+    await signUpAndVerify();
+
+    const tries = await Promise.all(
+      Array.from({ length: 10 }, (_, i) =>
+        agent(app)
+          .set('X-Forwarded-For', `198.51.100.${i}`)
+          .post('/api/auth/sign-in/email')
+          .send({ email: maria.email, password: 'wrong-password' }),
+      ),
+    );
+
+    expect(tries.filter((t) => t.status === 401).length).toBeLessThanOrEqual(5);
+  });
+
+  it('lifts the lockout when the password is reset', async () => {
+    await signUpAndVerify();
+    for (let i = 0; i < 5; i += 1) {
+      await agent(app)
+        .set('X-Forwarded-For', `198.51.100.${i}`)
+        .post('/api/auth/sign-in/email')
+        .send({ email: maria.email, password: 'wrong-password' });
+    }
+    await agent(app)
+      .post('/api/auth/request-password-reset')
+      .send({ email: maria.email, redirectTo: '/reset-password' });
+    const email = await vi.waitFor(() =>
+      prisma.emailNotification.findFirstOrThrow({ where: { type: 'password_reset' } }),
+    );
+    const link = new URL((email.payload as { url: string }).url);
+    const followed = await agent(app).get(link.pathname + link.search);
+    const token = new URL(followed.headers.location, 'http://localhost:3000').searchParams.get('token');
+    await agent(app).post('/api/auth/reset-password').send({ newPassword: 'a-new-password', token });
+
+    const res = await agent(app)
+      .set('X-Forwarded-For', '198.51.100.50')
+      .post('/api/auth/sign-in/email')
+      .send({ email: maria.email, password: 'a-new-password' });
+
+    expect(res.status).toBe(200);
+  });
+
   it('answers 401 on /api/me without a session', async () => {
     const res = await agent(app).get('/api/me');
 

@@ -9,28 +9,51 @@ import { recordLegalAcceptance } from './legal.js';
 const SIGN_UP_PATH = '/sign-up/email';
 const SIGN_IN_PATH = '/sign-in/email';
 
+// The email a request is about, normalized. Over-long values are not
+// tracked: no real address is longer than 254 characters.
 function emailOf(body: unknown) {
   const email = (body as { email?: unknown } | undefined)?.email;
-  return typeof email === 'string' ? email.trim().toLowerCase() : '';
+  if (typeof email !== 'string' || email.length > 254) return '';
+  return email.trim().toLowerCase();
 }
 
 // Per-email lockout after 5 failed sign-ins in 15 minutes, on top of the
-// per-IP limit, so changing addresses doesn't allow more guesses. Kept in
-// memory: the MVP runs one API instance.
-export function createLockout(maxFailures = 5, windowMs = 15 * 60 * 1000) {
-  const failures = new Map<string, number[]>();
+// per-IP limit, so changing addresses doesn't allow more guesses. Each try is
+// counted before the password check and taken back if it succeeds, so tries
+// sent in parallel can't get past the cap. A password reset lifts the lock,
+// because it proves the person owns the inbox. Kept in memory, with a cap on
+// entries: the MVP runs one API instance.
+export function createLockout(maxFailures = 5, windowMs = 15 * 60 * 1000, maxEntries = 10_000) {
+  const tries = new Map<string, number[]>();
   const recent = (email: string) => {
     const since = Date.now() - windowMs;
-    const list = (failures.get(email) ?? []).filter((t) => t > since);
-    failures.set(email, list);
+    const list = (tries.get(email) ?? []).filter((t) => t > since);
+    if (list.length === 0) tries.delete(email);
+    else tries.set(email, list);
     return list;
   };
   return {
-    isLocked: (email: string) => email !== '' && recent(email).length >= maxFailures,
-    fail: (email: string) => {
-      if (email) failures.set(email, [...recent(email), Date.now()]);
+    // Counts a try. False when the email is locked, and then nothing is counted.
+    tryStart(email: string) {
+      if (email === '') return true;
+      const list = recent(email);
+      if (list.length >= maxFailures) return false;
+      if (!tries.has(email) && tries.size >= maxEntries) {
+        const oldest = tries.keys().next().value;
+        if (oldest !== undefined) tries.delete(oldest);
+      }
+      tries.set(email, [...list, Date.now()]);
+      return true;
     },
-    clear: (email: string) => failures.delete(email),
+    // A try refused for another reason (such as an unverified email) takes its
+    // count back.
+    tryUndo(email: string) {
+      const list = tries.get(email);
+      if (!list) return;
+      list.pop();
+      if (list.length === 0) tries.delete(email);
+    },
+    clear: (email: string) => tries.delete(email),
   };
 }
 
@@ -109,6 +132,9 @@ export function createAuth(prisma: PrismaService, outbox: OutboxService, config:
       sendResetPassword: async ({ user, url }) => {
         await queueAuthEmail(user, 'password_reset', url);
       },
+      onPasswordReset: async ({ user }) => {
+        signInLockout.clear(user.email.toLowerCase());
+      },
     },
     emailVerification: {
       sendOnSignUp: true,
@@ -145,9 +171,9 @@ export function createAuth(prisma: PrismaService, outbox: OutboxService, config:
     hooks: {
       before: createAuthMiddleware(async (ctx) => {
         if (ctx.path === SIGN_IN_PATH) {
-          if (signInLockout.isLocked(emailOf(ctx.body))) {
+          if (!signInLockout.tryStart(emailOf(ctx.body))) {
             throw new APIError('TOO_MANY_REQUESTS', {
-              message: 'Too many failed tries. Wait 15 minutes and try again.',
+              message: 'Too many failed tries. Wait 15 minutes, or reset your password.',
             });
           }
           return;
@@ -164,8 +190,8 @@ export function createAuth(prisma: PrismaService, outbox: OutboxService, config:
         if (ctx.path !== SIGN_IN_PATH) return;
         const email = emailOf(ctx.body);
         const returned = ctx.context.returned;
-        if (returned instanceof APIError && returned.statusCode === 401) signInLockout.fail(email);
-        else if (!(returned instanceof APIError)) signInLockout.clear(email);
+        if (!(returned instanceof APIError)) signInLockout.clear(email);
+        else if (returned.statusCode !== 401) signInLockout.tryUndo(email);
       }),
     },
     databaseHooks: {

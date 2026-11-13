@@ -108,7 +108,7 @@ Users sign up and sign in in one of two ways:
 Password accounts also need:
 
 - A **forgot password** flow: an email with a reset link that expires.
-- **Rate limits and a short lockout** on failed logins: per client IP, and per email (5 failed tries lock that email for 15 minutes, from any address). The client IP is the right-most `X-Forwarded-For` entry not added by our own proxies (the Next.js server and Render's private network), so addresses a client makes up are ignored. Check on staging that Render's proxy hops are private addresses, or the IP limit falls back to one shared bucket.
+- **Rate limits and a short lockout** on failed logins: per client IP, and per email (5 failed tries lock that email for 15 minutes, from any address; a password reset lifts the lock). The per-email lock means someone who knows an email can lock it out for 15 minutes; that is accepted for the MVP, because it is what stops guessing from many addresses. The client IP is the right-most `X-Forwarded-For` entry not added by our own proxies (the Next.js server and Render's private network), so addresses a client makes up are ignored. Check on staging that Render's proxy hops are private addresses, or the IP limit falls back to one shared bucket.
 - Password hashing, which Better Auth handles.
 
 There is no magic-link sign-in.
