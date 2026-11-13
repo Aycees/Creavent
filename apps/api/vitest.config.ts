@@ -7,6 +7,7 @@ export default defineConfig({
   test: {
     globals: true,
     root: './',
-    include: ['**/*.spec.ts'],
+    // e2e specs run here too, so `pnpm test` covers them.
+    include: ['**/*.spec.ts', '**/*.e2e-spec.ts'],
   },
 });
