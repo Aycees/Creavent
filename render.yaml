@@ -1,0 +1,91 @@
+# Render Blueprint for Creavent. See docs/deployment.md before creating it.
+# Spec: https://render.com/docs/blueprint-spec
+#
+# Only staging is defined. Production is added as a second environment
+# before launch (docs/development-plan.md §6).
+#
+# The worker service (pg-boss jobs, emails, nightly backups) is added with
+# slice 1.2, when it gets an entry point.
+
+projects:
+  - name: creavent
+    environments:
+      - name: staging
+        services:
+          # Next.js. The browser only talks to this service; /api/* is
+          # forwarded to the API over the private network (architecture §4.3).
+          - type: web
+            name: creavent-web-staging
+            runtime: node
+            region: singapore
+            plan: 0.5c-512mb # Placeholder: the team chooses the plan.
+            # Blueprints have no variable interpolation, so API_URL is built
+            # from API_HOSTPORT in the commands. It is set for the build too,
+            # because Next.js reads its rewrites when it builds.
+            buildCommand: pnpm install --frozen-lockfile && API_URL=http://$API_HOSTPORT pnpm --filter "@creavent/web..." run build
+            startCommand: API_URL=http://$API_HOSTPORT pnpm --filter @creavent/web run start
+            buildFilter:
+              paths:
+                - apps/web/**
+                - packages/shared/**
+                - package.json
+                - pnpm-lock.yaml
+                - pnpm-workspace.yaml
+                - .nvmrc
+              ignoredPaths:
+                - "**/*.md"
+            envVars:
+              - key: API_HOSTPORT
+                fromService:
+                  type: web
+                  name: creavent-api-staging
+                  property: hostport
+              - fromGroup: creavent-staging-secrets
+
+          # NestJS. A paid plan is required: the pre-deploy command and
+          # receiving private network traffic are not available on free.
+          - type: web
+            name: creavent-api-staging
+            runtime: node
+            region: singapore
+            plan: 0.5c-512mb # Placeholder: the team chooses the plan.
+            buildCommand: pnpm install --frozen-lockfile && pnpm --filter @creavent/api exec prisma generate && pnpm --filter "@creavent/api..." run build
+            # A failed migration stops the deploy (architecture §5.3).
+            preDeployCommand: pnpm --filter @creavent/api exec prisma migrate deploy
+            startCommand: pnpm --filter @creavent/api run start:prod
+            healthCheckPath: /api/health
+            buildFilter:
+              paths:
+                - apps/api/**
+                - packages/shared/**
+                - package.json
+                - pnpm-lock.yaml
+                - pnpm-workspace.yaml
+                - .nvmrc
+              ignoredPaths:
+                - "**/*.md"
+            envVars:
+              - key: DATABASE_URL
+                fromDatabase:
+                  name: creavent-db-staging
+                  property: connectionString
+              - fromGroup: creavent-staging-secrets
+
+        databases:
+          - name: creavent-db-staging
+            postgresMajorVersion: "17"
+            region: singapore
+            # Placeholder: the team chooses the plan. Staging and production
+            # need a paid plan; the free database is not meant for real data
+            # (architecture §9.3).
+            plan: 0.1c-256mb
+            ipAllowList: [] # Private network only. Add an IP to connect from outside Render.
+
+        envVarGroups:
+          # Secrets for staging, one group per environment (architecture §9.1).
+          # Render ignores `sync: false` inside a group, so no placeholders can
+          # be declared here: secret values are added to this group in the
+          # Render Dashboard and never committed. Non-secret shared settings
+          # can be listed with `value`.
+          - name: creavent-staging-secrets
+            envVars: []

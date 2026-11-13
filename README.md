@@ -22,6 +22,7 @@ The MVP is built around flea markets and flea market organizers. The platform is
 - [Revenue model](docs/revenue-model.md): MVP payment approach, all candidate revenue strategies, and open questions.
 - [Architecture](docs/architecture.md): tech stack, code structure, auth, jobs, files, environments, backups, and testing.
 - [Development plan](docs/development-plan.md): build phases and milestones, how each feature is built, the definition of done, and progress.
+- [Deployment](docs/deployment.md): what `render.yaml` creates on Render, the one-time setup, migrations, and what is not covered yet.
 - [Documentation checklist](docs/documentation-checklist.md): documents still needed before development and UI design.
 
 ## Status
