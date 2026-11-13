@@ -2,7 +2,7 @@
 
 Tracks the documents needed before development and UI design. Check a box once the document is created.
 
-Last updated: 2026-11-12
+Last updated: 2026-11-13
 
 Legend: ⚠️ = the item is partly deferred until the final revenue model is decided after the MVP (see [Revenue model decision](#revenue-model-decision)).
 
@@ -14,6 +14,7 @@ Legend: ⚠️ = the item is partly deferred until the final revenue model is de
 - [x] Revenue model and strategy (`docs/revenue-model.md`): MVP decision made, final model deferred
 - [x] Data model (`docs/data-model.md`): first draft
 - [x] Technical architecture (`docs/architecture.md`)
+- [x] Development plan: build phases, per-feature workflow, definition of done (`docs/development-plan.md`)
 
 ## Phase 1: Foundation
 
