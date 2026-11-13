@@ -2,17 +2,22 @@ import { Injectable } from '@nestjs/common';
 import type { MeResponse } from '@creavent/shared';
 import { appConfig } from '../config.js';
 import { needsLegal, recordLegalAcceptance } from '../auth/legal.js';
+import { FilesService } from '../files/files.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
 @Injectable()
 export class AccountsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly files: FilesService,
+  ) {}
 
   async me(userId: string): Promise<MeResponse> {
     const config = appConfig();
     const user = await this.prisma.user.findUniqueOrThrow({
       where: { id: userId },
       include: {
+        avatarFile: true,
         roles: { orderBy: { role: 'asc' } },
         accounts: { where: { providerId: 'credential' }, select: { id: true } },
       },
@@ -22,7 +27,7 @@ export class AccountsService {
       fullName: user.fullName,
       email: user.email,
       phone: user.phone,
-      avatarUrl: null,
+      avatarUrl: user.avatarFile ? this.files.url(user.avatarFile.storageKey) : null,
       isAdmin: user.isAdmin,
       needsLegal: await needsLegal(this.prisma, user.id, config),
       hasPassword: user.accounts.length > 0,

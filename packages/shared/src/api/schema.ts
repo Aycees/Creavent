@@ -100,6 +100,134 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/onboarding": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OnboardingController_state"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/onboarding/roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["OnboardingController_roles"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/onboarding/vendor/shop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["OnboardingController_vendorShop"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/onboarding/vendor/photos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["OnboardingController_vendorPhotos"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/onboarding/vendor/contact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["OnboardingController_vendorContact"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/onboarding/organizer/page": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["OnboardingController_organizerPage"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/onboarding/organizer/contact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["OnboardingController_organizerContact"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/onboarding/organizer/approval": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OnboardingController_organizerApproval"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -391,6 +519,686 @@ export interface operations {
                         minimumAge: number;
                         supportEmail: string;
                         googleSignIn: boolean;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OnboardingController_state: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        phone: string | null;
+                        avatar: {
+                            /** Format: uuid */
+                            id: string;
+                            url: string;
+                        } | null;
+                        vendor: {
+                            shopName: string;
+                            slug: string | null;
+                            categoryIds: string[];
+                            description: string | null;
+                            products: string | null;
+                            photos: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            }[];
+                            socialLinks: string[];
+                        } | null;
+                        organizer: {
+                            displayName: string;
+                            slug: string | null;
+                            logo: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            city: string | null;
+                            about: string | null;
+                            socialLinks: string[];
+                            contactEmail: string | null;
+                            /** @enum {string} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            approvalSubmittedAt: string | null;
+                            rejectionReason: string | null;
+                        } | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OnboardingController_roles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    roles: ("vendor" | "organizer")[];
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        phone: string | null;
+                        avatar: {
+                            /** Format: uuid */
+                            id: string;
+                            url: string;
+                        } | null;
+                        vendor: {
+                            shopName: string;
+                            slug: string | null;
+                            categoryIds: string[];
+                            description: string | null;
+                            products: string | null;
+                            photos: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            }[];
+                            socialLinks: string[];
+                        } | null;
+                        organizer: {
+                            displayName: string;
+                            slug: string | null;
+                            logo: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            city: string | null;
+                            about: string | null;
+                            socialLinks: string[];
+                            contactEmail: string | null;
+                            /** @enum {string} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            approvalSubmittedAt: string | null;
+                            rejectionReason: string | null;
+                        } | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OnboardingController_vendorShop: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    shopName: string;
+                    categoryIds: string[];
+                    description?: string | null;
+                    products?: string | null;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        phone: string | null;
+                        avatar: {
+                            /** Format: uuid */
+                            id: string;
+                            url: string;
+                        } | null;
+                        vendor: {
+                            shopName: string;
+                            slug: string | null;
+                            categoryIds: string[];
+                            description: string | null;
+                            products: string | null;
+                            photos: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            }[];
+                            socialLinks: string[];
+                        } | null;
+                        organizer: {
+                            displayName: string;
+                            slug: string | null;
+                            logo: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            city: string | null;
+                            about: string | null;
+                            socialLinks: string[];
+                            contactEmail: string | null;
+                            /** @enum {string} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            approvalSubmittedAt: string | null;
+                            rejectionReason: string | null;
+                        } | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OnboardingController_vendorPhotos: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    avatarFileId: string | null;
+                    photoFileIds: string[];
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        phone: string | null;
+                        avatar: {
+                            /** Format: uuid */
+                            id: string;
+                            url: string;
+                        } | null;
+                        vendor: {
+                            shopName: string;
+                            slug: string | null;
+                            categoryIds: string[];
+                            description: string | null;
+                            products: string | null;
+                            photos: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            }[];
+                            socialLinks: string[];
+                        } | null;
+                        organizer: {
+                            displayName: string;
+                            slug: string | null;
+                            logo: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            city: string | null;
+                            about: string | null;
+                            socialLinks: string[];
+                            contactEmail: string | null;
+                            /** @enum {string} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            approvalSubmittedAt: string | null;
+                            rejectionReason: string | null;
+                        } | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OnboardingController_vendorContact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    phone: string;
+                    socialLinks: string[];
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        phone: string | null;
+                        avatar: {
+                            /** Format: uuid */
+                            id: string;
+                            url: string;
+                        } | null;
+                        vendor: {
+                            shopName: string;
+                            slug: string | null;
+                            categoryIds: string[];
+                            description: string | null;
+                            products: string | null;
+                            photos: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            }[];
+                            socialLinks: string[];
+                        } | null;
+                        organizer: {
+                            displayName: string;
+                            slug: string | null;
+                            logo: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            city: string | null;
+                            about: string | null;
+                            socialLinks: string[];
+                            contactEmail: string | null;
+                            /** @enum {string} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            approvalSubmittedAt: string | null;
+                            rejectionReason: string | null;
+                        } | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OnboardingController_organizerPage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    displayName: string;
+                    slug: string;
+                    /** Format: uuid */
+                    logoFileId: string | null;
+                    city?: string | null;
+                    about?: string | null;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        phone: string | null;
+                        avatar: {
+                            /** Format: uuid */
+                            id: string;
+                            url: string;
+                        } | null;
+                        vendor: {
+                            shopName: string;
+                            slug: string | null;
+                            categoryIds: string[];
+                            description: string | null;
+                            products: string | null;
+                            photos: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            }[];
+                            socialLinks: string[];
+                        } | null;
+                        organizer: {
+                            displayName: string;
+                            slug: string | null;
+                            logo: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            city: string | null;
+                            about: string | null;
+                            socialLinks: string[];
+                            contactEmail: string | null;
+                            /** @enum {string} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            approvalSubmittedAt: string | null;
+                            rejectionReason: string | null;
+                        } | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OnboardingController_organizerContact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    phone: string;
+                    /** Format: email */
+                    contactEmail: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        phone: string | null;
+                        avatar: {
+                            /** Format: uuid */
+                            id: string;
+                            url: string;
+                        } | null;
+                        vendor: {
+                            shopName: string;
+                            slug: string | null;
+                            categoryIds: string[];
+                            description: string | null;
+                            products: string | null;
+                            photos: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            }[];
+                            socialLinks: string[];
+                        } | null;
+                        organizer: {
+                            displayName: string;
+                            slug: string | null;
+                            logo: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            city: string | null;
+                            about: string | null;
+                            socialLinks: string[];
+                            contactEmail: string | null;
+                            /** @enum {string} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            approvalSubmittedAt: string | null;
+                            rejectionReason: string | null;
+                        } | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OnboardingController_organizerApproval: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    socialLinks: string[];
+                    submit: boolean;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        phone: string | null;
+                        avatar: {
+                            /** Format: uuid */
+                            id: string;
+                            url: string;
+                        } | null;
+                        vendor: {
+                            shopName: string;
+                            slug: string | null;
+                            categoryIds: string[];
+                            description: string | null;
+                            products: string | null;
+                            photos: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            }[];
+                            socialLinks: string[];
+                        } | null;
+                        organizer: {
+                            displayName: string;
+                            slug: string | null;
+                            logo: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            city: string | null;
+                            about: string | null;
+                            socialLinks: string[];
+                            contactEmail: string | null;
+                            /** @enum {string} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            approvalSubmittedAt: string | null;
+                            rejectionReason: string | null;
+                        } | null;
                     };
                 };
             };

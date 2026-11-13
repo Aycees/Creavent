@@ -9,11 +9,13 @@ export function createTestPrisma(): PrismaClient {
   });
 }
 
-// Empties every table except Prisma's migration history.
+// Empties every table except Prisma's migration history and the reference
+// data that migrations insert (categories).
 export async function resetDatabase(prisma: PrismaClient): Promise<void> {
   const tables = await prisma.$queryRaw<{ tablename: string }[]>`
     SELECT tablename FROM pg_tables
-    WHERE schemaname = current_schema() AND tablename <> '_prisma_migrations'
+    WHERE schemaname = current_schema()
+      AND tablename NOT IN ('_prisma_migrations', 'categories')
   `;
   if (tables.length === 0) return;
 
