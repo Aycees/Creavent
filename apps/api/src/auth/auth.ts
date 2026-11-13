@@ -18,66 +18,40 @@ function emailOf(body: unknown) {
 }
 
 // Per-email lockout after 5 failed sign-ins in 15 minutes, on top of the
-// per-IP limit, so changing addresses doesn't allow more guesses. Each try is
-// counted before the password check and taken back if it succeeds, so tries
-// sent in parallel can't get past the cap. A password reset lifts the lock,
-// because it proves the person owns the inbox. Kept in memory, with a cap on
-// entries that never drops a locked email: the MVP runs one API instance.
-export function createLockout(maxFailures = 5, windowMs = 15 * 60 * 1000, maxEntries = 10_000) {
-  const tries = new Map<string, number[]>();
-  const recent = (email: string) => {
-    const since = Date.now() - windowMs;
-    const list = (tries.get(email) ?? []).filter((t) => t > since);
-    if (list.length === 0) tries.delete(email);
-    else tries.set(email, list);
-    return list;
-  };
-  // Frees one entry when the store is full: expired ones first, then the least
-  // recently tried email that is not locked. A locked email is never dropped,
-  // so filling the store with other emails can't lift a lock.
-  const makeRoom = () => {
-    for (const email of tries.keys()) recent(email);
-    if (tries.size < maxEntries) return true;
-    for (const [email, list] of tries) {
-      if (list.length < maxFailures) {
-        tries.delete(email);
-        return true;
-      }
-    }
-    return false;
-  };
+// per-IP limit, so changing addresses doesn't allow more guesses. Tries are
+// rows in Postgres: no cap to fill, nothing evicted, and restarts keep them.
+// Each try is written before the password check and counted with the others,
+// so tries sent in parallel can't get past the cap. A successful sign-in or a
+// password reset clears them.
+export function createLockout(prisma: PrismaService, maxTries = 5, windowMs = 15 * 60 * 1000) {
+  const since = () => new Date(Date.now() - windowMs);
   return {
-    // Counts a try. False when the email is locked, and then nothing is counted.
-    tryStart(email: string) {
+    // Records a try. False when the email is locked, and then nothing is kept.
+    async tryStart(email: string) {
       if (email === '') return true;
-      const list = recent(email);
-      if (list.length >= maxFailures) return false;
-      if (!tries.has(email) && tries.size >= maxEntries && !makeRoom()) {
-        // Every entry is a locked email: don't track this one rather than
-        // drop a lock. The per-IP limit still applies to it.
-        return true;
-      }
-      // Delete and re-insert, so the map's order is least recently tried first.
-      tries.delete(email);
-      tries.set(email, [...list, Date.now()]);
-      return true;
+      await prisma.signInAttempt.deleteMany({ where: { createdAt: { lt: since() } } });
+      const attempt = await prisma.signInAttempt.create({ data: { email } });
+      const count = await prisma.signInAttempt.count({ where: { email, createdAt: { gte: since() } } });
+      if (count <= maxTries) return true;
+      await prisma.signInAttempt.deleteMany({ where: { id: attempt.id } });
+      return false;
     },
-    // A try refused for another reason (such as an unverified email) takes its
-    // count back.
-    tryUndo(email: string) {
-      const list = tries.get(email);
-      if (!list) return;
-      list.pop();
-      if (list.length === 0) tries.delete(email);
+    // A try refused for another reason (such as an unverified email) is not a
+    // failed guess: its row is removed.
+    async tryUndo(email: string) {
+      const latest = await prisma.signInAttempt.findFirst({ where: { email }, orderBy: { createdAt: 'desc' } });
+      if (latest) await prisma.signInAttempt.deleteMany({ where: { id: latest.id } });
     },
-    clear: (email: string) => tries.delete(email),
+    async clear(email: string) {
+      await prisma.signInAttempt.deleteMany({ where: { email } });
+    },
   };
 }
 
 // Better Auth inside the API (docs/architecture.md §4.2). It owns sign-up,
 // sign-in, Google, email verification, password reset, and sessions.
 export function createAuth(prisma: PrismaService, outbox: OutboxService, config: AppConfig) {
-  const signInLockout = createLockout();
+  const signInLockout = createLockout(prisma);
   const secret = process.env.BETTER_AUTH_SECRET;
   if (!secret && process.env.NODE_ENV === 'production') {
     throw new Error('BETTER_AUTH_SECRET is required in production');
@@ -150,7 +124,7 @@ export function createAuth(prisma: PrismaService, outbox: OutboxService, config:
         await queueAuthEmail(user, 'password_reset', url);
       },
       onPasswordReset: async ({ user }) => {
-        signInLockout.clear(user.email.toLowerCase());
+        await signInLockout.clear(user.email.toLowerCase());
       },
     },
     emailVerification: {
@@ -188,7 +162,7 @@ export function createAuth(prisma: PrismaService, outbox: OutboxService, config:
     hooks: {
       before: createAuthMiddleware(async (ctx) => {
         if (ctx.path === SIGN_IN_PATH) {
-          if (!signInLockout.tryStart(emailOf(ctx.body))) {
+          if (!(await signInLockout.tryStart(emailOf(ctx.body)))) {
             throw new APIError('TOO_MANY_REQUESTS', {
               message: 'Too many failed tries. Wait 15 minutes, or reset your password.',
             });
@@ -207,8 +181,9 @@ export function createAuth(prisma: PrismaService, outbox: OutboxService, config:
         if (ctx.path !== SIGN_IN_PATH) return;
         const email = emailOf(ctx.body);
         const returned = ctx.context.returned;
-        if (!(returned instanceof APIError)) signInLockout.clear(email);
-        else if (returned.statusCode !== 401) signInLockout.tryUndo(email);
+        if (email === '') return;
+        if (!(returned instanceof APIError)) await signInLockout.clear(email);
+        else if (returned.statusCode !== 401) await signInLockout.tryUndo(email);
       }),
     },
     databaseHooks: {

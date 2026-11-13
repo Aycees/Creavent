@@ -125,6 +125,18 @@ model Verification {
   @@map("verifications")
 }
 
+// One row per sign-in try with a password, for the per-email lockout
+// (architecture §4.1). Rows older than the lockout window are deleted.
+model SignInAttempt {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @db.Citext
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([email, createdAt])
+  @@index([createdAt])
+  @@map("sign_in_attempts")
+}
+
 // Never updated or deleted (data model §5.1).
 model LegalAcceptance {
   id         String        @id @default(uuid()) @db.Uuid
