@@ -16,6 +16,35 @@ Creavent is a web platform that brings vendor-based community events together. R
 
 ---
 
+## Development Approach
+
+### Test-Driven Development
+
+Write the test first. No production code without a failing test that demands it.
+
+1. **Red**: write one failing test that describes the next behavior. Run it and confirm it fails for the right reason.
+2. **Green**: write the minimum code to make it pass.
+3. **Refactor**: clean up with the tests green. Run them again.
+
+- Bug fixes start with a test that reproduces the bug.
+- Test behavior through public interfaces (what a user or caller sees), not implementation details.
+- Components: test what renders and how users interact (roles, labels, text), not internal state.
+- Run the relevant tests before calling a task done. Report failures with their output, don't hide them.
+- If a change genuinely can't be tested first (pure styling, config), say so and explain why.
+
+### Mobile-First Design
+
+Design and build for the smallest screen first, then enhance for larger ones.
+
+- Write base styles for mobile (no breakpoint). Add `sm:`, `md:`, `lg:` styles only to enhance for wider screens, never to undo mobile styles.
+- Start layouts as a single column. Add columns and side-by-side arrangements as space allows.
+- Touch targets at least 44x44px. Don't rely on hover for anything essential.
+- Body text at least 16px on inputs to avoid iOS zoom. Keep content readable without horizontal scrolling.
+- Verify every UI change at a narrow viewport (about 375px) before wider ones.
+- Assume organizers, vendors, and attendees are mostly on phones, often on slow connections. Keep pages light.
+
+---
+
 ## Behavioral Guidelines
 
 ### Think Before Coding
@@ -58,9 +87,10 @@ Every changed line should trace directly to the user's request.
 
 Define success criteria. Loop until verified.
 
-Transform tasks into verifiable goals:
+Transform tasks into verifiable goals (see Test-Driven Development above):
 - "Add validation" → "Write tests for invalid inputs, then make them pass"
 - "Fix the bug" → "Write a test that reproduces it, then make it pass"
+- "Build a screen" → "Write tests for its behavior, build it at mobile width first, then enhance for larger screens"
 
 For multi-step tasks, state a brief plan before starting:
 ```
