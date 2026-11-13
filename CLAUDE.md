@@ -36,7 +36,7 @@ Write the test first. No production code without a failing test that demands it.
 
 Design and build for the smallest screen first, then enhance for larger ones.
 
-- Write base styles for mobile (no breakpoint). Add `sm:`, `md:`, `lg:` styles only to enhance for wider screens, never to undo mobile styles.
+- Write base styles for mobile (no breakpoint). Add `md:` styles (the only breakpoint, 760px) only to enhance for wider screens, never to undo mobile styles.
 - Start layouts as a single column. Add columns and side-by-side arrangements as space allows.
 - Touch targets at least 44x44px. Don't rely on hover for anything essential.
 - Body text at least 16px on inputs to avoid iOS zoom. Keep content readable without horizontal scrolling.

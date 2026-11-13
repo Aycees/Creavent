@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  ConsoleLogger,
   INestApplication,
   StandardSchemaSerializerInterceptor,
   StandardSchemaValidationPipe,
@@ -20,8 +19,6 @@ import { ApiExceptionFilter } from './api-exception.filter.js';
 export function setupApp(app: INestApplication) {
   const isProduction = process.env.NODE_ENV === 'production';
 
-  // JSON lines in production, readable text in development.
-  app.useLogger(new ConsoleLogger({ json: isProduction }));
   app.useSecurityHeaders();
   // Matches the web app's /api/* rewrite (docs/architecture.md §4.3).
   app.setGlobalPrefix('api');
