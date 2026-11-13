@@ -16,6 +16,10 @@
     },
     "test": {
       "dependsOn": ["^build"]
+    },
+    "generate:api": {
+      "dependsOn": ["^build"],
+      "cache": false
     }
   }
 }

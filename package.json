@@ -12,7 +12,8 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "db:up": "docker compose up -d postgres",
-    "db:down": "docker compose down"
+    "db:down": "docker compose down",
+    "generate:api": "turbo run generate:api"
   },
   "devDependencies": {
     "turbo": "^2.11.11"

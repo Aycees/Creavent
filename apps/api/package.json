@@ -22,7 +22,8 @@
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
     "dev": "nest start --watch",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "generate:api": "nest build && node dist/openapi.js && openapi-typescript openapi.json -o ../../packages/shared/src/api/schema.ts"
   },
   "dependencies": {
     "@creavent/shared": "workspace:^",
@@ -30,6 +31,7 @@
     "@nestjs/config": "^12.1.1",
     "@nestjs/core": "^12.0.1",
     "@nestjs/platform-express": "^12.0.1",
+    "@nestjs/swagger": "^12.1.1",
     "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
     "reflect-metadata": "^0.2.2",
@@ -46,6 +48,7 @@
     "@types/supertest": "^7.0.0",
     "@vitest/coverage-v8": "^4.1.2",
     "dotenv": "^18.0.10",
+    "openapi-typescript": "^7.13.0",
     "oxlint": "^1.58.0",
     "oxlint-tsgolint": "^7.0.2001",
     "prettier": "^3.4.2",
