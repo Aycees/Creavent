@@ -147,7 +147,7 @@ export function OrganizerDone({ state }: { state: OnboardingState }) {
           <p className="text-label font-semibold">What happens next</p>
           <Steps>
             <Step state="done" title="Submitted">
-              {o.approvalSubmittedAt && `${manila.format(new Date(o.approvalSubmittedAt))} · ${o.socialLinks.length} links`}
+              {o.approvalSubmittedAt && `${manila.format(new Date(o.approvalSubmittedAt))} · ${o.socialLinks.length} ${o.socialLinks.length === 1 ? "link" : "links"}`}
             </Step>
             <Step state="now" title="Creavent reviews your pages">
               Usually within 1 to 2 business days. We may call you.

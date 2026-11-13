@@ -16,10 +16,24 @@ function redirectFor(me: MeResponse, pathname: string, area?: GateArea): string 
   return null
 }
 
+const loading = (
+  <div role="status" className="p-8 text-sm text-muted">
+    Loading…
+  </div>
+)
+
 // Signed-in pages only. The API decides who may do what; this only sends
 // people to the right page: log in, accept new terms (spec §1), or add the
-// role this area needs.
-export function SessionGate({
+// role this area needs. It reads the URL, so it renders inside Suspense.
+export function SessionGate(props: { area?: GateArea; children: (me: MeResponse) => React.ReactNode }) {
+  return (
+    <React.Suspense fallback={loading}>
+      <Gate {...props} />
+    </React.Suspense>
+  )
+}
+
+function Gate({
   area,
   children,
 }: {
@@ -37,12 +51,6 @@ export function SessionGate({
     if (target) router.replace(target)
   }, [target, router])
 
-  if (isPending || !me || target) {
-    return (
-      <div role="status" className="p-8 text-sm text-muted">
-        Loading…
-      </div>
-    )
-  }
+  if (isPending || !me || target) return loading
   return <>{children(me)}</>
 }

@@ -4,6 +4,7 @@ import type { ApprovalStatus, MeResponse } from "@creavent/shared"
 import type * as React from "react"
 
 import { toShellUser } from "@/lib/shell-user"
+import { useApprovalQueue } from "@/components/admin/queries"
 import { AppShell } from "./app-shell"
 import type { Area } from "./app-nav"
 import { PublicHeader } from "./public-header"
@@ -23,15 +24,29 @@ function countsFor(me: MeResponse): Record<string, string | number> {
   return status ? { "/organizer/approval": approvalLabels[status] } : {}
 }
 
+// The admin menu's Approvals count (sitemap §5).
+function AdminShell({ me, children }: { me: MeResponse; children: React.ReactNode }) {
+  const { data: queue } = useApprovalQueue()
+  return (
+    <AppShell area="admin" user={toShellUser(me)} counts={queue?.length ? { "/admin/approvals": queue.length } : {}}>
+      {children}
+    </AppShell>
+  )
+}
+
 // The vendor, organizer, and admin areas: signed-in users with that role.
 export function SignedInShell({ area, children }: { area: Area; children: React.ReactNode }) {
   return (
     <SessionGate area={area}>
-      {(me) => (
-        <AppShell area={area} user={toShellUser(me)} counts={countsFor(me)}>
-          {children}
-        </AppShell>
-      )}
+      {(me) =>
+        area === "admin" ? (
+          <AdminShell me={me}>{children}</AdminShell>
+        ) : (
+          <AppShell area={area} user={toShellUser(me)} counts={countsFor(me)}>
+            {children}
+          </AppShell>
+        )
+      }
     </SessionGate>
   )
 }
