@@ -254,4 +254,4 @@ The assignment and payment rules are where the product can break, so most tests 
 ## 12. Open points
 
 - **Domain, sending domain, and public file domain** wait for H1, E1, and I2.
-- **Signed-in pages read the session in the browser.** The layouts wait for `/api/me` before showing a page. Next.js's instant-navigation check warns about this in development. Moving session reads to the server, as Next.js's "Authentication with Cache Components" guide describes, would remove the warning and the loading step.
+- **Signed-in pages read the session in the browser.** The layouts always render the page and keep it hidden until `/api/me` answers, so Next.js can still prerender each page. Reading the session on the server, as Next.js's "Authentication with Cache Components" guide describes, would remove the short loading step.

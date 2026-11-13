@@ -9,7 +9,6 @@ import { useForm } from "react-hook-form"
 
 import { Alert } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { ChoiceCard } from "@/components/ui/choice-card"
 import { Field } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { TextLink } from "@/components/ui/text-link"
@@ -20,8 +19,8 @@ import { GoogleButton, OrDivider } from "./google-button"
 import { PasswordInput } from "./password-input"
 
 const roleChoices = [
-  { role: "vendor", title: "Sell at events", sub: "Vendor account", Icon: StorefrontIcon },
-  { role: "organizer", title: "Run events", sub: "Organizer account", Icon: CalendarBlankIcon },
+  { role: "vendor", title: "Sell at events", Icon: StorefrontIcon },
+  { role: "organizer", title: "Run events", Icon: CalendarBlankIcon },
 ] as const
 
 // /signup (spec §1, flow 1). The role choice only pre-selects onboarding's
@@ -66,36 +65,33 @@ export function SignUpForm({ initialRole, googleSignIn }: { initialRole: RoleTyp
   const roleLabel = role === "vendor" ? "vendor" : "organizer"
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-1">
         <h1 className="text-h1">Create your account</h1>
-        <p className="text-body text-muted">Shopping only? You can browse every event without an account.</p>
+        <p className="hidden text-body text-muted md:block">Shopping only? You can browse every event without an account.</p>
       </div>
 
-      <fieldset className="flex flex-col gap-2.5">
-        <legend className="mb-2.5 text-label">I&apos;m signing up to</legend>
-        <div className="grid grid-cols-2 gap-3">
-          {roleChoices.map(({ role: value, title, sub, Icon }) => (
-            <ChoiceCard key={value} className="flex-col gap-3">
-              <span className="flex w-full items-center justify-between">
-                <Icon aria-hidden="true" className="size-6" />
-                <input
-                  type="radio"
-                  name="role"
-                  value={value}
-                  checked={role === value}
-                  onChange={() => setRole(value)}
-                  className="size-5 accent-ink"
-                />
-              </span>
-              <span>
-                <span className="block text-body font-semibold">{title}</span>
-                <span className="block text-cap text-muted">{sub}</span>
-              </span>
-            </ChoiceCard>
+      <fieldset className="flex flex-col gap-1.5">
+        <legend className="sr-only md:not-sr-only md:mb-1.5 md:text-label">I&apos;m signing up to</legend>
+        <div className="grid grid-cols-2 gap-1 rounded-lg bg-sunken p-1">
+          {roleChoices.map(({ role: value, title, Icon }) => (
+            <label
+              key={value}
+              className="flex h-11 cursor-pointer items-center justify-center gap-2 rounded-md text-label text-muted has-checked:bg-surface has-checked:text-ink has-checked:shadow-sm has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-focus"
+            >
+              <input
+                type="radio"
+                name="role"
+                value={value}
+                checked={role === value}
+                onChange={() => setRole(value)}
+                className="sr-only"
+              />
+              <Icon aria-hidden="true" className="size-5" />
+              {title}
+            </label>
           ))}
         </div>
-        <p className="text-cap text-muted">Do both? Pick one now and add the other during setup.</p>
       </fieldset>
 
       {googleSignIn && (
@@ -105,15 +101,29 @@ export function SignUpForm({ initialRole, googleSignIn }: { initialRole: RoleTyp
         </>
       )}
 
-      <form noValidate onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-        <Field label="Full name" htmlFor="fullName" error={errors.fullName?.message}>
-          <Input id="fullName" autoComplete="name" aria-invalid={!!errors.fullName} {...register("fullName")} />
-        </Field>
-        <Field label="Email" htmlFor="email" error={errors.email?.message}>
-          <Input id="email" type="email" autoComplete="email" aria-invalid={!!errors.email} {...register("email")} />
-        </Field>
-        <Field label="Password" htmlFor="password" help="At least 8 characters" error={errors.password?.message}>
-          <PasswordInput id="password" autoComplete="new-password" aria-invalid={!!errors.password} {...register("password")} />
+      <form noValidate onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 md:grid md:grid-cols-2">
+          <Field label="Full name" htmlFor="fullName" error={errors.fullName?.message}>
+            <Input id="fullName" autoComplete="name" aria-invalid={!!errors.fullName} {...register("fullName")} />
+          </Field>
+          <Field label="Email" htmlFor="email" error={errors.email?.message}>
+            <Input id="email" type="email" autoComplete="email" aria-invalid={!!errors.email} {...register("email")} />
+          </Field>
+        </div>
+        {/* On phones the hint is the placeholder, to keep the form on one screen. */}
+        <Field
+          label="Password"
+          htmlFor="password"
+          help={<span className="hidden md:inline">At least 8 characters</span>}
+          error={errors.password?.message}
+        >
+          <PasswordInput
+            id="password"
+            autoComplete="new-password"
+            placeholder="At least 8 characters"
+            aria-invalid={!!errors.password}
+            {...register("password")}
+          />
         </Field>
 
         <AgreementBoxes control={control} errors={errors} />
@@ -128,10 +138,9 @@ export function SignUpForm({ initialRole, googleSignIn }: { initialRole: RoleTyp
         {serverError === "limited" && <Alert tone="danger">Too many signups from here. Try again in an hour.</Alert>}
         {serverError === "other" && <Alert tone="danger">Something went wrong. Try again.</Alert>}
 
-        <Button type="submit" variant="brand" block className="h-13 text-body" disabled={isSubmitting}>
+        <Button type="submit" variant="brand" block className="h-12 text-body" disabled={isSubmitting}>
           Create {roleLabel} account
         </Button>
-        <p className="text-center text-cap text-muted">Next, we&apos;ll email you a link to confirm your address.</p>
       </form>
     </div>
   )

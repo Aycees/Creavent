@@ -1,14 +1,19 @@
+import { AuthTopLink } from "@/components/auth/auth-top-link"
 import { Logo } from "@/components/ui/logo"
 
 // Sign-in pages (mockup Signup, Login): the form on the left, a dark panel on
 // the right on desktop only. No site header, so the form stays the focus.
+// Spacing is kept tight so the forms fit the screen without scrolling.
 export default function AuthLayout({ children }: LayoutProps<"/">) {
   return (
     <div className="flex min-h-dvh bg-surface">
-      <div className="flex min-w-0 flex-1 flex-col px-4 py-4 md:px-10 md:py-7">
-        <Logo />
-        <main className="flex flex-1 justify-center py-8 md:items-center md:py-10">
-          <div className="w-full max-w-[440px]">{children}</div>
+      <div className="flex min-w-0 flex-1 flex-col px-4 py-1 md:px-10 md:py-4">
+        <div className="flex items-center justify-between gap-4">
+          <Logo />
+          <AuthTopLink />
+        </div>
+        <main className="flex flex-1 justify-center pt-2 pb-1 md:items-center md:py-4">
+          <div className="w-full max-w-[440px] md:max-w-[480px]">{children}</div>
         </main>
       </div>
       <aside className="hidden flex-1 flex-col justify-between gap-10 bg-inverse p-10 text-on-inverse md:flex">

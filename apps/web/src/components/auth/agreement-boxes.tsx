@@ -19,7 +19,7 @@ export function AgreementBoxes<T extends Agreements>({
   const c = control as unknown as Control<Agreements>
   const e = errors as FieldErrors<Agreements>
   return (
-    <div className="flex flex-col gap-1 rounded-md bg-sunken px-3.5 py-2">
+    <div className="flex flex-col rounded-md bg-sunken px-3.5">
       <Controller
         control={c}
         name="ageConfirmed"

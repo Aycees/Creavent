@@ -15,7 +15,6 @@ export function GoogleButton({ callbackURL }: { callbackURL: string }) {
       type="button"
       variant="secondary"
       block
-      className="h-12"
       disabled={pending}
       onClick={async () => {
         setPending(true)

@@ -57,10 +57,10 @@ export function LoginForm({ googleSignIn, next }: { googleSignIn: boolean; next?
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-4 md:gap-5">
+      <div className="flex flex-col gap-1">
         <h1 className="text-h1">Welcome back</h1>
-        <p className="text-body text-muted">Log in to your vendor or organizer account. One login covers both.</p>
+        <p className="hidden text-body text-muted md:block">Log in to your vendor or organizer account. One login covers both.</p>
       </div>
 
       {googleSignIn && (
@@ -70,11 +70,11 @@ export function LoginForm({ googleSignIn, next }: { googleSignIn: boolean; next?
         </>
       )}
 
-      <form noValidate onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+      <form noValidate onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">
         <Field label="Email" htmlFor="email" error={errors.email?.message}>
           <Input id="email" type="email" autoComplete="email" aria-invalid={!!errors.email} {...register("email")} />
         </Field>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1">
           <Field label="Password" htmlFor="password" error={errors.password?.message}>
             <PasswordInput id="password" autoComplete="current-password" aria-invalid={!!errors.password} {...register("password")} />
           </Field>
@@ -105,7 +105,7 @@ export function LoginForm({ googleSignIn, next }: { googleSignIn: boolean; next?
         )}
         {problem === "other" && <Alert tone="danger">Something went wrong. Try again.</Alert>}
 
-        <Button type="submit" block className="h-13 text-body" disabled={isSubmitting}>
+        <Button type="submit" block className="h-12 text-body" disabled={isSubmitting}>
           Log in
         </Button>
       </form>
