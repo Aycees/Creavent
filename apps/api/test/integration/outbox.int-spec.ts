@@ -73,11 +73,12 @@ describe('email outbox', () => {
   it('sends a queued email and marks it sent', async () => {
     const user = await createUser(prisma);
     const email = await queueVerification(user.id);
-    const sender: EmailSender = { send: vi.fn().mockResolvedValue(undefined) };
+    const send = vi.fn().mockResolvedValue(undefined);
+    const sender: EmailSender = { send };
 
     await deliverEmail(prisma, sender, email.id);
 
-    expect(sender.send).toHaveBeenCalledWith(
+    expect(send).toHaveBeenCalledWith(
       expect.objectContaining({
         to: 'maria@example.com',
         subject: 'Confirm your email',
@@ -104,11 +105,12 @@ describe('email outbox', () => {
   it('does not send an email twice', async () => {
     const user = await createUser(prisma);
     const email = await queueVerification(user.id);
-    const sender: EmailSender = { send: vi.fn().mockResolvedValue(undefined) };
+    const send = vi.fn().mockResolvedValue(undefined);
+    const sender: EmailSender = { send };
 
     await deliverEmail(prisma, sender, email.id);
     await deliverEmail(prisma, sender, email.id);
 
-    expect(sender.send).toHaveBeenCalledTimes(1);
+    expect(send).toHaveBeenCalledTimes(1);
   });
 });

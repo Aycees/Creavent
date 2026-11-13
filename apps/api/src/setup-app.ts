@@ -12,7 +12,9 @@ import {
 } from '@nestjs/swagger';
 import { errorResponseSchema } from '@creavent/shared';
 import { z } from 'zod';
+import { toNodeHandler } from 'better-auth/node';
 import { ApiExceptionFilter } from './api-exception.filter.js';
+import { AUTH, type Auth } from './auth/auth.js';
 
 // Shared by main.ts, the e2e tests, and the OpenAPI script, so all three
 // build the app the same way.
@@ -20,6 +22,12 @@ export function setupApp(app: INestApplication) {
   const isProduction = process.env.NODE_ENV === 'production';
 
   app.useSecurityHeaders();
+  // Better Auth handles /api/auth/*. It reads the raw body, so it is mounted
+  // before Nest's body parser, which is added when the app initializes.
+  const authHandler = toNodeHandler(app.get<Auth>(AUTH));
+  app.use((req: { url: string }, res: unknown, next: () => void) =>
+    req.url.startsWith('/api/auth/') ? authHandler(req as never, res as never) : next(),
+  );
   // Matches the web app's /api/* rewrite (docs/architecture.md §4.3).
   app.setGlobalPrefix('api');
   app.useGlobalPipes(

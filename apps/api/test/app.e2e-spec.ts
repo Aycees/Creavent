@@ -151,6 +151,7 @@ describe('API conventions in production (e2e)', () => {
 
   it('does not serve /api/docs', async () => {
     process.env.NODE_ENV = 'production';
+    process.env.BETTER_AUTH_SECRET ??= 'test-secret-that-is-at-least-32-characters';
     const app = await createApp();
 
     const res = await request(app.getHttpServer()).get('/api/docs');
