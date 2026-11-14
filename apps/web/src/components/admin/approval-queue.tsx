@@ -1,16 +1,15 @@
 "use client"
 
+import { REVIEW_TARGET_TEXT, type ApprovalQueueItem } from "@creavent/shared"
 import Link from "next/link"
 
 import { Alert } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
-import { businessDaysSince, REVIEW_TARGET_DAYS } from "@/lib/business-days"
 import { useApprovalQueue } from "./queries"
 
-function waiting(submittedAt: string) {
-  const days = businessDaysSince(submittedAt)
-  const over = days - REVIEW_TARGET_DAYS
-  return { label: days === 0 ? "Submitted today" : `Waiting ${days} business ${days === 1 ? "day" : "days"}`, over: over > 0 ? over : 0 }
+function waiting(item: ApprovalQueueItem) {
+  const days = item.businessDaysWaiting
+  return { label: days === 0 ? "Submitted today" : `Waiting ${days} business ${days === 1 ? "day" : "days"}`, over: item.daysOverTarget }
 }
 
 // /admin/approvals: organizers waiting for review, oldest first (sitemap §6).
@@ -21,7 +20,7 @@ export function ApprovalQueue() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
         <h1 className="text-h1">Approvals</h1>
-        <p className="text-body text-muted">Organizers waiting for review, oldest first. The target is 1 to 2 business days.</p>
+        <p className="text-body text-muted">Organizers waiting for review, oldest first. The target is {REVIEW_TARGET_TEXT}.</p>
       </div>
       {isError && <Alert tone="danger">We couldn&apos;t load the queue. Refresh to try again.</Alert>}
       {items?.length === 0 && (
@@ -30,7 +29,7 @@ export function ApprovalQueue() {
       {items && items.length > 0 && (
         <ul className="flex flex-col divide-y divide-border overflow-hidden rounded-lg border border-border bg-surface">
           {items.map((item) => {
-            const w = waiting(item.submittedAt)
+            const w = waiting(item)
             return (
               <li key={item.userId}>
                 <Link

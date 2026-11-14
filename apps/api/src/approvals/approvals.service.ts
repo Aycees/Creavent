@@ -1,10 +1,17 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import type { ApprovalDetail, ApprovalQueueItem } from '@creavent/shared';
+import { REVIEW_TARGET_DAYS, type ApprovalDetail, type ApprovalQueueItem } from '@creavent/shared';
 import { appConfig } from '../config.js';
 import { FilesService } from '../files/files.service.js';
 import { OutboxService } from '../notifications/outbox.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { assertApprovalChange, changeApprovalStatus, lockOrganizer, sameLinks, type ReviewedFields } from './approval-status.js';
+import { businessDaysSince } from './business-days.js';
+
+// Business days a request has waited, and how many past the target.
+function waiting(since: Date | null) {
+  const days = since ? businessDaysSince(since.toISOString()) : 0;
+  return { businessDaysWaiting: days, daysOverTarget: Math.max(0, days - REVIEW_TARGET_DAYS) };
+}
 
 const queueWhere = { role: 'organizer' as const, approvalStatus: 'pending_review' as const };
 const queueOrder = [{ approvalSubmittedAt: 'asc' as const }, { id: 'asc' as const }];
@@ -31,6 +38,7 @@ export class ApprovalsService {
       linksCount: ((r.user.organizerProfile?.socialLinks ?? []) as string[]).length,
       submittedAt: (r.approvalSubmittedAt ?? r.updatedAt).toISOString(),
       resubmission: r.reviewedAt !== null,
+      ...waiting(r.approvalSubmittedAt ?? r.updatedAt),
     }));
   }
 
@@ -67,6 +75,7 @@ export class ApprovalsService {
       rejectionReason: role.rejectionReason,
       adminNotes: role.adminNotes,
       queue: { position: index >= 0 ? index + 1 : null, total: queue.length, nextUserId: next && next !== userId ? next : null },
+      ...waiting(role.approvalSubmittedAt),
     };
   }
 

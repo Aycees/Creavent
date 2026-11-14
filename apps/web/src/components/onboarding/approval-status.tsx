@@ -1,5 +1,6 @@
 "use client"
 
+import { REVIEW_TARGET_TEXT } from "@creavent/shared"
 import Link from "next/link"
 
 import { Alert } from "@/components/ui/alert"
@@ -44,7 +45,7 @@ export function ApprovalStatus() {
         <h1 className="text-h1">We&apos;re reviewing your pages</h1>
         <p className="text-body text-muted">
           {o.approvalSubmittedAt && <>Submitted {manila.format(new Date(o.approvalSubmittedAt))}. </>}
-          Reviews usually take 1 to 2 business days. We&apos;ll email {o.contactEmail}.
+          Reviews usually take {REVIEW_TARGET_TEXT}. We&apos;ll email {o.contactEmail}.
         </p>
         <Alert tone="info">You can build draft events while you wait.</Alert>
       </div>

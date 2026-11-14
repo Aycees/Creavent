@@ -1,5 +1,6 @@
 "use client"
 
+import { REVIEW_TARGET_TEXT } from "@creavent/shared"
 import type { MeResponse, OnboardingState } from "@creavent/shared"
 import { CheckCircleIcon, CircleIcon } from "@phosphor-icons/react"
 import Link from "next/link"
@@ -112,7 +113,7 @@ export function OrganizerDone({ state }: { state: OnboardingState }) {
           <h1 className="text-h1">{pending ? "Thanks, we're on it" : "Your organizer page is set up"}</h1>
           <p className="text-body text-muted">
             {pending
-              ? `We'll email ${o.contactEmail} within 1 to 2 business days. You can set up events while you wait.`
+              ? `We'll email ${o.contactEmail} within ${REVIEW_TARGET_TEXT}. You can set up events while you wait.`
               : "Get approved when you're ready. You can build draft events in the meantime, and open them to vendors once approved."}
           </p>
         </div>
@@ -150,7 +151,7 @@ export function OrganizerDone({ state }: { state: OnboardingState }) {
               {o.approvalSubmittedAt && `${manila.format(new Date(o.approvalSubmittedAt))} · ${o.socialLinks.length} ${o.socialLinks.length === 1 ? "link" : "links"}`}
             </Step>
             <Step state="now" title="Creavent reviews your pages">
-              Usually within 1 to 2 business days. We may call you.
+              Usually within {REVIEW_TARGET_TEXT}. We may call you.
             </Step>
             <Step state="todo" title="Approved by Creavent">
               The badge shows on your page and events, and you can open events to vendors.

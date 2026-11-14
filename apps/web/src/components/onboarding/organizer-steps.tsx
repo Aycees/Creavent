@@ -1,5 +1,6 @@
 "use client"
 
+import { REVIEW_TARGET_TEXT } from "@creavent/shared"
 import {
   organizerContactSchema,
   organizerPageSchema,
@@ -188,7 +189,7 @@ export function OrganizerApprovalForm({
     <form noValidate onSubmit={handleSubmit(() => send(true))} className="flex flex-col gap-6">
       <StepHeading
         title="Get approved by Creavent"
-        intro="Share where people already know you. We look at your public pages, not IDs, and reply in 1 to 2 business days. Until then you can still build draft events."
+        intro={`Share where people already know you. We look at your public pages, not IDs, and reply in ${REVIEW_TARGET_TEXT}. Until then you can still build draft events.`}
       />
       {state.organizer?.rejectionReason && (
         <Alert tone="warning">

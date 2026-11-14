@@ -37,6 +37,8 @@ const detail: ApprovalDetail = {
   rejectionReason: null,
   adminNotes: null,
   queue: { position: 1, total: 7, nextUserId: nextId },
+  businessDaysWaiting: 3,
+  daysOverTarget: 1,
 }
 
 beforeEach(() => {
@@ -47,7 +49,7 @@ beforeEach(() => {
 describe("ApprovalQueue", () => {
   it("lists waiting organizers with their links and a link to review each", async () => {
     vi.mocked(api.GET).mockResolvedValue({
-      data: { items: [{ userId, displayName: "Bazaar ng Mintal", city: "Davao City", linksCount: 3, submittedAt: "2026-11-09T02:00:00.000Z", resubmission: true }] },
+      data: { items: [{ userId, displayName: "Bazaar ng Mintal", city: "Davao City", linksCount: 3, submittedAt: "2026-11-09T02:00:00.000Z", resubmission: true, businessDaysWaiting: 3, daysOverTarget: 1 }] },
       response: { status: 200 },
     } as never)
     renderWithQuery(<ApprovalQueue />)

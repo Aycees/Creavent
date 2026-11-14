@@ -3461,7 +3461,6 @@
                 "type": "object",
                 "properties": {
                   "socialLinks": {
-                    "minItems": 1,
                     "maxItems": 10,
                     "type": "array",
                     "items": {
@@ -4868,6 +4867,16 @@
                           },
                           "resubmission": {
                             "type": "boolean"
+                          },
+                          "businessDaysWaiting": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "daysOverTarget": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
                           }
                         },
                         "required": [
@@ -4876,7 +4885,9 @@
                           "city",
                           "linksCount",
                           "submittedAt",
-                          "resubmission"
+                          "resubmission",
+                          "businessDaysWaiting",
+                          "daysOverTarget"
                         ],
                         "additionalProperties": false
                       }
@@ -5074,6 +5085,16 @@
                         "nextUserId"
                       ],
                       "additionalProperties": false
+                    },
+                    "businessDaysWaiting": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "daysOverTarget": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
                     }
                   },
                   "required": [
@@ -5095,7 +5116,9 @@
                     "reviewedAt",
                     "rejectionReason",
                     "adminNotes",
-                    "queue"
+                    "queue",
+                    "businessDaysWaiting",
+                    "daysOverTarget"
                   ],
                   "additionalProperties": false
                 }
@@ -5324,6 +5347,16 @@
                         "nextUserId"
                       ],
                       "additionalProperties": false
+                    },
+                    "businessDaysWaiting": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "daysOverTarget": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
                     }
                   },
                   "required": [
@@ -5345,7 +5378,9 @@
                     "reviewedAt",
                     "rejectionReason",
                     "adminNotes",
-                    "queue"
+                    "queue",
+                    "businessDaysWaiting",
+                    "daysOverTarget"
                   ],
                   "additionalProperties": false
                 }
@@ -5580,6 +5615,16 @@
                         "nextUserId"
                       ],
                       "additionalProperties": false
+                    },
+                    "businessDaysWaiting": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "daysOverTarget": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
                     }
                   },
                   "required": [
@@ -5601,7 +5646,9 @@
                     "reviewedAt",
                     "rejectionReason",
                     "adminNotes",
-                    "queue"
+                    "queue",
+                    "businessDaysWaiting",
+                    "daysOverTarget"
                   ],
                   "additionalProperties": false
                 }

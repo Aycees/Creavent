@@ -200,6 +200,19 @@ describe('admin approvals', () => {
     }
   });
 
+  it('works out the business days waiting and how far past the 2-day target', async () => {
+    const { browser } = await admin();
+    await pendingOrganizer('Today', new Date());
+    await pendingOrganizer('Old', new Date(Date.now() - 14 * 86_400_000));
+
+    const res = await browser.get('/api/admin/approvals');
+
+    const [old, today] = res.body.items;
+    expect(today).toMatchObject({ businessDaysWaiting: 0, daysOverTarget: 0 });
+    expect(old.businessDaysWaiting).toBe(10);
+    expect(old.daysOverTarget).toBe(8);
+  });
+
   it('marks a request reviewed before as a resubmission', async () => {
     const { browser } = await admin();
     const organizer = await pendingOrganizer('Mintal', new Date());

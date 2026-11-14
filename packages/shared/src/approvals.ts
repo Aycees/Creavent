@@ -3,6 +3,17 @@ import { approvalStatusSchema, roleTypeSchema } from './accounts.js';
 
 // Organizer approval, admin side (spec §2.1, flow 11).
 
+// The review target (spec §2.1), as a number and in words.
+export const REVIEW_TARGET_DAYS = 2;
+export const REVIEW_TARGET_TEXT = '1 to 2 business days';
+
+// How long a request has waited, worked out by the API.
+const waitingSchema = z.object({
+  businessDaysWaiting: z.number().int(),
+  // Business days past the target, 0 when within it.
+  daysOverTarget: z.number().int(),
+});
+
 export const approvalQueueItemSchema = z.object({
   userId: z.uuid(),
   displayName: z.string(),
@@ -11,7 +22,7 @@ export const approvalQueueItemSchema = z.object({
   submittedAt: z.string(),
   // Reviewed before: this is a resubmission after a rejection.
   resubmission: z.boolean(),
-});
+}).merge(waitingSchema);
 export type ApprovalQueueItem = z.infer<typeof approvalQueueItemSchema>;
 
 export const approvalQueueSchema = z.object({ items: z.array(approvalQueueItemSchema) });
@@ -37,7 +48,7 @@ export const approvalDetailSchema = z.object({
   adminNotes: z.string().nullable(),
   // Where this request sits in the queue, oldest first.
   queue: z.object({ position: z.number().int().nullable(), total: z.number().int(), nextUserId: z.uuid().nullable() }),
-});
+}).merge(waitingSchema);
 export type ApprovalDetail = z.infer<typeof approvalDetailSchema>;
 
 const noteSchema = z

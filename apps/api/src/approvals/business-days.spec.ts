@@ -1,6 +1,4 @@
-import { describe, expect, it } from "vitest"
-
-import { businessDaysSince } from "./business-days"
+import { businessDaysSince } from './business-days.js';
 
 describe("businessDaysSince", () => {
   it("counts weekdays between two dates in Manila time", () => {

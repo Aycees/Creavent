@@ -1908,6 +1908,8 @@ export interface operations {
                             linksCount: number;
                             submittedAt: string;
                             resubmission: boolean;
+                            businessDaysWaiting: number;
+                            daysOverTarget: number;
                         }[];
                     };
                 };
@@ -1974,6 +1976,8 @@ export interface operations {
                             /** Format: uuid */
                             nextUserId: string | null;
                         };
+                        businessDaysWaiting: number;
+                        daysOverTarget: number;
                     };
                 };
             };
@@ -2049,6 +2053,8 @@ export interface operations {
                             /** Format: uuid */
                             nextUserId: string | null;
                         };
+                        businessDaysWaiting: number;
+                        daysOverTarget: number;
                     };
                 };
             };
@@ -2125,6 +2131,8 @@ export interface operations {
                             /** Format: uuid */
                             nextUserId: string | null;
                         };
+                        businessDaysWaiting: number;
+                        daysOverTarget: number;
                     };
                 };
             };

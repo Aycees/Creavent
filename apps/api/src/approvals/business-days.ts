@@ -14,4 +14,3 @@ export function businessDaysSince(since: string, now = new Date()) {
   return count
 }
 
-export const REVIEW_TARGET_DAYS = 2

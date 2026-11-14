@@ -15,7 +15,6 @@ import { ExternalLink } from "@/components/ui/external-link"
 import { Field } from "@/components/ui/field"
 import { Textarea } from "@/components/ui/textarea"
 import { api } from "@/lib/api"
-import { businessDaysSince, REVIEW_TARGET_DAYS } from "@/lib/business-days"
 import { approvalQueueKey, useApprovalDetail } from "./queries"
 
 const quickReasons: Record<string, string> = {
@@ -63,7 +62,7 @@ export function ApprovalReview({ userId }: { userId: string }) {
   if (!d) return <p role="status" className="text-sm text-muted">Loading…</p>
 
   const firstName = d.fullName.split(" ")[0]
-  const days = d.submittedAt ? businessDaysSince(d.submittedAt) : 0
+  const days = d.businessDaysWaiting
 
   // What the admin is looking at, so the API can refuse a decision on a
   // request the organizer changed in the meantime.
@@ -121,7 +120,7 @@ export function ApprovalReview({ userId }: { userId: string }) {
           {d.submittedAt && (
             <span>
               Submitted {day.format(new Date(d.submittedAt))} · waiting {days} business {days === 1 ? "day" : "days"}
-              {days > REVIEW_TARGET_DAYS && `, ${days - REVIEW_TARGET_DAYS} over target`}
+              {d.daysOverTarget > 0 && `, ${d.daysOverTarget} over target`}
             </span>
           )}
         </div>
