@@ -81,6 +81,23 @@ describe('profile edit', () => {
       expect(res.body.avatar.id).toBe(avatar);
     });
 
+    it('marks a replaced profile picture and a removed photo as deleted, and keeps the rest', async () => {
+      const { browser } = await vendor();
+      const oldAvatar = await uploaded(browser, 'avatar');
+      const kept = await uploaded(browser, 'vendor_photo');
+      const removed = await uploaded(browser, 'vendor_photo');
+      await browser.put('/api/vendor/profile').send(base([kept, removed], oldAvatar));
+      const newAvatar = await uploaded(browser, 'avatar');
+
+      await browser.put('/api/vendor/profile').send(base([kept], newAvatar));
+
+      const deletedAt = async (id: string) => (await prisma.file.findUniqueOrThrow({ where: { id } })).deletedAt;
+      expect(await deletedAt(oldAvatar)).not.toBeNull();
+      expect(await deletedAt(removed)).not.toBeNull();
+      expect(await deletedAt(kept)).toBeNull();
+      expect(await deletedAt(newAvatar)).toBeNull();
+    });
+
     it('refuses a page link that is taken or reserved', async () => {
       const other = await createUser(prisma);
       await prisma.vendorProfile.create({ data: { userId: other.id, shopName: 'Other', slug: 'taken-shop' } });
@@ -233,6 +250,17 @@ describe('profile edit', () => {
       const browser = await signInAs(app, user.email);
 
       expect((await browser.patch('/api/me').send({ fullName: 'Maria', phone: '12345' })).status).toBe(400);
+    });
+
+    it('marks the old profile picture deleted when it is removed', async () => {
+      const user = await createUser(prisma);
+      const browser = await signInAs(app, user.email);
+      const avatar = await uploaded(browser, 'avatar');
+      await browser.put('/api/me/avatar').send({ avatarFileId: avatar });
+
+      await browser.put('/api/me/avatar').send({ avatarFileId: null });
+
+      expect((await prisma.file.findUniqueOrThrow({ where: { id: avatar } })).deletedAt).not.toBeNull();
     });
 
     it('sets and removes the profile picture', async () => {

@@ -2,7 +2,7 @@ import { ConflictException, Injectable } from '@nestjs/common';
 import type { organizerProfileUpdateSchema, vendorProfileUpdateSchema } from '@creavent/shared';
 import type { z } from 'zod';
 import { changeApprovalStatus, lockOrganizer, needsReReview } from '../approvals/approval-status.js';
-import { assertAttachable } from '../files/files.service.js';
+import { assertAttachable, retireFiles } from '../files/files.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { OnboardingService } from './onboarding.service.js';
 import { slugAvailable } from './slugs.js';
@@ -41,6 +41,7 @@ export class ProfilesService {
         socialLinks: input.socialLinks,
       };
       const profile = await tx.vendorProfile.upsert({ where: { userId }, update: data, create: { ...data, userId } });
+      await retireFiles(tx, await this.onboarding.pictureIds(tx, userId, profile.id), [input.avatarFileId, ...photoIds]);
       await tx.user.update({ where: { id: userId }, data: { avatarFileId: input.avatarFileId } });
       await tx.vendorProfileCategory.deleteMany({ where: { vendorProfileId: profile.id } });
       await tx.vendorProfileCategory.createMany({
@@ -61,6 +62,7 @@ export class ProfilesService {
       if (!(await slugAvailable(tx, 'organizer', input.slug, userId))) throw new ConflictException(TAKEN);
       if (input.logoFileId) await assertAttachable(tx, input.logoFileId, userId, 'organizer_logo');
       const current = await tx.organizerProfile.findUnique({ where: { userId } });
+      await retireFiles(tx, [current?.logoFileId], [input.logoFileId]);
 
       const data = {
         displayName: input.displayName,

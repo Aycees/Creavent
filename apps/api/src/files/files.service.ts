@@ -208,3 +208,22 @@ export async function assertAttachable(
   }
   return file;
 }
+
+// Files no longer used after a change: a replaced picture or a removed photo
+// (spec §11.7). They are marked deleted, and the cleanup job removes them
+// from storage (data model §5.2).
+export async function retireFiles(
+  tx: Tx,
+  before: (string | null | undefined)[],
+  after: (string | null | undefined)[],
+) {
+  const kept = new Set(after.filter(Boolean));
+  const gone = before.filter(
+    (id): id is string => Boolean(id) && !kept.has(id!),
+  );
+  if (gone.length === 0) return;
+  await tx.file.updateMany({
+    where: { id: { in: gone }, deletedAt: null },
+    data: { deletedAt: new Date() },
+  });
+}

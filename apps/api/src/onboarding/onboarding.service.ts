@@ -12,7 +12,7 @@ import {
 } from '@creavent/shared';
 import type { z } from 'zod';
 import { assertApprovalChange, changeApprovalStatus, lockOrganizer, sameLinks } from '../approvals/approval-status.js';
-import { assertAttachable, FilesService } from '../files/files.service.js';
+import { assertAttachable, FilesService, retireFiles } from '../files/files.service.js';
 import { PrismaService, type Tx } from '../prisma/prisma.service.js';
 import { freeSlug, slugAvailable } from './slugs.js';
 
@@ -120,6 +120,8 @@ export class OnboardingService {
       if (input.avatarFileId) await assertAttachable(tx, input.avatarFileId, userId, 'avatar');
       const photoIds = [...new Set(input.photoFileIds)];
       for (const id of photoIds) await assertAttachable(tx, id, userId, 'vendor_photo');
+      const before = await this.pictureIds(tx, userId, profile.id);
+      await retireFiles(tx, before, [input.avatarFileId, ...photoIds]);
       await tx.user.update({ where: { id: userId }, data: { avatarFileId: input.avatarFileId } });
       await tx.vendorProfilePhoto.deleteMany({ where: { vendorProfileId: profile.id } });
       await tx.vendorProfilePhoto.createMany({
@@ -150,6 +152,7 @@ export class OnboardingService {
       }
       if (input.logoFileId) await assertAttachable(tx, input.logoFileId, userId, 'organizer_logo');
       const current = await tx.organizerProfile.findUnique({ where: { userId } });
+      await retireFiles(tx, [current?.logoFileId], [input.logoFileId]);
       if (current && (current.displayName !== input.displayName || current.slug !== input.slug)) {
         await this.assertNotReviewed(tx, userId);
       }
@@ -228,6 +231,13 @@ export class OnboardingService {
         'Your name, page link, and links were sent for review. Email support to change them.',
       );
     }
+  }
+
+  // The vendor's profile picture and photos, to find the ones a change drops.
+  async pictureIds(tx: Tx, userId: string, vendorProfileId: string) {
+    const user = await tx.user.findUniqueOrThrow({ where: { id: userId }, select: { avatarFileId: true } });
+    const photos = await tx.vendorProfilePhoto.findMany({ where: { vendorProfileId }, select: { fileId: true } });
+    return [user.avatarFileId, ...photos.map((p) => p.fileId)];
   }
 
   private async vendorProfile(tx: Tx, userId: string) {

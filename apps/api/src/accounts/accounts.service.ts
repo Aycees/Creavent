@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { AccountDetails, MeResponse } from '@creavent/shared';
 import { appConfig } from '../config.js';
 import { needsLegal, recordLegalAcceptance } from '../auth/legal.js';
-import { assertAttachable, FilesService } from '../files/files.service.js';
+import { assertAttachable, FilesService, retireFiles } from '../files/files.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
 @Injectable()
@@ -50,6 +50,8 @@ export class AccountsService {
   async updateAvatar(userId: string, avatarFileId: string | null) {
     await this.prisma.$transaction(async (tx) => {
       if (avatarFileId) await assertAttachable(tx, avatarFileId, userId, 'avatar');
+      const user = await tx.user.findUniqueOrThrow({ where: { id: userId }, select: { avatarFileId: true } });
+      await retireFiles(tx, [user.avatarFileId], [avatarFileId]);
       await tx.user.update({ where: { id: userId }, data: { avatarFileId } });
     });
     return this.me(userId);
