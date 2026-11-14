@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { stampDate } from "@/lib/event-format"
 import { DetailsTab } from "./details-tab"
 import { RequirementsTab } from "./requirements-tab"
+import { ApplicationsPanel, Checklist, OpenButton } from "./open-controls"
 import { EventStatusBadge } from "./parts"
 import { PaymentsTab } from "./payments-tab"
 import { PolicyTab } from "./policy-tab"
@@ -79,7 +80,15 @@ function Setup({ setup }: { setup: EventSetup }) {
           </div>
           {setup.status === "draft" && <p className="text-sm text-muted">Only you can see this event.</p>}
         </div>
+        <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row md:items-start">
+          <Button asChild variant="secondary">
+            <Link href={`/events/${setup.slug}`}>Preview as vendor</Link>
+          </Button>
+          {setup.status === "draft" && <OpenButton setup={setup} />}
+        </div>
       </div>
+
+      {setup.status === "draft" ? <Checklist checklist={setup.checklist} onGo={choose} /> : <ApplicationsPanel setup={setup} />}
 
       <Tabs value={tab} onValueChange={choose}>
         <TabsList aria-label="Event setup">

@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import {
   manilaInstant,
   manilaParts,
@@ -11,7 +11,9 @@ import {
   type EventSetup,
 } from '@creavent/shared';
 import type { z } from 'zod';
+import { writeAuditLog } from '../audit/audit-log.js';
 import { appConfig } from '../config.js';
+import { assertStillReady, changeEventStatus, checklist, missingSteps } from './event-status.js';
 import { assertAttachable, FilesService, retireFiles } from '../files/files.service.js';
 import { freeSlug } from '../onboarding/slugs.js';
 import { PrismaService, type Tx } from '../prisma/prisma.service.js';
@@ -61,6 +63,7 @@ export class OrganizerEventsService {
 
   async setup(userId: string, eventId: string): Promise<EventSetup> {
     await organizerProfile(this.prisma, userId);
+    const role = await this.prisma.userRole.findUniqueOrThrow({ where: { userId_role: { userId, role: 'organizer' } } });
     const event = await this.prisma.event.findFirst({
       where: { id: eventId, organizerProfile: { userId } },
       include: {
@@ -84,6 +87,8 @@ export class OrganizerEventsService {
       slug: event.slug,
       status: event.status,
       applicationsOpen: event.applicationsOpen,
+      checklist: await this.prisma.$transaction((tx) => checklist(tx, event.id)),
+      organizerApproved: isApproved(role),
       details: {
         name: event.name,
         eventTypeId: event.eventTypeId,
@@ -177,6 +182,49 @@ export class OrganizerEventsService {
         if (m.id) await tx.eventPaymentMethod.update({ where: { id: m.id }, data });
         else await tx.eventPaymentMethod.create({ data: { ...data, eventId: event.id } });
       }
+      await assertStillReady(tx, event.id);
+    });
+    return this.setup(userId, eventId);
+  }
+
+  // Opens the event to vendors, and its applications with it (decided
+  // 2026-11-14). Needs every required step and an approved organizer.
+  async open(userId: string, eventId: string) {
+    await this.prisma.$transaction(async (tx) => {
+      const event = await ownEvent(tx, userId, eventId, true);
+      const role = await tx.userRole.findUniqueOrThrow({ where: { userId_role: { userId, role: 'organizer' } } });
+      if (!isApproved(role)) throw new ForbiddenException('Get approved to open this event to vendors');
+      const missing = missingSteps(await checklist(tx, event.id));
+      if (event.status === 'draft' && missing.length) {
+        throw new ConflictException(`Finish the required steps first: ${missing.join(', ')}`);
+      }
+      await changeEventStatus(tx, {
+        eventId: event.id,
+        from: event.status,
+        action: 'open_to_vendors',
+        actorUserId: userId,
+        data: { openedToVendorsAt: new Date(), applicationsOpen: true },
+      });
+    });
+    return this.setup(userId, eventId);
+  }
+
+  // Close or reopen applications (spec §3.3) on an event vendors can see.
+  async setApplications(userId: string, eventId: string, open: boolean) {
+    await this.prisma.$transaction(async (tx) => {
+      const event = await ownEvent(tx, userId, eventId, true);
+      if (event.status !== 'open_to_vendors' && event.status !== 'announced') {
+        throw new ConflictException('Open the event to vendors first');
+      }
+      if (event.applicationsOpen === open) return;
+      await tx.event.update({ where: { id: event.id }, data: { applicationsOpen: open } });
+      await writeAuditLog(tx, {
+        actorUserId: userId,
+        action: open ? 'event.applications_open' : 'event.applications_close',
+        entityType: 'event',
+        entityId: event.id,
+        changes: { applicationsOpen: { from: !open, to: open } },
+      });
     });
     return this.setup(userId, eventId);
   }
@@ -203,6 +251,7 @@ export class OrganizerEventsService {
         if (d.id) await tx.eventDocumentRequirement.update({ where: { id: d.id }, data });
         else await tx.eventDocumentRequirement.create({ data: { ...data, eventId: event.id } });
       }
+      await assertStillReady(tx, event.id);
     });
     return this.setup(userId, eventId);
   }
@@ -240,6 +289,7 @@ export class OrganizerEventsService {
           ingressInfo: input.ingressInfo,
         },
       });
+      await assertStillReady(tx, event.id);
     });
     return this.setup(userId, eventId);
   }
@@ -259,12 +309,20 @@ export async function organizerProfile(db: Db, userId: string) {
   return user.organizerProfile;
 }
 
-// The organizer's own event, or Not found for anyone else.
-export async function ownEvent(tx: Tx, userId: string, eventId: string) {
+// The organizer's own event, or Not found for anyone else. With lock, the
+// row is locked for the rest of the transaction, so two status changes run
+// one after the other.
+export async function ownEvent(tx: Tx, userId: string, eventId: string, lock = false) {
   await organizerProfile(tx, userId);
+  if (lock) await tx.$queryRaw`SELECT id FROM events WHERE id = ${eventId}::uuid FOR UPDATE`;
   const event = await tx.event.findFirst({ where: { id: eventId, organizerProfile: { userId } } });
   if (!event) throw new NotFoundException('Event not found');
   return event;
+}
+
+// The "Approved by Creavent" rule (data model §7).
+function isApproved(role: { approvalStatus: string | null; suspendedAt: Date | null }) {
+  return role.approvalStatus === 'approved' && role.suspendedAt === null;
 }
 
 async function assertEventType(tx: Tx, eventTypeId: string) {

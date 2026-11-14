@@ -279,12 +279,27 @@ export const eventDetailsStateSchema = z.object({
   ingressInfo: z.string().nullable(),
 });
 
+// The five required steps before opening to vendors (spec §3.1).
+export const eventChecklistSchema = z.object({
+  details: z.boolean(),
+  requirements: z.boolean(),
+  policy: z.boolean(),
+  slots: z.boolean(),
+  payments: z.boolean(),
+});
+export type EventChecklist = z.infer<typeof eventChecklistSchema>;
+
+export const applicationsToggleSchema = z.object({ open: z.boolean() });
+
 // Everything the setup page shows (sitemap §4). Each save answers with it.
 export const eventSetupSchema = z.object({
   id: z.uuid(),
   slug: z.string(),
   status: eventStatusSchema,
   applicationsOpen: z.boolean(),
+  checklist: eventChecklistSchema,
+  // Approved and not suspended: needed to open to vendors (spec §2.1).
+  organizerApproved: z.boolean(),
   details: eventDetailsStateSchema,
   eventTypes: z.array(eventTypeSchema),
   // Active product categories, for the Requirements tab.

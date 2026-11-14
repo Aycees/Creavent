@@ -9,6 +9,7 @@ import {
 import type { z } from 'zod';
 import { assertAttachable, retireFiles } from '../files/files.service.js';
 import { PrismaService, type Tx } from '../prisma/prisma.service.js';
+import { assertStillReady } from './event-status.js';
 import { OrganizerEventsService, ownEvent } from './organizer-events.service.js';
 
 type SlotFields = z.output<typeof slotSchema>;
@@ -67,6 +68,7 @@ export class EventSlotsService {
       const event = await ownEvent(tx, userId, eventId);
       const slot = await ownSlot(tx, event.id, slotId);
       await tx.slot.update({ where: { id: slot.id }, data: { deletedAt: new Date() } });
+      await assertStillReady(tx, event.id);
     });
     return this.events.setup(userId, eventId);
   }

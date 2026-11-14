@@ -21,6 +21,8 @@ export function setupFixture(overrides: Partial<EventSetup> = {}): EventSetup {
     slug: "matina-night-flea-january",
     status: "draft",
     applicationsOpen: false,
+    checklist: { details: true, requirements: true, policy: true, slots: true, payments: false },
+    organizerApproved: true,
     details: {
       name: "Matina Night Flea, January",
       eventTypeId: eventTypes[0].id,

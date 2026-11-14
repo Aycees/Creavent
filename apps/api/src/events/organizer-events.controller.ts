@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, Put, UseGuards } from '@nestjs/common';
 import { ApiCreatedResponse } from '@nestjs/swagger';
 import {
+  applicationsToggleSchema,
   createdEventSchema,
   createEventSchema,
   eventDetailsSchema,
@@ -135,5 +136,22 @@ export class OrganizerEventsController {
     @Body({ schema: publicFloorPlanSchema }) body: z.output<typeof publicFloorPlanSchema>,
   ) {
     return this.slots.publicFloorPlan(user.id, id, body);
+  }
+
+  @Post('organizer/events/:id/open')
+  @ApiCreatedResponse({ standardSchema: eventSetupSchema })
+  @ResponseSchema(eventSetupSchema)
+  open(@CurrentUser() user: SessionUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.events.open(user.id, id);
+  }
+
+  @Put('organizer/events/:id/applications')
+  @ResponseSchema(eventSetupSchema)
+  applications(
+    @CurrentUser() user: SessionUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body({ schema: applicationsToggleSchema }) body: z.output<typeof applicationsToggleSchema>,
+  ) {
+    return this.events.setApplications(user.id, id, body.open);
   }
 }

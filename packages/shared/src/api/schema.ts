@@ -612,6 +612,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/organizer/events/{id}/open": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OrganizerEventsController_open"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organizer/events/{id}/applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["OrganizerEventsController_applications"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2565,6 +2597,14 @@ export interface operations {
                         /** @enum {string} */
                         status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
                         applicationsOpen: boolean;
+                        checklist: {
+                            details: boolean;
+                            requirements: boolean;
+                            policy: boolean;
+                            slots: boolean;
+                            payments: boolean;
+                        };
+                        organizerApproved: boolean;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -2729,6 +2769,14 @@ export interface operations {
                         /** @enum {string} */
                         status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
                         applicationsOpen: boolean;
+                        checklist: {
+                            details: boolean;
+                            requirements: boolean;
+                            policy: boolean;
+                            slots: boolean;
+                            payments: boolean;
+                        };
+                        organizerApproved: boolean;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -2890,6 +2938,14 @@ export interface operations {
                         /** @enum {string} */
                         status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
                         applicationsOpen: boolean;
+                        checklist: {
+                            details: boolean;
+                            requirements: boolean;
+                            policy: boolean;
+                            slots: boolean;
+                            payments: boolean;
+                        };
+                        organizerApproved: boolean;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -3039,6 +3095,14 @@ export interface operations {
                         /** @enum {string} */
                         status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
                         applicationsOpen: boolean;
+                        checklist: {
+                            details: boolean;
+                            requirements: boolean;
+                            policy: boolean;
+                            slots: boolean;
+                            payments: boolean;
+                        };
+                        organizerApproved: boolean;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -3199,6 +3263,14 @@ export interface operations {
                         /** @enum {string} */
                         status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
                         applicationsOpen: boolean;
+                        checklist: {
+                            details: boolean;
+                            requirements: boolean;
+                            policy: boolean;
+                            slots: boolean;
+                            payments: boolean;
+                        };
+                        organizerApproved: boolean;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -3352,6 +3424,14 @@ export interface operations {
                         /** @enum {string} */
                         status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
                         applicationsOpen: boolean;
+                        checklist: {
+                            details: boolean;
+                            requirements: boolean;
+                            policy: boolean;
+                            slots: boolean;
+                            payments: boolean;
+                        };
+                        organizerApproved: boolean;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -3465,6 +3545,14 @@ export interface operations {
                         /** @enum {string} */
                         status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
                         applicationsOpen: boolean;
+                        checklist: {
+                            details: boolean;
+                            requirements: boolean;
+                            policy: boolean;
+                            slots: boolean;
+                            payments: boolean;
+                        };
+                        organizerApproved: boolean;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -3619,6 +3707,14 @@ export interface operations {
                         /** @enum {string} */
                         status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
                         applicationsOpen: boolean;
+                        checklist: {
+                            details: boolean;
+                            requirements: boolean;
+                            policy: boolean;
+                            slots: boolean;
+                            payments: boolean;
+                        };
+                        organizerApproved: boolean;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -3732,6 +3828,14 @@ export interface operations {
                         /** @enum {string} */
                         status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
                         applicationsOpen: boolean;
+                        checklist: {
+                            details: boolean;
+                            requirements: boolean;
+                            policy: boolean;
+                            slots: boolean;
+                            payments: boolean;
+                        };
+                        organizerApproved: boolean;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -3876,6 +3980,14 @@ export interface operations {
                         /** @enum {string} */
                         status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
                         applicationsOpen: boolean;
+                        checklist: {
+                            details: boolean;
+                            requirements: boolean;
+                            policy: boolean;
+                            slots: boolean;
+                            payments: boolean;
+                        };
+                        organizerApproved: boolean;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -4030,6 +4142,14 @@ export interface operations {
                         /** @enum {string} */
                         status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
                         applicationsOpen: boolean;
+                        checklist: {
+                            details: boolean;
+                            requirements: boolean;
+                            policy: boolean;
+                            slots: boolean;
+                            payments: boolean;
+                        };
+                        organizerApproved: boolean;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -4183,6 +4303,14 @@ export interface operations {
                         /** @enum {string} */
                         status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
                         applicationsOpen: boolean;
+                        checklist: {
+                            details: boolean;
+                            requirements: boolean;
+                            policy: boolean;
+                            slots: boolean;
+                            payments: boolean;
+                        };
+                        organizerApproved: boolean;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -4333,6 +4461,443 @@ export interface operations {
                         /** @enum {string} */
                         status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
                         applicationsOpen: boolean;
+                        checklist: {
+                            details: boolean;
+                            requirements: boolean;
+                            policy: boolean;
+                            slots: boolean;
+                            payments: boolean;
+                        };
+                        organizerApproved: boolean;
+                        details: {
+                            name: string;
+                            /** Format: uuid */
+                            eventTypeId: string;
+                            description: string | null;
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            venueName: string | null;
+                            addressLine: string | null;
+                            city: string | null;
+                            cover: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            vendorContactInfo: string | null;
+                            applicationsCloseAt: string | null;
+                            ingressInfo: string | null;
+                        };
+                        eventTypes: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            slug: string;
+                        }[];
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        requirements: {
+                            categories: {
+                                /** Format: uuid */
+                                categoryId: string;
+                                maxVendors: number | null;
+                            }[];
+                            documents: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                description: string | null;
+                                /** Format: uuid */
+                                categoryId: string | null;
+                            }[];
+                        };
+                        policy: {
+                            text: string | null;
+                            copiedFrom: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            } | null;
+                            example: string;
+                        };
+                        payments: {
+                            deadlineHours: number;
+                            methods: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                channel: "gcash" | "maya" | "bank" | "other";
+                                label: string;
+                                accountName: string | null;
+                                accountNumber: string | null;
+                                qr: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    url: string;
+                                } | null;
+                                notes: string | null;
+                            }[];
+                        };
+                        slots: {
+                            /** @enum {string} */
+                            mode: "organizer_assigns" | "vendor_preference";
+                            defaultPrice: number | null;
+                            vendorFloorPlan: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            publicFloorPlan: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            list: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                section: string | null;
+                                sizeLabel: string | null;
+                                note: string | null;
+                                price: number | null;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OrganizerEventsController_open: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        slug: string;
+                        /** @enum {string} */
+                        status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                        applicationsOpen: boolean;
+                        checklist: {
+                            details: boolean;
+                            requirements: boolean;
+                            policy: boolean;
+                            slots: boolean;
+                            payments: boolean;
+                        };
+                        organizerApproved: boolean;
+                        details: {
+                            name: string;
+                            /** Format: uuid */
+                            eventTypeId: string;
+                            description: string | null;
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            venueName: string | null;
+                            addressLine: string | null;
+                            city: string | null;
+                            cover: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            vendorContactInfo: string | null;
+                            applicationsCloseAt: string | null;
+                            ingressInfo: string | null;
+                        };
+                        eventTypes: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            slug: string;
+                        }[];
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        requirements: {
+                            categories: {
+                                /** Format: uuid */
+                                categoryId: string;
+                                maxVendors: number | null;
+                            }[];
+                            documents: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                description: string | null;
+                                /** Format: uuid */
+                                categoryId: string | null;
+                            }[];
+                        };
+                        policy: {
+                            text: string | null;
+                            copiedFrom: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            } | null;
+                            example: string;
+                        };
+                        payments: {
+                            deadlineHours: number;
+                            methods: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                channel: "gcash" | "maya" | "bank" | "other";
+                                label: string;
+                                accountName: string | null;
+                                accountNumber: string | null;
+                                qr: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    url: string;
+                                } | null;
+                                notes: string | null;
+                            }[];
+                        };
+                        slots: {
+                            /** @enum {string} */
+                            mode: "organizer_assigns" | "vendor_preference";
+                            defaultPrice: number | null;
+                            vendorFloorPlan: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            publicFloorPlan: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            list: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                section: string | null;
+                                sizeLabel: string | null;
+                                note: string | null;
+                                price: number | null;
+                            }[];
+                        };
+                    };
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        slug: string;
+                        /** @enum {string} */
+                        status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                        applicationsOpen: boolean;
+                        checklist: {
+                            details: boolean;
+                            requirements: boolean;
+                            policy: boolean;
+                            slots: boolean;
+                            payments: boolean;
+                        };
+                        organizerApproved: boolean;
+                        details: {
+                            name: string;
+                            /** Format: uuid */
+                            eventTypeId: string;
+                            description: string | null;
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            venueName: string | null;
+                            addressLine: string | null;
+                            city: string | null;
+                            cover: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            vendorContactInfo: string | null;
+                            applicationsCloseAt: string | null;
+                            ingressInfo: string | null;
+                        };
+                        eventTypes: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            slug: string;
+                        }[];
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        requirements: {
+                            categories: {
+                                /** Format: uuid */
+                                categoryId: string;
+                                maxVendors: number | null;
+                            }[];
+                            documents: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                description: string | null;
+                                /** Format: uuid */
+                                categoryId: string | null;
+                            }[];
+                        };
+                        policy: {
+                            text: string | null;
+                            copiedFrom: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            } | null;
+                            example: string;
+                        };
+                        payments: {
+                            deadlineHours: number;
+                            methods: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                channel: "gcash" | "maya" | "bank" | "other";
+                                label: string;
+                                accountName: string | null;
+                                accountNumber: string | null;
+                                qr: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    url: string;
+                                } | null;
+                                notes: string | null;
+                            }[];
+                        };
+                        slots: {
+                            /** @enum {string} */
+                            mode: "organizer_assigns" | "vendor_preference";
+                            defaultPrice: number | null;
+                            vendorFloorPlan: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            publicFloorPlan: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            list: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                section: string | null;
+                                sizeLabel: string | null;
+                                note: string | null;
+                                price: number | null;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OrganizerEventsController_applications: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    open: boolean;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        slug: string;
+                        /** @enum {string} */
+                        status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                        applicationsOpen: boolean;
+                        checklist: {
+                            details: boolean;
+                            requirements: boolean;
+                            policy: boolean;
+                            slots: boolean;
+                            payments: boolean;
+                        };
+                        organizerApproved: boolean;
                         details: {
                             name: string;
                             /** Format: uuid */
