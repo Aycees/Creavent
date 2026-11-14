@@ -16,6 +16,8 @@ import { RequirementsTab } from "./requirements-tab"
 import { EventStatusBadge } from "./parts"
 import { PaymentsTab } from "./payments-tab"
 import { PolicyTab } from "./policy-tab"
+import { PublicFloorPlanTab } from "./public-floor-plan-tab"
+import { SlotsTab } from "./slots-tab"
 import { useEventSetup } from "./queries"
 
 export const setupTabs = [
@@ -23,6 +25,8 @@ export const setupTabs = [
   { id: "requirements", label: "Requirements" },
   { id: "policy", label: "Policy" },
   { id: "payments", label: "Payments" },
+  { id: "slots", label: "Slots" },
+  { id: "public-floor-plan", label: "Public floor plan" },
 ] as const
 export type SetupTab = (typeof setupTabs)[number]["id"]
 
@@ -96,6 +100,12 @@ function Setup({ setup }: { setup: EventSetup }) {
         </TabsContent>
         <TabsContent value="payments">
           <PaymentsTab setup={setup} />
+        </TabsContent>
+        <TabsContent value="slots">
+          <SlotsTab setup={setup} />
+        </TabsContent>
+        <TabsContent value="public-floor-plan">
+          <PublicFloorPlanTab setup={setup} />
         </TabsContent>
       </Tabs>
     </div>

@@ -13,6 +13,8 @@ const resize: Record<UploadPurpose, ResizeOptions> = {
   vendor_photo: { width: 1600, height: 1600, fit: 'inside', withoutEnlargement: true },
   event_cover: { width: 1600, height: 900, fit: 'cover', position: 'centre', withoutEnlargement: true },
   payment_qr: { width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true },
+  vendor_floor_plan: { width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true },
+  public_floor_plan: { width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true },
 };
 
 // Event covers are cropped to 16:9 from the center, at most 1600 x 900, and

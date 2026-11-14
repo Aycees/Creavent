@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, Put, UseGuards } from '@nestjs/common';
 import { ApiCreatedResponse } from '@nestjs/swagger';
 import {
   createdEventSchema,
@@ -9,16 +9,24 @@ import {
   eventRequirementsSchema,
   eventSetupSchema,
   eventTypeSchema,
+  publicFloorPlanSchema,
+  slotRowSchema,
+  slotSchema,
+  slotSettingsSchema,
 } from '@creavent/shared';
 import { z } from 'zod';
 import { AuthGuard, CurrentUser, type SessionUser } from '../auth/auth.guard.js';
 import { ResponseSchema } from '../response-schema.decorator.js';
+import { EventSlotsService } from './event-slots.service.js';
 import { OrganizerEventsService } from './organizer-events.service.js';
 
 @Controller()
 @UseGuards(AuthGuard)
 export class OrganizerEventsController {
-  constructor(private readonly events: OrganizerEventsService) {}
+  constructor(
+    private readonly events: OrganizerEventsService,
+    private readonly slots: EventSlotsService,
+  ) {}
 
   @Get('event-types')
   @ResponseSchema(z.object({ eventTypes: z.array(eventTypeSchema) }))
@@ -76,5 +84,56 @@ export class OrganizerEventsController {
     @Body({ schema: eventPaymentsSchema }) body: z.output<typeof eventPaymentsSchema>,
   ) {
     return this.events.updatePayments(user.id, id, body);
+  }
+
+  @Post('organizer/events/:id/slots')
+  @ApiCreatedResponse({ standardSchema: eventSetupSchema })
+  @ResponseSchema(eventSetupSchema)
+  addSlot(@CurrentUser() user: SessionUser, @Param('id', ParseUUIDPipe) id: string, @Body({ schema: slotSchema }) body: z.output<typeof slotSchema>) {
+    return this.slots.add(user.id, id, body);
+  }
+
+  @Post('organizer/events/:id/slots/row')
+  @ApiCreatedResponse({ standardSchema: eventSetupSchema })
+  @ResponseSchema(eventSetupSchema)
+  addRow(@CurrentUser() user: SessionUser, @Param('id', ParseUUIDPipe) id: string, @Body({ schema: slotRowSchema }) body: z.output<typeof slotRowSchema>) {
+    return this.slots.addRow(user.id, id, body);
+  }
+
+  @Patch('organizer/events/:id/slots/:slotId')
+  @ResponseSchema(eventSetupSchema)
+  updateSlot(
+    @CurrentUser() user: SessionUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('slotId', ParseUUIDPipe) slotId: string,
+    @Body({ schema: slotSchema }) body: z.output<typeof slotSchema>,
+  ) {
+    return this.slots.update(user.id, id, slotId, body);
+  }
+
+  @Delete('organizer/events/:id/slots/:slotId')
+  @ResponseSchema(eventSetupSchema)
+  removeSlot(@CurrentUser() user: SessionUser, @Param('id', ParseUUIDPipe) id: string, @Param('slotId', ParseUUIDPipe) slotId: string) {
+    return this.slots.remove(user.id, id, slotId);
+  }
+
+  @Put('organizer/events/:id/slot-settings')
+  @ResponseSchema(eventSetupSchema)
+  slotSettings(
+    @CurrentUser() user: SessionUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body({ schema: slotSettingsSchema }) body: z.output<typeof slotSettingsSchema>,
+  ) {
+    return this.slots.settings(user.id, id, body);
+  }
+
+  @Put('organizer/events/:id/public-floor-plan')
+  @ResponseSchema(eventSetupSchema)
+  publicFloorPlan(
+    @CurrentUser() user: SessionUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body({ schema: publicFloorPlanSchema }) body: z.output<typeof publicFloorPlanSchema>,
+  ) {
+    return this.slots.publicFloorPlan(user.id, id, body);
   }
 }

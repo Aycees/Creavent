@@ -523,7 +523,7 @@ erDiagram
 |---|---|---|
 | id | uuid PK | |
 | event_id | uuid FK → events | |
-| label | text | Slot number. UK with `event_id` among slots that are not deleted. |
+| label | text | Slot number. UK with `event_id` among slots that are not deleted, ignoring case (a partial unique index on `lower(label)`). |
 | section | text null | Optional group, for example "Indoor" or "Outdoor". Vendors see slots grouped by section, or by label prefix when null (spec §3.4). |
 | price | numeric(10,2) null | Null = use `events.default_slot_price`. |
 | size_label | text null | Human-readable size, for example "2m x 2m". |

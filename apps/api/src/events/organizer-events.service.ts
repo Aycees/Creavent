@@ -69,8 +69,12 @@ export class OrganizerEventsService {
         categories: { include: { category: true } },
         documents: { orderBy: { sortOrder: 'asc' } },
         paymentMethods: { where: { isActive: true }, orderBy: { sortOrder: 'asc' }, include: { qrFile: true } },
+        slots: { where: { deletedAt: null }, orderBy: [{ sortOrder: 'asc' }, { label: 'asc' }] },
+        vendorFloorPlanFile: true,
+        publicFloorPlanFile: true,
       },
     });
+    const image = (f: { id: string; storageKey: string } | null) => (f ? { id: f.id, url: this.files.url(f.storageKey) } : null);
     if (!event) throw new NotFoundException('Event not found');
     const start = event.startsAt ? manilaParts(event.startsAt) : null;
     const end = event.endsAt ? manilaParts(event.endsAt) : null;
@@ -91,7 +95,7 @@ export class OrganizerEventsService {
         venueName: event.venueName,
         addressLine: event.addressLine,
         city: event.city,
-        cover: event.coverFile ? { id: event.coverFile.id, url: this.files.url(event.coverFile.storageKey) } : null,
+        cover: image(event.coverFile),
         vendorContactInfo: event.vendorContactInfo,
         applicationsCloseAt: close ? `${close.date}T${close.time}` : null,
         ingressInfo: event.ingressInfo,
@@ -127,6 +131,20 @@ export class OrganizerEventsService {
           accountNumber: m.accountNumber,
           qr: m.qrFile ? { id: m.qrFile.id, url: this.files.fileUrl(m.qrFile) } : null,
           notes: m.notes,
+        })),
+      },
+      slots: {
+        mode: event.slotMode,
+        defaultPrice: event.defaultSlotPrice === null ? null : Number(event.defaultSlotPrice),
+        vendorFloorPlan: image(event.vendorFloorPlanFile),
+        publicFloorPlan: image(event.publicFloorPlanFile),
+        list: event.slots.map((slot) => ({
+          id: slot.id,
+          label: slot.label,
+          section: slot.section,
+          sizeLabel: slot.sizeLabel,
+          note: slot.note,
+          price: slot.price === null ? null : Number(slot.price),
         })),
       },
     };

@@ -33,6 +33,8 @@ const needsRole: Partial<Record<UploadPurpose, 'vendor' | 'organizer'>> = {
   vendor_photo: 'vendor',
   event_cover: 'organizer',
   payment_qr: 'organizer',
+  vendor_floor_plan: 'organizer',
+  public_floor_plan: 'organizer',
 };
 const incomingKey = (id: string) => `incoming/${id}`;
 

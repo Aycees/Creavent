@@ -180,6 +180,83 @@ export const eventPaymentsSchema = z.object({
 });
 export type EventPaymentsInput = z.input<typeof eventPaymentsSchema>;
 
+// The Slots tab (spec §3.4).
+export const slotModeSchema = z.enum(['organizer_assigns', 'vendor_preference']);
+export type SlotMode = z.infer<typeof slotModeSchema>;
+
+// Pesos, at most 2 decimals. Null: use the event's default price.
+const priceSchema = z
+  .number('Enter a price')
+  .min(0, "Prices can't be negative")
+  .max(1_000_000, 'Use at most ₱1,000,000')
+  .refine((v) => Math.round(v * 100) === v * 100, 'Use at most 2 decimals')
+  .nullable();
+
+export const MAX_SLOTS_PER_ROW = 200;
+
+export const slotSchema = z.object({
+  label: text(20, 'slot number').min(1, 'Enter the slot number'),
+  section: optionalText(60),
+  sizeLabel: optionalText(40),
+  note: optionalText(120),
+  price: priceSchema,
+});
+export type SlotInput = z.input<typeof slotSchema>;
+
+// "Add a row of slots": a prefix and a number range, for example C, 01 to 06.
+export const slotRowSchema = z
+  .object({
+    section: optionalText(60),
+    prefix: text(10, 'prefix'),
+    from: z.string().trim().regex(/^\d{1,4}$/, 'Use a number'),
+    to: z.string().trim().regex(/^\d{1,4}$/, 'Use a number'),
+    sizeLabel: optionalText(40),
+    price: priceSchema,
+  })
+  .superRefine((v, ctx) => {
+    const from = Number(v.from);
+    const to = Number(v.to);
+    if (to < from) ctx.addIssue({ code: 'custom', path: ['to'], message: 'End at or after the first number' });
+    else if (to - from + 1 > MAX_SLOTS_PER_ROW) {
+      ctx.addIssue({ code: 'custom', path: ['to'], message: `Add up to ${MAX_SLOTS_PER_ROW} slots at once` });
+    }
+  });
+export type SlotRowInput = z.input<typeof slotRowSchema>;
+
+// The labels a row makes: the prefix, a hyphen, and the number padded like
+// the first number ("01" to "06" → C-01 to C-06).
+export function rowLabels(row: { prefix: string; from: string; to: string }) {
+  const width = row.from.startsWith('0') ? row.from.length : 1;
+  const out: string[] = [];
+  for (let n = Number(row.from); n <= Number(row.to); n += 1) {
+    const num = String(n).padStart(width, '0');
+    out.push(row.prefix.trim() ? `${row.prefix.trim()}-${num}` : num);
+  }
+  return out;
+}
+
+// Slots grouped for display: by section, or by the label's prefix when a slot
+// has no section ("C-01" → "C"). Groups keep the order of their first slot
+// (spec §3.4).
+export function groupSlots<T extends { label: string; section: string | null }>(slots: T[]) {
+  const groups = new Map<string, T[]>();
+  for (const slot of slots) {
+    const prefix = /^(.*?[A-Za-z])[-\s]?\d+$/.exec(slot.label)?.[1];
+    const name = slot.section ?? prefix ?? 'Other slots';
+    groups.set(name, [...(groups.get(name) ?? []), slot]);
+  }
+  return [...groups].map(([name, list]) => ({ name, slots: list }));
+}
+
+export const slotSettingsSchema = z.object({
+  mode: slotModeSchema,
+  defaultPrice: priceSchema,
+  vendorFloorPlanFileId: z.uuid().nullable(),
+});
+export type SlotSettingsInput = z.input<typeof slotSettingsSchema>;
+
+export const publicFloorPlanSchema = z.object({ fileId: z.uuid().nullable() });
+
 const imageSchema = z.object({ id: z.uuid(), url: z.string() });
 
 export const eventTypeSchema = z.object({ id: z.uuid(), name: z.string(), slug: z.string() });
@@ -237,6 +314,23 @@ export const eventSetupSchema = z.object({
         accountNumber: z.string().nullable(),
         qr: imageSchema.nullable(),
         notes: z.string().nullable(),
+      }),
+    ),
+  }),
+  slots: z.object({
+    mode: slotModeSchema,
+    defaultPrice: z.number().nullable(),
+    vendorFloorPlan: imageSchema.nullable(),
+    publicFloorPlan: imageSchema.nullable(),
+    list: z.array(
+      z.object({
+        id: z.uuid(),
+        label: z.string(),
+        section: z.string().nullable(),
+        sizeLabel: z.string().nullable(),
+        note: z.string().nullable(),
+        // The slot's own price. Null: the default price.
+        price: z.number().nullable(),
       }),
     ),
   }),
