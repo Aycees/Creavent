@@ -302,6 +302,22 @@ describe('event drafts and details', () => {
         expect(left.r).toBeLessThan(50);
       });
 
+      it('frames a phone photo as it looks upright', async () => {
+        const { browser } = await organizer();
+        // Stored sideways with orientation 6, so it shows turned a quarter right:
+        // the red left half ends up on top, 1800 wide and 3200 tall.
+        const body = await sharp(await halves()).jpeg().withMetadata({ orientation: 6 }).toBuffer();
+        const ask = await browser.post('/api/files').send({ purpose: 'event_cover', mimeType: 'image/jpeg', sizeBytes: body.length });
+        storage.upload(`incoming/${ask.body.fileId}`, body, 'image/jpeg');
+
+        const res = await browser.post(`/api/files/${ask.body.fileId}/complete`).send({ crop: { x: 0, y: 0, width: 1600, height: 900 } });
+
+        expect(res.status).toBe(201);
+        const top = await pixel(res.body.id, 800, 450);
+        expect(top.r).toBeGreaterThan(200);
+        expect(top.b).toBeLessThan(50);
+      });
+
       it('scales a larger frame down to 1600 x 900', async () => {
         const { browser } = await organizer();
 

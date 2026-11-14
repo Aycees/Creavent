@@ -80,18 +80,13 @@ export function processImage(input: Buffer, purpose: UploadPurpose, minWidth?: n
     if ((minWidth && width < minWidth) || (minHeight && height < minHeight)) {
       throw new UploadRejected(`This photo is too small. Use at least ${minWidth} x ${minHeight}`);
     }
+    // One pipeline, so the photo is decoded once under the pixel limit. sharp
+    // turns it upright before extracting, so the frame matches what the
+    // browser showed.
     let pipeline = sharp(input, { limitInputPixels: MAX_PIXELS }).rotate();
     if (crop) {
       assertFrame(crop, width, height, minWidth, minHeight);
-      // Extract after turning upright, so the frame matches what the browser
-      // showed. Raw pixels in between, so nothing is compressed twice.
-      const upright = await pipeline.raw().toBuffer({ resolveWithObject: true });
-      pipeline = sharp(upright.data, { raw: upright.info }).extract({
-        left: crop.x,
-        top: crop.y,
-        width: crop.width,
-        height: crop.height,
-      });
+      pipeline = pipeline.extract({ left: crop.x, top: crop.y, width: crop.width, height: crop.height });
     }
     const { data, info } = await pipeline
       .resize(purpose === 'event_cover' ? coverSize(crop?.width ?? width, crop?.height ?? height) : resize[purpose])
