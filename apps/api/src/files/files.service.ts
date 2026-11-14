@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   HttpException,
   HttpStatus,
   Inject,
@@ -23,6 +24,14 @@ import {
 import { STORAGE, type ObjectStorage } from './storage.js';
 
 const MAX_PENDING = 20;
+// Upload requests per user per hour (spec §11.3).
+const MAX_PER_HOUR = 30;
+const MAX_VENDOR_PHOTOS = 8;
+
+const needsRole: Partial<Record<UploadPurpose, 'vendor' | 'organizer'>> = {
+  organizer_logo: 'organizer',
+  vendor_photo: 'vendor',
+};
 const incomingKey = (id: string) => `incoming/${id}`;
 
 // The upload flow of spec §11.3: Ask, Upload (browser to R2), Complete, Attach.
@@ -38,6 +47,39 @@ export class FilesService {
     if (input.sizeBytes > rules.maxBytes) {
       throw new BadRequestException(
         `This file is over ${rules.maxBytes / (1024 * 1024)} MB`,
+      );
+    }
+    // Who may upload what (spec §11.3): a logo needs the organizer role,
+    // product photos the vendor role. Avatars are for anyone.
+    const role = needsRole[input.purpose];
+    if (role) {
+      const has = await this.prisma.userRole.findUnique({
+        where: { userId_role: { userId, role } },
+      });
+      if (!has || has.suspendedAt) {
+        throw new ForbiddenException(`Add the ${role} role to upload this`);
+      }
+    }
+    if (input.purpose === 'vendor_photo') {
+      const photos = await this.prisma.vendorProfilePhoto.count({
+        where: { vendorProfile: { userId } },
+      });
+      if (photos >= MAX_VENDOR_PHOTOS) {
+        throw new BadRequestException(
+          `You have ${MAX_VENDOR_PHOTOS} photos already. Remove one to add another.`,
+        );
+      }
+    }
+    const lastHour = await this.prisma.file.count({
+      where: {
+        uploadedBy: userId,
+        createdAt: { gt: new Date(Date.now() - 60 * 60 * 1000) },
+      },
+    });
+    if (lastHour >= MAX_PER_HOUR) {
+      throw new HttpException(
+        'You uploaded a lot in the last hour. Try again later.',
+        HttpStatus.TOO_MANY_REQUESTS,
       );
     }
     const pending = await this.prisma.file.count({

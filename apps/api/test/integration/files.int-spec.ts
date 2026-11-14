@@ -4,7 +4,7 @@ import type { App } from 'supertest/types.js';
 import type { PrismaClient } from '../../src/generated/prisma/client.js';
 import { agent, createTestApp, signInAs } from './app.js';
 import { createTestPrisma, resetDatabase } from './db.js';
-import { createUser } from './factories.js';
+import { addRole, createUser } from './factories.js';
 import { MemoryStorage } from './memory-storage.js';
 
 function image(width: number, height: number, format: 'png' | 'jpeg' = 'png') {
@@ -85,12 +85,57 @@ describe('file uploads', () => {
   });
 
   it('refuses more than 20 pending uploads at a time', async () => {
-    const { browser } = await signedIn();
+    const { user, browser } = await signedIn();
+    await addRole(prisma, user.id, 'vendor');
     for (let i = 0; i < 20; i += 1) {
       await browser.post('/api/files').send({ purpose: 'vendor_photo', mimeType: 'image/png', sizeBytes: 1000 });
     }
 
     const res = await browser.post('/api/files').send({ purpose: 'vendor_photo', mimeType: 'image/png', sizeBytes: 1000 });
+
+    expect(res.status).toBe(429);
+  });
+
+  it('lets only organizers upload a logo, and only vendors upload product photos', async () => {
+    const { user, browser } = await signedIn();
+    const ask = (purpose: string) => browser.post('/api/files').send({ purpose, mimeType: 'image/png', sizeBytes: 1000 });
+
+    expect((await ask('organizer_logo')).status).toBe(403);
+    expect((await ask('vendor_photo')).status).toBe(403);
+    expect((await ask('avatar')).status).toBe(201);
+
+    await addRole(prisma, user.id, 'organizer');
+    await addRole(prisma, user.id, 'vendor');
+    expect((await ask('organizer_logo')).status).toBe(201);
+    expect((await ask('vendor_photo')).status).toBe(201);
+  });
+
+  it('refuses a ninth product photo', async () => {
+    const { user, browser } = await signedIn();
+    await addRole(prisma, user.id, 'vendor');
+    const profile = await prisma.vendorProfile.create({ data: { userId: user.id, shopName: 'Shop', slug: 'shop-x' } });
+    for (let i = 0; i < 8; i += 1) {
+      const file = await prisma.file.create({
+        data: { uploadedBy: user.id, purpose: 'vendor_photo', status: 'ready', storageKey: `vendor_photo/${i}-${user.id}.webp`, mimeType: 'image/webp', sizeBytes: 10 },
+      });
+      await prisma.vendorProfilePhoto.create({ data: { vendorProfileId: profile.id, fileId: file.id, sortOrder: i } });
+    }
+
+    const res = await browser.post('/api/files').send({ purpose: 'vendor_photo', mimeType: 'image/png', sizeBytes: 1000 });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe('You have 8 photos already. Remove one to add another.');
+  });
+
+  it('limits upload requests to 30 an hour per user', async () => {
+    const { user, browser } = await signedIn();
+    await prisma.file.createMany({
+      data: Array.from({ length: 30 }, (_, i) => ({
+        uploadedBy: user.id, purpose: 'avatar' as const, status: 'ready' as const, storageKey: `avatar/h${i}-${user.id}.webp`, mimeType: 'image/webp', sizeBytes: 10,
+      })),
+    });
+
+    const res = await browser.post('/api/files').send({ purpose: 'avatar', mimeType: 'image/png', sizeBytes: 1000 });
 
     expect(res.status).toBe(429);
   });

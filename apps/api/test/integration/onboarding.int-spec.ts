@@ -4,7 +4,7 @@ import type { App } from 'supertest/types.js';
 import type { PrismaClient } from '../../src/generated/prisma/client.js';
 import { agent, createTestApp, signInAs } from './app.js';
 import { createTestPrisma, resetDatabase } from './db.js';
-import { createUser } from './factories.js';
+import { addRole, createUser } from './factories.js';
 import { MemoryStorage } from './memory-storage.js';
 
 type Browser = ReturnType<typeof agent>;
@@ -174,6 +174,7 @@ describe('onboarding', () => {
       const { browser } = await vendorWithRole();
       await browser.put('/api/onboarding/vendor/shop').send({ shopName: 'Shop', categoryIds: [categoryIds[0]] });
       const other = await createUser(prisma);
+      await addRole(prisma, other.id, 'vendor');
       const othersPhoto = await uploaded(await signInAs(app, other.email), 'vendor_photo');
       const avatarAsPhoto = await uploaded(browser, 'avatar');
 
