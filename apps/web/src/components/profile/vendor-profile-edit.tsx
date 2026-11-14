@@ -211,7 +211,7 @@ function VendorForm({ state }: { state: OnboardingState }) {
                     type="button"
                     aria-label={`Remove photo ${i + 1}`}
                     onClick={() => setPhotos(photos.filter((x) => x.id !== p.id).map((x) => x.id))}
-                    className="absolute top-1 right-1 grid size-9 place-items-center rounded-pill bg-surface/90 text-ink"
+                    className="absolute top-1 right-1 grid size-11 place-items-center rounded-pill bg-surface/90 text-ink"
                   >
                     <XIcon aria-hidden="true" className="size-4" />
                   </button>
@@ -220,7 +220,7 @@ function VendorForm({ state }: { state: OnboardingState }) {
                       type="button"
                       aria-label={`Make photo ${i + 1} the cover`}
                       onClick={() => setPhotos([p.id, ...photos.filter((x) => x.id !== p.id).map((x) => x.id)])}
-                      className="absolute bottom-1 left-1 flex h-9 items-center gap-1 rounded-pill bg-surface/90 px-2.5 text-cap text-ink"
+                      className="absolute bottom-1 left-1 flex h-11 items-center gap-1 rounded-pill bg-surface/90 px-2.5 text-cap text-ink"
                     >
                       <StarIcon aria-hidden="true" className="size-4" />
                       Cover

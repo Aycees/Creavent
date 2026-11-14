@@ -168,7 +168,7 @@ export function VendorPhotosStep({ state, onBack, finishLater }: StepProps) {
                 type="button"
                 aria-label={`Remove photo ${i + 1}`}
                 onClick={() => setPhotos((list) => list.filter((x) => x.id !== p.id))}
-                className="absolute top-1 right-1 grid size-8 place-items-center rounded-pill bg-surface/90 text-ink"
+                className="absolute top-1 right-1 grid size-11 place-items-center rounded-pill bg-surface/90 text-ink"
               >
                 <XIcon aria-hidden="true" className="size-4" />
               </button>

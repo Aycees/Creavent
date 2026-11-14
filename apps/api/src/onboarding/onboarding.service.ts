@@ -221,14 +221,14 @@ export class OnboardingService {
   }
 
   // The name, page link, and links are what the admin reviews (spec §2.1).
-  // While a review is pending or after approval they stay as reviewed, so the
-  // badge can't move to a different page. How organizers change them later is
-  // an open question (docs/open-questions.md).
+  // Onboarding is for the first setup: once a review is pending or done,
+  // these change from the organizer profile, which sends a changed name or a
+  // new link back to review (open question D9, resolved).
   private async assertNotReviewed(tx: Tx, userId: string) {
     const role = await tx.userRole.findUniqueOrThrow({ where: { userId_role: { userId, role: 'organizer' } } });
     if (role.approvalStatus === 'pending_review' || role.approvalStatus === 'approved') {
       throw new ConflictException(
-        'Your name, page link, and links were sent for review. Email support to change them.',
+        'Your name, page link, and links were sent for review. Change them from your organizer profile.',
       );
     }
   }

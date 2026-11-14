@@ -113,7 +113,7 @@ function FlowBody({
       </nav>
       <section className="flex w-full max-w-[600px] flex-col gap-6">
         <div className="flex flex-col gap-3">
-          <p className="text-sm text-muted md:text-eyebrow md:uppercase">Step {step} of 4</p>
+          <p className="text-sm text-muted">Step {step} of 4</p>
           <ProgressBar step={step} total={4} className="md:hidden" />
         </div>
         {confirmed && view.kind === "role" && (
