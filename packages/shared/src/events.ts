@@ -143,6 +143,43 @@ export const eventPolicySchema = z.object({
 });
 export type EventPolicyInput = z.input<typeof eventPolicySchema>;
 
+// The Payments tab (spec §6.1).
+export const paymentChannelSchema = z.enum(['gcash', 'maya', 'bank', 'other']);
+export type PaymentChannel = z.infer<typeof paymentChannelSchema>;
+
+export const paymentChannelLabels: Record<PaymentChannel, string> = {
+  gcash: 'GCash',
+  maya: 'Maya',
+  bank: 'Bank transfer',
+  other: 'Other',
+};
+
+export const eventPaymentsSchema = z.object({
+  deadlineHours: z
+    .number('Enter the hours')
+    .int('Use whole hours')
+    .min(1, 'Use at least 1 hour')
+    .max(168, 'Use at most 168 hours (7 days)'),
+  methods: z
+    .array(
+      z
+        .object({
+          id: z.uuid().optional(),
+          channel: paymentChannelSchema,
+          accountName: text(100, 'name').min(1, 'Enter the account name'),
+          accountNumber: optionalText(60),
+          qrFileId: z.uuid().nullable(),
+          notes: optionalText(300),
+        })
+        .refine((m) => m.accountNumber || m.qrFileId, {
+          path: ['accountNumber'],
+          message: 'Add the account number or a QR code',
+        }),
+    )
+    .max(10, 'Add up to 10 options'),
+});
+export type EventPaymentsInput = z.input<typeof eventPaymentsSchema>;
+
 const imageSchema = z.object({ id: z.uuid(), url: z.string() });
 
 export const eventTypeSchema = z.object({ id: z.uuid(), name: z.string(), slug: z.string() });
@@ -187,6 +224,21 @@ export const eventSetupSchema = z.object({
     copiedFrom: z.object({ id: z.uuid(), name: z.string() }).nullable(),
     // Shown on a first event until the organizer saves a policy.
     example: z.string(),
+  }),
+  payments: z.object({
+    deadlineHours: z.number().int(),
+    // Active options only.
+    methods: z.array(
+      z.object({
+        id: z.uuid(),
+        channel: paymentChannelSchema,
+        label: z.string(),
+        accountName: z.string().nullable(),
+        accountNumber: z.string().nullable(),
+        qr: imageSchema.nullable(),
+        notes: z.string().nullable(),
+      }),
+    ),
   }),
 });
 export type EventSetup = z.infer<typeof eventSetupSchema>;

@@ -508,7 +508,7 @@ erDiagram
 | id | uuid PK | |
 | event_id | uuid FK → events | |
 | channel | payment_channel | |
-| label | text | For example, "GCash, Maria". |
+| label | text | For example, "GCash, Maria". Made from the channel and account name when the option is saved. |
 | account_name, account_number | text null | |
 | qr_file_id | uuid FK → files null | QR code image. |
 | notes | text null | |

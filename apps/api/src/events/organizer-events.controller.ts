@@ -4,6 +4,7 @@ import {
   createdEventSchema,
   createEventSchema,
   eventDetailsSchema,
+  eventPaymentsSchema,
   eventPolicySchema,
   eventRequirementsSchema,
   eventSetupSchema,
@@ -65,5 +66,15 @@ export class OrganizerEventsController {
     @Body({ schema: eventPolicySchema }) body: z.output<typeof eventPolicySchema>,
   ) {
     return this.events.updatePolicy(user.id, id, body);
+  }
+
+  @Put('organizer/events/:id/payments')
+  @ResponseSchema(eventSetupSchema)
+  payments(
+    @CurrentUser() user: SessionUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body({ schema: eventPaymentsSchema }) body: z.output<typeof eventPaymentsSchema>,
+  ) {
+    return this.events.updatePayments(user.id, id, body);
   }
 }

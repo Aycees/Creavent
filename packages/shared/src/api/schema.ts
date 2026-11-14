@@ -52,6 +52,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/files/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["FilesController_open"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/files/public/{purpose}/{name}": {
         parameters: {
             query?: never;
@@ -500,6 +516,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/organizer/events/{id}/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["OrganizerEventsController_payments"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -562,7 +594,7 @@ export interface operations {
             content: {
                 "application/json": {
                     /** @enum {string} */
-                    purpose: "avatar" | "vendor_photo" | "organizer_logo" | "event_cover";
+                    purpose: "avatar" | "vendor_photo" | "organizer_logo" | "event_cover" | "payment_qr";
                     /** @enum {string} */
                     mimeType: "image/jpeg" | "image/png" | "image/webp";
                     sizeBytes: number;
@@ -624,12 +656,48 @@ export interface operations {
                         /** Format: uuid */
                         id: string;
                         /** @enum {string} */
-                        purpose: "avatar" | "vendor_photo" | "organizer_logo" | "event_cover";
+                        purpose: "avatar" | "vendor_photo" | "organizer_logo" | "event_cover" | "payment_qr";
                         url: string;
                         width: number | null;
                         height: number | null;
                     };
                 };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    FilesController_open: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Error */
             default: {
@@ -2473,6 +2541,24 @@ export interface operations {
                             } | null;
                             example: string;
                         };
+                        payments: {
+                            deadlineHours: number;
+                            methods: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                channel: "gcash" | "maya" | "bank" | "other";
+                                label: string;
+                                accountName: string | null;
+                                accountNumber: string | null;
+                                qr: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    url: string;
+                                } | null;
+                                notes: string | null;
+                            }[];
+                        };
                     };
                 };
             };
@@ -2595,6 +2681,24 @@ export interface operations {
                             } | null;
                             example: string;
                         };
+                        payments: {
+                            deadlineHours: number;
+                            methods: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                channel: "gcash" | "maya" | "bank" | "other";
+                                label: string;
+                                accountName: string | null;
+                                accountNumber: string | null;
+                                qr: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    url: string;
+                                } | null;
+                                notes: string | null;
+                            }[];
+                        };
                     };
                 };
             };
@@ -2714,6 +2818,24 @@ export interface operations {
                             } | null;
                             example: string;
                         };
+                        payments: {
+                            deadlineHours: number;
+                            methods: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                channel: "gcash" | "maya" | "bank" | "other";
+                                label: string;
+                                accountName: string | null;
+                                accountNumber: string | null;
+                                qr: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    url: string;
+                                } | null;
+                                notes: string | null;
+                            }[];
+                        };
                     };
                 };
             };
@@ -2820,6 +2942,160 @@ export interface operations {
                                 name: string;
                             } | null;
                             example: string;
+                        };
+                        payments: {
+                            deadlineHours: number;
+                            methods: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                channel: "gcash" | "maya" | "bank" | "other";
+                                label: string;
+                                accountName: string | null;
+                                accountNumber: string | null;
+                                qr: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    url: string;
+                                } | null;
+                                notes: string | null;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OrganizerEventsController_payments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    deadlineHours: number;
+                    methods: {
+                        /** Format: uuid */
+                        id?: string;
+                        /** @enum {string} */
+                        channel: "gcash" | "maya" | "bank" | "other";
+                        accountName: string;
+                        accountNumber?: string | null;
+                        /** Format: uuid */
+                        qrFileId: string | null;
+                        notes?: string | null;
+                    }[];
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        slug: string;
+                        /** @enum {string} */
+                        status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                        applicationsOpen: boolean;
+                        details: {
+                            name: string;
+                            /** Format: uuid */
+                            eventTypeId: string;
+                            description: string | null;
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            venueName: string | null;
+                            addressLine: string | null;
+                            city: string | null;
+                            cover: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            vendorContactInfo: string | null;
+                            applicationsCloseAt: string | null;
+                            ingressInfo: string | null;
+                        };
+                        eventTypes: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            slug: string;
+                        }[];
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        requirements: {
+                            categories: {
+                                /** Format: uuid */
+                                categoryId: string;
+                                maxVendors: number | null;
+                            }[];
+                            documents: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                description: string | null;
+                                /** Format: uuid */
+                                categoryId: string | null;
+                            }[];
+                        };
+                        policy: {
+                            text: string | null;
+                            copiedFrom: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            } | null;
+                            example: string;
+                        };
+                        payments: {
+                            deadlineHours: number;
+                            methods: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                channel: "gcash" | "maya" | "bank" | "other";
+                                label: string;
+                                accountName: string | null;
+                                accountNumber: string | null;
+                                qr: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    url: string;
+                                } | null;
+                                notes: string | null;
+                            }[];
                         };
                     };
                 };

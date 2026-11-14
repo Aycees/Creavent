@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Header, Inject, NotFoundException, Param, ParseUUIDPipe, Post, StreamableFile, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Header, Inject, NotFoundException, Param, ParseUUIDPipe, Post, Res, StreamableFile, UseGuards } from '@nestjs/common';
+import type { Response } from 'express';
 import { askUploadResponseSchema, askUploadSchema, uploadedFileSchema, uploadRules, type AskUploadInput } from '@creavent/shared';
 import { AuthGuard, CurrentUser, type SessionUser } from '../auth/auth.guard.js';
 import { ResponseSchema } from '../response-schema.decorator.js';
@@ -20,6 +21,15 @@ export class FilesController {
   @ResponseSchema(uploadedFileSchema)
   complete(@CurrentUser() user: SessionUser, @Param('id', ParseUUIDPipe) id: string) {
     return this.files.complete(user.id, id);
+  }
+
+  // Opens a private file: checks who is asking and sends them to an address
+  // that works for 5 minutes. Every view gets a new one (spec §11.6).
+  @Get(':id')
+  async open(@CurrentUser() user: SessionUser, @Param('id', ParseUUIDPipe) id: string, @Res() res: Response) {
+    const url = await this.files.privateUrl(user, id);
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.redirect(302, url);
   }
 }
 

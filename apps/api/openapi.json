@@ -99,7 +99,8 @@
                       "avatar",
                       "vendor_photo",
                       "organizer_logo",
-                      "event_cover"
+                      "event_cover",
+                      "payment_qr"
                     ]
                   },
                   "mimeType": {
@@ -245,7 +246,8 @@
                         "avatar",
                         "vendor_photo",
                         "organizer_logo",
-                        "event_cover"
+                        "event_cover",
+                        "payment_qr"
                       ]
                     },
                     "url": {
@@ -275,6 +277,77 @@
                 }
               }
             }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Files"
+        ]
+      }
+    },
+    "/api/files/{id}": {
+      "get": {
+        "operationId": "FilesController_open",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
           },
           "default": {
             "description": "Error",
@@ -6280,6 +6353,87 @@
                         "example"
                       ],
                       "additionalProperties": false
+                    },
+                    "payments": {
+                      "type": "object",
+                      "properties": {
+                        "deadlineHours": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "methods": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "channel": {
+                                "type": "string",
+                                "enum": [
+                                  "gcash",
+                                  "maya",
+                                  "bank",
+                                  "other"
+                                ]
+                              },
+                              "label": {
+                                "type": "string"
+                              },
+                              "accountName": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "accountNumber": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "qr": {
+                                "nullable": true,
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                  },
+                                  "url": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "url"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "notes": {
+                                "nullable": true,
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "channel",
+                              "label",
+                              "accountName",
+                              "accountNumber",
+                              "qr",
+                              "notes"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "deadlineHours",
+                        "methods"
+                      ],
+                      "additionalProperties": false
                     }
                   },
                   "required": [
@@ -6291,7 +6445,8 @@
                     "eventTypes",
                     "categories",
                     "requirements",
-                    "policy"
+                    "policy",
+                    "payments"
                   ],
                   "additionalProperties": false
                 }
@@ -6786,6 +6941,87 @@
                         "example"
                       ],
                       "additionalProperties": false
+                    },
+                    "payments": {
+                      "type": "object",
+                      "properties": {
+                        "deadlineHours": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "methods": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "channel": {
+                                "type": "string",
+                                "enum": [
+                                  "gcash",
+                                  "maya",
+                                  "bank",
+                                  "other"
+                                ]
+                              },
+                              "label": {
+                                "type": "string"
+                              },
+                              "accountName": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "accountNumber": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "qr": {
+                                "nullable": true,
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                  },
+                                  "url": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "url"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "notes": {
+                                "nullable": true,
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "channel",
+                              "label",
+                              "accountName",
+                              "accountNumber",
+                              "qr",
+                              "notes"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "deadlineHours",
+                        "methods"
+                      ],
+                      "additionalProperties": false
                     }
                   },
                   "required": [
@@ -6797,7 +7033,8 @@
                     "eventTypes",
                     "categories",
                     "requirements",
-                    "policy"
+                    "policy",
+                    "payments"
                   ],
                   "additionalProperties": false
                 }
@@ -7216,6 +7453,87 @@
                         "example"
                       ],
                       "additionalProperties": false
+                    },
+                    "payments": {
+                      "type": "object",
+                      "properties": {
+                        "deadlineHours": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "methods": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "channel": {
+                                "type": "string",
+                                "enum": [
+                                  "gcash",
+                                  "maya",
+                                  "bank",
+                                  "other"
+                                ]
+                              },
+                              "label": {
+                                "type": "string"
+                              },
+                              "accountName": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "accountNumber": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "qr": {
+                                "nullable": true,
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                  },
+                                  "url": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "url"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "notes": {
+                                "nullable": true,
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "channel",
+                              "label",
+                              "accountName",
+                              "accountNumber",
+                              "qr",
+                              "notes"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "deadlineHours",
+                        "methods"
+                      ],
+                      "additionalProperties": false
                     }
                   },
                   "required": [
@@ -7227,7 +7545,8 @@
                     "eventTypes",
                     "categories",
                     "requirements",
-                    "policy"
+                    "policy",
+                    "payments"
                   ],
                   "additionalProperties": false
                 }
@@ -7592,6 +7911,87 @@
                         "example"
                       ],
                       "additionalProperties": false
+                    },
+                    "payments": {
+                      "type": "object",
+                      "properties": {
+                        "deadlineHours": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "methods": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "channel": {
+                                "type": "string",
+                                "enum": [
+                                  "gcash",
+                                  "maya",
+                                  "bank",
+                                  "other"
+                                ]
+                              },
+                              "label": {
+                                "type": "string"
+                              },
+                              "accountName": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "accountNumber": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "qr": {
+                                "nullable": true,
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                  },
+                                  "url": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "url"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "notes": {
+                                "nullable": true,
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "channel",
+                              "label",
+                              "accountName",
+                              "accountNumber",
+                              "qr",
+                              "notes"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "deadlineHours",
+                        "methods"
+                      ],
+                      "additionalProperties": false
                     }
                   },
                   "required": [
@@ -7603,7 +8003,516 @@
                     "eventTypes",
                     "categories",
                     "requirements",
-                    "policy"
+                    "policy",
+                    "payments"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "OrganizerEvents"
+        ]
+      }
+    },
+    "/api/organizer/events/{id}/payments": {
+      "put": {
+        "operationId": "OrganizerEventsController_payments",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "deadlineHours": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 168
+                  },
+                  "methods": {
+                    "maxItems": 10,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "channel": {
+                          "type": "string",
+                          "enum": [
+                            "gcash",
+                            "maya",
+                            "bank",
+                            "other"
+                          ]
+                        },
+                        "accountName": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 100
+                        },
+                        "accountNumber": {
+                          "nullable": true,
+                          "type": "string",
+                          "maxLength": 60
+                        },
+                        "qrFileId": {
+                          "nullable": true,
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "notes": {
+                          "nullable": true,
+                          "type": "string",
+                          "maxLength": 300
+                        }
+                      },
+                      "required": [
+                        "channel",
+                        "accountName",
+                        "qrFileId"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "deadlineHours",
+                  "methods"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "slug": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "draft",
+                        "open_to_vendors",
+                        "announced",
+                        "completed",
+                        "canceled"
+                      ]
+                    },
+                    "applicationsOpen": {
+                      "type": "boolean"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "eventTypeId": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "description": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "startDate": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "endDate": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "opensAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "closesAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "venueName": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "addressLine": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "city": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "cover": {
+                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "url": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "url"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "vendorContactInfo": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "applicationsCloseAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "ingressInfo": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "eventTypeId",
+                        "description",
+                        "startDate",
+                        "endDate",
+                        "opensAt",
+                        "closesAt",
+                        "venueName",
+                        "addressLine",
+                        "city",
+                        "cover",
+                        "vendorContactInfo",
+                        "applicationsCloseAt",
+                        "ingressInfo"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "eventTypes": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "slug": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "slug"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "categories": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "name": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "requirements": {
+                      "type": "object",
+                      "properties": {
+                        "categories": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "categoryId": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "maxVendors": {
+                                "nullable": true,
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              }
+                            },
+                            "required": [
+                              "categoryId",
+                              "maxVendors"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "documents": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "categoryId": {
+                                "nullable": true,
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "description",
+                              "categoryId"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "categories",
+                        "documents"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "policy": {
+                      "type": "object",
+                      "properties": {
+                        "text": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "copiedFrom": {
+                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "example": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "text",
+                        "copiedFrom",
+                        "example"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "payments": {
+                      "type": "object",
+                      "properties": {
+                        "deadlineHours": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "methods": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "channel": {
+                                "type": "string",
+                                "enum": [
+                                  "gcash",
+                                  "maya",
+                                  "bank",
+                                  "other"
+                                ]
+                              },
+                              "label": {
+                                "type": "string"
+                              },
+                              "accountName": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "accountNumber": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "qr": {
+                                "nullable": true,
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                  },
+                                  "url": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "url"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "notes": {
+                                "nullable": true,
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "channel",
+                              "label",
+                              "accountName",
+                              "accountNumber",
+                              "qr",
+                              "notes"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "deadlineHours",
+                        "methods"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "slug",
+                    "status",
+                    "applicationsOpen",
+                    "details",
+                    "eventTypes",
+                    "categories",
+                    "requirements",
+                    "policy",
+                    "payments"
                   ],
                   "additionalProperties": false
                 }

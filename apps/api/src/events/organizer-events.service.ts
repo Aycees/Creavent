@@ -4,7 +4,9 @@ import {
   manilaParts,
   type createEventSchema,
   type eventDetailsSchema,
+  type eventPaymentsSchema,
   type eventPolicySchema,
+  paymentChannelLabels,
   type eventRequirementsSchema,
   type EventSetup,
 } from '@creavent/shared';
@@ -50,6 +52,7 @@ export class OrganizerEventsService {
           slug: await freeSlug(tx, 'event', input.name, userId),
           policyText: last?.policyText ?? null,
           policySourceEventId: last?.id ?? null,
+          paymentDeadlineHours: appConfig().defaultPaymentDeadlineHours,
         },
       });
       return { id: event.id };
@@ -65,6 +68,7 @@ export class OrganizerEventsService {
         policySource: { select: { id: true, name: true, policyText: true } },
         categories: { include: { category: true } },
         documents: { orderBy: { sortOrder: 'asc' } },
+        paymentMethods: { where: { isActive: true }, orderBy: { sortOrder: 'asc' }, include: { qrFile: true } },
       },
     });
     if (!event) throw new NotFoundException('Event not found');
@@ -113,7 +117,50 @@ export class OrganizerEventsService {
             : null,
         example: appConfig().examplePolicyText,
       },
+      payments: {
+        deadlineHours: event.paymentDeadlineHours,
+        methods: event.paymentMethods.map((m) => ({
+          id: m.id,
+          channel: m.channel,
+          label: m.label,
+          accountName: m.accountName,
+          accountNumber: m.accountNumber,
+          qr: m.qrFile ? { id: m.qrFile.id, url: this.files.fileUrl(m.qrFile) } : null,
+          notes: m.notes,
+        })),
+      },
     };
+  }
+
+  async updatePayments(userId: string, eventId: string, input: z.output<typeof eventPaymentsSchema>) {
+    await this.prisma.$transaction(async (tx) => {
+      const event = await ownEvent(tx, userId, eventId);
+      const existing = await tx.eventPaymentMethod.findMany({ where: { eventId: event.id } });
+      const byId = new Map(existing.map((m) => [m.id, m]));
+      if (input.methods.some((m) => m.id && !byId.has(m.id))) throw new BadRequestException('This payment option is not on this event');
+      for (const m of input.methods) {
+        if (m.qrFileId && m.qrFileId !== byId.get(m.id ?? '')?.qrFileId) await assertAttachable(tx, m.qrFileId, userId, 'payment_qr');
+      }
+      await tx.event.update({ where: { id: event.id }, data: { paymentDeadlineHours: input.deadlineHours } });
+      // Removed options are turned off, not deleted (data model §5.4).
+      const keep = input.methods.flatMap((m) => m.id ?? []);
+      await tx.eventPaymentMethod.updateMany({ where: { eventId: event.id, id: { notIn: keep } }, data: { isActive: false } });
+      for (const [sortOrder, m] of input.methods.entries()) {
+        const data = {
+          channel: m.channel,
+          label: `${paymentChannelLabels[m.channel]}, ${m.accountName}`,
+          accountName: m.accountName,
+          accountNumber: m.accountNumber,
+          qrFileId: m.qrFileId,
+          notes: m.notes,
+          sortOrder,
+          isActive: true,
+        };
+        if (m.id) await tx.eventPaymentMethod.update({ where: { id: m.id }, data });
+        else await tx.eventPaymentMethod.create({ data: { ...data, eventId: event.id } });
+      }
+    });
+    return this.setup(userId, eventId);
   }
 
   async updateRequirements(userId: string, eventId: string, input: z.output<typeof eventRequirementsSchema>) {

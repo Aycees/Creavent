@@ -44,6 +44,20 @@ export function setupFixture(overrides: Partial<EventSetup> = {}): EventSetup {
       documents: [{ id: "d0d0d0d0-0000-4000-8000-000000000001", name: "Barangay business clearance", description: null, categoryId: null }],
     },
     policy: { text: "Pay within 24 hours.", copiedFrom: { id: "e0e0e0e0-0000-4000-8000-000000000009", name: "Bajada Christmas Flea" }, example: "Example policy." },
+    payments: {
+      deadlineHours: 24,
+      methods: [
+        {
+          id: "a0a0a0a0-0000-4000-8000-000000000001",
+          channel: "gcash",
+          label: "GCash, Joanna L.",
+          accountName: "Joanna L.",
+          accountNumber: "0928 115 7720",
+          qr: null,
+          notes: null,
+        },
+      ],
+    },
     ...overrides,
   }
 }

@@ -23,6 +23,10 @@ export class MemoryStorage implements ObjectStorage {
     this.objects.delete(`${bucket}/${key}`);
   }
 
+  async presignGet(key: string) {
+    return `https://storage.test/private/${key}?expires=300`;
+  }
+
   publicUrl(key: string) {
     return `https://files.test/${key}`;
   }

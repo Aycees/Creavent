@@ -14,6 +14,7 @@ import { stampDate } from "@/lib/event-format"
 import { DetailsTab } from "./details-tab"
 import { RequirementsTab } from "./requirements-tab"
 import { EventStatusBadge } from "./parts"
+import { PaymentsTab } from "./payments-tab"
 import { PolicyTab } from "./policy-tab"
 import { useEventSetup } from "./queries"
 
@@ -21,6 +22,7 @@ export const setupTabs = [
   { id: "details", label: "Details" },
   { id: "requirements", label: "Requirements" },
   { id: "policy", label: "Policy" },
+  { id: "payments", label: "Payments" },
 ] as const
 export type SetupTab = (typeof setupTabs)[number]["id"]
 
@@ -91,6 +93,9 @@ function Setup({ setup }: { setup: EventSetup }) {
         </TabsContent>
         <TabsContent value="policy">
           <PolicyTab setup={setup} />
+        </TabsContent>
+        <TabsContent value="payments">
+          <PaymentsTab setup={setup} />
         </TabsContent>
       </Tabs>
     </div>

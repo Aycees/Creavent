@@ -32,6 +32,7 @@ const needsRole: Partial<Record<UploadPurpose, 'vendor' | 'organizer'>> = {
   organizer_logo: 'organizer',
   vendor_photo: 'vendor',
   event_cover: 'organizer',
+  payment_qr: 'organizer',
 };
 const incomingKey = (id: string) => `incoming/${id}`;
 
@@ -169,7 +170,7 @@ export class FilesService {
       rules.minWidth,
       rules.minHeight,
     );
-    await this.storage.put('public', file.storageKey, image.body, 'image/webp');
+    await this.storage.put(rules.private ? 'private' : 'public', file.storageKey, image.body, 'image/webp');
     await this.storage.delete('private', incomingKey(file.id));
     const ready = await this.prisma.file.update({
       where: { id: file.id },
@@ -188,7 +189,7 @@ export class FilesService {
     return {
       id: file.id,
       purpose: file.purpose as UploadPurpose,
-      url: this.storage.publicUrl(file.storageKey),
+      url: this.fileUrl(file),
       width: file.width,
       height: file.height,
     };
@@ -196,6 +197,34 @@ export class FilesService {
 
   url(storageKey: string) {
     return this.storage.publicUrl(storageKey);
+  }
+
+  // Where the app shows a file: the public address, or the API's private
+  // file route, which checks who is asking (spec §11.6).
+  fileUrl(file: Pick<File, 'id' | 'purpose' | 'storageKey'>) {
+    return uploadRules[file.purpose as UploadPurpose]?.private ? `/api/files/${file.id}` : this.storage.publicUrl(file.storageKey);
+  }
+
+  // A 5-minute address for a private file, for someone allowed to open it
+  // (data model §6.6). Anyone else gets Not found, so ids can't be probed.
+  async privateUrl(user: { id: string; isAdmin: boolean }, fileId: string) {
+    const file = await this.prisma.file.findFirst({ where: { id: fileId, status: 'ready', deletedAt: null } });
+    if (!file || !uploadRules[file.purpose as UploadPurpose]?.private || !(await this.canOpen(user, file))) {
+      throw new NotFoundException('File not found');
+    }
+    return this.storage.presignGet(file.storageKey);
+  }
+
+  private async canOpen(user: { id: string; isAdmin: boolean }, file: File) {
+    if (user.isAdmin || file.uploadedBy === user.id) return true;
+    if (file.purpose === 'payment_qr') {
+      // The event's organizer. Vendors with a slot are added with slot assignment (Phase 3).
+      const method = await this.prisma.eventPaymentMethod.findFirst({
+        where: { qrFileId: file.id, event: { organizerProfile: { userId: user.id } } },
+      });
+      return method !== null;
+    }
+    return false;
   }
 }
 
