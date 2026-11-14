@@ -11,9 +11,10 @@ import { Badge } from "@/components/ui/badge"
 import { Chip } from "@/components/ui/chip"
 import { DateStamp } from "@/components/ui/date-stamp"
 import { inputClass } from "@/components/ui/input"
+import { PhotoPlaceholder } from "@/components/ui/photo-placeholder"
 import { SearchInput } from "@/components/ui/search-input"
 import { api } from "@/lib/api"
-import { formatDateTime, formatSchedule, stampDate } from "@/lib/event-format"
+import { eventDays, formatDateTime, formatSchedule, stampDate } from "@/lib/event-format"
 import { cn } from "@/lib/utils"
 
 type When = "any" | "weekend" | "30d"
@@ -102,50 +103,69 @@ export function BrowseEvents() {
 function EventCard({ event: e }: { event: VendorEventCard }) {
   const id = React.useId()
   const schedule = formatSchedule(e)
+  const days = eventDays(e)
   return (
     // The title link stretches over the whole card, so a tap anywhere opens the
     // event while it stays one link for keyboards and screen readers.
     <article
       aria-labelledby={id}
-      className="relative flex flex-col gap-3 rounded-lg border border-border bg-surface p-4 transition-colors hover:border-border-strong hover:bg-canvas has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-focus md:flex-row md:gap-5 md:p-5"
+      className="relative flex flex-col overflow-hidden rounded-lg border border-border bg-surface transition-colors hover:border-border-strong hover:bg-canvas has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-focus md:flex-row md:gap-5 md:overflow-visible md:p-5"
     >
-      {e.startDate && <DateStamp date={stampDate(e.startDate)} className="hidden md:inline-flex" />}
-      <div className="flex min-w-0 flex-1 flex-col gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge dot={false}>{e.typeName}</Badge>
-          <Badge tone={e.status === "announced" ? "success" : "info"}>{e.status === "announced" ? "Announced" : "Open to vendors"}</Badge>
-          {e.preferredSlots && (
-            <Badge tone="today" dot={false}>
-              Choose a preferred slot
-            </Badge>
-          )}
-        </div>
-        <h2 id={id} className="text-h3">
-          <Link href={`/events/${e.slug}`} className="outline-none after:absolute after:inset-0 after:rounded-lg">
-            {e.name}
-          </Link>
-        </h2>
-        <p className="text-sm text-muted">{[schedule, e.venueName].filter(Boolean).join(" · ")}</p>
-        <p className="flex flex-wrap items-center gap-2 text-sm">
-          {e.organizer.displayName}
-          {e.organizer.approved && <ApprovedMark compact link={false} />}
-        </p>
-        {e.mySpots.map((s) => (
-          <p key={s.categoryName} className="text-sm font-medium">
-            {`${s.categoryName}: ${s.left} of ${s.max} spots left`}
-          </p>
-        ))}
+      {/* The cover as the organizer framed it (16:9), full width on phones and
+          a thumbnail beside the details on desktop. The date stamp sits on it. */}
+      <div className="relative md:w-48 md:flex-none md:self-start md:overflow-hidden md:rounded-md">
+        {e.coverUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element -- R2 addresses, already sized
+          <img src={e.coverUrl} alt="" loading="lazy" className="aspect-video w-full bg-sunken object-cover" />
+        ) : (
+          <PhotoPlaceholder />
+        )}
+        {e.startDate && (
+          <DateStamp
+            date={stampDate(e.startDate)}
+            endDay={days > 1 && e.endDate ? Number(e.endDate.slice(8)) : undefined}
+            className="absolute bottom-3 left-3 shadow-sm md:bottom-2 md:left-2"
+          />
+        )}
       </div>
-      <div className="flex flex-col gap-1 border-t border-border pt-3 md:w-56 md:border-t-0 md:border-l md:pt-0 md:pl-5">
-        <p className="text-cap text-muted">Slot fee</p>
-        <p className="text-price tabular-nums">{e.feeRange ?? "Not set"}</p>
-        <p className="text-cap text-muted">
-          {!e.acceptingApplications
-            ? "Applications closed"
-            : e.applicationsCloseAt
-              ? `Applications close ${formatDateTime(e.applicationsCloseAt)}`
-              : "Applications open"}
-        </p>
+      <div className="flex min-w-0 flex-1 flex-col gap-3 p-4 md:flex-row md:flex-wrap md:gap-5 md:p-0">
+        <div className="flex min-w-0 flex-1 flex-col gap-2 md:basis-60">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge dot={false}>{e.typeName}</Badge>
+            <Badge tone={e.status === "announced" ? "success" : "info"}>{e.status === "announced" ? "Announced" : "Open to vendors"}</Badge>
+            {e.preferredSlots && (
+              <Badge tone="today" dot={false}>
+                Choose a preferred slot
+              </Badge>
+            )}
+          </div>
+          <h2 id={id} className="text-h3">
+            <Link href={`/events/${e.slug}`} className="outline-none after:absolute after:inset-0 after:rounded-lg">
+              {e.name}
+            </Link>
+          </h2>
+          <p className="text-sm text-muted">{[schedule, e.venueName].filter(Boolean).join(" · ")}</p>
+          <p className="flex flex-wrap items-center gap-2 text-sm">
+            {e.organizer.displayName}
+            {e.organizer.approved && <ApprovedMark compact link={false} />}
+          </p>
+          {e.mySpots.map((s) => (
+            <p key={s.categoryName} className="text-sm font-medium">
+              {`${s.categoryName}: ${s.left} of ${s.max} spots left`}
+            </p>
+          ))}
+        </div>
+        <div className="flex flex-col gap-1 border-t border-border pt-3 md:w-56 md:border-t-0 md:border-l md:pt-0 md:pl-5">
+          <p className="text-cap text-muted">Slot fee</p>
+          <p className="text-price tabular-nums">{e.feeRange ?? "Not set"}</p>
+          <p className="text-cap text-muted">
+            {!e.acceptingApplications
+              ? "Applications closed"
+              : e.applicationsCloseAt
+                ? `Applications close ${formatDateTime(e.applicationsCloseAt)}`
+                : "Applications open"}
+          </p>
+        </div>
       </div>
     </article>
   )

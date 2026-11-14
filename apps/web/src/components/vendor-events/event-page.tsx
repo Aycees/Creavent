@@ -74,8 +74,11 @@ function VendorView({ event: e, preview }: { event: VendorEvent; preview: boolea
         )
       )}
 
-      <div className="flex flex-col gap-6 md:grid md:grid-cols-[minmax(0,1fr)_340px] md:items-start md:gap-8">
-        <div className="flex flex-col gap-6">
+      {/* Phones: cover and header, then the fee and Apply, then the details,
+          with the organizer's contact last. Desktop: details on the left and
+          the summary and contact in a sticky column on the right. */}
+      <div className="flex flex-col gap-6 md:grid md:grid-cols-[minmax(0,1fr)_340px] md:items-start md:gap-x-8">
+        <div className="flex flex-col gap-6 md:col-start-1">
           {/* The cover exactly as the organizer framed it, 16:9 at every width. */}
           <div className="grid aspect-video w-full place-items-center overflow-hidden rounded-lg bg-sunken text-muted">
             {/* eslint-disable-next-line @next/next/no-img-element -- R2 addresses, already sized */}
@@ -106,7 +109,54 @@ function VendorView({ event: e, preview }: { event: VendorEvent; preview: boolea
               </p>
             </div>
           </header>
+        </div>
 
+        <aside className="contents md:sticky md:top-6 md:col-start-2 md:row-span-2 md:row-start-1 md:flex md:flex-col md:gap-4">
+          <section aria-label="Summary" className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4 md:p-5">
+            <div>
+              <p className="text-cap text-muted">Slot fee</p>
+              <p className="text-price tabular-nums">{e.summary.feeRange ?? "Not set"}</p>
+            </div>
+            <dl className="flex flex-col gap-2 text-sm">
+              <div className="flex justify-between gap-3">
+                <dt className="text-muted">Applications close</dt>
+                <dd className="text-right">{e.applicationsCloseAt ? formatDateTime(e.applicationsCloseAt) : "No date set"}</dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-muted">Pay within</dt>
+                <dd className="text-right">{e.summary.deadlineHours} hours of assignment</dd>
+              </div>
+              {days > 1 && (
+                <div className="flex justify-between gap-3">
+                  <dt className="text-muted">Event runs</dt>
+                  <dd className="text-right">{days} days</dd>
+                </div>
+              )}
+              <div className="flex justify-between gap-3">
+                <dt className="text-muted">Paid to</dt>
+                <dd className="text-right">{e.summary.paidTo ? `Organizer. ${e.summary.paidTo}` : "Organizer"}</dd>
+              </div>
+            </dl>
+            {e.acceptingApplications ? (
+              <>
+                <Button asChild variant="brand" block>
+                  <Link href={`/vendor/events/${e.slug}/apply`}>Apply as vendor</Link>
+                </Button>
+                <p className="text-cap text-muted">By applying you accept the event&apos;s policy.</p>
+              </>
+            ) : (
+              <p className="rounded-md bg-sunken px-4 py-3 text-center text-label">Applications closed</p>
+            )}
+          </section>
+
+          <section aria-label="Contact the organizer" className="order-last flex flex-col gap-2 rounded-lg border border-border bg-surface p-4 md:p-5">
+            <h2 className="text-h3">Contact the organizer</h2>
+            <p className="text-cap text-muted">Shared with vendors only.</p>
+            <p className="text-sm whitespace-pre-line">{e.vendorContactInfo ?? "No contact details yet."}</p>
+          </section>
+        </aside>
+
+        <div className="flex flex-col gap-6 md:col-start-1">
           {e.description && <p className="text-body whitespace-pre-line">{e.description}</p>}
 
           <Section title="Requirements">
@@ -141,7 +191,7 @@ function VendorView({ event: e, preview }: { event: VendorEvent; preview: boolea
                     <tr key={c.id}>
                       <td className="px-4 py-3">{c.name}</td>
                       <td className="px-4 py-3 text-muted">{c.max === null ? "No limit" : `Up to ${c.max} vendors`}</td>
-                      <td className="px-4 py-3 text-right tabular-nums">{c.left ?? "—"}</td>
+                      <td className="px-4 py-3 text-right tabular-nums">{c.left ?? <span className="text-muted">No limit</span>}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -204,51 +254,6 @@ function VendorView({ event: e, preview }: { event: VendorEvent; preview: boolea
             <p className="text-cap text-muted">Written by {e.organizer.displayName}. Creavent doesn&apos;t handle payments or refunds.</p>
           </Section>
         </div>
-
-        <aside className="flex flex-col gap-4 md:sticky md:top-6">
-          <section aria-label="Summary" className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4 md:p-5">
-            <div>
-              <p className="text-cap text-muted">Slot fee</p>
-              <p className="text-price tabular-nums">{e.summary.feeRange ?? "Not set"}</p>
-            </div>
-            <dl className="flex flex-col gap-2 text-sm">
-              <div className="flex justify-between gap-3">
-                <dt className="text-muted">Applications close</dt>
-                <dd className="text-right">{e.applicationsCloseAt ? formatDateTime(e.applicationsCloseAt) : "No date set"}</dd>
-              </div>
-              <div className="flex justify-between gap-3">
-                <dt className="text-muted">Pay within</dt>
-                <dd className="text-right">{e.summary.deadlineHours} hours of assignment</dd>
-              </div>
-              {days > 1 && (
-                <div className="flex justify-between gap-3">
-                  <dt className="text-muted">Event runs</dt>
-                  <dd className="text-right">{days} days</dd>
-                </div>
-              )}
-              <div className="flex justify-between gap-3">
-                <dt className="text-muted">Paid to</dt>
-                <dd className="text-right">{e.summary.paidTo ? `Organizer. ${e.summary.paidTo}` : "Organizer"}</dd>
-              </div>
-            </dl>
-            {e.acceptingApplications ? (
-              <>
-                <Button asChild variant="brand" block>
-                  <Link href={`/vendor/events/${e.slug}/apply`}>Apply as vendor</Link>
-                </Button>
-                <p className="text-cap text-muted">By applying you accept the event&apos;s policy.</p>
-              </>
-            ) : (
-              <p className="rounded-md bg-sunken px-4 py-3 text-center text-label">Applications closed</p>
-            )}
-          </section>
-
-          <section aria-label="Contact the organizer" className="flex flex-col gap-2 rounded-lg border border-border bg-surface p-4 md:p-5">
-            <h2 className="text-h3">Contact the organizer</h2>
-            <p className="text-cap text-muted">Shared with vendors only.</p>
-            <p className="text-sm whitespace-pre-line">{e.vendorContactInfo ?? "No contact details yet."}</p>
-          </section>
-        </aside>
       </div>
     </div>
   )
