@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { DateStamp } from "@/components/ui/date-stamp"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { stampDate } from "@/lib/event-format"
+import { eventDays, stampDate } from "@/lib/event-format"
 import { DetailsTab } from "./details-tab"
 import { RequirementsTab } from "./requirements-tab"
 import { ApplicationsPanel, Checklist, DeleteDraftButton, OpenButton } from "./open-controls"
@@ -61,6 +61,7 @@ function Setup({ setup }: { setup: EventSetup }) {
   const [tab, setTab] = React.useState<SetupTab>(isTab(initial) ? initial : "details")
   const d = setup.details
   const type = setup.eventTypes.find((t) => t.id === d.eventTypeId)
+  const days = eventDays(d)
 
   function choose(next: string) {
     if (!isTab(next)) return
@@ -70,17 +71,20 @@ function Setup({ setup }: { setup: EventSetup }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center gap-4">
-        {d.startDate && <DateStamp date={stampDate(d.startDate)} />}
-        <div className="flex min-w-0 flex-[1_1_300px] flex-col gap-1">
-          <div className="flex flex-wrap items-center gap-2.5">
+      {/* The stamp stays beside the name on phones too, as on the event page. */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-center">
+        <div className="flex min-w-0 flex-1 items-start gap-4">
+          {d.startDate && <DateStamp date={stampDate(d.startDate)} endDay={days > 1 && d.endDate ? Number(d.endDate.slice(8)) : undefined} />}
+          <div className="flex min-w-0 flex-col gap-2">
             <h1 className="text-h1">{d.name}</h1>
-            <EventStatusBadge status={setup.status} />
-            {type && <Badge dot={false}>{type.name}</Badge>}
+            <div className="flex flex-wrap items-center gap-2">
+              <EventStatusBadge status={setup.status} />
+              {type && <Badge dot={false}>{type.name}</Badge>}
+            </div>
+            {setup.status === "draft" && <p className="text-sm text-muted">Only you can see this event.</p>}
           </div>
-          {setup.status === "draft" && <p className="text-sm text-muted">Only you can see this event.</p>}
         </div>
-        <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row md:items-start">
+        <div className="flex w-full flex-col gap-2 md:w-auto md:flex-none md:flex-row md:items-start">
           <Button asChild variant="secondary">
             <Link href={`/events/${setup.slug}`}>Preview as vendor</Link>
           </Button>

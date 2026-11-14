@@ -178,7 +178,7 @@ function OptionCard({
               key={c}
               type="button"
               active={channel === c}
-              className="h-10 flex-1 justify-center rounded-md px-2 md:flex-none md:px-4"
+              className="h-11 flex-1 justify-center rounded-md px-2 md:flex-none md:px-4"
               aria-label={paymentChannelLabels[c]}
               onClick={() => setValue(`methods.${index}.channel`, c, { shouldDirty: true })}
             >

@@ -93,12 +93,14 @@ function Row({ row: r }: { row: OrganizerEventRow }) {
   const days = eventDays({ ...r, opensAt: null, closesAt: null })
   const action = r.status === "draft" ? "Edit" : "Manage"
   return (
-    <article aria-labelledby={id} className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4 md:flex-row md:items-center md:gap-5">
-      <div className="flex items-start gap-3 md:flex-1">
+    // Phones: the date, name and action share the first line, the status facts
+    // run underneath. Desktop: one line, with the facts in a fixed column.
+    <article aria-labelledby={id} className="flex flex-wrap items-start gap-3 rounded-lg border border-border bg-surface p-4 md:flex-nowrap md:items-center md:gap-5">
+      <div className="flex min-w-0 flex-1 items-start gap-3">
         {r.startDate ? (
           <DateStamp date={stampDate(r.startDate)} endDay={days > 1 && r.endDate ? Number(r.endDate.slice(8)) : undefined} />
         ) : (
-          <span className="grid h-12 w-11 flex-none place-items-center rounded-md border border-dashed border-border-strong text-cap text-muted">TBA</span>
+          <span className="grid h-15 w-14 flex-none place-items-center rounded-md border border-dashed border-border-strong text-cap text-muted">TBA</span>
         )}
         <div className="flex min-w-0 flex-col gap-0.5">
           <h3 id={id} className="text-label font-semibold">
@@ -107,7 +109,7 @@ function Row({ row: r }: { row: OrganizerEventRow }) {
           <p className="text-cap text-muted">{[r.typeName, r.venueName].filter(Boolean).join(" · ")}</p>
         </div>
       </div>
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 md:w-[420px] md:flex-none">
+      <div className="order-3 flex w-full flex-wrap items-center gap-x-4 gap-y-2 border-t border-border pt-3 md:order-2 md:w-[420px] md:flex-none md:border-t-0 md:pt-0">
         <EventStatusBadge status={r.status} />
         <span className="text-sm text-muted">{slotsText(r)}</span>
         {r.nextStep && (
@@ -116,7 +118,7 @@ function Row({ row: r }: { row: OrganizerEventRow }) {
           </Badge>
         )}
       </div>
-      <Button asChild variant="secondary" className="self-start md:self-center">
+      <Button asChild variant="secondary" className="order-2 flex-none md:order-3">
         <Link href={`/organizer/events/${r.id}`} aria-label={`${action} ${r.name}`}>
           {action}
         </Link>

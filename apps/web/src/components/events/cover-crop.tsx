@@ -78,6 +78,9 @@ export function CoverCropDialog({ photo, onConfirm, onCancel }: { photo: PickedP
               width: `${(photo.width / crop.width) * 100}%`,
             }}
           />
+          {/* Thirds, to help place the subject. */}
+          <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-1/3 left-1/3 border-x border-surface/60" />
+          <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-1/3 bottom-1/3 border-y border-surface/60" />
           <span className="pointer-events-none absolute right-2 bottom-2 inline-flex items-center gap-1 rounded-sm bg-surface/90 px-2 py-1 text-cap">
             <ArrowsOutCardinalIcon aria-hidden="true" className="size-4" />
             Drag to move

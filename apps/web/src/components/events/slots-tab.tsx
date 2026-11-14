@@ -423,7 +423,7 @@ export function FloorPlanPanel({
           </span>
         </a>
       ) : (
-        <div className="grid aspect-[4/3] place-items-center rounded-md border border-dashed border-border-strong bg-canvas text-muted">
+        <div className="grid aspect-video place-items-center rounded-md border border-dashed border-border-strong bg-canvas text-muted md:aspect-[4/3]">
           <SquaresFourIcon aria-hidden="true" className="size-8" />
         </div>
       )}
