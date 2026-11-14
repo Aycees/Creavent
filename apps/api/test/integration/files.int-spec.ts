@@ -140,6 +140,26 @@ describe('file uploads', () => {
     expect(res.status).toBe(429);
   });
 
+  it('counts failed uploads toward the hourly limit', async () => {
+    const { browser } = await signedIn();
+    const tiny = await image(10, 10);
+    for (let i = 0; i < 20; i += 1) {
+      const { complete } = await uploadAvatar(browser, tiny);
+      expect(complete.status).toBe(400);
+    }
+    await prisma.file.updateMany({ data: { createdAt: new Date() } });
+    const { user } = { user: await prisma.user.findFirstOrThrow() };
+    await prisma.file.createMany({
+      data: Array.from({ length: 10 }, (_, i) => ({
+        uploadedBy: user.id, purpose: 'avatar' as const, status: 'ready' as const, storageKey: `avatar/f${i}-${user.id}.webp`, mimeType: 'image/webp', sizeBytes: 10,
+      })),
+    });
+
+    const res = await browser.post('/api/files').send({ purpose: 'avatar', mimeType: 'image/png', sizeBytes: 1000 });
+
+    expect(res.status).toBe(429);
+  });
+
   it('completes an upload: re-encodes to WebP, crops the avatar square, and removes photo metadata', async () => {
     const { browser } = await signedIn();
 
@@ -165,7 +185,10 @@ describe('file uploads', () => {
 
     expect(complete.status).toBe(400);
     expect(complete.body.message).toBe('This photo is too small. Use at least 256 x 256');
-    expect(await prisma.file.count({ where: { id: ask.body.fileId } })).toBe(0);
+    // The row stays, marked deleted, so failed uploads still count toward the
+    // hourly limit. The cleanup job removes it later.
+    const file = await prisma.file.findUniqueOrThrow({ where: { id: ask.body.fileId } });
+    expect(file.deletedAt).not.toBeNull();
     expect(storage.objects.size).toBe(0);
   });
 

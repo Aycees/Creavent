@@ -83,7 +83,7 @@ export class FilesService {
       );
     }
     const pending = await this.prisma.file.count({
-      where: { uploadedBy: userId, status: 'pending' },
+      where: { uploadedBy: userId, status: 'pending', deletedAt: null },
     });
     if (pending >= MAX_PENDING) {
       throw new HttpException(
@@ -113,7 +113,12 @@ export class FilesService {
 
   async complete(userId: string, fileId: string): Promise<UploadedFile> {
     const file = await this.prisma.file.findFirst({
-      where: { id: fileId, uploadedBy: userId, status: 'pending' },
+      where: {
+        id: fileId,
+        uploadedBy: userId,
+        status: 'pending',
+        deletedAt: null,
+      },
     });
     if (!file) throw new NotFoundException('Upload not found');
     const purpose = file.purpose as UploadPurpose;
@@ -123,7 +128,12 @@ export class FilesService {
     } catch (error) {
       if (!(error instanceof UploadRejected)) throw error;
       await this.storage.delete('private', incomingKey(file.id));
-      await this.prisma.file.delete({ where: { id: file.id } });
+      // Kept and marked deleted rather than removed, so failed uploads still
+      // count toward the hourly limit. The cleanup job removes the row later.
+      await this.prisma.file.update({
+        where: { id: file.id },
+        data: { deletedAt: new Date() },
+      });
       throw new BadRequestException(error.message);
     }
   }
