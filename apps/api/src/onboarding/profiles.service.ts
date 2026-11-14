@@ -1,7 +1,7 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import type { organizerProfileUpdateSchema, vendorProfileUpdateSchema } from '@creavent/shared';
 import type { z } from 'zod';
-import { lockOrganizer, needsReReview } from '../approvals/approval-status.js';
+import { changeApprovalStatus, lockOrganizer, needsReReview } from '../approvals/approval-status.js';
 import { assertAttachable } from '../files/files.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { OnboardingService } from './onboarding.service.js';
@@ -79,13 +79,16 @@ export class ProfilesService {
           { displayName: current.displayName, reviewedLinks: (role.reviewedLinks ?? []) as string[] },
           input,
         );
-      await tx.userRole.update({
-        where: { id: role.id },
-        data: {
-          contactEmail: input.contactEmail,
-          ...(reReview ? { approvalStatus: 'pending_review' as const, approvalSubmittedAt: new Date() } : {}),
-        },
-      });
+      await tx.userRole.update({ where: { id: role.id }, data: { contactEmail: input.contactEmail } });
+      if (reReview) {
+        await changeApprovalStatus(tx, {
+          roleId: role.id,
+          from: role.approvalStatus,
+          action: 're_review',
+          actorUserId: userId,
+          data: { approvalSubmittedAt: new Date() },
+        });
+      }
     });
     return this.onboarding.state(userId);
   }

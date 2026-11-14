@@ -11,7 +11,7 @@ import {
   type RoleType,
 } from '@creavent/shared';
 import type { z } from 'zod';
-import { assertApprovalChange, lockOrganizer } from '../approvals/approval-status.js';
+import { assertApprovalChange, changeApprovalStatus, lockOrganizer, sameLinks } from '../approvals/approval-status.js';
 import { assertAttachable, FilesService } from '../files/files.service.js';
 import { PrismaService, type Tx } from '../prisma/prisma.service.js';
 import { freeSlug, slugAvailable } from './slugs.js';
@@ -187,19 +187,22 @@ export class OnboardingService {
       await lockOrganizer(tx, userId);
       const role = await this.requireRole(tx, userId, 'organizer');
       const profile = await this.organizerProfile(tx, userId);
-      if (JSON.stringify(profile.socialLinks) !== JSON.stringify(input.socialLinks)) {
+      if (!sameLinks(profile.socialLinks, input.socialLinks)) {
         await this.assertNotReviewed(tx, userId);
       }
       await tx.organizerProfile.update({ where: { userId }, data: { socialLinks: input.socialLinks } });
       if (input.submit) {
-        assertApprovalChange(role.approvalStatus, 'pending_review');
+        assertApprovalChange(role.approvalStatus, 'submit');
         const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
         if (!user.phone || !role.contactEmail) {
           throw new BadRequestException('Add your mobile number and contact email first');
         }
-        await tx.userRole.update({
-          where: { id: role.id },
-          data: { approvalStatus: 'pending_review', approvalSubmittedAt: new Date(), rejectionReason: null },
+        await changeApprovalStatus(tx, {
+          roleId: role.id,
+          from: role.approvalStatus,
+          action: 'submit',
+          actorUserId: userId,
+          data: { approvalSubmittedAt: new Date(), rejectionReason: null },
         });
       }
       await this.reachStep(tx, userId, 'organizer', 4);

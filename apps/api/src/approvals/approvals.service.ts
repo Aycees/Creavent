@@ -1,11 +1,10 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import type { ApprovalDetail, ApprovalQueueItem } from '@creavent/shared';
-import { writeAuditLog } from '../audit/audit-log.js';
 import { appConfig } from '../config.js';
 import { FilesService } from '../files/files.service.js';
 import { OutboxService } from '../notifications/outbox.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { assertApprovalChange, lockOrganizer } from './approval-status.js';
+import { assertApprovalChange, changeApprovalStatus, lockOrganizer, sameLinks, type ReviewedFields } from './approval-status.js';
 
 const queueWhere = { role: 'organizer' as const, approvalStatus: 'pending_review' as const };
 const queueOrder = [{ approvalSubmittedAt: 'asc' as const }, { id: 'asc' as const }];
@@ -74,7 +73,7 @@ export class ApprovalsService {
   async decide(
     adminId: string,
     userId: string,
-    seen: { displayName: string; socialLinks: string[] },
+    seen: ReviewedFields,
     decision: { approve: true; note?: string | null } | { approve: false; reason: string; note?: string | null },
   ) {
     const config = appConfig();
@@ -85,34 +84,26 @@ export class ApprovalsService {
         include: { user: { include: { organizerProfile: true } } },
       });
       if (!role) throw new NotFoundException('Organizer not found');
-      const to = decision.approve ? 'approved' : 'rejected';
-      assertApprovalChange(role.approvalStatus, to);
+      const action = decision.approve ? 'approve' : 'reject';
+      assertApprovalChange(role.approvalStatus, action);
       // The organizer can edit while waiting: decide only on what the admin saw.
       const profile = role.user.organizerProfile;
-      if (
-        (profile?.displayName ?? role.user.fullName) !== seen.displayName ||
-        JSON.stringify(profile?.socialLinks ?? []) !== JSON.stringify(seen.socialLinks)
-      ) {
+      if ((profile?.displayName ?? role.user.fullName) !== seen.displayName || !sameLinks(profile?.socialLinks, seen.socialLinks)) {
         throw new ConflictException('This request changed since you opened it. Reload to see the new details.');
       }
-      await tx.userRole.update({
-        where: { id: role.id },
+      await changeApprovalStatus(tx, {
+        roleId: role.id,
+        from: role.approvalStatus,
+        action,
+        actorUserId: adminId,
+        reason: decision.approve ? null : decision.reason,
         data: {
-          approvalStatus: to,
-          reviewedById: adminId,
+          reviewedBy: { connect: { id: adminId } },
           reviewedAt: new Date(),
           rejectionReason: decision.approve ? null : decision.reason,
-          reviewedLinks: (role.user.organizerProfile?.socialLinks ?? []) as string[],
+          reviewedLinks: (profile?.socialLinks ?? []) as string[],
           ...(decision.note !== undefined && decision.note !== null ? { adminNotes: decision.note } : {}),
         },
-      });
-      await writeAuditLog(tx, {
-        actorUserId: adminId,
-        action: `organizer_approval.${decision.approve ? 'approve' : 'reject'}`,
-        entityType: 'user_role',
-        entityId: role.id,
-        changes: { approvalStatus: { from: role.approvalStatus, to } },
-        reason: decision.approve ? null : decision.reason,
       });
       const name = role.user.fullName;
       await this.outbox.queue(tx, {

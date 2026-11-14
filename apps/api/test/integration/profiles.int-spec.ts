@@ -158,13 +158,15 @@ describe('profile edit', () => {
       expect(await statusOf(user.id)).toBe('approved');
     });
 
-    it('sends an approved organizer back to review when the name changes', async () => {
+    it('sends an approved organizer back to review when the name changes, and records it', async () => {
       const { user, browser } = await organizer('approved');
 
       const res = await browser.put('/api/organizer/profile').send({ ...base, displayName: 'Someone Famous' });
 
       expect(res.body.organizer.approvalStatus).toBe('pending_review');
       expect(await statusOf(user.id)).toBe('pending_review');
+      const log = await prisma.auditLog.findFirstOrThrow({ where: { action: 'organizer_approval.re_review' } });
+      expect(log).toMatchObject({ actorUserId: user.id, changes: { approvalStatus: { from: 'approved', to: 'pending_review' } } });
     });
 
     it('sends an approved organizer back to review when a new link is added, but not when one is removed', async () => {

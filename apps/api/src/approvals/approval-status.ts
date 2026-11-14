@@ -1,26 +1,67 @@
 import { ConflictException } from '@nestjs/common';
-import type { ApprovalStatus } from '../generated/prisma/client.js';
+import { writeAuditLog } from '../audit/audit-log.js';
+import type { ApprovalStatus, Prisma } from '../generated/prisma/client.js';
 import type { Tx } from '../prisma/prisma.service.js';
 
-// The allowed organizer approval changes (spec §2.1, architecture §3.5).
-// A rejected organizer can resubmit; an approved one stays approved.
-const allowed: Record<ApprovalStatus, ApprovalStatus[]> = {
-  not_submitted: ['pending_review'],
-  pending_review: ['approved', 'rejected'],
-  rejected: ['pending_review'],
-  approved: [],
+// The organizer approval changes (spec §2.1, architecture §3.5): what each
+// action needs the status to be, and what it changes it to. A rejected
+// organizer can resubmit; an approved one goes back to review only through a
+// re-review (open question D9).
+export type ApprovalAction = 'submit' | 're_review' | 'approve' | 'reject';
+
+const actions: Record<ApprovalAction, { from: ApprovalStatus[]; to: ApprovalStatus }> = {
+  submit: { from: ['not_submitted', 'rejected'], to: 'pending_review' },
+  re_review: { from: ['approved'], to: 'pending_review' },
+  approve: { from: ['pending_review'], to: 'approved' },
+  reject: { from: ['pending_review'], to: 'rejected' },
 };
 
-export function assertApprovalChange(from: ApprovalStatus | null, to: ApprovalStatus) {
-  if (!from || !allowed[from].includes(to)) {
-    throw new ConflictException(
-      from === 'pending_review'
-        ? 'This request is already waiting for review'
-        : from === 'approved'
-          ? 'This organizer is already approved'
-          : 'This request is not waiting for review',
-    );
+// Why an action was refused, by the status it found.
+const refusals: Record<ApprovalStatus, string> = {
+  pending_review: 'This request is already waiting for review',
+  approved: 'This organizer is already approved',
+  not_submitted: 'This request is not waiting for review',
+  rejected: 'This request is not waiting for review',
+};
+
+export function assertApprovalChange(from: ApprovalStatus | null, action: ApprovalAction) {
+  if (!from || !actions[action].from.includes(from)) {
+    throw new ConflictException(refusals[from ?? 'not_submitted']);
   }
+}
+
+// The one way an approval status changes: checks the rule, writes the new
+// status with the action's other fields, and records it in the audit log, in
+// the caller's transaction.
+export async function changeApprovalStatus(
+  tx: Tx,
+  input: {
+    roleId: string;
+    from: ApprovalStatus | null;
+    action: ApprovalAction;
+    actorUserId: string;
+    data?: Prisma.UserRoleUpdateInput;
+    reason?: string | null;
+  },
+) {
+  assertApprovalChange(input.from, input.action);
+  const to = actions[input.action].to;
+  await tx.userRole.update({ where: { id: input.roleId }, data: { ...input.data, approvalStatus: to } });
+  await writeAuditLog(tx, {
+    actorUserId: input.actorUserId,
+    action: `organizer_approval.${input.action}`,
+    entityType: 'user_role',
+    entityId: input.roleId,
+    changes: { approvalStatus: { from: input.from, to } },
+    reason: input.reason ?? null,
+  });
+}
+
+// The fields an admin reviews: the name and the links.
+export type ReviewedFields = { displayName: string; socialLinks: string[] };
+
+export function sameLinks(a: unknown, b: unknown) {
+  return JSON.stringify(a ?? []) === JSON.stringify(b ?? []);
 }
 
 // An approved organizer who changes their name, or adds a link the admin
@@ -29,7 +70,7 @@ export function assertApprovalChange(from: ApprovalStatus | null, to: ApprovalSt
 export function needsReReview(
   status: ApprovalStatus | null,
   before: { displayName: string; reviewedLinks: string[] },
-  after: { displayName: string; socialLinks: string[] },
+  after: ReviewedFields,
 ) {
   if (status !== 'approved') return false;
   if (before.displayName !== after.displayName) return true;
