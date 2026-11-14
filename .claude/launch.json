@@ -4,8 +4,33 @@
     {
       "name": "web",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@creavent/web", "dev", "--port", "3100"],
+      "runtimeArgs": [
+        "--filter",
+        "@creavent/web",
+        "dev",
+        "--port",
+        "3100"
+      ],
       "port": 3100
+    },
+    {
+      "name": "api",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--filter",
+        "@creavent/api",
+        "dev"
+      ],
+      "port": 3001
+    },
+    {
+      "name": "worker",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--filter",
+        "@creavent/api",
+        "dev:worker"
+      ]
     }
   ]
 }

@@ -1,11 +1,12 @@
-import { render, screen } from "@testing-library/react"
+import { renderWithQuery as render } from "@/test-utils"
+import { screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { usePathname } from "next/navigation"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { PublicHeader } from "./public-header"
 
-vi.mock("next/navigation", () => ({ usePathname: vi.fn() }))
+vi.mock("next/navigation", () => ({ usePathname: vi.fn(), useRouter: () => ({ replace: vi.fn() }) }))
 
 beforeEach(() => vi.mocked(usePathname).mockReturnValue("/"))
 

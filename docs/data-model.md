@@ -52,7 +52,7 @@ The overview shows entities and relationships only. Each area in section 5 has i
 
 ```mermaid
 erDiagram
-    users ||--o{ auth_identities : "signs in with"
+    users ||--o{ accounts : "signs in with"
     users ||--o{ legal_acceptances : "accepts"
     users ||--o{ user_roles : "has"
 
@@ -94,7 +94,6 @@ erDiagram
 |---|---|---|
 | `role_type` | `vendor`, `organizer` | §1 |
 | `approval_status` | `not_submitted`, `pending_review`, `approved`, `rejected` | §2.1 |
-| `auth_provider` | `password`, `google` | §1 |
 | `legal_document` | `terms`, `privacy` | §1 |
 | `file_purpose` | `payment_proof`, `payment_qr`, `application_document`, `event_cover`, `vendor_floor_plan`, `public_floor_plan`, `vendor_photo`, `organizer_logo`, `avatar` | §6.5, §6.7, §11.1 |
 | `file_status` | `pending`, `ready` | §11.3 |
@@ -126,20 +125,28 @@ erDiagram
     users {
         uuid id PK
         citext email UK
-        timestamptz email_verified_at "null"
+        boolean email_verified
         text full_name
+        text image "null, from Google, unused"
         text phone "null, required to add a role"
         uuid avatar_file_id FK "null"
         boolean is_admin "default false"
-        timestamptz age_confirmed_at
+        timestamptz age_confirmed_at "null"
         timestamptz last_login_at "null"
         timestamptz deleted_at "null"
     }
-    auth_identities {
+    accounts {
         uuid id PK
         uuid user_id FK
-        auth_provider provider
-        text provider_subject "UK with provider"
+        text provider_id "UK with account_id"
+        text account_id
+        text password "null, hash"
+    }
+    sessions {
+        uuid id PK
+        uuid user_id FK
+        text token UK
+        timestamptz expires_at
     }
     legal_acceptances {
         uuid id PK
@@ -164,42 +171,44 @@ erDiagram
         text suspension_reason "null"
         int onboarding_step "null, last completed step"
     }
-    users ||--o{ auth_identities : ""
+    users ||--o{ accounts : ""
+    users ||--o{ sessions : ""
     users ||--o{ legal_acceptances : ""
     users ||--o{ user_roles : ""
 ```
 
-**users**: one login per person (spec §1).
+**users**: one login per person (spec §1). This is also Better Auth's user table: Better Auth reads and writes `id`, `email`, `email_verified`, `full_name` (its `name`), `image`, `created_at`, and `updated_at`, and the other columns are ours (decided 2026-11-13, see "Auth library tables" below).
 
 | Attribute | Type | Notes |
 |---|---|---|
 | id | uuid PK | |
-| email | citext UK | Verified at signup. Signing in with Google using the same email opens the same account. If `email_verified_at` is still null, Google sign-in sets it and removes the password (spec §1). |
-| email_verified_at | timestamptz null | Null until the email is confirmed. |
+| email | citext UK | Verified at signup. Signing in with Google using the same email opens the same account. If `email_verified` is still false, Google sign-in sets it and removes the password (spec §1). |
+| email_verified | boolean | False until the email is confirmed. A boolean because Better Auth needs one. |
+| image | text null | The Google profile picture address, set by Better Auth. Not shown in the MVP: the picture people see is `avatar_file_id`. |
 | full_name | text | |
 | phone | text null | Mobile number. Required for either role, and asked in onboarding (spec §1.1) (app check). Shown to organizers on applications, never on a public page. |
 | avatar_file_id | uuid FK → files null | The avatar or logo asked for in vendor onboarding. Shown on the public vendor page. |
 | is_admin | boolean | Default false. Set by the Creavent team only, never by signup. |
-| age_confirmed_at | timestamptz | When the user confirmed they meet the minimum age (configuration value `minimum_age`) at signup. |
+| age_confirmed_at | timestamptz null | When the user confirmed they meet the minimum age (configuration value `minimum_age`). Set at signup with email and password. A Google signup has no form, so it is null until the user confirms on `/account/legal`, which they see before any other page. |
 | last_login_at | timestamptz null | |
 | deleted_at | timestamptz null | The team deleted the account on the user's request. See below. |
 
 **Deleting an account.** There is no self-serve option in the MVP (spec §1). The user emails support, and the team runs a documented deletion script:
 
-- `email`, `full_name`, `phone`, `avatar_file_id` are cleared or replaced with placeholders ("Deleted user"). `auth_identities` rows are deleted. Profile photos are deleted. On the vendor and organizer profiles, `social_links` is cleared and `slug` is set to null, so the public page stops working. The profile rows are kept as empty shells (names and text cleared), because applications, assignments, and events point to them, like the `users` row.
+- `email`, `full_name`, `phone`, `avatar_file_id`, `image` are cleared or replaced with placeholders ("Deleted user"). `accounts` and `sessions` rows are deleted. Profile photos are deleted. On the vendor and organizer profiles, `social_links` is cleared and `slug` is set to null, so the public page stops working. The profile rows are kept as empty shells (names and text cleared), because applications, assignments, and events point to them, like the `users` row.
 - The `users` row is kept as an empty shell, because applications, payments, reports, and audit logs point to it.
 - Reports, audit logs, and legal acceptances are kept. Payment records and application documents follow the normal 90-day rule (section 8).
 - Not done while the user has an active slot assignment, or runs an event that is `open_to_vendors` or `announced`. Pending applications are withdrawn.
 - `email` is a UK, so a deleted account's email is replaced with a placeholder. The person can sign up again with the same email as a brand-new account.
 
-**auth_identities**: how a user signs in (email and password, or Google). Password hashes, verification and reset tokens, and sessions are handled by the auth library and are not modeled here. See [Architecture §12](architecture.md#12-open-points).
+**Auth library tables.** Better Auth ([Architecture §4.2](architecture.md#42-auth-library)) keeps three tables of its own next to `users`. Their columns follow Better Auth's schema and are not listed here, except the ones the app reads. They replace the `auth_identities` table and `auth_provider` enum of earlier drafts.
 
-| Attribute | Type | Notes |
-|---|---|---|
-| id | uuid PK | |
-| user_id | uuid FK → users | |
-| provider | auth_provider | |
-| provider_subject | text | Google account ID, or the email for password accounts. UK with `provider`. |
+| Table | What it holds |
+|---|---|
+| accounts | How a user signs in, one row per method. `provider_id` is `credential` (email and password, with the password hash in `password`) or `google` (with the Google account ID in `account_id`). UK (`provider_id`, `account_id`). Google sign-in removes the `credential` row of an account whose email was never verified (spec §1). |
+| sessions | One row per signed-in browser, with the cookie's token. Checked on every request, so a deleted row signs the browser out. |
+| verifications | Email verification and password reset tokens, with their expiry. |
+| sign_in_attempts | One row per sign-in try with a password (`email`, `created_at`), for the per-email lockout (architecture §4.1). Rows older than the window are deleted. Not part of Better Auth. |
 
 **legal_acceptances**: each time a user accepts a version of the terms of use or the privacy notice (spec §1). Rows are never updated or deleted, so the record shows who accepted which wording and when. Kept after account deletion, like audit logs.
 
@@ -226,6 +235,7 @@ A user whose latest acceptance is older than the current version is asked to acc
 | reviewed_by | uuid FK → users null | The admin. |
 | reviewed_at | timestamptz null | |
 | rejection_reason | text null | Shown to the organizer. Cleared on resubmission. |
+| reviewed_links | jsonb null | The organizer's links at the admin's last decision. Adding a link that isn't here sends an approved organizer back to review (spec §2.1). |
 | admin_notes | text null | Internal only. |
 | suspended_at | timestamptz null | Not null = suspended. Suspension is per role: a suspended vendor role cannot apply or manage slots, and a suspended organizer role cannot manage events or applications. The other role keeps working. |
 | suspended_by | uuid FK → users null | The admin. |
@@ -244,7 +254,7 @@ One table for every upload, so access rules and retention live in one place. Fil
 | uploaded_by | uuid FK → users | |
 | purpose | file_purpose | Decides the bucket, who can view it (section 6.6), and the stored size (spec §11.5). |
 | status | file_status | `pending` until the upload is checked and processed, then `ready`. Only `ready` files can be attached (section 6.10). |
-| storage_key | text UK | The one stored object: `<purpose>/<id>.webp` for images, `<purpose>/<id>.pdf` for PDFs. |
+| storage_key | text UK | The one stored object: `<purpose>/<id>.webp` for images, `<purpose>/<id>.pdf` for PDFs. Set at the Ask step, because the declared type decides it and the Complete step refuses a file whose real type differs. |
 | mime_type | text | Type of the stored file, not of the upload: `image/webp` or `application/pdf`. |
 | size_bytes | bigint | |
 | width, height | int null | Pixel size of the stored image. Null for PDFs. |
@@ -299,7 +309,7 @@ erDiagram
     vendor_profiles ||--o{ vendor_profile_photos : ""
 ```
 
-**categories**: the platform-wide product category list. The initial seed is Preloved clothing, Vintage, Handmade and crafts, Food and drinks, Plants, Books and toys, and Other (spec §4.1). Set in seed data and changed by a new seed or migration. A category is never deleted, only made inactive, because old events and applications point to it.
+**categories**: the platform-wide product category list. The initial list ships as a migration, because every environment needs it: Preloved clothing, Vintage, Handmade and crafts, Food and drinks, Plants, Books and toys, and Other (spec §4.1). Set in seed data and changed by a new seed or migration. A category is never deleted, only made inactive, because old events and applications point to it.
 
 | Attribute | Type | Notes |
 |---|---|---|
@@ -749,14 +759,14 @@ Moderation actions are stored where they apply: `user_roles.suspended_*` for sus
 | user_id | uuid FK → users null | |
 | to_email | citext | The address at send time. |
 | type | notification_type | See the list below. |
-| event_id | uuid FK → events null | |
+| event_id | uuid FK → events null | Added with the events table in Phase 2. |
 | related_entity_type, related_entity_id | text / uuid, null | For example, `slot_assignment` and its id. |
 | payload | jsonb | Values used in the template. |
 | status | email_status | |
 | error | text null | |
 | sent_at | timestamptz null | |
 
-`notification_type` values, one per row in spec §8.1, plus the account emails sent by the auth library: `email_verification`, `password_reset`, `organizer_approved`, `organizer_rejected`, `application_submitted`, `application_withdrawn`, `application_approved`, `application_declined`, `slot_assigned`, `slot_released`, `proof_uploaded`, `payment_approved`, `payment_rejected`, `vendor_removed`, `event_changed`, `event_canceled`, `event_hidden`.
+`notification_type` values, one per row in spec §8.1, plus the account emails sent by the auth library: `email_verification`, `email_change_confirmation` (to the old address, approving an email change), `password_reset`, `organizer_approved`, `organizer_rejected`, `application_submitted`, `application_withdrawn`, `application_approved`, `application_declined`, `slot_assigned`, `slot_released`, `proof_uploaded`, `payment_approved`, `payment_rejected`, `vendor_removed`, `event_changed`, `event_canceled`, `event_hidden`.
 
 ### 5.10 Audit log
 

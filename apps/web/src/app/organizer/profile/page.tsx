@@ -1,9 +1,9 @@
 import type { Metadata } from "next"
 
-import { PlaceholderPage } from "@/components/layout/placeholder-page"
+import { OrganizerProfileEdit } from "@/components/profile/organizer-profile-edit"
 
-export const metadata: Metadata = { title: "Profile · Creavent" }
+export const metadata: Metadata = { title: "Organizer profile · Creavent" }
 
-export default function ProfilePage() {
-  return <PlaceholderPage title="Profile" slice="1.6 (organizer onboarding)" />
+export default function OrganizerProfilePage() {
+  return <OrganizerProfileEdit />
 }

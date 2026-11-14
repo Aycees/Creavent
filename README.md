@@ -27,7 +27,7 @@ The MVP is built around flea markets and flea market organizers. The platform is
 
 ## Status
 
-Codebase set up: monorepo, web and API skeletons, and the design system from the UI mockup. No features built yet.
+Phase 1 (accounts and approval) is built on `feat/phase-1-accounts`: sign up and sign in, email verification and password reset, uploads, vendor and organizer onboarding, admin organizer approvals, and the account page. See [Development plan §10](docs/development-plan.md#10-progress).
 
 ## Development
 
@@ -35,7 +35,7 @@ Requirements: Node 24, pnpm 9, Docker (for local Postgres).
 
 ```
 apps/web         Next.js (App Router), Tailwind v4, shadcn/ui (Radix)
-apps/api         NestJS with Prisma (schema not written yet)
+apps/api         NestJS with Prisma, Better Auth, and pg-boss (the API and the worker)
 packages/shared  Zod schemas and types shared by web and api
 ```
 
@@ -45,8 +45,33 @@ First run:
 pnpm install
 cp apps/api/.env.example apps/api/.env
 pnpm db:up
+pnpm --filter @creavent/api exec prisma migrate dev
 pnpm dev
 ```
+
+In another terminal, the worker sends queued emails (after `pnpm dev` has built the API):
+
+```bash
+pnpm --filter @creavent/api dev:worker
+```
+
+Without a Resend key, set `EMAIL_DRIVER=log` in `apps/api/.env` and the worker prints each email, links included. Uploads need the R2 settings in `apps/api/.env.example`. Google sign-in shows only when `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are set.
+
+Seed accounts for every Phase 1 screen, all with `SEED_PASSWORD` from `apps/api/.env`: `admin@creavent.test` (admin), `vendor@creavent.test` (vendor), `organizer@creavent.test` (approved organizer), and `pending@`, `pending2@`, `rejected@`, `later@creavent.test` (organizers in the other approval states). Seeding again leaves existing accounts as they are.
+
+```bash
+pnpm db:seed
+```
+
+To start over with an empty local database (every account and upload record is deleted), then the seed:
+
+```bash
+pnpm db:reset
+```
+
+`db:reset` refuses to run unless `DATABASE_URL` points at this machine. Files already uploaded to R2 stay in the buckets.
+
+If another Postgres already uses port 5432, put `POSTGRES_PORT=5435` in a `.env` at the repo root and use that port in `DATABASE_URL`.
 
 The web app runs on http://localhost:3000 and forwards `/api/*` to the API on port 3001 ([Architecture §4.3](docs/architecture.md#43-sessions)).
 

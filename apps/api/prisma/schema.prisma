@@ -1,13 +1,371 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// Tables are added when the first feature needs them (docs/development-plan.md §2).
+// Names follow docs/data-model.md: snake_case tables and columns, camelCase in code.
 
 generator client {
   provider = "prisma-client"
-  output   = "../generated/prisma"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+// ─── Accounts and roles (data model §5.1) ──────────────────────────────────
+
+enum RoleType {
+  vendor
+  organizer
+
+  @@map("role_type")
+}
+
+enum ApprovalStatus {
+  not_submitted
+  pending_review
+  approved
+  rejected
+
+  @@map("approval_status")
+}
+
+enum LegalDocument {
+  terms
+  privacy
+
+  @@map("legal_document")
+}
+
+// Better Auth's user table, mapped onto ours. Better Auth owns id, fullName
+// (its `name`), email, emailVerified, image, createdAt, and updatedAt.
+model User {
+  id             String    @id @default(uuid()) @db.Uuid
+  email          String    @unique @db.Citext
+  emailVerified  Boolean   @default(false) @map("email_verified")
+  fullName       String    @map("full_name")
+  // Set by Better Auth from the Google profile. Not shown in the MVP: the
+  // avatar people see is avatarFileId.
+  image          String?
+  phone          String?
+  avatarFileId   String?   @map("avatar_file_id") @db.Uuid
+  isAdmin        Boolean   @default(false) @map("is_admin")
+  ageConfirmedAt DateTime? @map("age_confirmed_at") @db.Timestamptz
+  lastLoginAt    DateTime? @map("last_login_at") @db.Timestamptz
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  avatarFile        File?             @relation("UserAvatar", fields: [avatarFileId], references: [id])
+  sessions          Session[]
+  accounts          Account[]
+  legalAcceptances  LegalAcceptance[]
+  roles             UserRole[]        @relation("UserRoles")
+  reviewedRoles     UserRole[]        @relation("RoleReviewer")
+  suspendedRoles    UserRole[]        @relation("RoleSuspender")
+  uploadedFiles     File[]            @relation("FileUploader")
+  vendorProfile     VendorProfile?
+  organizerProfile  OrganizerProfile?
+  emails            EmailNotification[]
+  auditLogs         AuditLog[]
+
+  @@map("users")
+}
+
+// Better Auth: one row per signed-in device.
+model Session {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  token     String   @unique
+  expiresAt DateTime @map("expires_at") @db.Timestamptz
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+// Better Auth: how a user signs in. Replaces the data model's auth_identities.
+// providerId is "credential" (email and password, with the hash in password)
+// or "google" (accountId is the Google account ID).
+model Account {
+  id                    String    @id @default(uuid()) @db.Uuid
+  userId                String    @map("user_id") @db.Uuid
+  providerId            String    @map("provider_id")
+  accountId             String    @map("account_id")
+  password              String?
+  accessToken           String?   @map("access_token")
+  refreshToken          String?   @map("refresh_token")
+  idToken               String?   @map("id_token")
+  accessTokenExpiresAt  DateTime? @map("access_token_expires_at") @db.Timestamptz
+  refreshTokenExpiresAt DateTime? @map("refresh_token_expires_at") @db.Timestamptz
+  scope                 String?
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+// Better Auth: email verification and password reset tokens.
+model Verification {
+  id         String   @id @default(uuid()) @db.Uuid
+  identifier String
+  value      String
+  expiresAt  DateTime @map("expires_at") @db.Timestamptz
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@index([identifier])
+  @@map("verifications")
+}
+
+// One row per sign-in try with a password, for the per-email lockout
+// (architecture §4.1). Rows older than the lockout window are deleted.
+model SignInAttempt {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @db.Citext
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([email, createdAt])
+  @@index([createdAt])
+  @@map("sign_in_attempts")
+}
+
+// Never updated or deleted (data model §5.1).
+model LegalAcceptance {
+  id         String        @id @default(uuid()) @db.Uuid
+  userId     String        @map("user_id") @db.Uuid
+  document   LegalDocument
+  version    String
+  acceptedAt DateTime      @default(now()) @map("accepted_at") @db.Timestamptz
+  createdAt  DateTime      @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, document])
+  @@map("legal_acceptances")
+}
+
+model UserRole {
+  id                  String          @id @default(uuid()) @db.Uuid
+  userId              String          @map("user_id") @db.Uuid
+  role                RoleType
+  // Organizers only. Null for vendors.
+  approvalStatus      ApprovalStatus? @map("approval_status")
+  contactEmail        String?         @map("contact_email") @db.Citext
+  approvalSubmittedAt DateTime?       @map("approval_submitted_at") @db.Timestamptz
+  reviewedById        String?         @map("reviewed_by") @db.Uuid
+  reviewedAt          DateTime?       @map("reviewed_at") @db.Timestamptz
+  rejectionReason     String?         @map("rejection_reason")
+  // The organizer's links when the admin last decided. Adding a link that
+  // isn't here sends an approved organizer back to review (open question D9).
+  reviewedLinks       Json?           @map("reviewed_links")
+  adminNotes          String?         @map("admin_notes")
+  suspendedAt         DateTime?       @map("suspended_at") @db.Timestamptz
+  suspendedById       String?         @map("suspended_by") @db.Uuid
+  suspensionReason    String?         @map("suspension_reason")
+  // The last onboarding step completed for this role (1 to 4).
+  onboardingStep      Int?            @map("onboarding_step")
+  createdAt           DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime        @updatedAt @map("updated_at") @db.Timestamptz
+
+  user        User  @relation("UserRoles", fields: [userId], references: [id])
+  reviewedBy  User? @relation("RoleReviewer", fields: [reviewedById], references: [id])
+  suspendedBy User? @relation("RoleSuspender", fields: [suspendedById], references: [id])
+
+  @@unique([userId, role])
+  @@index([approvalStatus, approvalSubmittedAt])
+  @@map("user_roles")
+}
+
+// ─── Files (data model §5.2) ───────────────────────────────────────────────
+
+enum FilePurpose {
+  payment_proof
+  payment_qr
+  application_document
+  event_cover
+  vendor_floor_plan
+  public_floor_plan
+  vendor_photo
+  organizer_logo
+  avatar
+
+  @@map("file_purpose")
+}
+
+enum FileStatus {
+  pending
+  ready
+
+  @@map("file_status")
+}
+
+model File {
+  id          String      @id @default(uuid()) @db.Uuid
+  uploadedBy  String      @map("uploaded_by") @db.Uuid
+  purpose     FilePurpose
+  status      FileStatus  @default(pending)
+  // The final object: <purpose>/<id>.webp or <purpose>/<id>.pdf. Known at the
+  // Ask step, because the declared type decides it and must match the real one.
+  storageKey  String      @unique @map("storage_key")
+  mimeType    String      @map("mime_type")
+  sizeBytes   BigInt      @map("size_bytes")
+  width       Int?
+  height      Int?
+  deleteAfter DateTime?   @map("delete_after") @db.Timestamptz
+  deletedAt   DateTime?   @map("deleted_at") @db.Timestamptz
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz
+
+  uploader       User                 @relation("FileUploader", fields: [uploadedBy], references: [id])
+  avatarOf       User[]               @relation("UserAvatar")
+  logoOf         OrganizerProfile[]
+  vendorPhotos   VendorProfilePhoto[]
+
+  @@index([uploadedBy, status])
+  @@map("files")
+}
+
+// ─── Profiles and categories (data model §5.3) ─────────────────────────────
+
+model Category {
+  id        String  @id @default(uuid()) @db.Uuid
+  name      String  @unique
+  slug      String  @unique
+  isActive  Boolean @default(true) @map("is_active")
+  sortOrder Int     @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  vendors VendorProfileCategory[]
+
+  @@map("categories")
+}
+
+model OrganizerProfile {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @unique @map("user_id") @db.Uuid
+  displayName String   @map("display_name")
+  slug        String?  @unique
+  about       String?
+  city        String?
+  logoFileId  String?  @map("logo_file_id") @db.Uuid
+  socialLinks Json     @default("[]") @map("social_links")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  user     User  @relation(fields: [userId], references: [id])
+  logoFile File? @relation(fields: [logoFileId], references: [id])
+
+  @@map("organizer_profiles")
+}
+
+model VendorProfile {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @unique @map("user_id") @db.Uuid
+  shopName    String   @map("shop_name")
+  slug        String?  @unique
+  description String?
+  products    String?
+  city        String?
+  socialLinks Json     @default("[]") @map("social_links")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  user       User                    @relation(fields: [userId], references: [id])
+  categories VendorProfileCategory[]
+  photos     VendorProfilePhoto[]
+
+  @@map("vendor_profiles")
+}
+
+model VendorProfileCategory {
+  vendorProfileId String @map("vendor_profile_id") @db.Uuid
+  categoryId      String @map("category_id") @db.Uuid
+
+  vendorProfile VendorProfile @relation(fields: [vendorProfileId], references: [id], onDelete: Cascade)
+  category      Category      @relation(fields: [categoryId], references: [id])
+
+  @@id([vendorProfileId, categoryId])
+  @@map("vendor_profile_categories")
+}
+
+model VendorProfilePhoto {
+  id              String   @id @default(uuid()) @db.Uuid
+  vendorProfileId String   @map("vendor_profile_id") @db.Uuid
+  fileId          String   @map("file_id") @db.Uuid
+  sortOrder       Int      @map("sort_order")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  vendorProfile VendorProfile @relation(fields: [vendorProfileId], references: [id], onDelete: Cascade)
+  file          File          @relation(fields: [fileId], references: [id])
+
+  @@map("vendor_profile_photos")
+}
+
+// ─── Email notifications (data model §5.9) ─────────────────────────────────
+
+enum EmailStatus {
+  queued
+  sent
+  failed
+
+  @@map("email_status")
+}
+
+// Values are added as the features that send them are built.
+enum NotificationType {
+  email_verification
+  email_change_confirmation
+  password_reset
+  organizer_approved
+  organizer_rejected
+
+  @@map("notification_type")
+}
+
+model EmailNotification {
+  id                String           @id @default(uuid()) @db.Uuid
+  userId            String?          @map("user_id") @db.Uuid
+  toEmail           String           @map("to_email") @db.Citext
+  type              NotificationType
+  relatedEntityType String?          @map("related_entity_type")
+  relatedEntityId   String?          @map("related_entity_id") @db.Uuid
+  payload           Json
+  status            EmailStatus      @default(queued)
+  error             String?
+  sentAt            DateTime?        @map("sent_at") @db.Timestamptz
+  createdAt         DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime         @updatedAt @map("updated_at") @db.Timestamptz
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([status, createdAt])
+  @@map("email_notifications")
+}
+
+// ─── Audit log (data model §5.10) ──────────────────────────────────────────
+
+// Append-only.
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  actorUserId String   @map("actor_user_id") @db.Uuid
+  action      String
+  entityType  String   @map("entity_type")
+  entityId    String   @map("entity_id") @db.Uuid
+  changes     Json?
+  reason      String?
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  actor User @relation(fields: [actorUserId], references: [id])
+
+  @@index([entityType, entityId])
+  @@map("audit_logs")
 }

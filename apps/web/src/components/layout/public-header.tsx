@@ -2,7 +2,7 @@ import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
 import { Logo } from "@/components/ui/logo"
-import type { ShellUser } from "@/lib/placeholder-user"
+import type { ShellUser } from "@/lib/shell-user"
 import { AccountMenu } from "./account-menu"
 import { NavLink } from "./nav-link"
 

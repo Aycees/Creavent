@@ -2,7 +2,7 @@
 
 Questions found while checking that the docs line up. They are not blocking the current docs, but each one needs a decision before the related work starts (user flows, domain model, UI, development).
 
-Last updated: 2026-11-12
+Last updated: 2026-11-13
 
 How to use this file: discuss a question in a session, write the decision into the right doc ([Feature specification](feature-specification.md), [Project details](project-details.md), or [Revenue model](revenue-model.md)), then move the question to the "Resolved" section at the bottom with the date.
 
@@ -56,7 +56,7 @@ All questions in this section are resolved. See "Resolved" below.
 
 | # | Question | Suggested |
 |---|---|---|
-| I2 | **Public file domain:** the public bucket needs a custom domain on Cloudflare. R2's built-in public address is rate limited and meant for development only. | Deferred again on 2026-11-12 with E1: pick the domain first (H1), then serve public files from `files.<domain>`. Use the built-in address in development only. Needed before staging is shared with testers. |
+| I2 | **Public file domain:** the public bucket needs a custom domain on Cloudflare. R2's built-in public address is rate limited and meant for development only. | Deferred again on 2026-11-12 with E1: pick the domain first (H1), then serve public files from `files.<domain>`. Until then the API serves public pictures, because some networks block the built-in r2.dev address (found 2026-11-14). Needed before staging is shared with testers. |
 
 ## J. Public pages, onboarding, and event types
 
@@ -183,6 +183,10 @@ Decisions are written into the [Feature specification](feature-specification.md)
 | L2 | Vendors are locked in for the whole multi-day event: one slot, one price, one payment. No single-day slots. A multi-day event shows on each of its days in the calendar and "Next 7 days" strip, goes under a weekend when any of its days is that Saturday or Sunday, and matches a date filter when any of its days does. The payment deadline and applications close date are capped at the first day's opening. | 2026-11-12 |
 | L3 | Organizers add one or more payment options (GCash, bank transfer, QR, and so on). When uploading proof, the vendor selects the option they paid with, and the organizer sees it when reviewing (`payment_proofs.payment_method_id`). | 2026-11-12 |
 | L4 | The mockup fixes are made in the mockup: "Vintage" as the category name, the payment option on the proof upload and review, and screen-reader labels on the badge seals (the badges were already there). Two Friday to Sunday markets are added to the mockup as multi-day examples. | 2026-11-12 |
+
+### D9. Editing an approved organizer's name and links (resolved 2026-11-13)
+
+An approved organizer can edit everything on their organizer profile. Changing the display name, or adding a link the admin didn't review, sends them back to `pending_review`, and the "Approved by Creavent" badge hides until an admin approves again. Removing a link, and changing the page link, city, about, logo, or contact email, keep the approval. The links reviewed at each decision are kept in `user_roles.reviewed_links`. Onboarding still refuses these changes while a review is pending or after approval, because the profile page is where they are edited.
 
 ## Mockup fixes
 

@@ -13,6 +13,8 @@
     "test": "turbo run test",
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose down",
+    "db:reset": "pnpm --filter @creavent/api db:reset",
+    "db:seed": "pnpm --filter @creavent/api db:seed",
     "generate:api": "turbo run generate:api"
   },
   "devDependencies": {

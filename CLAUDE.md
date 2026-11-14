@@ -6,7 +6,7 @@ Project context and behavioral guidelines for Claude working on this codebase.
 
 ## Project
 
-Creavent is a web platform that brings vendor-based community events together. Roles: organizers, vendors, attendees. The MVP focuses on flea markets. Status: codebase set up (pnpm + Turborepo monorepo, design system in `apps/web`), no features built yet. See `README.md` for development and `docs/` for details.
+Creavent is a web platform that brings vendor-based community events together. Roles: organizers, vendors, attendees. The MVP focuses on flea markets. Status: Phase 1 (accounts and approval) built on `feat/phase-1-accounts`. Development goes one phase per branch and PR (`docs/development-plan.md`). See `README.md` for development and `docs/` for details.
 
 ---
 

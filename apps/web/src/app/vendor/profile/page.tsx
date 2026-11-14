@@ -1,9 +1,9 @@
 import type { Metadata } from "next"
 
-import { PlaceholderPage } from "@/components/layout/placeholder-page"
+import { VendorProfileEdit } from "@/components/profile/vendor-profile-edit"
 
-export const metadata: Metadata = { title: "Profile · Creavent" }
+export const metadata: Metadata = { title: "Shop profile · Creavent" }
 
-export default function ProfilePage() {
-  return <PlaceholderPage title="Profile" slice="1.5 (vendor onboarding)" />
+export default function VendorProfilePage() {
+  return <VendorProfileEdit />
 }

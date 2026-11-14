@@ -1,4 +1,4 @@
-import type { PrismaClient } from '../../generated/prisma/client.js';
+import type { PrismaClient } from '../../src/generated/prisma/client.js';
 import { createTestPrisma, resetDatabase } from './db.js';
 
 describe('integration database', () => {

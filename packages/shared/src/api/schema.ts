@@ -20,6 +20,390 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["FilesController_ask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/files/{id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["FilesController_complete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/files/public/{purpose}/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PublicFilesController_picture"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AccountsController_me"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["AccountsController_updateProfile"];
+        trace?: never;
+    };
+    "/api/me/avatar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["AccountsController_updateAvatar"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/account": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AccountsController_details"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/me/legal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AccountsController_acceptLegal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AccountsController_publicConfig"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/onboarding": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OnboardingController_state"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/onboarding/roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["OnboardingController_roles"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/onboarding/vendor/shop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["OnboardingController_vendorShop"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/onboarding/vendor/photos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["OnboardingController_vendorPhotos"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/onboarding/vendor/contact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["OnboardingController_vendorContact"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/onboarding/organizer/page": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["OnboardingController_organizerPage"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/onboarding/organizer/contact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["OnboardingController_organizerContact"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/onboarding/organizer/approval": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OnboardingController_organizerApproval"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ProfilesController_state"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/profile/slug-available": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ProfilesController_slugAvailable"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vendor/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["ProfilesController_vendor"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organizer/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["ProfilesController_organizer"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/approvals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ApprovalsController_queue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/approvals/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ApprovalsController_detail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/approvals/{userId}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ApprovalsController_approve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/approvals/{userId}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ApprovalsController_reject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -49,6 +433,1759 @@ export interface operations {
                     "application/json": {
                         /** @enum {string} */
                         status: "ok";
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    FilesController_ask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    purpose: "avatar" | "vendor_photo" | "organizer_logo";
+                    /** @enum {string} */
+                    mimeType: "image/jpeg" | "image/png" | "image/webp";
+                    sizeBytes: number;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        fileId: string;
+                        uploadUrl: string;
+                        headers: {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    FilesController_complete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** @enum {string} */
+                        purpose: "avatar" | "vendor_photo" | "organizer_logo";
+                        url: string;
+                        width: number | null;
+                        height: number | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    PublicFilesController_picture: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                purpose: string;
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    AccountsController_me: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        fullName: string;
+                        email: string;
+                        phone: string | null;
+                        avatarUrl: string | null;
+                        isAdmin: boolean;
+                        needsLegal: boolean;
+                        hasPassword: boolean;
+                        roles: {
+                            /** @enum {string} */
+                            role: "vendor" | "organizer";
+                            /** @enum {string|null} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected" | null;
+                            rejectionReason: string | null;
+                            onboardingStep: number | null;
+                            suspended: boolean;
+                            suspensionReason: string | null;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    AccountsController_updateProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    fullName: string;
+                    phone?: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        fullName: string;
+                        email: string;
+                        phone: string | null;
+                        avatarUrl: string | null;
+                        isAdmin: boolean;
+                        needsLegal: boolean;
+                        hasPassword: boolean;
+                        roles: {
+                            /** @enum {string} */
+                            role: "vendor" | "organizer";
+                            /** @enum {string|null} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected" | null;
+                            rejectionReason: string | null;
+                            onboardingStep: number | null;
+                            suspended: boolean;
+                            suspensionReason: string | null;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    AccountsController_updateAvatar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    avatarFileId: string | null;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        fullName: string;
+                        email: string;
+                        phone: string | null;
+                        avatarUrl: string | null;
+                        isAdmin: boolean;
+                        needsLegal: boolean;
+                        hasPassword: boolean;
+                        roles: {
+                            /** @enum {string} */
+                            role: "vendor" | "organizer";
+                            /** @enum {string|null} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected" | null;
+                            rejectionReason: string | null;
+                            onboardingStep: number | null;
+                            suspended: boolean;
+                            suspensionReason: string | null;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    AccountsController_details: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        passwordChangedAt: string | null;
+                        googleLinked: boolean;
+                        legal: {
+                            /** @enum {string} */
+                            document: "terms" | "privacy";
+                            version: string;
+                            acceptedAt: string;
+                        }[];
+                        vendor: {
+                            shopName: string;
+                            since: string;
+                        } | null;
+                        organizer: {
+                            displayName: string;
+                            since: string;
+                        } | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    AccountsController_acceptLegal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {boolean} */
+                    ageConfirmed: true;
+                    /** @enum {boolean} */
+                    acceptLegal: true;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        fullName: string;
+                        email: string;
+                        phone: string | null;
+                        avatarUrl: string | null;
+                        isAdmin: boolean;
+                        needsLegal: boolean;
+                        hasPassword: boolean;
+                        roles: {
+                            /** @enum {string} */
+                            role: "vendor" | "organizer";
+                            /** @enum {string|null} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected" | null;
+                            rejectionReason: string | null;
+                            onboardingStep: number | null;
+                            suspended: boolean;
+                            suspensionReason: string | null;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    AccountsController_publicConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        termsVersion: string;
+                        privacyVersion: string;
+                        minimumAge: number;
+                        supportEmail: string;
+                        googleSignIn: boolean;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OnboardingController_state: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        phone: string | null;
+                        avatar: {
+                            /** Format: uuid */
+                            id: string;
+                            url: string;
+                        } | null;
+                        vendor: {
+                            shopName: string;
+                            slug: string | null;
+                            categoryIds: string[];
+                            description: string | null;
+                            products: string | null;
+                            photos: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            }[];
+                            socialLinks: string[];
+                        } | null;
+                        organizer: {
+                            displayName: string;
+                            slug: string | null;
+                            logo: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            city: string | null;
+                            about: string | null;
+                            socialLinks: string[];
+                            contactEmail: string | null;
+                            /** @enum {string} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            approvalSubmittedAt: string | null;
+                            reviewedAt: string | null;
+                            rejectionReason: string | null;
+                            reviewedLinks: string[];
+                        } | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OnboardingController_roles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    roles: ("vendor" | "organizer")[];
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        phone: string | null;
+                        avatar: {
+                            /** Format: uuid */
+                            id: string;
+                            url: string;
+                        } | null;
+                        vendor: {
+                            shopName: string;
+                            slug: string | null;
+                            categoryIds: string[];
+                            description: string | null;
+                            products: string | null;
+                            photos: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            }[];
+                            socialLinks: string[];
+                        } | null;
+                        organizer: {
+                            displayName: string;
+                            slug: string | null;
+                            logo: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            city: string | null;
+                            about: string | null;
+                            socialLinks: string[];
+                            contactEmail: string | null;
+                            /** @enum {string} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            approvalSubmittedAt: string | null;
+                            reviewedAt: string | null;
+                            rejectionReason: string | null;
+                            reviewedLinks: string[];
+                        } | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OnboardingController_vendorShop: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    shopName: string;
+                    categoryIds: string[];
+                    description?: string | null;
+                    products?: string | null;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        phone: string | null;
+                        avatar: {
+                            /** Format: uuid */
+                            id: string;
+                            url: string;
+                        } | null;
+                        vendor: {
+                            shopName: string;
+                            slug: string | null;
+                            categoryIds: string[];
+                            description: string | null;
+                            products: string | null;
+                            photos: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            }[];
+                            socialLinks: string[];
+                        } | null;
+                        organizer: {
+                            displayName: string;
+                            slug: string | null;
+                            logo: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            city: string | null;
+                            about: string | null;
+                            socialLinks: string[];
+                            contactEmail: string | null;
+                            /** @enum {string} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            approvalSubmittedAt: string | null;
+                            reviewedAt: string | null;
+                            rejectionReason: string | null;
+                            reviewedLinks: string[];
+                        } | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OnboardingController_vendorPhotos: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    avatarFileId: string | null;
+                    photoFileIds: string[];
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        phone: string | null;
+                        avatar: {
+                            /** Format: uuid */
+                            id: string;
+                            url: string;
+                        } | null;
+                        vendor: {
+                            shopName: string;
+                            slug: string | null;
+                            categoryIds: string[];
+                            description: string | null;
+                            products: string | null;
+                            photos: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            }[];
+                            socialLinks: string[];
+                        } | null;
+                        organizer: {
+                            displayName: string;
+                            slug: string | null;
+                            logo: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            city: string | null;
+                            about: string | null;
+                            socialLinks: string[];
+                            contactEmail: string | null;
+                            /** @enum {string} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            approvalSubmittedAt: string | null;
+                            reviewedAt: string | null;
+                            rejectionReason: string | null;
+                            reviewedLinks: string[];
+                        } | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OnboardingController_vendorContact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    phone: string;
+                    socialLinks: string[];
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        phone: string | null;
+                        avatar: {
+                            /** Format: uuid */
+                            id: string;
+                            url: string;
+                        } | null;
+                        vendor: {
+                            shopName: string;
+                            slug: string | null;
+                            categoryIds: string[];
+                            description: string | null;
+                            products: string | null;
+                            photos: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            }[];
+                            socialLinks: string[];
+                        } | null;
+                        organizer: {
+                            displayName: string;
+                            slug: string | null;
+                            logo: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            city: string | null;
+                            about: string | null;
+                            socialLinks: string[];
+                            contactEmail: string | null;
+                            /** @enum {string} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            approvalSubmittedAt: string | null;
+                            reviewedAt: string | null;
+                            rejectionReason: string | null;
+                            reviewedLinks: string[];
+                        } | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OnboardingController_organizerPage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    displayName: string;
+                    slug: string;
+                    /** Format: uuid */
+                    logoFileId: string | null;
+                    city?: string | null;
+                    about?: string | null;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        phone: string | null;
+                        avatar: {
+                            /** Format: uuid */
+                            id: string;
+                            url: string;
+                        } | null;
+                        vendor: {
+                            shopName: string;
+                            slug: string | null;
+                            categoryIds: string[];
+                            description: string | null;
+                            products: string | null;
+                            photos: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            }[];
+                            socialLinks: string[];
+                        } | null;
+                        organizer: {
+                            displayName: string;
+                            slug: string | null;
+                            logo: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            city: string | null;
+                            about: string | null;
+                            socialLinks: string[];
+                            contactEmail: string | null;
+                            /** @enum {string} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            approvalSubmittedAt: string | null;
+                            reviewedAt: string | null;
+                            rejectionReason: string | null;
+                            reviewedLinks: string[];
+                        } | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OnboardingController_organizerContact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    phone: string;
+                    /** Format: email */
+                    contactEmail: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        phone: string | null;
+                        avatar: {
+                            /** Format: uuid */
+                            id: string;
+                            url: string;
+                        } | null;
+                        vendor: {
+                            shopName: string;
+                            slug: string | null;
+                            categoryIds: string[];
+                            description: string | null;
+                            products: string | null;
+                            photos: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            }[];
+                            socialLinks: string[];
+                        } | null;
+                        organizer: {
+                            displayName: string;
+                            slug: string | null;
+                            logo: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            city: string | null;
+                            about: string | null;
+                            socialLinks: string[];
+                            contactEmail: string | null;
+                            /** @enum {string} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            approvalSubmittedAt: string | null;
+                            reviewedAt: string | null;
+                            rejectionReason: string | null;
+                            reviewedLinks: string[];
+                        } | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OnboardingController_organizerApproval: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    socialLinks: string[];
+                    submit: boolean;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        phone: string | null;
+                        avatar: {
+                            /** Format: uuid */
+                            id: string;
+                            url: string;
+                        } | null;
+                        vendor: {
+                            shopName: string;
+                            slug: string | null;
+                            categoryIds: string[];
+                            description: string | null;
+                            products: string | null;
+                            photos: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            }[];
+                            socialLinks: string[];
+                        } | null;
+                        organizer: {
+                            displayName: string;
+                            slug: string | null;
+                            logo: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            city: string | null;
+                            about: string | null;
+                            socialLinks: string[];
+                            contactEmail: string | null;
+                            /** @enum {string} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            approvalSubmittedAt: string | null;
+                            reviewedAt: string | null;
+                            rejectionReason: string | null;
+                            reviewedLinks: string[];
+                        } | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    ProfilesController_state: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        phone: string | null;
+                        avatar: {
+                            /** Format: uuid */
+                            id: string;
+                            url: string;
+                        } | null;
+                        vendor: {
+                            shopName: string;
+                            slug: string | null;
+                            categoryIds: string[];
+                            description: string | null;
+                            products: string | null;
+                            photos: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            }[];
+                            socialLinks: string[];
+                        } | null;
+                        organizer: {
+                            displayName: string;
+                            slug: string | null;
+                            logo: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            city: string | null;
+                            about: string | null;
+                            socialLinks: string[];
+                            contactEmail: string | null;
+                            /** @enum {string} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            approvalSubmittedAt: string | null;
+                            reviewedAt: string | null;
+                            rejectionReason: string | null;
+                            reviewedLinks: string[];
+                        } | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    ProfilesController_slugAvailable: {
+        parameters: {
+            query: {
+                kind: string;
+                slug: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        available: boolean;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    ProfilesController_vendor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    shopName: string;
+                    categoryIds: string[];
+                    description?: string | null;
+                    products?: string | null;
+                    slug: string;
+                    /** Format: uuid */
+                    avatarFileId: string | null;
+                    photoFileIds: string[];
+                    socialLinks: string[];
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        phone: string | null;
+                        avatar: {
+                            /** Format: uuid */
+                            id: string;
+                            url: string;
+                        } | null;
+                        vendor: {
+                            shopName: string;
+                            slug: string | null;
+                            categoryIds: string[];
+                            description: string | null;
+                            products: string | null;
+                            photos: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            }[];
+                            socialLinks: string[];
+                        } | null;
+                        organizer: {
+                            displayName: string;
+                            slug: string | null;
+                            logo: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            city: string | null;
+                            about: string | null;
+                            socialLinks: string[];
+                            contactEmail: string | null;
+                            /** @enum {string} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            approvalSubmittedAt: string | null;
+                            reviewedAt: string | null;
+                            rejectionReason: string | null;
+                            reviewedLinks: string[];
+                        } | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    ProfilesController_organizer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    displayName: string;
+                    slug: string;
+                    /** Format: uuid */
+                    logoFileId: string | null;
+                    city?: string | null;
+                    about?: string | null;
+                    socialLinks: string[];
+                    /** Format: email */
+                    contactEmail: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        phone: string | null;
+                        avatar: {
+                            /** Format: uuid */
+                            id: string;
+                            url: string;
+                        } | null;
+                        vendor: {
+                            shopName: string;
+                            slug: string | null;
+                            categoryIds: string[];
+                            description: string | null;
+                            products: string | null;
+                            photos: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            }[];
+                            socialLinks: string[];
+                        } | null;
+                        organizer: {
+                            displayName: string;
+                            slug: string | null;
+                            logo: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            city: string | null;
+                            about: string | null;
+                            socialLinks: string[];
+                            contactEmail: string | null;
+                            /** @enum {string} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            approvalSubmittedAt: string | null;
+                            reviewedAt: string | null;
+                            rejectionReason: string | null;
+                            reviewedLinks: string[];
+                        } | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    ApprovalsController_queue: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            /** Format: uuid */
+                            userId: string;
+                            displayName: string;
+                            city: string | null;
+                            linksCount: number;
+                            submittedAt: string;
+                            resubmission: boolean;
+                            businessDaysWaiting: number;
+                            daysOverTarget: number;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    ApprovalsController_detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        userId: string;
+                        displayName: string;
+                        slug: string | null;
+                        city: string | null;
+                        about: string | null;
+                        logoUrl: string | null;
+                        socialLinks: string[];
+                        fullName: string;
+                        loginEmail: string;
+                        contactEmail: string | null;
+                        phone: string | null;
+                        accountCreatedAt: string;
+                        roles: ("vendor" | "organizer")[];
+                        /** @enum {string} */
+                        status: "not_submitted" | "pending_review" | "approved" | "rejected";
+                        submittedAt: string | null;
+                        reviewedAt: string | null;
+                        rejectionReason: string | null;
+                        adminNotes: string | null;
+                        queue: {
+                            position: number | null;
+                            total: number;
+                            /** Format: uuid */
+                            nextUserId: string | null;
+                        };
+                        businessDaysWaiting: number;
+                        daysOverTarget: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    ApprovalsController_approve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    note?: string | null;
+                    seen: {
+                        displayName: string;
+                        socialLinks: string[];
+                    };
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        userId: string;
+                        displayName: string;
+                        slug: string | null;
+                        city: string | null;
+                        about: string | null;
+                        logoUrl: string | null;
+                        socialLinks: string[];
+                        fullName: string;
+                        loginEmail: string;
+                        contactEmail: string | null;
+                        phone: string | null;
+                        accountCreatedAt: string;
+                        roles: ("vendor" | "organizer")[];
+                        /** @enum {string} */
+                        status: "not_submitted" | "pending_review" | "approved" | "rejected";
+                        submittedAt: string | null;
+                        reviewedAt: string | null;
+                        rejectionReason: string | null;
+                        adminNotes: string | null;
+                        queue: {
+                            position: number | null;
+                            total: number;
+                            /** Format: uuid */
+                            nextUserId: string | null;
+                        };
+                        businessDaysWaiting: number;
+                        daysOverTarget: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    ApprovalsController_reject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    reason: string;
+                    note?: string | null;
+                    seen: {
+                        displayName: string;
+                        socialLinks: string[];
+                    };
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        userId: string;
+                        displayName: string;
+                        slug: string | null;
+                        city: string | null;
+                        about: string | null;
+                        logoUrl: string | null;
+                        socialLinks: string[];
+                        fullName: string;
+                        loginEmail: string;
+                        contactEmail: string | null;
+                        phone: string | null;
+                        accountCreatedAt: string;
+                        roles: ("vendor" | "organizer")[];
+                        /** @enum {string} */
+                        status: "not_submitted" | "pending_review" | "approved" | "rejected";
+                        submittedAt: string | null;
+                        reviewedAt: string | null;
+                        rejectionReason: string | null;
+                        adminNotes: string | null;
+                        queue: {
+                            position: number | null;
+                            total: number;
+                            /** Format: uuid */
+                            nextUserId: string | null;
+                        };
+                        businessDaysWaiting: number;
+                        daysOverTarget: number;
                     };
                 };
             };

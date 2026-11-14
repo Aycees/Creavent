@@ -2,7 +2,7 @@
 
 **Status:** Draft for MVP. The MVP is centered on organizers (flea market organizers first) and kept as simple as possible: features that are not needed to run a first event are deferred (section 9). For a short summary, see [Project details](project-details.md). For the payment approach, see [Revenue model](revenue-model.md).
 
-Last updated: 2026-11-12
+Last updated: 2026-11-13
 
 ## 1. Roles and accounts
 
@@ -110,6 +110,8 @@ Approval states (organizer role only): `not submitted` → `pending review` → 
 **"Approved by Creavent" badge:** shown on the organizer page, event pages, and event cards. Wherever it appears, it links to a short explanation: Creavent reviewed this organizer's public pages and past events. It is not a guarantee. There is no "verified" wording anywhere in the MVP.
 
 **Links shown in public:** the links the organizer submits for approval are saved as the social links on their organizer page (section 7.1). The onboarding step says so.
+
+**Editing after approval:** an approved organizer edits their profile freely. Changing the display name, or adding a link that wasn't reviewed, sends them back to pending review, and the badge hides until an admin approves again. Removing a link, or changing the page link, city, about, logo, or contact email, keeps the approval (decided 2026-11-13, open question D9).
 
 **Suspended roles:** an admin suspends one role at a time (vendor or organizer), with a reason that the user sees in the app. A suspended vendor cannot apply or manage slots, and their vendor page is not shown (section 7.2). A suspended organizer cannot manage events or applications, and their organizer page is not shown (section 7.1). The user's other role keeps working. Organizers of events a suspended vendor joined are not emailed automatically. When an organizer with upcoming events is suspended, an admin hides those events and emails the affected vendors from the support address. There is no automatic freeze in the MVP.
 

@@ -2,7 +2,7 @@
 
 **Status:** Decided for the MVP. Agreed on 2026-11-11. It follows the [Feature specification](feature-specification.md) and the [Data model](data-model.md). If this file and the spec disagree, the spec wins.
 
-Last updated: 2026-11-12
+Last updated: 2026-11-13
 
 ## Contents
 
@@ -108,16 +108,23 @@ Users sign up and sign in in one of two ways:
 Password accounts also need:
 
 - A **forgot password** flow: an email with a reset link that expires.
-- **Rate limits and a short lockout** on failed logins.
+- **Rate limits and a short lockout** on failed logins: per client IP, and per email (5 failed tries lock that email for 15 minutes, from any address; a password reset lifts the lock). The per-email lock means someone who knows an email can lock it out for 15 minutes; that is accepted for the MVP, because it is what stops guessing from many addresses. The client IP is the right-most `X-Forwarded-For` entry not added by our own proxies (the Next.js server and Render's private network), so addresses a client makes up are ignored. Check on staging that Render's proxy hops are private addresses, or the IP limit falls back to one shared bucket.
 - Password hashing, which Better Auth handles.
 
 There is no magic-link sign-in.
 
-Signup also records the accepted terms and privacy versions (`legal_acceptances`) and the age confirmation. The signup page's "Sell at events" or "Run events" choice only pre-selects the role in onboarding (spec §1). It is not stored. A signed-in user whose accepted version is older than the current one is sent to `/account/legal` before any other page (spec §1).
+Signup also records the accepted terms and privacy versions (`legal_acceptances`) and the age confirmation. A Google signup has no form, so those are asked on `/account/legal` right after it (decided 2026-11-13). The signup page's "Sell at events" or "Run events" choice only pre-selects the role in onboarding (spec §1). It is not stored. A signed-in user whose accepted version is older than the current one is sent to `/account/legal` before any other page (spec §1).
 
 ### 4.2 Auth library
 
 Better Auth runs inside the NestJS API with its Prisma adapter. It handles Google sign-in, password hashing, email verification, password reset, and sessions. Auth emails go through the same outbox as other emails (section 6.2). If Better Auth stops fitting, the fallback is our own auth with Passport.
+
+How it maps onto the data model (decided 2026-11-13):
+
+- Better Auth's user table is our `users` table. Its `name` is `full_name`, and its ids are uuids made by Postgres. Our own columns (`phone`, `is_admin`, `age_confirmed_at`, and the rest) are declared to it as extra fields that signup can't set.
+- Its `account` table replaces `auth_identities`, and it adds `sessions` and `verifications` ([Data model §5.1](data-model.md#51-accounts-and-roles)).
+- Its handler is mounted at `/api/auth/*` before Nest's body parser. Everything else under `/api` is ours.
+- **Google and an unverified account.** Better Auth links a Google sign-in to an existing account with the same email. Spec §1 wants this even when the account's email was never verified, and then removes its password. That needs `requireLocalEmailVerified: false`, which Better Auth marks as deprecated. A hook on the new Google account deletes the old `credential` account in that case. If a Better Auth upgrade removes the option, this rule needs a new approach.
 
 ### 4.3 Sessions
 
@@ -184,7 +191,7 @@ No websockets and no polling in the MVP. Signed-in screens refetch when the tab 
 The upload rules are in [Feature specification §11](feature-specification.md#11-file-uploads). This section only adds the technical choices.
 
 - **Upload:** Ask, Upload, Complete, Attach, as in spec §11.3. The browser uploads straight to the `incoming/` area of the private bucket with a signed URL. On Complete, the API checks the real file type (from the file's first bytes) and the size.
-- **Buckets:** the public and private buckets of spec §11.2, plus a third private bucket per environment for database backups (section 9.3). The public bucket uses R2's built-in address in development and a custom domain once one exists (open question I2).
+- **Buckets:** the public and private buckets of spec §11.2, plus a third private bucket per environment for database backups (section 9.3). Until the public bucket has a custom domain (open question I2), the API serves its pictures at `/api/files/public/<purpose>/<id>.webp`. R2's built-in r2.dev address is not used, because some networks block it.
 - **Processing:** the API uses sharp during the Complete step, with a limit on how many images it processes at once (spec §11.5). Re-encoding to WebP **removes all photo metadata, including the GPS location**, which matters most for permits and payment screenshots. HEIC is not accepted in the MVP (spec §11.1).
 - File paths are never reused. Replacing a file creates a new one.
 
@@ -246,5 +253,5 @@ The assignment and payment rules are where the product can break, so most tests 
 
 ## 12. Open points
 
-- **Better Auth and the data model.** Better Auth has its own `user`, `session`, `account`, and `verification` tables. Its `user` table must be mapped onto our `users` table, and its `account` table likely replaces `auth_identities`. Settle this when writing the Prisma schema, then update the [Data model](data-model.md).
 - **Domain, sending domain, and public file domain** wait for H1, E1, and I2.
+- **Signed-in pages read the session in the browser.** The layouts always render the page and keep it hidden until `/api/me` answers, so Next.js can still prerender each page. Reading the session on the server, as Next.js's "Authentication with Cache Components" guide describes, would remove the short loading step.
