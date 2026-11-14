@@ -447,7 +447,7 @@ erDiagram
 | is_active | boolean | Inactive types can't be picked for new events or shown as a filter. |
 | sort_order | int | |
 
-**events** (spec §3.1)
+**events** (spec §3.1). A draft starts from a name and a type (decided 2026-11-14), so the description, dates, venue, and contact columns are null until the organizer fills them. The "Open to vendors" checklist requires them before opening.
 
 | Attribute | Type | Notes |
 |---|---|---|

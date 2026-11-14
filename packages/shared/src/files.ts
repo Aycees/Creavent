@@ -3,7 +3,7 @@ import { z } from 'zod';
 // Upload rules (spec §11.1). Each feature adds its purposes when it is built.
 export const imageMimeTypes = ['image/jpeg', 'image/png', 'image/webp'] as const;
 
-export const uploadPurposeSchema = z.enum(['avatar', 'vendor_photo', 'organizer_logo']);
+export const uploadPurposeSchema = z.enum(['avatar', 'vendor_photo', 'organizer_logo', 'event_cover']);
 export type UploadPurpose = z.infer<typeof uploadPurposeSchema>;
 
 const MB = 1024 * 1024;
@@ -15,6 +15,7 @@ export const uploadRules: Record<
   avatar: { maxBytes: 5 * MB, minWidth: 256, minHeight: 256, label: 'Avatar' },
   organizer_logo: { maxBytes: 5 * MB, minWidth: 256, minHeight: 256, label: 'Logo' },
   vendor_photo: { maxBytes: 10 * MB, label: 'Photo' },
+  event_cover: { maxBytes: 10 * MB, minWidth: 1280, minHeight: 720, label: 'Cover' },
 };
 
 // Step 1, Ask: what the browser is about to upload.

@@ -8,14 +8,16 @@ export const RESERVED_SLUGS = new Set([
   'terms', 'privacy', 'help', 'creavent',
 ]);
 
-type Kind = 'vendor' | 'organizer';
+type Kind = 'vendor' | 'organizer' | 'event';
 
 async function isTaken(tx: Tx, kind: Kind, slug: string, userId: string) {
   const where = { slug, NOT: { userId } };
   const found =
     kind === 'vendor'
       ? await tx.vendorProfile.findFirst({ where, select: { id: true } })
-      : await tx.organizerProfile.findFirst({ where, select: { id: true } });
+      : kind === 'organizer'
+        ? await tx.organizerProfile.findFirst({ where, select: { id: true } })
+        : await tx.event.findFirst({ where: { slug }, select: { id: true } });
   return found !== null;
 }
 

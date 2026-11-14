@@ -31,6 +31,7 @@ const MAX_VENDOR_PHOTOS = 8;
 const needsRole: Partial<Record<UploadPurpose, 'vendor' | 'organizer'>> = {
   organizer_logo: 'organizer',
   vendor_photo: 'vendor',
+  event_cover: 'organizer',
 };
 const incomingKey = (id: string) => `incoming/${id}`;
 

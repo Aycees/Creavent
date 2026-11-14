@@ -66,6 +66,7 @@ model User {
   organizerProfile  OrganizerProfile?
   emails            EmailNotification[]
   auditLogs         AuditLog[]
+  moderatedEvents   Event[]           @relation("EventModerator")
 
   @@map("users")
 }
@@ -228,6 +229,7 @@ model File {
   avatarOf       User[]               @relation("UserAvatar")
   logoOf         OrganizerProfile[]
   vendorPhotos   VendorProfilePhoto[]
+  coverOf        Event[]              @relation("EventCover")
 
   @@index([uploadedBy, status])
   @@map("files")
@@ -261,8 +263,9 @@ model OrganizerProfile {
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
-  user     User  @relation(fields: [userId], references: [id])
-  logoFile File? @relation(fields: [logoFileId], references: [id])
+  user     User    @relation(fields: [userId], references: [id])
+  logoFile File?   @relation(fields: [logoFileId], references: [id])
+  events   Event[]
 
   @@map("organizer_profiles")
 }
@@ -308,6 +311,91 @@ model VendorProfilePhoto {
   file          File          @relation(fields: [fileId], references: [id])
 
   @@map("vendor_profile_photos")
+}
+
+// ─── Events (data model §5.4) ──────────────────────────────────────────────
+
+enum EventStatus {
+  draft
+  open_to_vendors
+  announced
+  completed
+  canceled
+
+  @@map("event_status")
+}
+
+enum ModerationState {
+  visible
+  hidden
+
+  @@map("moderation_state")
+}
+
+// Reference data, inserted by a migration like categories. Never deleted,
+// only made inactive.
+model EventType {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @unique
+  slug      String   @unique
+  isActive  Boolean  @default(true) @map("is_active")
+  sortOrder Int      @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  events Event[]
+
+  @@map("event_types")
+}
+
+// A draft may leave everything but the name and type empty. The "Open to
+// vendors" checklist says what must be filled before opening (spec §3.1).
+// starts_at is the opening of the first day and ends_at the closing of the
+// last; the event runs every day in between with the same hours (§3.1.1).
+model Event {
+  id                  String          @id @default(uuid()) @db.Uuid
+  organizerProfileId  String          @map("organizer_profile_id") @db.Uuid
+  eventTypeId         String          @map("event_type_id") @db.Uuid
+  name                String
+  slug                String          @unique
+  description         String?
+  coverFileId         String?         @map("cover_file_id") @db.Uuid
+  startsAt            DateTime?       @map("starts_at") @db.Timestamptz
+  endsAt              DateTime?       @map("ends_at") @db.Timestamptz
+  venueName           String?         @map("venue_name")
+  addressLine         String?         @map("address_line")
+  city                String?
+  province            String?
+  latitude            Decimal?        @db.Decimal(9, 6)
+  longitude           Decimal?        @db.Decimal(9, 6)
+  vendorContactInfo   String?         @map("vendor_contact_info")
+  status              EventStatus     @default(draft)
+  moderationState     ModerationState @default(visible) @map("moderation_state")
+  moderatedAt         DateTime?       @map("moderated_at") @db.Timestamptz
+  moderatedById       String?         @map("moderated_by") @db.Uuid
+  moderationReason    String?         @map("moderation_reason")
+  applicationsOpen    Boolean         @default(false) @map("applications_open")
+  applicationsCloseAt DateTime?       @map("applications_close_at") @db.Timestamptz
+  ingressInfo         String?         @map("ingress_info")
+  currency            String          @default("PHP") @db.Char(3)
+  timezone            String          @default("Asia/Manila")
+  openedToVendorsAt   DateTime?       @map("opened_to_vendors_at") @db.Timestamptz
+  announcedAt         DateTime?       @map("announced_at") @db.Timestamptz
+  completedAt         DateTime?       @map("completed_at") @db.Timestamptz
+  canceledAt          DateTime?       @map("canceled_at") @db.Timestamptz
+  cancelReason        String?         @map("cancel_reason")
+  createdAt           DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime        @updatedAt @map("updated_at") @db.Timestamptz
+
+  organizerProfile OrganizerProfile @relation(fields: [organizerProfileId], references: [id])
+  eventType        EventType        @relation(fields: [eventTypeId], references: [id])
+  coverFile        File?            @relation("EventCover", fields: [coverFileId], references: [id])
+  moderatedBy      User?            @relation("EventModerator", fields: [moderatedById], references: [id])
+
+  @@index([organizerProfileId])
+  @@index([status, moderationState, startsAt])
+  @@index([city, startsAt])
+  @@map("events")
 }
 
 // ─── Email notifications (data model §5.9) ─────────────────────────────────

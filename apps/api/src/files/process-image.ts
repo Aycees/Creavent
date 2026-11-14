@@ -11,7 +11,16 @@ const resize: Record<UploadPurpose, ResizeOptions> = {
   avatar: { width: 256, height: 256, fit: 'cover', position: 'centre', withoutEnlargement: true },
   organizer_logo: { width: 512, height: 512, fit: 'inside', withoutEnlargement: true },
   vendor_photo: { width: 1600, height: 1600, fit: 'inside', withoutEnlargement: true },
+  event_cover: { width: 1600, height: 900, fit: 'cover', position: 'centre', withoutEnlargement: true },
 };
+
+// Event covers are cropped to 16:9 from the center, at most 1600 x 900, and
+// never enlarged (spec §11.5).
+function coverSize(width: number, height: number): ResizeOptions {
+  const cropWidth = Math.min(width, Math.round((height * 16) / 9));
+  const outWidth = Math.min(1600, cropWidth);
+  return { width: outWidth, height: Math.round((outWidth * 9) / 16), fit: 'cover', position: 'centre' };
+}
 
 // Only so many images are processed at once, so a busy moment can't run the
 // API out of memory (spec §11.5).
@@ -58,7 +67,7 @@ export function processImage(input: Buffer, purpose: UploadPurpose, minWidth?: n
     }
     const { data, info } = await sharp(input, { limitInputPixels: MAX_PIXELS })
       .rotate()
-      .resize(resize[purpose])
+      .resize(purpose === 'event_cover' ? coverSize(width, height) : resize[purpose])
       .webp({ quality: 82 })
       .toBuffer({ resolveWithObject: true });
     return { body: data, width: info.width, height: info.height };

@@ -67,3 +67,34 @@ export async function addRole(
     },
   });
 }
+
+// An organizer who finished onboarding: role, organizer page, and a mobile
+// number. Approved unless told otherwise.
+export async function createOrganizer(
+  prisma: PrismaClient,
+  overrides: Partial<{ approvalStatus: ApprovalStatus; suspendedAt: Date; displayName: string }> = {},
+) {
+  const user = await createUser(prisma, { phone: '+639171234567' });
+  await addRole(prisma, user.id, 'organizer', {
+    approvalStatus: overrides.approvalStatus ?? 'approved',
+    onboardingStep: 4,
+    ...(overrides.suspendedAt ? { suspendedAt: overrides.suspendedAt } : {}),
+  });
+  const profile = await prisma.organizerProfile.create({
+    data: { userId: user.id, displayName: overrides.displayName ?? 'Balik-Gamit Davao', slug: `org-${user.id.slice(0, 8)}` },
+  });
+  return { user, profile };
+}
+
+// A vendor who finished onboarding.
+export async function createVendor(prisma: PrismaClient, categoryIds: string[] = []) {
+  const user = await createUser(prisma, { phone: '+639181234567' });
+  await addRole(prisma, user.id, 'vendor', { onboardingStep: 4 });
+  const profile = await prisma.vendorProfile.create({
+    data: { userId: user.id, shopName: "Lola's Ukay", slug: `shop-${user.id.slice(0, 8)}` },
+  });
+  if (categoryIds.length) {
+    await prisma.vendorProfileCategory.createMany({ data: categoryIds.map((categoryId) => ({ vendorProfileId: profile.id, categoryId })) });
+  }
+  return { user, profile };
+}

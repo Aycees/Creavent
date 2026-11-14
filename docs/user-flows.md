@@ -4,7 +4,7 @@
 
 Last updated: 2026-11-14
 
-Acceptance criteria are written per flow as each phase is built. Flows 1, 2, and the approval part of 11 have them (Phase 1). Each criterion has a test in `apps/api/test/integration` or next to the screen in `apps/web/src`.
+Acceptance criteria are written per flow as each phase is built. Flows 1, 2, and the approval part of 11 have them (Phase 1), and flow 3 and the finding part of flow 4 (Phase 2). Each criterion has a test in `apps/api/test/integration` or next to the screen in `apps/web/src`.
 
 ## How to read this
 
@@ -129,6 +129,41 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - **Vendors choose a preferred slot, but there's no floor plan image:** vendors still pick from the list, grouped by section with size and note. The Slots tab suggests uploading one. **(screen)**
 - **Organizer switches to "I assign slots" after some vendors chose a preference:** those preferences are kept and still shown when assigning. New applicants don't see the choice. Spec §3.4.
 
+**Acceptance criteria (Phase 2)**
+
+*Create a draft and the Details tab*
+- Only a user with the organizer role (not suspended) whose organizer page has a display name and whose account has a mobile number can create an event. Others are sent to the missing onboarding step. Approval is not needed to create or edit a draft.
+- `/organizer/events/new` asks for the event name and type (Flea market pre-selected, active types only). Saving creates a `draft` with a page link made from the name (a number is added if taken) and opens the setup page on Details. Decided 2026-11-14.
+- Details saves the name, type, description, start and end date, opening and closing time, venue name, address, city, cover, contact details for vendors, applications close date, and ingress details. Every field but the name may be empty while the event is a draft.
+- An event runs 1 to 7 days in a row, and the closing time is later than the opening time. The applications close date is not after the start. Each break is refused with a message on its field. Times are in Asia/Manila.
+- The schedule preview reads "Sat, Jan 16 · 5 PM to 11 PM" for one day and "Fri, Jan 15 to Sun, Jan 17 · 5 PM to 11 PM daily" for several.
+- The cover is a 16:9 image of at least 1280 x 720 px. Replacing it retires the old file.
+- Only the event's organizer can read or change its setup. Anyone else gets "Not found".
+
+*Requirements and policy*
+- The organizer picks accepted categories (active ones), each with an optional limit of 1 or more, and adds documents with a name and "Every vendor" or one accepted category. A document for a category that isn't accepted is refused.
+- A new event's policy is copied from the organizer's most recent other event that has one, and the Policy tab names that event. On a first event the tab shows the example policy, which counts for the checklist only after it is saved.
+
+*Payments*
+- The organizer adds one or more payment options (channel, label, account name and number, optional QR, optional note) and the deadline in hours (1 to 168, 24 by default). Removing an option turns it off instead of deleting it.
+- The QR is a private image. Only the organizer (and admins) can open it in Phase 2, through a link that expires in 5 minutes.
+
+*Slots and floor plans*
+- The organizer adds, edits, and removes slots (label, optional section, size, note, price). Labels are unique in the event. A slot without its own price uses the default price. Prices are 0 or more.
+- **Add a row of slots** makes labels from a prefix and a number range (for example C, 01 to 06 → C-01 to C-06), keeping the zero padding, at most 200 at once. A label that already exists stops the whole row with a message.
+- The slot mode ("I assign slots" by default, or "Vendors choose a preferred slot") can be changed at any time.
+- The vendor floor plan is uploaded on the Slots tab and shown next to the list (behind "Show floor plan" on phones). The public floor plan has its own tab. Both are optional images up to 10 MB.
+
+*Open to vendors*
+- The checklist counts five required steps: name, dates, venue (name, address, city) and cover; at least one accepted category; a saved policy; at least one slot; at least one active payment option. It says "N of 5 required steps done" and links to each missing step.
+- **Open to vendors** needs every step done and an approved, not suspended organizer. Otherwise the button is disabled with the reason, and the API refuses it. Opening sets the status to `open_to_vendors`, records the time, and opens applications. Decided 2026-11-14.
+- The organizer can close and reopen applications while the event is open to vendors. Status changes go through one function and are written to the audit log.
+- While the event is open, a save that would undo a required step (for example removing the last slot or the last payment option, or clearing the venue) is refused.
+- **Preview as vendor** shows the event page as a vendor sees it, at any status.
+
+*Organizer dashboard (first version)*
+- `/organizer` lists the organizer's events in Upcoming (ends today or later, or no date yet) and Past tabs, each with the date, name, type tag, venue, status, slot count, and the next step ("Add payment details", "Open to vendors", "Get approved to open", "Applications open"). **Create event** leads to `/organizer/events/new`.
+
 ## 4. Find an event and apply
 
 *Vendor, mobile-first.*
@@ -147,6 +182,11 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - **The slot they want is taken:** it shows as Taken and can't be picked. They pick another or "No preference". Spec §4.3.
 - **Another vendor prefers the same slot:** both can pick it, and neither sees the other's choice. The organizer decides. Spec §5.
 - **Vendor wants a different preferred slot after applying:** it can't be edited. They contact the organizer, or withdraw and apply again while the application is still submitted. Spec §4.3.
+
+**Acceptance criteria (Phase 2: finding events)**
+- `/vendor/events` lists visible events that are open to vendors or announced and end today or later, soonest first, with search by name or venue, a date filter (Any date, This weekend, Next 30 days), and a city filter. Each shows the date, type, status, name, schedule, venue, the organizer with "Approved by Creavent", the slot fee range, the applications close date, "Choose a preferred slot" when the event allows it, and spots left in the vendor's categories when the organizer set a limit.
+- The vendor view of `/events/[slug]` shows the applications close date, accepted categories with limit and spots left, the documents to upload (marking those for one category), slots grouped by section (or by label prefix) with size, note, price, and open count, the vendor floor plan, the policy, the summary (fee range, applications close, pay within, paid to), and the contact details for vendors. Apply is shown, or "Applications closed" when applications are closed or the close date passed. The Apply page itself comes in Phase 3.
+- A draft event is "Not found" to vendors. A signed-out visitor sees "This event isn't public yet" for an event that is open to vendors. The event's organizer sees the vendor view through Preview as vendor at any status.
 
 ## 5. Review applications
 
