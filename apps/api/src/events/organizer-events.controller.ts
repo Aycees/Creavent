@@ -4,6 +4,8 @@ import {
   createdEventSchema,
   createEventSchema,
   eventDetailsSchema,
+  eventPolicySchema,
+  eventRequirementsSchema,
   eventSetupSchema,
   eventTypeSchema,
 } from '@creavent/shared';
@@ -43,5 +45,25 @@ export class OrganizerEventsController {
     @Body({ schema: eventDetailsSchema }) body: z.output<typeof eventDetailsSchema>,
   ) {
     return this.events.updateDetails(user.id, id, body);
+  }
+
+  @Put('organizer/events/:id/requirements')
+  @ResponseSchema(eventSetupSchema)
+  requirements(
+    @CurrentUser() user: SessionUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body({ schema: eventRequirementsSchema }) body: z.output<typeof eventRequirementsSchema>,
+  ) {
+    return this.events.updateRequirements(user.id, id, body);
+  }
+
+  @Put('organizer/events/:id/policy')
+  @ResponseSchema(eventSetupSchema)
+  policy(
+    @CurrentUser() user: SessionUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body({ schema: eventPolicySchema }) body: z.output<typeof eventPolicySchema>,
+  ) {
+    return this.events.updatePolicy(user.id, id, body);
   }
 }

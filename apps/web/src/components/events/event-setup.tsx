@@ -12,10 +12,16 @@ import { DateStamp } from "@/components/ui/date-stamp"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { stampDate } from "@/lib/event-format"
 import { DetailsTab } from "./details-tab"
+import { RequirementsTab } from "./requirements-tab"
 import { EventStatusBadge } from "./parts"
+import { PolicyTab } from "./policy-tab"
 import { useEventSetup } from "./queries"
 
-export const setupTabs = [{ id: "details", label: "Details" }] as const
+export const setupTabs = [
+  { id: "details", label: "Details" },
+  { id: "requirements", label: "Requirements" },
+  { id: "policy", label: "Policy" },
+] as const
 export type SetupTab = (typeof setupTabs)[number]["id"]
 
 function isTab(value: string | null): value is SetupTab {
@@ -79,6 +85,12 @@ function Setup({ setup }: { setup: EventSetup }) {
         </TabsList>
         <TabsContent value="details">
           <DetailsTab setup={setup} />
+        </TabsContent>
+        <TabsContent value="requirements">
+          <RequirementsTab setup={setup} />
+        </TabsContent>
+        <TabsContent value="policy">
+          <PolicyTab setup={setup} />
         </TabsContent>
       </Tabs>
     </div>

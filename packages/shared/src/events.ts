@@ -108,6 +108,41 @@ export const eventDetailsSchema = z
   });
 export type EventDetailsInput = z.input<typeof eventDetailsSchema>;
 
+// The Requirements tab (spec §3.2).
+export const eventRequirementsSchema = z
+  .object({
+    categories: z
+      .array(
+        z.object({
+          categoryId: z.uuid(),
+          maxVendors: z.number().int().min(1, 'Use 1 or more, or leave it empty').max(999).nullable(),
+        }),
+      )
+      .max(50),
+    documents: z
+      .array(
+        z.object({
+          id: z.uuid().optional(),
+          name: text(100, 'name').min(1, 'Name the document'),
+          description: optionalText(300),
+          // Null: every vendor uploads it. Else only vendors in this category.
+          categoryId: z.uuid().nullable(),
+        }),
+      )
+      .max(20, 'Ask for up to 20 documents'),
+  })
+  .refine((v) => new Set(v.categories.map((c) => c.categoryId)).size === v.categories.length, {
+    path: ['categories'],
+    message: 'Pick each category once',
+  });
+export type EventRequirementsInput = z.input<typeof eventRequirementsSchema>;
+
+// The Policy tab (spec §3.7).
+export const eventPolicySchema = z.object({
+  text: text(5000, 'policy').min(1, 'Write your policy, or keep the example'),
+});
+export type EventPolicyInput = z.input<typeof eventPolicySchema>;
+
 const imageSchema = z.object({ id: z.uuid(), url: z.string() });
 
 export const eventTypeSchema = z.object({ id: z.uuid(), name: z.string(), slug: z.string() });
@@ -138,6 +173,21 @@ export const eventSetupSchema = z.object({
   applicationsOpen: z.boolean(),
   details: eventDetailsStateSchema,
   eventTypes: z.array(eventTypeSchema),
+  // Active product categories, for the Requirements tab.
+  categories: z.array(z.object({ id: z.uuid(), name: z.string() })),
+  requirements: z.object({
+    categories: z.array(z.object({ categoryId: z.uuid(), maxVendors: z.number().int().nullable() })),
+    documents: z.array(
+      z.object({ id: z.uuid(), name: z.string(), description: z.string().nullable(), categoryId: z.uuid().nullable() }),
+    ),
+  }),
+  policy: z.object({
+    text: z.string().nullable(),
+    // The event the text was copied from, while it is still the copied text.
+    copiedFrom: z.object({ id: z.uuid(), name: z.string() }).nullable(),
+    // Shown on a first event until the organizer saves a policy.
+    example: z.string(),
+  }),
 });
 export type EventSetup = z.infer<typeof eventSetupSchema>;
 

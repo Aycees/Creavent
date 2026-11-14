@@ -7,6 +7,12 @@ export const eventTypes = [
   { id: "33333333-3333-4333-8333-333333333333", name: "Pop-up", slug: "pop-up" },
 ]
 
+export const categories = [
+  { id: "c1c1c1c1-0000-4000-8000-000000000001", name: "Preloved clothing" },
+  { id: "c1c1c1c1-0000-4000-8000-000000000002", name: "Vintage" },
+  { id: "c1c1c1c1-0000-4000-8000-000000000003", name: "Food and drinks" },
+]
+
 export const EVENT_ID = "e0e0e0e0-0000-4000-8000-000000000001"
 
 export function setupFixture(overrides: Partial<EventSetup> = {}): EventSetup {
@@ -32,6 +38,12 @@ export function setupFixture(overrides: Partial<EventSetup> = {}): EventSetup {
       ingressInfo: "From 3 PM, Gate 2",
     },
     eventTypes,
+    categories,
+    requirements: {
+      categories: [{ categoryId: categories[0].id, maxVendors: 12 }],
+      documents: [{ id: "d0d0d0d0-0000-4000-8000-000000000001", name: "Barangay business clearance", description: null, categoryId: null }],
+    },
+    policy: { text: "Pay within 24 hours.", copiedFrom: { id: "e0e0e0e0-0000-4000-8000-000000000009", name: "Bajada Christmas Flea" }, example: "Example policy." },
     ...overrides,
   }
 }

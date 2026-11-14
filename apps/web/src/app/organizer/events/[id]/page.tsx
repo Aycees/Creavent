@@ -5,11 +5,15 @@ import { EventSetupPage } from "@/components/events/event-setup"
 
 export const metadata: Metadata = { title: "Event setup · Creavent" }
 
-export default async function EventSetupRoute({ params }: PageProps<"/organizer/events/[id]">) {
+async function Setup({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+  return <EventSetupPage id={id} />
+}
+
+export default function EventSetupRoute({ params }: PageProps<"/organizer/events/[id]">) {
   return (
     <Suspense>
-      <EventSetupPage id={id} />
+      <Setup params={params} />
     </Suspense>
   )
 }

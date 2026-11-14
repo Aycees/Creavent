@@ -4,9 +4,12 @@ import {
   manilaParts,
   type createEventSchema,
   type eventDetailsSchema,
+  type eventPolicySchema,
+  type eventRequirementsSchema,
   type EventSetup,
 } from '@creavent/shared';
 import type { z } from 'zod';
+import { appConfig } from '../config.js';
 import { assertAttachable, FilesService, retireFiles } from '../files/files.service.js';
 import { freeSlug } from '../onboarding/slugs.js';
 import { PrismaService, type Tx } from '../prisma/prisma.service.js';
@@ -34,12 +37,19 @@ export class OrganizerEventsService {
     return this.prisma.$transaction(async (tx) => {
       const profile = await organizerProfile(tx, userId);
       await assertEventType(tx, input.eventTypeId);
+      // Most organizers write their policy once (spec §3.7).
+      const last = await tx.event.findFirst({
+        where: { organizerProfileId: profile.id, policyText: { not: null } },
+        orderBy: { createdAt: 'desc' },
+      });
       const event = await tx.event.create({
         data: {
           organizerProfileId: profile.id,
           eventTypeId: input.eventTypeId,
           name: input.name,
           slug: await freeSlug(tx, 'event', input.name, userId),
+          policyText: last?.policyText ?? null,
+          policySourceEventId: last?.id ?? null,
         },
       });
       return { id: event.id };
@@ -50,7 +60,12 @@ export class OrganizerEventsService {
     await organizerProfile(this.prisma, userId);
     const event = await this.prisma.event.findFirst({
       where: { id: eventId, organizerProfile: { userId } },
-      include: { coverFile: true },
+      include: {
+        coverFile: true,
+        policySource: { select: { id: true, name: true, policyText: true } },
+        categories: { include: { category: true } },
+        documents: { orderBy: { sortOrder: 'asc' } },
+      },
     });
     if (!event) throw new NotFoundException('Event not found');
     const start = event.startsAt ? manilaParts(event.startsAt) : null;
@@ -78,7 +93,61 @@ export class OrganizerEventsService {
         ingressInfo: event.ingressInfo,
       },
       eventTypes: await this.eventTypes(),
+      categories: await this.prisma.category.findMany({
+        where: { isActive: true },
+        orderBy: { sortOrder: 'asc' },
+        select: { id: true, name: true },
+      }),
+      requirements: {
+        categories: event.categories
+          .sort((a, b) => a.category.sortOrder - b.category.sortOrder)
+          .map((c) => ({ categoryId: c.categoryId, maxVendors: c.maxVendors })),
+        documents: event.documents.map((d) => ({ id: d.id, name: d.name, description: d.description, categoryId: d.categoryId })),
+      },
+      policy: {
+        text: event.policyText,
+        // Only while the text is still the copied one.
+        copiedFrom:
+          event.policySource && event.policySource.policyText === event.policyText
+            ? { id: event.policySource.id, name: event.policySource.name }
+            : null,
+        example: appConfig().examplePolicyText,
+      },
     };
+  }
+
+  async updateRequirements(userId: string, eventId: string, input: z.output<typeof eventRequirementsSchema>) {
+    await this.prisma.$transaction(async (tx) => {
+      const event = await ownEvent(tx, userId, eventId);
+      const ids = input.categories.map((c) => c.categoryId);
+      const active = await tx.category.count({ where: { id: { in: ids }, isActive: true } });
+      if (active !== ids.length) throw new BadRequestException('Pick categories from the list');
+      if (input.documents.some((d) => d.categoryId && !ids.includes(d.categoryId))) {
+        throw new BadRequestException('Accept this category to ask for its document');
+      }
+      const existing = await tx.eventDocumentRequirement.findMany({ where: { eventId: event.id }, select: { id: true } });
+      const existingIds = new Set(existing.map((d) => d.id));
+      if (input.documents.some((d) => d.id && !existingIds.has(d.id))) throw new BadRequestException('This document is not on this event');
+
+      await tx.eventCategory.deleteMany({ where: { eventId: event.id } });
+      await tx.eventCategory.createMany({ data: input.categories.map((c) => ({ eventId: event.id, ...c })) });
+      const keep = input.documents.flatMap((d) => d.id ?? []);
+      await tx.eventDocumentRequirement.deleteMany({ where: { eventId: event.id, id: { notIn: keep } } });
+      for (const [sortOrder, d] of input.documents.entries()) {
+        const data = { name: d.name, description: d.description, categoryId: d.categoryId, sortOrder };
+        if (d.id) await tx.eventDocumentRequirement.update({ where: { id: d.id }, data });
+        else await tx.eventDocumentRequirement.create({ data: { ...data, eventId: event.id } });
+      }
+    });
+    return this.setup(userId, eventId);
+  }
+
+  async updatePolicy(userId: string, eventId: string, input: z.output<typeof eventPolicySchema>) {
+    await this.prisma.$transaction(async (tx) => {
+      const event = await ownEvent(tx, userId, eventId);
+      await tx.event.update({ where: { id: event.id }, data: { policyText: input.text } });
+    });
+    return this.setup(userId, eventId);
   }
 
   async updateDetails(userId: string, eventId: string, input: z.output<typeof eventDetailsSchema>) {
