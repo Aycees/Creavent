@@ -2,7 +2,7 @@
 
 **Status:** First draft. Logical model with PostgreSQL-style types. It follows the [Feature specification](feature-specification.md) and the [User flows](user-flows.md). If this file and the spec disagree, the spec wins.
 
-Last updated: 2026-11-12
+Last updated: 2026-11-14
 
 ## Contents
 
@@ -41,7 +41,7 @@ Agreed on 2026-11-11, and simplified for the MVP on 2026-11-12 (spec §9).
 | Event policy | Free text, one per event, so it is a column on `events` rather than its own table. The text the vendor accepted is copied onto their application. | `events.policy_text`, `applications.policy_text_snapshot` |
 | Roles | No attendee accounts. Only vendor and organizer are stored as roles. Admins are a flag on the user. | `user_roles`, `users.is_admin` |
 | Organizer approval | No identity documents. The approval status and review live on the organizer's role row. The links reviewed are the profile's social links. | `user_roles.approval_*`, `organizer_profiles.social_links` |
-| Slots | A plain list per event. Filled only by organizer assignment. | `slots`, `slot_assignments` |
+| Slots | A plain list per event, with an optional section for grouping. Filled by organizer assignment. When the event allows it, a vendor states a preferred slot when applying, which holds nothing. | `slots`, `slot_assignments`, `events.slot_mode`, `applications.preferred_slot_id` |
 | Floor plans | Two optional images on the event. | `events.vendor_floor_plan_file_id`, `events.public_floor_plan_file_id` |
 | Slot status | Not stored on the slot. It is worked out from the slot's active assignment, so it can never disagree with it. | `slot_assignments`, view in section 7 |
 | Settings | Retention, deadlines, minimum age, support email, and terms versions are configuration values, not a table. | Section 5.11 |
@@ -69,6 +69,7 @@ erDiagram
     events ||--o{ event_document_requirements : "requires"
     events ||--o{ event_payment_methods : "accepts"
     events ||--o{ slots : "has"
+    slots |o--o{ applications : "preferred in"
 
     events ||--o{ applications : "receives"
     vendor_profiles ||--o{ applications : "submits"
@@ -98,6 +99,7 @@ erDiagram
 | `file_purpose` | `payment_proof`, `payment_qr`, `application_document`, `event_cover`, `vendor_floor_plan`, `public_floor_plan`, `vendor_photo`, `organizer_logo`, `avatar` | §6.5, §6.7, §11.1 |
 | `file_status` | `pending`, `ready` | §11.3 |
 | `event_status` | `draft`, `open_to_vendors`, `announced`, `completed`, `canceled` | §3.1 |
+| `slot_mode` | `organizer_assigns`, `vendor_preference` | §3.4 |
 | `moderation_state` | `visible`, `hidden` | §2 |
 | `payment_channel` | `gcash`, `maya`, `bank`, `other` | §6.1 |
 | `application_status` | `submitted`, `approved`, `declined`, `removed`, `withdrawn` | §4.2 |
@@ -383,7 +385,7 @@ erDiagram
         numeric latitude "null"
         numeric longitude "null"
         text vendor_contact_info "vendors only"
-        text policy_text "cancellation and withdrawal policy"
+        text policy_text "null, cancellation and withdrawal policy"
         event_status status
         moderation_state moderation_state
         timestamptz moderated_at "null"
@@ -393,6 +395,7 @@ erDiagram
         timestamptz applications_close_at "null"
         text ingress_info "null, vendors with a slot"
         numeric default_slot_price "null"
+        slot_mode slot_mode "default organizer_assigns"
         int payment_deadline_hours "default 24"
         char currency "default PHP"
         text timezone "default Asia/Manila"
@@ -461,7 +464,7 @@ erDiagram
 | venue_name, address_line, city, province | text | `city` drives the attendee location filter (Davao City first). |
 | latitude, longitude | numeric(9,6) null | For a map later. |
 | vendor_contact_info | text | Shown to signed-in vendors, never to attendees. |
-| policy_text | text | The event's cancellation and withdrawal policy (spec §3.7). Required before opening to vendors. |
+| policy_text | text null | The event's cancellation and withdrawal policy (spec §3.7). Copied from the organizer's most recent event when the draft is created. Null on a first event until the organizer saves it. Required before opening to vendors. |
 | status | event_status | `draft` → `open_to_vendors` → `announced` → `completed`, or `canceled`. |
 | moderation_state | moderation_state | `visible` by default. `hidden` = an admin hid it for breaking rules or because the organizer was suspended (spec §2.1). |
 | moderated_at, moderated_by, moderation_reason | timestamptz / uuid FK → users / text, all null | Who hid it and why. |
@@ -469,6 +472,7 @@ erDiagram
 | applications_close_at | timestamptz null | Optional. After this time no new applications are accepted, even if `applications_open` is true. No later than `starts_at`. |
 | ingress_info | text null | Optional setup details for vendors, for example "From 3 PM, Gate 2". Shown to vendors with an active assignment. |
 | default_slot_price | numeric(10,2) null | "One price for all slots". A slot's own `price` overrides it. |
+| slot_mode | slot_mode | Default `organizer_assigns` ("I assign slots"). `vendor_preference` = vendors may pick a preferred slot when applying (spec §3.4). Can change at any time. Preferences already sent are kept. |
 | payment_deadline_hours | int | Default 24. |
 | currency | char(3) | Default `PHP`. |
 | timezone | text | Default `Asia/Manila`. |
@@ -518,6 +522,7 @@ erDiagram
 | id | uuid PK | |
 | event_id | uuid FK → events | |
 | label | text | Slot number. UK with `event_id` among slots that are not deleted. |
+| section | text null | Optional group, for example "Indoor" or "Outdoor". Vendors see slots grouped by section, or by label prefix when null (spec §3.4). |
 | price | numeric(10,2) null | Null = use `events.default_slot_price`. |
 | size_label | text null | Human-readable size, for example "2m x 2m". |
 | note | text null | For example, "Near the entrance" or "Food row, with power". Shown to vendors and on the assignment. |
@@ -536,6 +541,7 @@ erDiagram
         uuid vendor_profile_id FK
         application_status status
         text vendor_note "null"
+        uuid preferred_slot_id FK "null"
         text policy_text_snapshot
         timestamptz policy_accepted_at
         timestamptz submitted_at
@@ -571,6 +577,7 @@ erDiagram
 | vendor_profile_id | uuid FK → vendor_profiles | |
 | status | application_status | |
 | vendor_note | text null | Optional message from the vendor. |
+| preferred_slot_id | uuid FK → slots null | The vendor's preferred slot (spec §4.3). Only set when the event's `slot_mode` is `vendor_preference` at the time of applying. Must be a slot of the same event with no active assignment when the application is submitted (app check). Holds nothing: several applications can point to the same slot. Not changed after submitting. |
 | policy_text_snapshot | text | The event policy at the time of applying. Applying means the vendor accepted it. |
 | policy_accepted_at | timestamptz | |
 | submitted_at | timestamptz | |
@@ -791,6 +798,7 @@ Platform values are configuration (environment variables with defaults in code),
 |---|---|---|
 | `proof_retention_days` | 90 | Payment records and application documents (section 8). Placeholder until the legal review. |
 | `default_payment_deadline_hours` | 24 | Used when an event is created. |
+| `example_policy_text` | | The example shown on the Policy tab of an organizer's first event (spec §3.7). Not saved until the organizer saves it. |
 | `support_email` | | |
 | `minimum_age` | 18 | Placeholder until the legal review. |
 | `terms_version`, `privacy_version` | | For example, `2026-11-12`. |
@@ -810,6 +818,7 @@ Rules the database itself should guarantee. Other rules (for example, "an organi
 | 6.7 | No payment deadline runs past the event start. | `deadline_at` is always set with `least(…, events.starts_at)`. | §6.1 |
 | 6.8 | A hidden event takes no new applications, assignments, proofs, or approvals, and is not shown to the public. | App check on `events.moderation_state`. | §2 |
 | 6.9 | Money amounts are never negative. | Check `amount_due >= 0`, `price >= 0`, and so on. | |
+| 6.10 | A preferred slot belongs to the application's event and is open when the application is submitted. | App check on insert. Not rechecked later, because a preference holds nothing. | §4.3 |
 | 6.10 | A file is attached only when it is ready, matches the place, and belongs to the person attaching it. | App check before setting any `*_file_id` or inserting into `vendor_profile_photos` or `application_documents`: `status = 'ready'`, the `purpose` fits (for example, `events.cover_file_id` takes only `event_cover`), and `uploaded_by` is the current user. | §11.3 |
 | 6.11 | Upload limits per place hold (for example, 8 photos per vendor profile). | App check against the limits in the spec table, at the Ask step and again when attaching. | §11.1 |
 | 6.12 | The applications close date is not after the event start. | Check `applications_close_at IS NULL OR applications_close_at <= starts_at`. | §3.3 |
@@ -831,6 +840,7 @@ Values worked out from other tables instead of being stored.
 | Value | How it's worked out |
 |---|---|
 | **Slot status** | No active assignment → `open`. Active assignment with status `assigned` → `assigned`. Status `reserved` → `reserved`. Best kept as a view, `slot_availability`, joining `slots` to their active assignment. |
+| **Preferred by** (per slot) | Applications with `preferred_slot_id` = the slot, `status` `submitted` or `approved`, and no active assignment. Shown to the organizer as "Preferred by 2". |
 | **Overdue payment** | Active assignment with status `assigned`, payment `pending` or `rejected`, and `deadline_at` in the past. Shown to the organizer only. |
 | **Accepted-vendor list** | Vendors with a `reserved` assignment at the event. Each name links to the vendor page. |
 | **Vendor page: "Where they've sold"** | Events where the vendor has a `reserved` assignment, and the event `status` is `announced` or `completed` and `moderation_state` is `visible`. Never `draft` or `open_to_vendors`, and never an event canceled before it was announced. An assignment ends as `canceled` when its event is canceled, so events canceled after announcement are left out too. |

@@ -2,7 +2,7 @@
 
 **Status:** First draft. Kept simple on purpose: the main path for each task, plus the edge cases ordinary users are likely to hit. The rules behind each step are in the [Feature specification](feature-specification.md). If this file and the spec disagree, the spec wins.
 
-Last updated: 2026-11-13
+Last updated: 2026-11-14
 
 Acceptance criteria are written per flow as each phase is built. Flows 1, 2, and the approval part of 11 have them (Phase 1). Each criterion has a test in `apps/api/test/integration` or next to the screen in `apps/web/src`.
 
@@ -111,28 +111,31 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 
 1. Create a draft: name, event type (Flea market, Bazaar, or Pop-up; Flea market is pre-selected), dates and daily hours (1 to 7 days in a row, same hours each day, for example Fri to Sun, 4 PM to 10 PM), location, description, cover image, contact details for vendors, and optionally an applications close date and ingress details (for example, "From 3 PM, Gate 2").
 2. Set vendor requirements: allowed product categories, limits on similar vendors, required permits (each for every vendor, or for one category only).
-3. Write the cancellation and withdrawal policy.
-4. Add slots: number, size, optional note, and price (one price for all slots, or per slot). **Add a row of slots** creates a numbered range at once (for example, C-01 to C-06).
-5. Optional: upload the vendor floor plan image (layout with empty, numbered slots).
+3. Check the cancellation and withdrawal policy. It is copied from the organizer's last event. On a first event, edit the example and save it.
+4. Optional: upload the vendor floor plan image (layout with empty, numbered slots) at the top of the Slots tab. It stays next to the slot list as a reference while adding slots.
+5. Add slots: optional section (for example, Indoor or Outdoor), number, size, optional note, and price (one price for all slots, or per slot). **Add a row of slots** creates a numbered range at once (for example, C-01 to C-06). Choose how slots are filled: **I assign slots** (the default) or **Vendors choose a preferred slot**.
 6. Add one or more payment options (for example, GCash and a bank account, each with account details or a QR code) and the payment deadline (24 hours by default).
 7. Optional: **Preview as vendor** to check what vendors will see.
 8. **Open the event to vendors.** Vendors can now find it and apply. Attendees can't see it yet.
 
 **Edge cases**
 - **Required setup is missing:** the "Open to vendors" checklist shows "4 of 5 required steps done" and lists what's missing (name, date, venue and cover; requirements; policy; at least one slot; payment instructions). **(screen)**
+- **Organizer edits the policy after vendors applied:** vendors who already applied keep the version they accepted. New applicants see the new one. Spec §3.7.
 - **Organizer changes the price or GCash number after slots are assigned:** only new assignments use the new values. Vendors who already have slots keep what they were shown. Spec §6.1.
 - **Organizer tries to delete or rename an assigned or reserved slot:** blocked with "Remove the vendor from this slot first". Spec §3.4.
 - **The market runs Friday to Sunday:** the organizer sets a start and end date. Each slot covers all three days and is paid once. Vendors can't book a single day. Spec §3.1.1.
 - **The hours differ on Sunday, or the market runs past midnight:** not supported. The organizer uses the main hours and explains the difference in the description. Spec §3.1.1. **(screen)**
 - **Slot numbers on the image don't match the slot list:** the system doesn't check. The organizer fixes the image or the list. **(screen: the upload step reminds them)**
+- **Vendors choose a preferred slot, but there's no floor plan image:** vendors still pick from the list, grouped by section with size and note. The Slots tab suggests uploading one. **(screen)**
+- **Organizer switches to "I assign slots" after some vendors chose a preference:** those preferences are kept and still shown when assigning. New applicants don't see the choice. Spec §3.4.
 
 ## 4. Find an event and apply
 
 *Vendor, mobile-first.*
 
 1. Browse upcoming events (open to vendors or already announced). Filter by date and location. Each event shows the vendor's remaining spots in their categories, when the organizer set a limit.
-2. Open an event: type, date, location, the applications close date, requirements (accepted categories with spots left, and the documents to upload), slots grouped by row with prices and how many are open, vendor floor plan, policy, organizer contact details, and the "Approved by Creavent" badge.
-3. Tap **Apply**. Upload the required permits. Applying means the vendor accepts the event policy.
+2. Open an event: type, date, location, the applications close date, requirements (accepted categories with spots left, and the documents to upload), slots grouped by section with prices and how many are open, vendor floor plan, policy, organizer contact details, and the "Approved by Creavent" badge.
+3. Tap **Apply**. Pick the categories and upload the required permits. If the organizer lets vendors choose, pick a preferred slot from the floor plan and the list of open slots, or "No preference". Applying means the vendor accepts the event policy.
 4. Status shows **Submitted**. The vendor waits for the organizer.
 
 **Edge cases**
@@ -141,13 +144,16 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - **Vendor changes their mind before a decision:** they withdraw the application, and the organizer gets an email. They can apply again later. Spec §4.2.
 - **Vendor was declined before:** they can apply again. Spec §3.3.
 - **Vendor was removed before:** they can apply again only if the organizer allowed it. Otherwise they see "You can't reapply to this event". Spec §3.3.
+- **The slot they want is taken:** it shows as Taken and can't be picked. They pick another or "No preference". Spec §4.3.
+- **Another vendor prefers the same slot:** both can pick it, and neither sees the other's choice. The organizer decides. Spec §5.
+- **Vendor wants a different preferred slot after applying:** it can't be edited. They contact the organizer, or withdraw and apply again while the application is still submitted. Spec §4.3.
 
 ## 5. Review applications
 
 *Organizer.*
 
 1. An email arrives: "New application".
-2. Open the application: the vendor's profile, contact number, categories, and permits. A counter shows category fill, for example "Food: 4 of 5 accepted".
+2. Open the application: the vendor's profile, contact number, categories, permits, and preferred slot (if the event lets vendors choose). A counter shows category fill, for example "Food: 4 of 5 accepted".
 3. **Approve** or **Decline**, with an optional note. The vendor gets an email.
 
 **Edge cases**
@@ -160,13 +166,15 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 
 *The vendor's application must be approved first.*
 
-1. The organizer opens the "Approved, no slot" list and assigns each vendor to an open slot.
+1. The organizer opens the "Approved, no slot" list and assigns each vendor to an open slot. A vendor's preferred slot is selected for them when it's still open.
 2. The vendor gets an email with the slot number, amount, payment instructions, and deadline (flow 7).
 
 **Edge cases**
 - **No slots are open:** the vendor stays in the "Approved, no slot" list. The vendor sees "No slot assigned yet". There's no waitlist. Spec §5.
 - **Vendor needs a different slot:** the organizer removes them from the slot and assigns another. There's no "move" button. Spec §5.
 - **Vendor already has a slot:** they can't be assigned a second one at the same event. Spec §5.
+- **The preferred slot was given to someone else:** the Assign slot dialog says "Preferred slot taken: E-11", and the organizer picks another. Spec §5. **(screen)**
+- **Two vendors prefer the same slot:** the slot shows "Preferred by 2". The organizer assigns one, and the other's preferred slot then shows as taken. Spec §5. **(screen)**
 
 ## 7. Pay and confirm payment
 

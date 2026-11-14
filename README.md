@@ -27,7 +27,7 @@ The MVP is built around flea markets and flea market organizers. The platform is
 
 ## Status
 
-Phase 1 (accounts and approval) is built on `feat/phase-1-accounts`: sign up and sign in, email verification and password reset, uploads, vendor and organizer onboarding, admin organizer approvals, and the account page. See [Development plan §10](docs/development-plan.md#10-progress).
+Phase 1 (accounts and approval) is merged ([Aycees/Creavent#12](https://github.com/Aycees/Creavent/pull/12)): sign up and sign in, email verification and password reset, uploads, vendor and organizer onboarding, admin organizer approvals, and the account page. See [Development plan §10](docs/development-plan.md#10-progress).
 
 ## Development
 
