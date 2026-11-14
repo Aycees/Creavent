@@ -2529,7 +2529,8 @@
                     "maxItems": 10,
                     "type": "array",
                     "items": {
-                      "type": "string"
+                      "type": "string",
+                      "maxLength": 2048
                     }
                   }
                 },
@@ -3464,7 +3465,8 @@
                     "maxItems": 10,
                     "type": "array",
                     "items": {
-                      "type": "string"
+                      "type": "string",
+                      "maxLength": 2048
                     }
                   },
                   "submit": {
@@ -4192,7 +4194,8 @@
                     "maxItems": 10,
                     "type": "array",
                     "items": {
-                      "type": "string"
+                      "type": "string",
+                      "maxLength": 2048
                     }
                   }
                 },
@@ -4528,7 +4531,8 @@
                     "maxItems": 10,
                     "type": "array",
                     "items": {
-                      "type": "string"
+                      "type": "string",
+                      "maxLength": 2048
                     }
                   },
                   "contactEmail": {

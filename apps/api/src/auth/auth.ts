@@ -8,6 +8,10 @@ import type { PrismaService } from '../prisma/prisma.service.js';
 import { recordLegalAcceptance } from './legal.js';
 
 const SIGN_UP_PATH = '/sign-up/email';
+
+// Control, zero-width, and direction-changing characters.
+// eslint-disable-next-line no-control-regex -- matching control characters is the point
+const HIDDEN_CHARS = /[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u2028-\u202e\u2060-\u2069\ufeff]/;
 const SIGN_IN_PATH = '/sign-in/email';
 
 // The email a request is about, normalized. Over-long values are not
@@ -193,7 +197,13 @@ export function createAuth(prisma: PrismaService, outbox: OutboxService, config:
           return;
         }
         if (ctx.path !== SIGN_UP_PATH) return;
-        const body = ctx.body as { ageConfirmed?: unknown; acceptLegal?: unknown } | undefined;
+        const body = ctx.body as { ageConfirmed?: unknown; acceptLegal?: unknown; name?: unknown } | undefined;
+        // The shared form schema doesn't run on Better Auth's route, so the
+        // name is checked here too. It goes into emails.
+        const name = typeof body?.name === 'string' ? body.name.trim() : '';
+        if (name.length < 1 || name.length > 100 || HIDDEN_CHARS.test(name)) {
+          throw new APIError('BAD_REQUEST', { message: 'Enter your full name, up to 100 characters' });
+        }
         if (body?.ageConfirmed !== true || body?.acceptLegal !== true) {
           throw new APIError('BAD_REQUEST', {
             message: 'Accept the terms of use and privacy notice, and confirm you are 18 or older',

@@ -13,6 +13,13 @@ import { hashPassword } from 'better-auth/crypto';
 import type { ApprovalStatus } from '../src/generated/prisma/client.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
 
+// Only a database on this machine, unless ALLOW_SEED=staging says otherwise:
+// the seed creates an admin with a known password.
+const dbHost = new URL(process.env.DATABASE_URL ?? 'postgresql://x@localhost').hostname;
+const local = ['localhost', '127.0.0.1', '::1', '[::1]'].includes(dbHost);
+if (!local && process.env.ALLOW_SEED !== 'staging') {
+  throw new Error(`Refusing to seed the database on ${dbHost}. Set ALLOW_SEED=staging to seed staging.`);
+}
 if (process.env.NODE_ENV === 'production' && process.env.ALLOW_SEED !== 'staging') {
   throw new Error('The seed is for local and staging databases only');
 }

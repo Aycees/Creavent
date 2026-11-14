@@ -33,13 +33,16 @@ export function createLimiter(max: number) {
   };
 }
 
-const withSlot = createLimiter(2);
+// Shared by the whole Complete step, download included, so a burst of
+// uploads can't pull many large files into memory at once.
+export const withImageSlot = createLimiter(2);
 
 // Decodes the upload, checks its size, rotates it upright, resizes it for its
 // purpose, and re-encodes it as WebP. Re-encoding drops all metadata,
 // including a phone photo's GPS location.
+// Call inside withImageSlot.
 export function processImage(input: Buffer, purpose: UploadPurpose, minWidth?: number, minHeight?: number) {
-  return withSlot(async () => {
+  return (async () => {
     let meta: Metadata;
     try {
       meta = await sharp(input, { limitInputPixels: MAX_PIXELS }).metadata();
@@ -59,5 +62,5 @@ export function processImage(input: Buffer, purpose: UploadPurpose, minWidth?: n
       .webp({ quality: 82 })
       .toBuffer({ resolveWithObject: true });
     return { body: data, width: info.width, height: info.height };
-  });
+  })();
 }

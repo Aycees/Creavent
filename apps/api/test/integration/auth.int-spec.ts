@@ -81,6 +81,15 @@ describe('accounts: sign up and sign in', () => {
     expect(await prisma.user.count()).toBe(0);
   });
 
+  it('refuses a name over 100 characters or with hidden characters, even from a direct API call', async () => {
+    const long = await signUp({ ...maria, name: 'x'.repeat(101) });
+    const hidden = await signUp({ ...maria, email: 'other@example.com', name: 'Maria\u202eSantos' });
+
+    expect(long.status).toBe(400);
+    expect(hidden.status).toBe(400);
+    expect(await prisma.user.count()).toBe(0);
+  });
+
   it('refuses a password shorter than 8 characters', async () => {
     const res = await signUp({ ...maria, password: 'short' });
 

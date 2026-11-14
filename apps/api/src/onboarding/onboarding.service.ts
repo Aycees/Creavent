@@ -11,7 +11,7 @@ import {
   type RoleType,
 } from '@creavent/shared';
 import type { z } from 'zod';
-import { assertApprovalChange } from '../approvals/approval-status.js';
+import { assertApprovalChange, lockOrganizer } from '../approvals/approval-status.js';
 import { assertAttachable, FilesService } from '../files/files.service.js';
 import { PrismaService, type Tx } from '../prisma/prisma.service.js';
 import { freeSlug, slugAvailable } from './slugs.js';
@@ -143,6 +143,7 @@ export class OnboardingService {
 
   async organizerPage(userId: string, input: z.output<typeof organizerPageSchema>) {
     await this.prisma.$transaction(async (tx) => {
+      await lockOrganizer(tx, userId);
       await this.requireRole(tx, userId, 'organizer');
       if (!(await slugAvailable(tx, 'organizer', input.slug, userId))) {
         throw new ConflictException('This link is taken. Try another.');
@@ -183,6 +184,7 @@ export class OnboardingService {
   // review when asked (spec §2.1).
   async organizerApproval(userId: string, input: z.output<typeof organizerApprovalSchema>) {
     await this.prisma.$transaction(async (tx) => {
+      await lockOrganizer(tx, userId);
       const role = await this.requireRole(tx, userId, 'organizer');
       const profile = await this.organizerProfile(tx, userId);
       if (JSON.stringify(profile.socialLinks) !== JSON.stringify(input.socialLinks)) {

@@ -86,6 +86,21 @@ describe('accounts: legal acceptance and Google sign-in', () => {
     expect(user.ageConfirmedAt).not.toBeNull();
   });
 
+  it('keeps a user who must accept the terms out of everything but /api/me and /api/me/legal', async () => {
+    const browser = await signedIn();
+    await prisma.user.updateMany({ data: { ageConfirmedAt: null } });
+
+    const blocked = await browser.put('/api/onboarding/roles').send({ roles: ['vendor'] });
+    const me = await browser.get('/api/me');
+    await browser.post('/api/me/legal').send({ ageConfirmed: true, acceptLegal: true });
+    const after = await browser.put('/api/onboarding/roles').send({ roles: ['vendor'] });
+
+    expect(blocked.status).toBe(403);
+    expect(blocked.body.message).toBe('Accept the current terms of use and privacy notice first');
+    expect(me.status).toBe(200);
+    expect(after.status).toBe(200);
+  });
+
   it('serves the current legal versions, support email, and whether Google is on', async () => {
     const res = await agent(app).get('/api/public-config');
 

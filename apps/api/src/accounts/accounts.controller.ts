@@ -11,7 +11,7 @@ import {
   type PublicConfig,
 } from '@creavent/shared';
 import type { z } from 'zod';
-import { AuthGuard, CurrentUser, type SessionUser } from '../auth/auth.guard.js';
+import { AllowPendingLegal, AuthGuard, CurrentUser, type SessionUser } from '../auth/auth.guard.js';
 import { appConfig } from '../config.js';
 import { ResponseSchema } from '../response-schema.decorator.js';
 import { AccountsService } from './accounts.service.js';
@@ -21,6 +21,7 @@ export class AccountsController {
   constructor(private readonly accounts: AccountsService) {}
 
   @Get('me')
+  @AllowPendingLegal()
   @UseGuards(AuthGuard)
   @ResponseSchema(meResponseSchema)
   me(@CurrentUser() user: SessionUser) {
@@ -61,6 +62,7 @@ export class AccountsController {
 
   @Post('me/legal')
   @HttpCode(200)
+  @AllowPendingLegal()
   @UseGuards(AuthGuard)
   @ResponseSchema(meResponseSchema)
   async acceptLegal(
