@@ -1,6 +1,6 @@
 # Creavent
 
-Last updated: 2026-11-12
+Last updated: 2026-11-14
 
 ## Description
 
@@ -54,13 +54,13 @@ Plans, promotes, and runs events.
 - Promote events through a public event page once announced
 - Set vendor requirements (product categories, limits on similar vendors, required permits). Requirements are shown only to signed-in vendors
 - Open vendor applications (with an optional close date), then approve or decline them. There is no cap on applications
-- Add slots as a list (number, size, note, price), a row at a time if needed, and assign approved vendors to them
-- Upload two floor plan images: one with empty slots for vendors, and one with vendors placed for attendees
+- Add slots as a list (section, number, size, note, price), a row at a time if needed, and assign approved vendors to them. Optionally let vendors choose a preferred slot when they apply (the organizer still assigns)
+- Upload two floor plan images: one with empty slots for vendors (also shown as a reference while adding slots), and one with vendors placed for attendees
 - Set slot pricing, per slot if needed (the full price is paid by the vendor)
 - Publish payment instructions (any account or QR) and set the payment deadline (24 hours by default). The price and instructions are locked onto each slot when it is assigned. Overdue payments are flagged, not expired automatically
 - Review proof of payment and approve or reject it. A payment made in cash can be approved without proof, with a note
 - Remove a vendor (for example, a cancellation or an overdue payment). Their payment records are kept (archived) for both sides
-- Write their own cancellation and withdrawal policy and show it to vendors on the event page
+- Write their own cancellation and withdrawal policy and show it to vendors on the event page. Each new event starts with the policy from their last event
 - Keep the event page details up to date
 
 ### Vendor
@@ -71,7 +71,7 @@ Finds events to join and manages participation.
 - Have a public vendor page (shop details, photos, social media links, the next event, and where they've sold), so attendees can get to know them. Phone number and email are never public
 - Browse and search upcoming events, and see how many spots remain in their category
 - View event requirements, then apply and upload permits. Withdraw an application before the organizer decides. Reapply after a decline (after a removal, only if the organizer allows it)
-- Get a slot assigned by the organizer. A vendor can have only one slot per event (for now)
+- Get a slot assigned by the organizer, and choose a preferred slot when the organizer allows it. A vendor can have only one slot per event (for now)
 - Release an assigned slot before payment is approved, or contact the organizer to withdraw after reserving
 - Pay the organizer directly and upload proof of payment before the deadline
 - See the organizer's contact details for each event

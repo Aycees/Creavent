@@ -2,7 +2,7 @@
 
 Questions found while checking that the docs line up. They are not blocking the current docs, but each one needs a decision before the related work starts (user flows, domain model, UI, development).
 
-Last updated: 2026-11-13
+Last updated: 2026-11-14
 
 How to use this file: discuss a question in a session, write the decision into the right doc ([Feature specification](feature-specification.md), [Project details](project-details.md), or [Revenue model](revenue-model.md)), then move the question to the "Resolved" section at the bottom with the date.
 
@@ -70,6 +70,14 @@ All questions in this section are resolved. See "Resolved" below (K1 to K12, dec
 
 All questions in this section are resolved. See "Resolved" below (L1 to L4, decided on 2026-11-12).
 
+## M. Preferred slots
+
+All questions in this section are resolved. See "Resolved" below (M1 to M5, decided on 2026-11-14).
+
+## N. Event policy
+
+All questions in this section are resolved. See "Resolved" below (N1, decided on 2026-11-14).
+
 ## Resolved
 
 Decisions are written into the [Feature specification](feature-specification.md) (sections 1, 1.1, 2, 2.1, 3.1, 3.3, 3.4, 4.2, 5, 6.1, 6.3, 6.4, 6.6, 7, 7.2, 7.3, 8, 9, 10, and 11).
@@ -79,7 +87,7 @@ Decisions are written into the [Feature specification](feature-specification.md)
 | # | Decision | Date |
 |---|---|---|
 | S1 | Identity verification (ID, selfie) is deferred. Organizers are approved by an admin from their social media and past event links, and show an "Approved by Creavent" badge. Vendors need no approval. Vendors upload permits when applying, and requirements are shown only to signed-in vendors. | 2026-11-12 |
-| S2 | Organizer assignment is the only slot mode. Slots are a list. Floor plans are two optional images: one with empty slots for vendors, one with vendors placed for attendees. | 2026-11-12 |
+| S2 | *Partly replaced by M1.* Organizer assignment is the only slot mode. Slots are a list. Floor plans are two optional images: one with empty slots for vendors, one with vendors placed for attendees. | 2026-11-12 |
 | S3 | Payment deadlines are shown, not enforced. Overdue payments are flagged, and the organizer removes the vendor if needed. No reminders, retry windows, or extensions. | 2026-11-12 |
 | S4 | No in-app messaging. Vendors see the organizer's contact details, and organizers see applicants' contact numbers. | 2026-11-12 |
 | S5 | No attendee accounts, follows, saved events, or optional emails. Attendees report through the support email. | 2026-11-12 |
@@ -183,6 +191,22 @@ Decisions are written into the [Feature specification](feature-specification.md)
 | L2 | Vendors are locked in for the whole multi-day event: one slot, one price, one payment. No single-day slots. A multi-day event shows on each of its days in the calendar and "Next 7 days" strip, goes under a weekend when any of its days is that Saturday or Sunday, and matches a date filter when any of its days does. The payment deadline and applications close date are capped at the first day's opening. | 2026-11-12 |
 | L3 | Organizers add one or more payment options (GCash, bank transfer, QR, and so on). When uploading proof, the vendor selects the option they paid with, and the organizer sees it when reviewing (`payment_proofs.payment_method_id`). | 2026-11-12 |
 | L4 | The mockup fixes are made in the mockup: "Vintage" as the category name, the payment option on the proof upload and review, and screen-reader labels on the badge seals (the badges were already there). Two Friday to Sunday markets are added to the mockup as multi-day examples. | 2026-11-12 |
+
+**Preferred slots on 2026-11-14 (M1 to M5).** Prompted by a Davao organizer's registration form ("Holiday Rush"), where vendors tap a spot on a floor plan, see taken spots, and see prices per zone. A clickable floor plan with instant booking was judged too large for the MVP (it needs a map editor and slot holds), so this keeps the useful parts.
+
+| # | Decision | Date |
+|---|---|---|
+| M1 | Each event has a slot mode, chosen by the organizer on the Slots tab: "I assign slots" (the default) or "Vendors choose a preferred slot". The organizer assigns every slot in both modes. The mode can change at any time, and preferences already sent are kept. Partly replaces S2. | 2026-11-14 |
+| M2 | A preferred slot holds nothing. Several vendors can prefer the same slot, the organizer sees "Preferred by 2", and the slot stays open until someone is assigned. No expiry or first-come rules. The Assign slot dialog selects the preferred slot when it's still open. The preference can't be edited after applying. | 2026-11-14 |
+| M3 | Vendors pick the preferred slot on a new apply page (`/vendor/events/[slug]/apply`), from the vendor floor plan and the slots grouped by section, each marked Open or Taken, or "No preference". | 2026-11-14 |
+| M4 | Slots get an optional section (for example, Indoor, Inner room, Outdoor). Vendors see slots grouped by section, or by label prefix when there is none. | 2026-11-14 |
+| M5 | The vendor floor plan is uploaded at the top of the Slots tab and shown next to the slot list as a reference while adding slots. The public floor plan moves to a "Public floor plan" tab. The system still doesn't check that labels match the image. | 2026-11-14 |
+
+**Event policy on 2026-11-14 (N1).**
+
+| # | Decision | Date |
+|---|---|---|
+| N1 | The policy stays per event. A new event copies the policy of the organizer's most recent event, and the Policy tab says where it came from. A first event shows an example policy (configuration value `example_policy_text`), which counts for the checklist only after the organizer saves it. No global policy setting, so editing one event's policy never changes another's. | 2026-11-14 |
 
 ### D9. Editing an approved organizer's name and links (resolved 2026-11-13)
 

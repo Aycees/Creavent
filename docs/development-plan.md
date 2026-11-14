@@ -2,7 +2,7 @@
 
 **Status:** First draft, written 2026-11-13 after the codebase setup, and changed the same day to build one phase at a time instead of one slice at a time. Describes how the MVP is built: the order of work (phases and milestones), how one phase goes from docs to merged code, and what "done" means. It decides no product behavior. Rules live in the [Feature specification](feature-specification.md), steps in the [User flows](user-flows.md), pages in the [Sitemap](sitemap.md), tables in the [Data model](data-model.md), and technical choices in the [Architecture](architecture.md). If this file and those disagree, they win.
 
-Last updated: 2026-11-13
+Last updated: 2026-11-14
 
 ## Contents
 
@@ -87,11 +87,11 @@ No user-facing features. Everything later depends on it.
 | Feature | What it covers | Source |
 |---|---|---|
 | 2.1 Create a draft | Events schema, `/organizer/events/new`, the Details tab (dates, multi-day, venue, cover, contact details, applications close, ingress). | Spec §3.1, §3.1.1, flow 3 |
-| 2.2 Requirements and policy tabs | Allowed categories with limits, required documents, policy text. | Spec §3.2, §3.7 |
+| 2.2 Requirements and policy tabs | Allowed categories with limits, required documents, policy text (copied from the organizer's last event, or an example on a first event). | Spec §3.2, §3.7 |
 | 2.3 Payments tab | Payment options (channel, account details, QR as a private file), deadline hours. | Spec §6.1 |
-| 2.4 Slots and floor plan tabs | Slot list, default price, "Add a row of slots", the two floor plan images. | Spec §3.4 |
+| 2.4 Slots and floor plan tabs | Slot list with sections, default price, "Add a row of slots", slot mode (I assign slots, or Vendors choose a preferred slot), the vendor floor plan shown as a reference on the Slots tab, and the Public floor plan tab. | Spec §3.4 |
 | 2.5 Open to vendors | Event status-change function, the five-step checklist, approval check, Preview as vendor, open and close applications. | Spec §3.1, flow 3 |
-| 2.6 Vendor browsing | Event page vendor view (`/events/[slug]`), `/vendor/events` with category spots left. | Sitemap §3, spec §4.2 |
+| 2.6 Vendor browsing | Event page vendor view (`/events/[slug]`) with slots grouped by section, `/vendor/events` with category spots left. | Sitemap §3, spec §4.2 |
 | 2.7 Organizer dashboard (first version) | `/organizer` with Upcoming and Past tabs and each event's status and next step. Counts are added in Phase 3. | Spec §3.8 |
 
 **M2 is reached when:** an approved organizer creates an event, fills every tab, opens it to vendors, and a vendor sees it in Browse events and on its event page.
@@ -102,9 +102,9 @@ The heart of the product. Most of the integration tests are written here ([Archi
 
 | Feature | What it covers | Source |
 |---|---|---|
-| 3.1 Apply | Application with categories and documents (private files), policy snapshot, one active application per event, withdraw, new-application email. | Spec §4.2, flow 4 |
+| 3.1 Apply | Apply page (`/vendor/events/[slug]/apply`) with categories, documents (private files), and a preferred slot when the event allows it, policy snapshot, one active application per event, withdraw, new-application email. | Spec §4.2, flow 4 |
 | 3.2 Review applications | `/organizer/events/[id]/applications`, approve or decline, category counters, emails. | Spec §3.3, flow 5 |
-| 3.3 Assign a slot | Vendors and slots page, Assign slot, partial unique indexes, deadline set with the event start cap, payment instructions snapshot, slot-assigned email. | Spec §5, flow 6, Data model §6 |
+| 3.3 Assign a slot | Vendors and slots page, Assign slot (preferred slot selected when open, "Preferred by" counts), partial unique indexes, deadline set with the event start cap, payment instructions snapshot, slot-assigned email. | Spec §5, flow 6, Data model §6 |
 | 3.4 Vendor application page | `/vendor/applications` and `/vendor/applications/[id]`: slot, amount due, payment options with copy buttons, timeline, organizer contact. | Spec §4.6 |
 | 3.5 Pay and confirm | Proof upload (option paid with, amount, reference), proof review panel, approve or reject with reason, Mark paid with a note, overdue flag, emails. | Spec §6.2 to §6.5, flow 7 |
 | 3.6 Release, remove, change | Vendor releases a slot, organizer removes a vendor or changes the slot, archiving of payment records, emails. | Spec §6.6, flow 9 |
@@ -269,7 +269,7 @@ Check a feature when its commit is on the phase branch with its tests passing. C
 - [x] 1.6 Organizer onboarding (branch `feat/phase-1-accounts`)
 - [x] 1.7 Admin approvals (branch `feat/phase-1-accounts`)
 - [x] 1.8 Account page (branch `feat/phase-1-accounts`)
-- [ ] **M1** An organizer signs up and gets approved (works on a local run of the branch, 2026-11-13; checked when the phase PR is merged)
+- [x] **M1** An organizer signs up and gets approved ([Aycees/Creavent#12](https://github.com/Aycees/Creavent/pull/12), merged 2026-11-14; works on a local run from `main`)
 
 **Phase 2: Events**
 - [ ] 2.1 Create a draft

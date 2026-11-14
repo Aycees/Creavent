@@ -2,7 +2,7 @@
 
 **Status:** First draft. Describes the design system used by the "Creavent UI Mockup (MVP)", so the app can be built to match it. Behavior and rules live in the [Feature specification](feature-specification.md). Pages are in the [Sitemap](sitemap.md).
 
-Last updated: 2026-11-12
+Last updated: 2026-11-14
 
 ## 1. Sources and precedence
 
@@ -259,10 +259,10 @@ The whole product is mobile-first, organizers included (spec §10). Each screen 
 ## 16. Small fixes for the mockup
 
 - The admin approval screen marks the organizer's email "Verified". Use "Confirmed", as on the admin users screen, so "verified" never appears.
-- The tab links on the Event setup Slots screen don't point to the Details and Payments tabs yet.
+- Done on 2026-11-14: the event setup tabs link to each other, desktop and phone.
 
 ## 17. Not covered yet
 
 - **Reference sites:** none recorded. The mockup is the reference.
 - **Dark theme:** not in the MVP.
-- **Screens not drawn:** the Requirements, Policy, and Floor plan tabs of event setup, account settings, `/approved`, the terms, privacy, and support pages, and email templates. Build them from these rules and the spec.
+- **Screens not drawn:** `/approved`, the terms, privacy, and support pages, and most email templates (only "Confirm your email" and "Reset your password" are drawn). Build them from these rules and the spec.

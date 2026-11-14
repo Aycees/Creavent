@@ -2,7 +2,7 @@
 
 **Status:** Draft for MVP. The MVP is centered on organizers (flea market organizers first) and kept as simple as possible: features that are not needed to run a first event are deferred (section 9). For a short summary, see [Project details](project-details.md). For the payment approach, see [Revenue model](revenue-model.md).
 
-Last updated: 2026-11-13
+Last updated: 2026-11-14
 
 ## 1. Roles and accounts
 
@@ -162,21 +162,25 @@ Weekend markets often run several days in a row, for example Friday to Sunday.
 
 ### 3.3 Applications
 - Open and close vendor applications for an event. The organizer can also set an applications close date (optional, no later than the event start). After that time, vendors can no longer apply, and the event shows "Applications closed". The organizer can still close applications earlier, or reopen them by changing the date
-- Review each application with the vendor's profile, contact number, and uploaded permits and documents
+- Review each application with the vendor's profile, contact number, uploaded permits and documents, and preferred slot (when the event lets vendors choose one, section 3.4)
 - Approve or decline, with an optional note
 - There is no cap on the number of applications. The organizer can close applications at any time. When all slots are taken, the organizer can still approve applications (for example, in case a slot opens).
 - A declined vendor can reapply to the same event. A removed vendor can reapply only if the organizer allows it.
 - Remove a vendor at any time (for example, an agreed cancellation, a withdrawal, or no payment by the deadline). See section 6.6.
 
 ### 3.4 Slots and floor plan
-- **Slots are a list.** The organizer adds slots with a number (label), an optional size (for example, "2m x 2m"), an optional note (for example, "Near the entrance" or "Food row, with power"), and a price. There is no drawing tool in the MVP.
-- **Add a row of slots:** to save typing, the organizer enters a prefix, a number range, a size, and a price (for example, C, 01 to 06, 3 x 3 m, ₱1,200), and the app adds C-01 to C-06. Each slot can be edited after.
-- Vendors see the slots grouped by row (for example, "A-01 to A-16, 2 x 2 m, Main walkway, ₱800, 9 of 16 open").
+- **Slots are a list.** The organizer adds slots with a number (label), an optional section (for example, "Indoor", "Inner room", or "Outdoor"), an optional size (for example, "2m x 2m"), an optional note (for example, "Near the entrance" or "Food row, with power"), and a price. There is no drawing tool in the MVP.
+- **Add a row of slots:** to save typing, the organizer enters an optional section, a prefix, a number range, a size, and a price (for example, Outdoor, C, 01 to 06, 3 x 3 m, ₱1,200), and the app adds C-01 to C-06. Each slot can be edited after.
+- **Grouping:** vendors see the slots grouped by section, or by the label's prefix when a slot has no section (for example, "Outdoor: O-01 to O-15, 2 x 1.5 m, ₱6,500, 13 of 15 open"). Sections let one group hold slots with unrelated labels (for example, O-01 to O-15, a photobooth, and food truck parking).
+- **How slots are filled.** Each event has a slot mode, chosen on the Slots tab:
+  - **I assign slots** (the default): vendors apply without choosing a slot, and the organizer assigns one after approving them.
+  - **Vendors choose a preferred slot:** when applying, the vendor can pick one open slot as their preference, or "No preference" (section 4.3). The organizer still assigns every slot (section 5) and sees the preference when assigning.
+  - The mode can be changed at any time. Preferences already sent are kept and still shown to the organizer. Switching to "I assign slots" only removes the choice for new applications.
 - Set slot pricing (one price for all slots, or a price per slot). A price change applies only to slots that are still open. Assigned and reserved slots keep the price they had when assigned (section 6.1).
 - A slot that is `assigned` or `reserved` cannot be deleted or renamed. The organizer removes the vendor first (section 6.6).
 - **Floor plan images.** The organizer uploads up to two images, made in any tool (Canva, a photo of a drawing, and so on):
-  - **Vendor floor plan:** the layout with empty, numbered slots. Signed-in vendors see it while the event is open to vendors or announced, so they know where each slot is.
-  - **Public floor plan:** the final layout with the vendors placed. Attendees see it once the event is announced. The organizer uploads it after finalizing vendors.
+  - **Vendor floor plan:** the layout with empty, numbered slots. It is uploaded at the top of the Slots tab and shown next to the slot list as a reference while the organizer adds slots (on phones, behind "Show floor plan", and tapping it opens it full screen). Signed-in vendors see it while the event is open to vendors or announced, so they know where each slot is, and on the apply form when they choose a preferred slot.
+  - **Public floor plan:** the final layout with the vendors placed. Attendees see it once the event is announced. The organizer uploads it on the Public floor plan tab after finalizing vendors.
   - Both are optional. Slot numbers on the images should match the slot list, but the system does not check this.
 - View the vendor list and slot availability at a glance (slot: open, assigned, reserved; payment: pending, submitted, approved, rejected, overdue)
 - **Slots at a glance:** the organizer's vendors page starts with a slot overview that counts slots that are open, assigned, reserved, and overdue.
@@ -192,6 +196,8 @@ See section 6.
 ### 3.7 Event policy
 - Write the event's own cancellation and withdrawal policy (free text) and show it on the event page to signed-in vendors. The platform does not set these rules. See section 6.6.
 - Vendors see the policy before applying. Applying means they have read it.
+- **Prefill:** a new event starts with the policy text of the organizer's most recent event, so most organizers write it once. The Policy tab says which event it came from, and the organizer can edit it for this event only. On an organizer's first event, the Policy tab shows a short example policy to edit, and the checklist step counts only after they save it. There is no global policy setting.
+- Editing the policy changes it for new applications only. Each application keeps the text the vendor accepted (section 6.6).
 - Contracts and e-signatures are not in the MVP (see section 9).
 
 ### 3.8 Organizer dashboard
@@ -214,13 +220,16 @@ The organizer dashboard (`/organizer`) shows:
 - View an event's requirements (categories, limits, permits) and policy before applying
 - On the vendor events page and the event page, see the remaining spots in their categories at an event, when the organizer set a limit (the limit minus the vendors already accepted in that category, for example "5 of 12 spots for this category are left"). It is a guide only, as in section 3.2. The event page also lists every accepted category with its limit and spots left, and the documents to upload, marking those that apply to one category only.
 - The event page sums up the slot fee range, the applications close date, the payment deadline ("24 hours after assignment"), and how the organizer is paid (for example, "GCash or bank").
-- Apply to an event and upload the required permits or documents
+- Apply to an event and upload the required permits or documents. When the event lets vendors choose, also pick a preferred slot or "No preference" (section 4.3)
 - View application status: `submitted`, `approved`, `declined`, `removed`, `withdrawn`
 - Withdraw an application while it is still `submitted` (not yet approved or declined). The organizer is emailed. After approval, the vendor contacts the organizer instead. A withdrawn vendor can apply again.
 - Reapply after a decline. After removal, reapply only if the organizer allows it (section 3.3).
 
 ### 4.3 Slots
-- Slots are assigned by the organizer (section 5). Vendors do not pick slots in the MVP.
+- Slots are assigned by the organizer (section 5). Vendors cannot book or hold a slot themselves.
+- **Preferred slot:** when the organizer chose "Vendors choose a preferred slot" (section 3.4), the apply form shows the vendor floor plan (if uploaded) and the slots grouped by section, each marked **Open** or **Taken** (taken means `assigned` or `reserved`). The vendor picks one open slot, or "No preference". It is optional.
+  - A preference holds nothing. Other vendors can prefer the same slot, and it stays open until the organizer assigns someone. The form says "Your pick isn't reserved until the organizer assigns it."
+  - The preference can't be edited after applying. To change it, the vendor contacts the organizer, or withdraws and applies again while the application is still `submitted`.
 - See the assigned slot's number, size, and price, and the vendor floor plan image if the organizer uploaded one
 - If all slots are taken, there is no waitlist. The vendor can contact the organizer or check back later.
 - Release an assigned slot before payment is approved (see section 6.6). After the slot is reserved, contact the organizer.
@@ -242,20 +251,22 @@ The vendor dashboard (`/vendor`) shows:
 - **Next event:** the vendor's next event with a reserved slot ("You're confirmed"), with the slot, the organizer's contact, the ingress details, and the vendor floor plan.
 - **Open to vendors:** events open to vendors that accept the vendor's categories, with their applications close date.
 
-The application page (`/vendor/applications/[id]`) shows a progress timeline: applied, approved, slot assigned, pay and upload proof, slot reserved.
+The application page (`/vendor/applications/[id]`) shows a progress timeline: applied, approved, slot assigned, pay and upload proof, slot reserved. Until a slot is assigned, it also shows the vendor's preferred slot, if they chose one.
 
 ## 5. Slot assignment
 
-The MVP has one way to fill slots: **the organizer assigns them.** Vendor self-selection (open selection and category selection) is a later feature (section 9).
+**The organizer assigns every slot.** In events set to "Vendors choose a preferred slot" (section 3.4), the vendor's preference is a request the organizer usually follows, not a booking. Vendor self-booking (taking or holding a slot without the organizer) is a later feature (section 9).
 
 1. The vendor applies, and the organizer approves the application.
-2. The organizer sees the list of approved vendors without a slot and assigns each one to an open slot.
+2. The organizer sees the list of approved vendors without a slot, with each one's preferred slot, and assigns each one to an open slot. When the preferred slot is still open, the **Assign slot** dialog selects it. When it was assigned to someone else, the dialog says "Preferred slot taken" and the organizer picks another.
 3. The vendor gets an email with the slot, the amount due, the payment instructions, and the deadline (section 6).
 
 Rules:
 - A vendor must have an approved application before being assigned a slot.
 - A slot has these states: `open` → `assigned` → `reserved` (payment approved). It returns to `open` if the vendor releases it or is removed.
 - A slot belongs to one vendor at a time.
+- Several vendors can prefer the same slot. The organizer sees "Preferred by 2" on that slot and decides who gets it. The others are assigned elsewhere or stay without a slot.
+- A preferred slot that the organizer later deletes shows as "No longer available" on the application. The organizer assigns another.
 - A vendor can have only one slot per event (for now). The slot has its own payment amount, deadline, and proof of payment.
 - There is no "move" feature. To change a vendor's slot, the organizer removes the vendor from the slot, which returns it to `open`, and then assigns another.
 - No waitlist: when no slots are open, approved vendors simply have no slot. The organizer sees them in the "approved, no slot" list and can assign them if a slot opens.
@@ -396,8 +407,8 @@ All notifications are sent by email through [Resend](https://resend.com). There 
 ## 9. Out of scope for the MVP
 
 - Identity verification (government ID, selfie) for organizers and vendors. Replaced by organizer approval (section 2.1) until the legal review is done
-- Vendor slot selection (open selection, category selection). The organizer assigns all slots
-- Floor plan editor (drawing slots, walkways, and areas). Replaced by uploaded floor plan images
+- Vendor self-booking: taking or holding a slot without the organizer, first come first served. Vendors can only state a preferred slot, and the organizer assigns every slot (section 5)
+- Floor plan editor (drawing slots, walkways, and areas) and clickable floor plans. Replaced by uploaded floor plan images
 - Payment deadline enforcement: automatic expiry, reminder emails, retry windows, and deadline extensions
 - In-app messaging between organizers and vendors
 - Attendee accounts: saving events, following events and organizers, and their emails
@@ -428,7 +439,7 @@ All notifications are sent by email through [Resend](https://resend.com). There 
 - Organizers are approved by an admin from their social media and past event links. No documents are uploaded. Vendors need no approval (section 2.1).
 - The badge reads "Approved by Creavent" and links to what it means. No "verified" wording.
 - Vendors upload permits and documents when applying. Requirements are shown only to signed-in vendors.
-- Slots are a list, filled only by organizer assignment. Floor plans are two optional images: one for vendors (empty slots) and one for attendees (vendors placed).
+- Slots are a list, filled by organizer assignment. The organizer can let vendors choose a preferred slot when applying (section 3.4). Floor plans are two optional images: one for vendors (empty slots) and one for attendees (vendors placed).
 - Payment deadlines are shown, not enforced. Overdue payments are flagged, and the organizer removes the vendor if needed.
 - Admins have full view access, including proof of payment and application documents.
 - Waitlist, deposit option, and event announcements are moved out of the MVP.
@@ -493,6 +504,8 @@ All notifications are sent by email through [Resend](https://resend.com). There 
   - Suspension is per role with a reason shown to the user, hiding an event emails the organizer the reason, and admins add reports from the support inbox (sections 2, 2.1, 2.2).
   - The links an organizer submits for approval are their public social links (section 2.1).
 - **Multi-day events and payment options (2026-11-12):** events run 1 to 7 days in a row with the same daily hours, and vendors are locked in for the whole event (section 3.1.1). Vendors select which payment option they paid with when uploading proof (section 6.2). See [Open questions](open-questions.md#l-multi-day-events-and-payment-options).
+- **Event policy prefill (2026-11-14):** a new event copies the policy of the organizer's most recent event. A first event starts from an example to edit. No global policy setting (section 3.7). See [Open questions](open-questions.md#n-event-policy).
+- **Preferred slots (2026-11-14):** each event has a slot mode, "I assign slots" or "Vendors choose a preferred slot". A preference holds nothing, and the organizer still assigns every slot (sections 3.4, 4.3, 5). Slots get an optional section for grouping. The vendor floor plan is uploaded on the Slots tab and shown there as a reference. Prompted by an organizer's registration form with a clickable floor plan. See [Open questions](open-questions.md#m-preferred-slots).
 
 ### Open
 1. Confirm the record retention period (90 days) and data handling with a lawyer under the Philippine Data Privacy Act, including health certificates uploaded as permits.

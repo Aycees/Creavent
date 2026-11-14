@@ -2,7 +2,7 @@
 
 Tracks the documents needed before development and UI design. Check a box once the document is created.
 
-Last updated: 2026-11-13
+Last updated: 2026-11-14
 
 Legend: ⚠️ = the item is partly deferred until the final revenue model is decided after the MVP (see [Revenue model decision](#revenue-model-decision)).
 
@@ -43,7 +43,7 @@ Legend: ⚠️ = the item is partly deferred until the final revenue model is de
   - [x] Mobile-first guidelines
 - [x] UI mockup of every MVP screen, desktop and phone: "Creavent UI Mockup (MVP)" (2026-11-12). The docs were aligned with it the same day (see `docs/open-questions.md`, section K)
 - [x] Payment proof upload and approval screens (MVP)
-- [x] Slot list and assignment, floor plan image upload, and admin organizer approval screens (MVP). Event setup has the Details (dates and hours, applications close, ingress), Payments (payment options, deadline), and Slots tabs drawn. The Requirements, Policy, and Floor plan tabs are listed but not drawn on their own
+- [x] Slot list and assignment, floor plan image upload, and admin organizer approval screens (MVP). Event setup has every tab drawn: Details, Requirements, Policy, Payments, Slots (with the slot mode and the vendor floor plan as a reference), and Public floor plan. The vendor apply page with a preferred slot, the organizer's Assign slot sheet, and the vendor's Browse events list were added on 2026-11-14
 - [x] Onboarding screens, vendor page, and event listing (list, calendar, "Next 7 days") screens (MVP)
 - [ ] Contract signing screens ⚠️ (deferred, post-MVP)
 - [ ] Pricing, checkout, and payout screens ⚠️ (deferred, post-MVP)

@@ -2,7 +2,7 @@
 
 **Status:** First draft, agreed on 2026-11-12 and simplified the same day (spec §9). Lists every page in the MVP, who can open it, and how pages connect. The rules behind each page are in the [Feature specification](feature-specification.md), and the steps are in the [User flows](user-flows.md). If this file and the spec disagree, the spec wins.
 
-Last updated: 2026-11-13
+Last updated: 2026-11-14
 
 ## 1. Principles
 
@@ -34,6 +34,7 @@ Account (any signed-in user)
 Vendor (vendor role)
 ├── /vendor                        Dashboard
 ├── /vendor/events                 Browse events open to vendors or announced
+├── /vendor/events/[slug]/apply    Apply: categories, documents, preferred slot, policy
 ├── /vendor/applications           Application list
 ├── /vendor/applications/[id]      Application detail, assigned slot, and payment
 └── /vendor/profile                Vendor profile
@@ -77,7 +78,7 @@ Admin
 | Admin | Everything, plus admin actions | | | |
 
 - **Public view:** cover, event type tag, schedule, venue with "Get directions", "Copy link", number of confirmed vendors, description, organizer card with badge, about, and social links (links to the organizer page), public floor plan image, accepted-vendor list with each vendor's category and slot number, filterable by category (each name links to that vendor's page, or shows without a link when that page is not available), "Details updated" date, report button (signed in), and the support email for reports from visitors.
-- **Vendor view:** public view, plus a note when the event is not public yet, the applications close date, requirements (accepted categories with limit and spots left, and the documents to upload, some for one category only), the slots grouped by row with size, note, price, and open count, the vendor floor plan image, the event policy, a summary (fee range, applications close, pay within, paid to), the organizer's contact details for vendors, and **Apply**, or the vendor's current status with a link to the application. Attendees never see these parts.
+- **Vendor view:** public view, plus a note when the event is not public yet, the applications close date, requirements (accepted categories with limit and spots left, and the documents to upload, some for one category only), the slots grouped by section with size, note, price, and open count (with "You can choose a preferred slot when you apply" when the organizer allows it), the vendor floor plan image, the event policy, a summary (fee range, applications close, pay within, paid to), the organizer's contact details for vendors, and **Apply**, or the vendor's current status with a link to the application. Attendees never see these parts.
 - Hidden events are "Not found" to everyone except their organizer and admins (spec §2).
 
 ### `/organizers/[slug]` Organizer page
@@ -122,20 +123,21 @@ Opens after the email is confirmed (spec §1.1). Both flows share step 1, "How w
 |---|---|---|
 | Details | Name, event type (Flea market by default), start and end date (1 to 7 days), daily opening and closing time, venue, description, cover, vendor contact details, applications close date, ingress details | §3.1 |
 | Requirements | Allowed categories, limit per category, required documents (all vendors or one category) | §3.2 |
-| Policy | Cancellation and withdrawal policy | §3.7 |
+| Policy | Cancellation and withdrawal policy, prefilled from the organizer's last event (or an example on a first event) | §3.7 |
 | Payments | Payment options vendors can pick from (channel, account details, QR), deadline hours | §6.1 |
-| Slots | Slot list (number, size, note, price), default price, "Add a row of slots", slot preview | §3.4 |
-| Floor plan | Upload the vendor floor plan and the public floor plan images | §3.4 |
+| Slots | Vendor floor plan upload, shown as a reference next to the list (behind "Show floor plan" on phones), how slots are filled (I assign slots, or Vendors choose a preferred slot), slot list (section, number, size, note, price), default price, "Add a row of slots", slot preview | §3.4 |
+| Public floor plan | Upload the public floor plan image (vendors placed) | §3.4 |
 
 Header actions, depending on status: **Preview as vendor**, **Open to vendors** (an "Open to vendors" checklist shows the five required steps: details with cover, requirements, policy, at least one slot, payment instructions. It needs organizer approval), **Open or close applications**, **Announce** (warns about unpaid slots), **Cancel event**.
 
-`/organizer/events/[id]/vendors` has tabs for Applications, Vendors and slots, and Event setup, and header actions **Close applications** and **Announce event**. It starts with **slots at a glance** (how many slots are reserved, assigned, overdue, and open). It then shows approved vendors without a slot (with **Assign slot**), and every slot with its vendor, amount, payment status (Waiting, Proof submitted, Proof rejected with the reason, **Overdue**), and deadline, filtered by All, Needs attention, Reserved, or Open. The proof review panel shows the receipt, amount due, the option the vendor paid with, the amount and reference they entered, and **Approve payment** or **Reject**. Approving a payment without a proof image is the **Mark paid** action, which needs a note (spec §6.3). **Remove** frees the slot.
+`/organizer/events/[id]/vendors` has tabs for Applications, Vendors and slots, and Event setup, and header actions **Close applications** and **Announce event**. It starts with **slots at a glance** (how many slots are reserved, assigned, overdue, and open). It then shows approved vendors without a slot (with their preferred slot, if any, and **Assign slot**, which selects the preferred slot when it's still open), and every slot with its vendor, amount, payment status (Waiting, Proof submitted, Proof rejected with the reason, **Overdue**), and deadline, filtered by All, Needs attention, Reserved, or Open. The proof review panel shows the receipt, amount due, the option the vendor paid with, the amount and reference they entered, and **Approve payment** or **Reject**. Approving a payment without a proof image is the **Mark paid** action, which needs a note (spec §6.3). **Remove** frees the slot.
 
 ### Dashboards and lists
 - `/organizer` shows to-do counts per event (applications to review, proofs to check, overdue payments, approved vendors with no slot), and Upcoming and Past event tabs with status, slot fill, and next step (spec §3.8).
 - `/vendor` shows what needs action, the applications table, the next confirmed event with ingress details, and events open to vendors (spec §4.6).
 - `/vendor/applications/[id]` shows the slot, amount due, payment methods with copy buttons, the proof upload (option paid with, amount sent, reference number), the deadline, a progress timeline, the organizer's contact, and **Release slot** (spec §4.6, §6.2).
-- `/vendor/events` shows, for each event, the vendor's remaining spots in their categories when the organizer set a limit (spec §4.2).
+- `/vendor/events` lists events open to vendors or announced, soonest first, with search and date and city filters. Each shows the vendor's remaining spots in their categories when the organizer set a limit, the fee range, the applications close date, a "Choose a preferred slot" tag when the event allows it, and the vendor's own status there (applied, slot assigned, declined) (spec §4.2).
+- `/vendor/events/[slug]/apply` asks for the categories, the required documents, and, when the event lets vendors choose, a preferred slot from the vendor floor plan and the slots grouped by section, each marked Open or Taken (or "No preference"). It ends with the policy and **Submit application** (spec §4.2, §4.3).
 
 ## 5. Navigation
 
@@ -162,4 +164,4 @@ Categories, settings, and the audit log are managed in seed data, configuration,
 
 ## 7. Not in the MVP
 
-Saved and followed events, messaging, a vendor slot picker, a floor plan editor, identity verification pages, admin "view as this user", admin category, event type, and settings pages, a vendor directory or vendor search, attendee messaging, an announcements section, a waitlist page, contract signing pages, checkout and payout pages, and analytics dashboards (spec §9).
+Saved and followed events, messaging, a vendor slot booking page (vendors only state a preferred slot on the apply form), a floor plan editor, identity verification pages, admin "view as this user", admin category, event type, and settings pages, a vendor directory or vendor search, attendee messaging, an announcements section, a waitlist page, contract signing pages, checkout and payout pages, and analytics dashboards (spec §9).
