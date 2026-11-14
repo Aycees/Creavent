@@ -73,7 +73,8 @@ export class OrganizerEventsService {
       include: { eventType: true, _count: { select: { slots: { where: { deletedAt: null } } } } },
       orderBy: [{ startsAt: { sort: 'asc', nulls: 'last' } }, { createdAt: 'asc' }],
     });
-    const now = new Date();
+    // "Upcoming" runs until the end of the event's last day (flow 3).
+    const startOfToday = new Date(`${manilaParts(new Date()).date}T00:00:00+08:00`);
     const rows = await Promise.all(
       events.map(async (e): Promise<OrganizerEventRow & { ended: boolean }> => {
         let nextStep: string;
@@ -97,7 +98,7 @@ export class OrganizerEventsService {
           venueName: e.venueName,
           slotCount: e._count.slots,
           nextStep,
-          ended: e.endsAt !== null && e.endsAt < now,
+          ended: e.endsAt !== null && e.endsAt < startOfToday,
         };
       }),
     );
@@ -206,7 +207,10 @@ export class OrganizerEventsService {
       const byId = new Map(existing.map((m) => [m.id, m]));
       if (input.methods.some((m) => m.id && !byId.has(m.id))) throw new BadRequestException('This payment option is not on this event');
       for (const m of input.methods) {
-        if (m.qrFileId && m.qrFileId !== byId.get(m.id ?? '')?.qrFileId) await assertAttachable(tx, m.qrFileId, userId, 'payment_qr');
+        if (m.qrFileId && m.qrFileId !== byId.get(m.id ?? '')?.qrFileId) {
+          await assertAttachable(tx, m.qrFileId, userId, 'payment_qr');
+          await assertNotOnOtherEvent(tx, m.qrFileId, event.id);
+        }
       }
       await tx.event.update({ where: { id: event.id }, data: { paymentDeadlineHours: input.deadlineHours } });
       // Removed options are turned off, not deleted (data model §5.4).
@@ -235,7 +239,7 @@ export class OrganizerEventsService {
   // 2026-11-14). Needs every required step and an approved organizer.
   async open(userId: string, eventId: string) {
     await this.prisma.$transaction(async (tx) => {
-      const event = await ownEvent(tx, userId, eventId, true);
+      const event = await ownEvent(tx, userId, eventId);
       const role = await tx.userRole.findUniqueOrThrow({ where: { userId_role: { userId, role: 'organizer' } } });
       if (!isApproved(role)) throw new ForbiddenException('Get approved to open this event to vendors');
       const missing = missingSteps(await checklist(tx, event.id));
@@ -258,7 +262,7 @@ export class OrganizerEventsService {
   // their records stay (spec §3.1, §6.7).
   async deleteDraft(userId: string, eventId: string) {
     await this.prisma.$transaction(async (tx) => {
-      const event = await ownEvent(tx, userId, eventId, true);
+      const event = await ownEvent(tx, userId, eventId);
       if (event.status !== 'draft') throw new ConflictException('Only drafts can be deleted. Cancel this event instead.');
       const qrs = await tx.eventPaymentMethod.findMany({ where: { eventId: event.id }, select: { qrFileId: true } });
       // Requirements, slots, and payment options go with the event (cascade).
@@ -278,7 +282,7 @@ export class OrganizerEventsService {
   // Close or reopen applications (spec §3.3) on an event vendors can see.
   async setApplications(userId: string, eventId: string, open: boolean) {
     await this.prisma.$transaction(async (tx) => {
-      const event = await ownEvent(tx, userId, eventId, true);
+      const event = await ownEvent(tx, userId, eventId);
       if (event.status !== 'open_to_vendors' && event.status !== 'announced') {
         throw new ConflictException('Open the event to vendors first');
       }
@@ -334,7 +338,10 @@ export class OrganizerEventsService {
     await this.prisma.$transaction(async (tx) => {
       const event = await ownEvent(tx, userId, eventId);
       if (input.eventTypeId !== event.eventTypeId) await assertEventType(tx, input.eventTypeId);
-      if (input.coverFileId) await assertAttachable(tx, input.coverFileId, userId, 'event_cover');
+      if (input.coverFileId && input.coverFileId !== event.coverFileId) {
+        await assertAttachable(tx, input.coverFileId, userId, 'event_cover');
+        await assertNotOnOtherEvent(tx, input.coverFileId, event.id);
+      }
       await retireFiles(tx, [event.coverFileId], [input.coverFileId]);
       const scheduled = input.startDate && input.endDate && input.opensAt && input.closesAt;
       const [closeDate, closeTime] = input.applicationsCloseAt?.split('T') ?? [];
@@ -375,15 +382,29 @@ export async function organizerProfile(db: Db, userId: string) {
   return user.organizerProfile;
 }
 
-// The organizer's own event, or Not found for anyone else. With lock, the
-// row is locked for the rest of the transaction, so two status changes run
-// one after the other.
-export async function ownEvent(tx: Tx, userId: string, eventId: string, lock = false) {
+// The organizer's own event, or Not found for anyone else, for a change. The
+// row is locked for the rest of the transaction, so every change to one event
+// runs one after the other: two saves can't both pass the "still ready" check
+// on an open event (flow 3), or slip past a status change.
+export async function ownEvent(tx: Tx, userId: string, eventId: string) {
   await organizerProfile(tx, userId);
-  if (lock) await tx.$queryRaw`SELECT id FROM events WHERE id = ${eventId}::uuid FOR UPDATE`;
+  await tx.$queryRaw`SELECT id FROM events WHERE id = ${eventId}::uuid FOR UPDATE`;
   const event = await tx.event.findFirst({ where: { id: eventId, organizerProfile: { userId } } });
   if (!event) throw new NotFoundException('Event not found');
   return event;
+}
+
+// A picture belongs to one event. Reusing another event's file would let
+// replacing or deleting it there empty it here too (data model §6.10).
+export async function assertNotOnOtherEvent(tx: Tx, fileId: string, eventId: string) {
+  const [event, method] = await Promise.all([
+    tx.event.findFirst({
+      where: { id: { not: eventId }, OR: [{ coverFileId: fileId }, { vendorFloorPlanFileId: fileId }, { publicFloorPlanFileId: fileId }] },
+      select: { id: true },
+    }),
+    tx.eventPaymentMethod.findFirst({ where: { qrFileId: fileId, eventId: { not: eventId } }, select: { id: true } }),
+  ]);
+  if (event || method) throw new BadRequestException('This picture is already used on another event. Upload it again.');
 }
 
 // The "Approved by Creavent" rule (data model §7).

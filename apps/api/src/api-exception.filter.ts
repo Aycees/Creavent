@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 import type { ErrorResponse } from '@creavent/shared';
+import { Prisma } from './generated/prisma/client.js';
 import { STATUS_CODES } from 'node:http';
 
 // Turns every error into the one error shape (docs/architecture.md §3.4).
@@ -31,6 +32,12 @@ export class ApiExceptionFilter implements ExceptionFilter {
   }
 
   private toBody(exception: unknown): ErrorResponse {
+    // A unique rule in the database caught two saves at the same moment (a
+    // slot label, a page link). The app checks first, so this is a race: ask
+    // the user to try again rather than answer 500.
+    if (exception instanceof Prisma.PrismaClientKnownRequestError && exception.code === 'P2002') {
+      return { statusCode: 409, error: 'Conflict', message: 'Someone just saved the same thing. Try again.' };
+    }
     if (!(exception instanceof HttpException)) {
       return {
         statusCode: 500,

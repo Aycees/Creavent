@@ -10,7 +10,7 @@ import type { z } from 'zod';
 import { assertAttachable, retireFiles } from '../files/files.service.js';
 import { PrismaService, type Tx } from '../prisma/prisma.service.js';
 import { assertStillReady } from './event-status.js';
-import { OrganizerEventsService, ownEvent } from './organizer-events.service.js';
+import { assertNotOnOtherEvent, OrganizerEventsService, ownEvent } from './organizer-events.service.js';
 
 type SlotFields = z.output<typeof slotSchema>;
 
@@ -78,6 +78,7 @@ export class EventSlotsService {
       const event = await ownEvent(tx, userId, eventId);
       if (input.vendorFloorPlanFileId && input.vendorFloorPlanFileId !== event.vendorFloorPlanFileId) {
         await assertAttachable(tx, input.vendorFloorPlanFileId, userId, 'vendor_floor_plan');
+        await assertNotOnOtherEvent(tx, input.vendorFloorPlanFileId, event.id);
       }
       await retireFiles(tx, [event.vendorFloorPlanFileId], [input.vendorFloorPlanFileId]);
       await tx.event.update({
@@ -93,6 +94,7 @@ export class EventSlotsService {
       const event = await ownEvent(tx, userId, eventId);
       if (input.fileId && input.fileId !== event.publicFloorPlanFileId) {
         await assertAttachable(tx, input.fileId, userId, 'public_floor_plan');
+        await assertNotOnOtherEvent(tx, input.fileId, event.id);
       }
       await retireFiles(tx, [event.publicFloorPlanFileId], [input.fileId]);
       await tx.event.update({ where: { id: event.id }, data: { publicFloorPlanFileId: input.fileId } });

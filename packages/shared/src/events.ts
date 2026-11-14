@@ -63,9 +63,17 @@ const blankToNull = <T extends z.ZodType<string, string>>(schema: T) =>
 const optionalText = (max: number) => blankToNull(text(max));
 const optionalLongText = (max: number) => blankToNull(longText(max));
 
-const dateString = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Pick a date');
+// A real calendar date: "2027-02-31" is refused, not moved to March.
+const isRealDate = (d: string) => {
+  const parsed = new Date(`${d.slice(0, 10)}T00:00:00Z`);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === d.slice(0, 10);
+};
+const dateString = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Pick a date').refine(isRealDate, 'Pick a date');
 const timeString = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Pick a time');
-const dateTimeString = z.string().regex(/^\d{4}-\d{2}-\d{2}T([01]\d|2[0-3]):[0-5]\d$/, 'Pick a date and time');
+const dateTimeString = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}T([01]\d|2[0-3]):[0-5]\d$/, 'Pick a date and time')
+  .refine(isRealDate, 'Pick a date and time');
 // Blank form fields are saved as null.
 const blankAsNull = <T extends z.ZodType<string>>(schema: T) =>
   z
@@ -206,7 +214,8 @@ const priceSchema = z
   .number('Enter a price')
   .min(0, "Prices can't be negative")
   .max(1_000_000, 'Use at most ₱1,000,000')
-  .refine((v) => Math.round(v * 100) === v * 100, 'Use at most 2 decimals')
+  // With a tolerance, because 19.99 * 100 is 1998.9999999999998 in floating point.
+  .refine((v) => Math.abs(v * 100 - Math.round(v * 100)) < 1e-6, 'Use at most 2 decimals')
   .nullable();
 
 export const MAX_SLOTS_PER_ROW = 200;

@@ -41,15 +41,17 @@ export class VendorEventsService {
   async browse(userId: string, query: z.output<typeof vendorEventsQuerySchema>): Promise<{ events: VendorEventCard[] }> {
     const vendor = await vendorProfile(this.prisma, userId);
     const now = new Date();
+    // Events that end today or later, by the Manila day (flow 4).
+    const startOfToday = new Date(`${manilaParts(now).date}T00:00:00+08:00`);
     const where: Prisma.EventWhereInput = {
       status: { in: ['open_to_vendors', 'announced'] },
       moderationState: 'visible',
-      endsAt: { gte: now },
       ...(query.city ? { city: query.city } : {}),
       ...(query.q
         ? { OR: [{ name: { contains: query.q, mode: 'insensitive' } }, { venueName: { contains: query.q, mode: 'insensitive' } }] }
         : {}),
-      ...dateFilter(query.when, now),
+      // AND, so the date filter can't replace "ends today or later".
+      AND: [{ endsAt: { gte: startOfToday } }, dateFilter(query.when, now)],
     };
     const events = await this.prisma.event.findMany({ where, include, orderBy: { startsAt: 'asc' }, take: 100 });
     const mine = new Set(vendor.categories.map((c) => c.categoryId));
