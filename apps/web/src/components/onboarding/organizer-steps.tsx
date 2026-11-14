@@ -58,7 +58,7 @@ export function OrganizerPageStep({ state, onBack, finishLater }: StepProps) {
     >
       <StepHeading
         title="Set up your organizer page"
-        intro="Shoppers and vendors see this on your public page and on every event you post."
+        intro="Visitors and vendors see this on your public page and on every event you post."
       />
       <ImagePicker
         label="Logo (optional)"

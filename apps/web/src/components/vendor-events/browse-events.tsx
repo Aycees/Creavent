@@ -103,7 +103,12 @@ function EventCard({ event: e }: { event: VendorEventCard }) {
   const id = React.useId()
   const schedule = formatSchedule(e)
   return (
-    <article aria-labelledby={id} className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4 md:flex-row md:gap-5 md:p-5">
+    // The title link stretches over the whole card, so a tap anywhere opens the
+    // event while it stays one link for keyboards and screen readers.
+    <article
+      aria-labelledby={id}
+      className="relative flex flex-col gap-3 rounded-lg border border-border bg-surface p-4 transition-colors hover:border-border-strong hover:bg-canvas has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-focus md:flex-row md:gap-5 md:p-5"
+    >
       {e.startDate && <DateStamp date={stampDate(e.startDate)} className="hidden md:inline-flex" />}
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <div className="flex flex-wrap items-center gap-2">
@@ -116,14 +121,14 @@ function EventCard({ event: e }: { event: VendorEventCard }) {
           )}
         </div>
         <h2 id={id} className="text-h3">
-          <Link href={`/events/${e.slug}`} className="hover:underline">
+          <Link href={`/events/${e.slug}`} className="outline-none after:absolute after:inset-0 after:rounded-lg">
             {e.name}
           </Link>
         </h2>
         <p className="text-sm text-muted">{[schedule, e.venueName].filter(Boolean).join(" · ")}</p>
         <p className="flex flex-wrap items-center gap-2 text-sm">
           {e.organizer.displayName}
-          {e.organizer.approved && <ApprovedMark compact />}
+          {e.organizer.approved && <ApprovedMark compact link={false} />}
         </p>
         {e.mySpots.map((s) => (
           <p key={s.categoryName} className="text-sm font-medium">

@@ -153,7 +153,7 @@ export function RequirementsTab({ setup }: { setup: EventSetup }) {
           </Button>
         </SetupPanel>
 
-        <Alert tone="info">Shown to signed-in vendors only. Shoppers never see requirements.</Alert>
+        <Alert tone="info">Shown to signed-in vendors only. Visitors never see requirements.</Alert>
         <TabSaveBar label="Save requirements" saving={saving} dirty={dirty} error={error} />
       </div>
 

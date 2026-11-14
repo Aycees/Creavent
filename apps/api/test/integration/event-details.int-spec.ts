@@ -173,6 +173,18 @@ describe('event drafts and details', () => {
       expect(event.endsAt?.toISOString()).toBe('2027-01-17T15:00:00.000Z');
     });
 
+    it('keeps line breaks in the description and the contact details', async () => {
+      const { browser } = await organizer();
+      const id = await draft(browser);
+
+      const res = await browser
+        .put(`/api/organizer/events/${id}/details`)
+        .send(details({ description: 'Ukay-ukay.\n\nStreet food.', vendorContactInfo: 'Joanna\n0928 115 7720' }));
+
+      expect(res.status).toBe(200);
+      expect(res.body.details).toMatchObject({ description: 'Ukay-ukay.\n\nStreet food.', vendorContactInfo: 'Joanna\n0928 115 7720' });
+    });
+
     it('lets a draft keep every detail but the name empty', async () => {
       const { browser } = await organizer();
       const id = await draft(browser);

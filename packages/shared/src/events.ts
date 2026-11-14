@@ -38,13 +38,30 @@ const text = (max: number, label = 'text') =>
     .max(max, `Use at most ${max} characters`)
     .refine((v) => !HIDDEN_CHARS.test(v), `This ${label} has hidden characters. Type it again.`);
 
-// Optional text: blank is saved as null.
-const optionalText = (max: number) =>
-  text(max)
+// Long text people write in paragraphs (a description, a policy): line breaks
+// and tabs are kept, and Windows line endings become plain ones. Other hidden
+// characters are still refused.
+const longText = (max: number, label = 'text') =>
+  z
+    .string()
+    .transform((v) => v.replace(/\r\n?/g, '\n').trim())
+    .pipe(
+      z
+        .string()
+        .max(max, `Use at most ${max} characters`)
+        .refine((v) => !HIDDEN_CHARS.test(v.replace(/[\n\t]/g, '')), `This ${label} has hidden characters. Type it again.`),
+    );
+
+const blankToNull = <T extends z.ZodType<string, string>>(schema: T) =>
+  schema
     .transform((v) => (v === '' ? null : v))
     .nullable()
     .optional()
     .transform((v) => v ?? null);
+
+// Optional text: blank is saved as null.
+const optionalText = (max: number) => blankToNull(text(max));
+const optionalLongText = (max: number) => blankToNull(longText(max));
 
 const dateString = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Pick a date');
 const timeString = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Pick a time');
@@ -69,7 +86,7 @@ export const eventDetailsSchema = z
   .object({
     name: eventNameSchema,
     eventTypeId: z.uuid('Pick an event type'),
-    description: optionalText(2000),
+    description: optionalLongText(2000),
     startDate: blankAsNull(dateString),
     endDate: blankAsNull(dateString),
     opensAt: blankAsNull(timeString),
@@ -78,7 +95,7 @@ export const eventDetailsSchema = z
     addressLine: optionalText(200),
     city: blankAsNull(z.enum(eventCities, 'Pick a city')),
     coverFileId: z.uuid().nullable(),
-    vendorContactInfo: optionalText(500),
+    vendorContactInfo: optionalLongText(500),
     applicationsCloseAt: blankAsNull(dateTimeString),
     ingressInfo: optionalText(200),
   })
@@ -139,7 +156,7 @@ export type EventRequirementsInput = z.input<typeof eventRequirementsSchema>;
 
 // The Policy tab (spec §3.7).
 export const eventPolicySchema = z.object({
-  text: text(5000, 'policy').min(1, 'Write your policy, or keep the example'),
+  text: longText(5000, 'policy').pipe(z.string().min(1, 'Write your policy, or keep the example')),
 });
 export type EventPolicyInput = z.input<typeof eventPolicySchema>;
 

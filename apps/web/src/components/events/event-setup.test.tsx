@@ -53,6 +53,14 @@ describe("Details tab", () => {
     expect(screen.getByText("Runs 1 day: Sat, Jan 16 · 5 PM to 11 PM")).toBeInTheDocument()
   })
 
+  it("steps every time picker by 5 minutes", async () => {
+    renderWithQuery(<EventSetupPage id={EVENT_ID} />)
+
+    expect(await screen.findByLabelText("Opens")).toHaveAttribute("step", "300")
+    expect(screen.getByLabelText("Closes")).toHaveAttribute("step", "300")
+    expect(screen.getByLabelText(/Applications close/)).toHaveAttribute("step", "300")
+  })
+
   it("updates the preview for a market over several days", async () => {
     renderWithQuery(<EventSetupPage id={EVENT_ID} />)
 

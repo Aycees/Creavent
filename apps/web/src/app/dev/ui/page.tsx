@@ -186,7 +186,7 @@ export default function DevUiPage() {
 
       <Section title="Alerts">
         <div className="flex flex-col gap-3">
-          <Alert tone="info">Vendor view. This event is open to vendors. Shoppers can&apos;t see it until the organizer announces it.</Alert>
+          <Alert tone="info">Vendor view. This event is open to vendors. Visitors can&apos;t see it until the organizer announces it.</Alert>
           <Alert tone="warning">About 21 hours left. Late payments are flagged to the organizer, who may give the slot to someone else.</Alert>
           <Alert tone="success">Payment approved. Slot B-04 is reserved.</Alert>
           <Alert tone="danger">Your application was declined.</Alert>

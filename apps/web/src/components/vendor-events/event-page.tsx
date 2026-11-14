@@ -70,7 +70,7 @@ function VendorView({ event: e, preview }: { event: VendorEvent; preview: boolea
         </Alert>
       ) : (
         e.status === "open_to_vendors" && (
-          <Alert tone="info">Vendor view. This event is open to vendors. Shoppers can&apos;t see it until the organizer announces it.</Alert>
+          <Alert tone="info">Vendor view. This event is open to vendors. Visitors can&apos;t see it until the organizer announces it.</Alert>
         )
       )}
 

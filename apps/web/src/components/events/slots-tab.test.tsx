@@ -111,11 +111,11 @@ describe("Slots tab (spec §3.4)", () => {
 })
 
 describe("Public floor plan tab", () => {
-  it("says when shoppers see it", async () => {
+  it("says when visitors see it", async () => {
     tab = "public-floor-plan"
     renderWithQuery(<EventSetupPage id={EVENT_ID} />)
 
-    expect(await screen.findByText(/Shoppers see it on the event page once you announce the event/)).toBeInTheDocument()
+    expect(await screen.findByText(/Visitors see it on the event page once you announce the event/)).toBeInTheDocument()
     expect(screen.getByRole("button", { name: /Upload public floor plan/ })).toBeInTheDocument()
   })
 })

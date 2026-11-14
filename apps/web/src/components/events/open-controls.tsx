@@ -99,7 +99,7 @@ export function OpenButton({ setup }: { setup: EventSetup }) {
           <DialogHeader>
             <DialogTitle>Open this event to vendors?</DialogTitle>
             <DialogDescription>
-              Signed-in vendors can find it and apply. Shoppers can&apos;t see it until you announce it. Applications open now, and you can close them any
+              Signed-in vendors can find it and apply. Visitors can&apos;t see it until you announce it. Applications open now, and you can close them any
               time.
             </DialogDescription>
           </DialogHeader>
@@ -140,7 +140,7 @@ export function ApplicationsPanel({ setup }: { setup: EventSetup }) {
       <div className="flex flex-1 flex-col gap-1">
         <p className="text-label font-semibold">{open ? "Applications are open" : "Applications are closed"}</p>
         <p className="text-sm text-muted">
-          {setup.status === "open_to_vendors" ? "Vendors can find this event and apply. Shoppers can't see it yet." : "Vendors can find this event."}
+          {setup.status === "open_to_vendors" ? "Vendors can find this event and apply. Visitors can't see it yet." : "Vendors can find this event."}
           {!open && " New applications are turned off."}
         </p>
         {error && <p className="text-help text-danger-ink">{error}</p>}

@@ -52,7 +52,7 @@ export function VendorShopStep({ state, onBack, finishLater }: StepProps) {
     >
       <StepHeading
         title="Tell us about your shop"
-        intro="Organizers see this when you apply, and shoppers see it on your vendor page. You can change it any time."
+        intro="Organizers see this when you apply, and visitors see it on your vendor page. You can change it any time."
       />
       <Field label="Shop name" htmlFor="shopName" help="Shown on the vendor list of every event you join." error={errors.shopName?.message}>
         <Input id="shopName" autoComplete="organization" aria-invalid={!!errors.shopName} {...register("shopName")} />
@@ -92,7 +92,7 @@ export function VendorShopStep({ state, onBack, finishLater }: StepProps) {
         <Textarea id="description" maxLength={300} {...register("description")} />
         <p className="text-right text-help text-muted">{description.length} / 300</p>
       </Field>
-      <Field label="Products" optional htmlFor="products" help="Helps shoppers know what to look for at your stall." error={errors.products?.message}>
+      <Field label="Products" optional htmlFor="products" help="Helps visitors know what to look for at your stall." error={errors.products?.message}>
         <Input id="products" {...register("products")} />
       </Field>
       {error && <Alert tone="danger">{error}</Alert>}
@@ -242,7 +242,7 @@ export function VendorContactStep({ state, email, onBack, finishLater }: StepPro
     >
       <StepHeading
         title="How can people reach you?"
-        intro="Your number is only for organizers. Your social links help shoppers find you."
+        intro="Your number is only for organizers. Your social links help visitors find you."
       />
       <Field label="Mobile number" required htmlFor="phone" help="Organizers see it on your applications. It is never shown on your public page." error={errors.phone?.message}>
         <InputPrefix prefix="+63">

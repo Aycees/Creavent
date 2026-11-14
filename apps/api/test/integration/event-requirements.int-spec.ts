@@ -158,6 +158,18 @@ describe('event requirements and policy', () => {
       expect(res.body.policy.text).toBe('Pay within 24 hours.');
     });
 
+    it('keeps the line breaks between paragraphs, and still refuses hidden characters', async () => {
+      const browser = await organizer();
+      const id = await draft(browser);
+
+      const paragraphs = await browser.put(`/api/organizer/events/${id}/policy`).send({ text: 'Pay within 24 hours.\r\n\r\n\tRefunds: 50%.' });
+      const hidden = await browser.put(`/api/organizer/events/${id}/policy`).send({ text: 'Pay\u202ewithin' });
+
+      expect(paragraphs.status).toBe(200);
+      expect(paragraphs.body.policy.text).toBe('Pay within 24 hours.\n\n\tRefunds: 50%.');
+      expect(hidden.status).toBe(400);
+    });
+
     it('refuses an empty policy', async () => {
       const browser = await organizer();
       const id = await draft(browser);

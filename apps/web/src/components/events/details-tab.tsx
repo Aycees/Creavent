@@ -40,6 +40,9 @@ function defaults(setup: EventSetup): Form {
   }
 }
 
+// Time pickers move in 5-minute steps (the step is in seconds).
+const FIVE_MINUTES = 300
+
 const fieldNames = Object.keys(eventDetailsSchema.shape) as (keyof Form)[]
 
 // The Details tab (spec §3.1, §3.1.1, mockup OrgEventDetails).
@@ -155,10 +158,10 @@ export function DetailsTab({ setup }: { setup: EventSetup }) {
               <Input id="endDate" type="date" aria-invalid={!!err("endDate")} {...register("endDate")} />
             </Field>
             <Field label="Opens" htmlFor="opensAt" error={err("opensAt")}>
-              <Input id="opensAt" type="time" aria-invalid={!!err("opensAt")} {...register("opensAt")} />
+              <Input id="opensAt" type="time" step={FIVE_MINUTES} aria-invalid={!!err("opensAt")} {...register("opensAt")} />
             </Field>
             <Field label="Closes" htmlFor="closesAt" error={err("closesAt")}>
-              <Input id="closesAt" type="time" aria-invalid={!!err("closesAt")} {...register("closesAt")} />
+              <Input id="closesAt" type="time" step={FIVE_MINUTES} aria-invalid={!!err("closesAt")} {...register("closesAt")} />
             </Field>
           </div>
           <div className="flex items-start gap-3 rounded-md bg-sunken px-4 py-3.5">
@@ -193,13 +196,13 @@ export function DetailsTab({ setup }: { setup: EventSetup }) {
           </Field>
         </SetupPanel>
 
-        <SetupPanel title="For vendors" intro="Shown to signed-in vendors only. Shoppers never see these.">
+        <SetupPanel title="For vendors" intro="Shown to signed-in vendors only. Visitors never see these.">
           <Field label="Contact details for vendors" htmlFor="vendorContactInfo" help="For example, a number to text or a group chat link." error={err("vendorContactInfo")}>
             <Textarea id="vendorContactInfo" className="min-h-18" {...register("vendorContactInfo")} />
           </Field>
           <div className="flex flex-col gap-5 md:grid md:grid-cols-2 md:gap-4">
             <Field label="Applications close" optional htmlFor="applicationsCloseAt" help="After this, vendors can't apply. Must be before the event starts." error={err("applicationsCloseAt")}>
-              <Input id="applicationsCloseAt" type="datetime-local" aria-invalid={!!err("applicationsCloseAt")} {...register("applicationsCloseAt")} />
+              <Input id="applicationsCloseAt" type="datetime-local" step={FIVE_MINUTES} aria-invalid={!!err("applicationsCloseAt")} {...register("applicationsCloseAt")} />
             </Field>
             <Field label="Ingress details" optional htmlFor="ingressInfo" help="When and where vendors set up. Shown to vendors with a slot." error={err("ingressInfo")}>
               <Input id="ingressInfo" placeholder="From 3 PM, Gate 2" {...register("ingressInfo")} />

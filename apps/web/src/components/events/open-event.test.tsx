@@ -72,7 +72,7 @@ describe("applications on an open event", () => {
     vi.mocked(api.PUT).mockResolvedValue({ data: { ...setup, applicationsOpen: false }, response: { status: 200 } } as never)
     renderWithQuery(<EventSetupPage id={EVENT_ID} />)
 
-    expect(await screen.findByText("Vendors can find this event and apply. Shoppers can't see it yet.")).toBeInTheDocument()
+    expect(await screen.findByText("Vendors can find this event and apply. Visitors can't see it yet.")).toBeInTheDocument()
     await userEvent.click(screen.getByRole("button", { name: "Close applications" }))
 
     expect(api.PUT).toHaveBeenCalledWith("/api/organizer/events/{id}/applications", { params: { path: { id: EVENT_ID } }, body: { open: false } })

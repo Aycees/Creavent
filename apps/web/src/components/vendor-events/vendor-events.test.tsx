@@ -32,6 +32,16 @@ describe("BrowseEvents (/vendor/events)", () => {
     expect(screen.getByText("1 event, soonest first")).toBeInTheDocument()
   })
 
+  it("makes the whole card one link to the event page", async () => {
+    renderWithQuery(<BrowseEvents />)
+
+    const card = await screen.findByRole("article", { name: "Lanang Holiday Flea" })
+    const links = within(card).getAllByRole("link")
+    expect(links).toHaveLength(1)
+    expect(links[0]).toHaveAttribute("href", "/events/lanang-holiday-flea")
+    expect(links[0]).toHaveClass("after:absolute", "after:inset-0")
+  })
+
   it("filters by search, date, and city", async () => {
     renderWithQuery(<BrowseEvents />)
     await screen.findByRole("article")

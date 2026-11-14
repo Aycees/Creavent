@@ -24,12 +24,12 @@ export function PublicFloorPlanTab({ setup }: { setup: EventSetup }) {
 
   return (
     <div className="flex max-w-160 flex-col gap-6">
-      <Alert tone="info">Upload this after your vendors are final. Shoppers see it on the event page once you announce the event.</Alert>
+      <Alert tone="info">Upload this after your vendors are final. Visitors see it on the event page once you announce the event.</Alert>
       <FloorPlanPanel
         title="Public floor plan"
         purpose="public_floor_plan"
         image={setup.slots.publicFloorPlan}
-        help="The layout with vendors placed, made in any tool. Use the slot numbers from your slot list so shoppers can find each vendor. We don't check that they match."
+        help="The layout with vendors placed, made in any tool. Use the slot numbers from your slot list so visitors can find each vendor. We don't check that they match."
         onChange={change}
       />
       {error && <Alert tone="danger">{error}</Alert>}

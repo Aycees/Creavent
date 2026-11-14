@@ -107,7 +107,7 @@ function VendorForm({ state }: { state: OnboardingState }) {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-col gap-1">
           <h1 className="text-h1">Shop profile</h1>
-          <p className="text-sm text-muted">Shoppers see this on your vendor page. Organizers see it when you apply.</p>
+          <p className="text-sm text-muted">Visitors see this on your vendor page. Organizers see it when you apply.</p>
         </div>
         {state.vendor?.slug && (
           <Button asChild variant="secondary">
@@ -258,7 +258,7 @@ function VendorForm({ state }: { state: OnboardingState }) {
             <p className="text-cap text-muted">JPEG, PNG or WebP, up to 10 MB each.</p>
           </Panel>
 
-          <Panel title="Social media" intro="Public. Helps shoppers follow your shop.">
+          <Panel title="Social media" intro="Public. Helps visitors follow your shop.">
             <Controller
               control={control}
               name="socialLinks"
