@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { HIDDEN_CHARS } from './text.js';
 
 // Shared by the signup and login forms and the API (spec §1).
 
@@ -18,8 +19,17 @@ export const passwordSchema = z
   .min(8, 'Use at least 8 characters')
   .max(128, 'Use at most 128 characters');
 
+// A person's full name, everywhere a name is entered. It appears in emails,
+// so hidden characters aren't allowed.
+export const fullNameSchema = z
+  .string()
+  .trim()
+  .min(1, 'Enter your full name')
+  .max(100, 'Use at most 100 characters')
+  .refine((v) => !HIDDEN_CHARS.test(v), 'Your name has hidden characters. Type it again.');
+
 export const signUpSchema = z.object({
-  fullName: z.string().trim().min(1, 'Enter your full name').max(100),
+  fullName: fullNameSchema,
   email: z.email('Enter a valid email'),
   password: passwordSchema,
   ageConfirmed: z.literal(true, 'Confirm you are 18 or older'),
@@ -88,7 +98,7 @@ export type PublicConfig = z.infer<typeof publicConfigSchema>;
 
 // /account: the profile fields a user edits (sitemap §2).
 export const updateProfileSchema = z.object({
-  fullName: z.string().trim().min(1, 'Enter your full name').max(100),
+  fullName: fullNameSchema,
   // A Philippine mobile number (see phoneSchema). Optional, so a user who
   // hasn't added a role yet can save only their name.
   phone: z.string().optional(),

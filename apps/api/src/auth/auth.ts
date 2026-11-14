@@ -5,13 +5,12 @@ import type { AppConfig } from '../config.js';
 import { describeDevice } from '../notifications/describe-device.js';
 import type { OutboxService } from '../notifications/outbox.service.js';
 import type { PrismaService } from '../prisma/prisma.service.js';
+import { fullNameSchema } from '@creavent/shared';
+import { cleanName } from './clean-name.js';
 import { recordLegalAcceptance } from './legal.js';
 
 const SIGN_UP_PATH = '/sign-up/email';
 
-// Control, zero-width, and direction-changing characters.
-// eslint-disable-next-line no-control-regex -- matching control characters is the point
-const HIDDEN_CHARS = /[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u2028-\u202e\u2060-\u2069\ufeff]/;
 const SIGN_IN_PATH = '/sign-in/email';
 
 // The email a request is about, normalized. Over-long values are not
@@ -94,6 +93,10 @@ export function createAuth(prisma: PrismaService, outbox: OutboxService, config:
     // so links and cookies belong to the web app (architecture §4.3).
     baseURL: config.webUrl,
     basePath: '/api/auth',
+    // Names and profile pictures are changed through PATCH /api/me and
+    // PUT /api/me/avatar, which apply our rules. Better Auth's own route would
+    // skip them.
+    disabledPaths: ['/update-user'],
     secret: secret ?? 'development-secret-change-me-at-least-32-chars',
     trustedOrigins: [config.webUrl],
     database: prismaAdapter(prisma, { provider: 'postgresql' }),
@@ -200,8 +203,7 @@ export function createAuth(prisma: PrismaService, outbox: OutboxService, config:
         const body = ctx.body as { ageConfirmed?: unknown; acceptLegal?: unknown; name?: unknown } | undefined;
         // The shared form schema doesn't run on Better Auth's route, so the
         // name is checked here too. It goes into emails.
-        const name = typeof body?.name === 'string' ? body.name.trim() : '';
-        if (name.length < 1 || name.length > 100 || HIDDEN_CHARS.test(name)) {
+        if (!fullNameSchema.safeParse(body?.name ?? '').success) {
           throw new APIError('BAD_REQUEST', { message: 'Enter your full name, up to 100 characters' });
         }
         if (body?.ageConfirmed !== true || body?.acceptLegal !== true) {
@@ -221,10 +223,15 @@ export function createAuth(prisma: PrismaService, outbox: OutboxService, config:
     },
     databaseHooks: {
       user: {
+        update: {
+          before: async (user) => (typeof user.name === 'string' ? { data: { ...user, name: cleanName(user.name) } } : undefined),
+        },
         create: {
+          // Every new user's name is cleaned, whatever the route: a Google
+          // profile name skips our forms.
           before: async (user, ctx) => {
-            if (ctx?.path !== SIGN_UP_PATH) return;
-            return { data: { ...user, ageConfirmedAt: new Date() } };
+            const data = { ...user, name: cleanName(user.name) || 'Creavent user' };
+            return { data: ctx?.path === SIGN_UP_PATH ? { ...data, ageConfirmedAt: new Date() } : data };
           },
           after: async (user, ctx) => {
             if (ctx?.path !== SIGN_UP_PATH) return;

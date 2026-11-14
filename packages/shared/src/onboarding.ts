@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { approvalStatusSchema, roleTypeSchema } from './accounts.js';
+import { HIDDEN_CHARS } from './text.js';
 
 // Onboarding (spec §1.1, flow 1) and the organizer approval request (§2.1).
 
@@ -12,10 +13,6 @@ export const phoneSchema = z
   .transform((v) => v.replace(/^(\+?63|0)/, ''))
   .refine((v) => /^9\d{9}$/.test(v), 'Enter a mobile number like 917 123 4567')
   .transform((v) => `+63${v}`);
-
-// Control characters, zero-width and direction-changing characters can make
-// a link read differently from where it goes, so links may not contain them.
-const HIDDEN_CHARS = /[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u2028-\u202e\u2060-\u2069\ufeff]/;
 
 // A link to a public page: http or https, a real domain name (not an IP
 // address or a bare host like "localhost"), no username or password, at most

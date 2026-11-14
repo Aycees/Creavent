@@ -37,6 +37,23 @@ describe('account page', () => {
     expect(res.body.fullName).toBe('Maria Clara Santos');
   });
 
+  it('refuses a name with hidden characters', async () => {
+    const user = await createUser(prisma);
+    const browser = await signInAs(app, user.email);
+
+    expect((await browser.patch('/api/me').send({ fullName: 'Maria\u202eSantos' })).status).toBe(400);
+  });
+
+  it("does not offer Better Auth's own update-user route, which would skip the name rules", async () => {
+    const user = await createUser(prisma);
+    const browser = await signInAs(app, user.email);
+
+    const res = await browser.post('/api/auth/update-user').send({ name: 'x'.repeat(5000) });
+
+    expect(res.status).toBe(404);
+    expect((await prisma.user.findUniqueOrThrow({ where: { id: user.id } })).fullName).toBe(user.fullName);
+  });
+
   it('refuses an empty name', async () => {
     const user = await createUser(prisma);
     const browser = await signInAs(app, user.email);

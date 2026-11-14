@@ -7,3 +7,4 @@ export * from './errors.js';
 export * from './files.js';
 export * from './health.js';
 export * from './onboarding.js';
+export * from './text.js';
