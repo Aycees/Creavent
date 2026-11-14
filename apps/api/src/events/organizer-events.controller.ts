@@ -10,6 +10,7 @@ import {
   eventRequirementsSchema,
   eventSetupSchema,
   eventTypeSchema,
+  organizerEventsSchema,
   publicFloorPlanSchema,
   slotRowSchema,
   slotSchema,
@@ -39,6 +40,12 @@ export class OrganizerEventsController {
   @ApiCreatedResponse({ standardSchema: createdEventSchema })
   create(@CurrentUser() user: SessionUser, @Body({ schema: createEventSchema }) body: z.output<typeof createEventSchema>) {
     return this.events.create(user.id, body);
+  }
+
+  @Get('organizer/events')
+  @ResponseSchema(organizerEventsSchema)
+  list(@CurrentUser() user: SessionUser) {
+    return this.events.list(user.id);
   }
 
   @Get('organizer/events/:id')

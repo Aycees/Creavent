@@ -112,12 +112,12 @@ export function DetailsTab({ setup }: { setup: EventSetup }) {
               <div className="flex flex-col gap-2">
                 <p className="text-help text-muted">16:9, at least 1280 × 720 px, up to 10 MB. JPEG, PNG or WebP.</p>
                 <div className="flex flex-wrap gap-2">
-                  <Button type="button" variant="secondary" size="sm" disabled={coverUpload.pending} onClick={() => coverInput.current?.click()}>
+                  <Button type="button" variant="secondary" disabled={coverUpload.pending} onClick={() => coverInput.current?.click()}>
                     <UploadSimpleIcon aria-hidden="true" className="size-4" />
                     {coverUpload.pending ? "Uploading…" : coverUrl ? "Replace" : "Upload cover"}
                   </Button>
                   {coverUrl && (
-                    <Button type="button" variant="danger-ghost" size="sm" onClick={() => setValue("coverFileId", null, { shouldDirty: true })}>
+                    <Button type="button" variant="danger-ghost" onClick={() => setValue("coverFileId", null, { shouldDirty: true })}>
                       Remove
                     </Button>
                   )}

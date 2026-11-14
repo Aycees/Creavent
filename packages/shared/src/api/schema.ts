@@ -443,7 +443,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["OrganizerEventsController_list"];
         put?: never;
         post: operations["OrganizerEventsController_create"];
         delete?: never;
@@ -2536,6 +2536,71 @@ export interface operations {
                             id: string;
                             name: string;
                             slug: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OrganizerEventsController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        upcoming: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            typeName: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                            startDate: string | null;
+                            endDate: string | null;
+                            venueName: string | null;
+                            slotCount: number;
+                            nextStep: string;
+                        }[];
+                        past: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            typeName: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                            startDate: string | null;
+                            endDate: string | null;
+                            venueName: string | null;
+                            slotCount: number;
+                            nextStep: string;
                         }[];
                     };
                 };

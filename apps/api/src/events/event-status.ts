@@ -36,6 +36,15 @@ export const stepNames: Record<keyof EventChecklist, string> = {
   payments: 'payment instructions',
 };
 
+// What the organizer does next for a missing step (dashboard, spec §3.8).
+export const stepActions: Record<keyof EventChecklist, string> = {
+  details: 'Fill in details',
+  requirements: 'Add requirements',
+  policy: 'Write your policy',
+  slots: 'Add slots',
+  payments: 'Add payment details',
+};
+
 export function missingSteps(list: EventChecklist) {
   return (Object.keys(stepNames) as (keyof EventChecklist)[]).filter((k) => !list[k]).map((k) => stepNames[k]);
 }

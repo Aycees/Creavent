@@ -6071,6 +6071,210 @@
         "tags": [
           "OrganizerEvents"
         ]
+      },
+      "get": {
+        "operationId": "OrganizerEventsController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "upcoming": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "slug": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "typeName": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "draft",
+                              "open_to_vendors",
+                              "announced",
+                              "completed",
+                              "canceled"
+                            ]
+                          },
+                          "startDate": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "endDate": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "venueName": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "slotCount": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "nextStep": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "slug",
+                          "name",
+                          "typeName",
+                          "status",
+                          "startDate",
+                          "endDate",
+                          "venueName",
+                          "slotCount",
+                          "nextStep"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "past": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "slug": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "typeName": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "draft",
+                              "open_to_vendors",
+                              "announced",
+                              "completed",
+                              "canceled"
+                            ]
+                          },
+                          "startDate": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "endDate": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "venueName": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "slotCount": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "nextStep": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "slug",
+                          "name",
+                          "typeName",
+                          "status",
+                          "startDate",
+                          "endDate",
+                          "venueName",
+                          "slotCount",
+                          "nextStep"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "upcoming",
+                    "past"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "OrganizerEvents"
+        ]
       }
     },
     "/api/organizer/events/{id}": {

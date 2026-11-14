@@ -51,7 +51,7 @@ export function Checklist({ checklist, onGo }: { checklist: EventChecklist; onGo
               <div className="flex flex-col items-start gap-1">
                 <p className="text-sm font-semibold">{s.label}</p>
                 <p className="text-cap text-muted">{s.missing}</p>
-                <Button type="button" variant="secondary" size="sm" className="mt-1" onClick={() => onGo(s.tab)}>
+                <Button type="button" variant="secondary" className="mt-1" onClick={() => onGo(s.tab)}>
                   {s.action}
                 </Button>
               </div>

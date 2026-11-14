@@ -166,7 +166,7 @@ function OptionCard({
         <h3 id={headingId} className="text-label font-semibold">
           Option {n}
         </h3>
-        <Button type="button" variant="danger-ghost" size="sm" aria-label={`Remove option ${n}`} onClick={onRemove}>
+        <Button type="button" variant="danger-ghost" aria-label={`Remove option ${n}`} onClick={onRemove}>
           Remove
         </Button>
       </div>
@@ -213,12 +213,12 @@ function OptionCard({
           )}
           <div className="flex flex-col gap-1">
             <div className="flex flex-wrap gap-2">
-              <Button type="button" variant="secondary" size="sm" disabled={upload.pending} onClick={() => input.current?.click()}>
+              <Button type="button" variant="secondary" disabled={upload.pending} onClick={() => input.current?.click()}>
                 <UploadSimpleIcon aria-hidden="true" className="size-4" />
                 {upload.pending ? "Uploading…" : qrUrl ? "Replace QR" : "Upload QR"}
               </Button>
               {qrUrl && (
-                <Button type="button" variant="danger-ghost" size="sm" onClick={() => setValue(`methods.${index}.qrFileId`, null, { shouldDirty: true })}>
+                <Button type="button" variant="danger-ghost" onClick={() => setValue(`methods.${index}.qrFileId`, null, { shouldDirty: true })}>
                   Remove QR
                 </Button>
               )}

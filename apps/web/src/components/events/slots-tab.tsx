@@ -224,7 +224,7 @@ function SlotList({ setup, onEdit, onSaveDefault }: { setup: EventSetup; onEdit:
             }}
           >
             <Input aria-label="Default price" inputMode="decimal" className="w-28 tabular-nums" value={defaultPrice} onChange={(e) => setDefaultPrice(e.target.value)} />
-            <Button type="submit" size="sm">
+            <Button type="submit">
               Save
             </Button>
           </form>
@@ -275,7 +275,7 @@ function SlotGroup({ name, slots, price, onEdit }: { name: string; slots: Slot[]
               <span className="w-16 flex-none font-mono text-sm">{slot.label}</span>
               <span className="min-w-0 flex-1 text-sm text-muted">{[slot.sizeLabel, slot.note].filter(Boolean).join(" · ")}</span>
               <span className={cn("text-sm tabular-nums", slot.price !== null && "font-semibold")}>{p === null ? "No price" : formatPeso(p)}</span>
-              <Button type="button" variant="ghost" size="sm" aria-label={`Edit ${slot.label}`} onClick={() => onEdit(slot)}>
+              <Button type="button" variant="ghost" aria-label={`Edit ${slot.label}`} onClick={() => onEdit(slot)}>
                 Edit
               </Button>
             </li>
@@ -408,7 +408,7 @@ export function FloorPlanPanel({
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-h3">{title}</h2>
         {collapsible && image && (
-          <Button type="button" variant="ghost" size="sm" className="md:hidden" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+          <Button type="button" variant="ghost" className="md:hidden" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
             {open ? "Hide floor plan" : "Show floor plan"}
           </Button>
         )}
@@ -428,12 +428,12 @@ export function FloorPlanPanel({
         </div>
       )}
       <div className="flex flex-wrap gap-2">
-        <Button type="button" variant="secondary" size="sm" disabled={upload.pending} onClick={() => input.current?.click()}>
+        <Button type="button" variant="secondary" disabled={upload.pending} onClick={() => input.current?.click()}>
           <UploadSimpleIcon aria-hidden="true" className="size-4" />
           {upload.pending ? "Uploading…" : image ? "Replace" : `Upload ${label}`}
         </Button>
         {image && (
-          <Button type="button" variant="danger-ghost" size="sm" onClick={() => onChange(null)}>
+          <Button type="button" variant="danger-ghost" onClick={() => onChange(null)}>
             Remove
           </Button>
         )}

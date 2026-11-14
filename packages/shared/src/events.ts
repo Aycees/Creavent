@@ -353,3 +353,24 @@ export const eventSetupSchema = z.object({
 export type EventSetup = z.infer<typeof eventSetupSchema>;
 
 export const createdEventSchema = z.object({ id: z.uuid() });
+
+// One row of the organizer's event list (spec §3.8). Counts come with Phase 3.
+export const organizerEventRowSchema = z.object({
+  id: z.uuid(),
+  slug: z.string(),
+  name: z.string(),
+  typeName: z.string(),
+  status: eventStatusSchema,
+  startDate: z.string().nullable(),
+  endDate: z.string().nullable(),
+  venueName: z.string().nullable(),
+  slotCount: z.number().int(),
+  nextStep: z.string(),
+});
+export type OrganizerEventRow = z.infer<typeof organizerEventRowSchema>;
+
+export const organizerEventsSchema = z.object({
+  upcoming: z.array(organizerEventRowSchema),
+  past: z.array(organizerEventRowSchema),
+});
+export type OrganizerEvents = z.infer<typeof organizerEventsSchema>;

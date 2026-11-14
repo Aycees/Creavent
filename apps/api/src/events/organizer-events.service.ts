@@ -9,11 +9,13 @@ import {
   paymentChannelLabels,
   type eventRequirementsSchema,
   type EventSetup,
+  type OrganizerEventRow,
+  type OrganizerEvents,
 } from '@creavent/shared';
 import type { z } from 'zod';
 import { writeAuditLog } from '../audit/audit-log.js';
 import { appConfig } from '../config.js';
-import { assertStillReady, changeEventStatus, checklist, missingSteps } from './event-status.js';
+import { assertStillReady, changeEventStatus, checklist, missingSteps, stepActions } from './event-status.js';
 import { assertAttachable, FilesService, retireFiles } from '../files/files.service.js';
 import { freeSlug } from '../onboarding/slugs.js';
 import { PrismaService, type Tx } from '../prisma/prisma.service.js';
@@ -59,6 +61,48 @@ export class OrganizerEventsService {
       });
       return { id: event.id };
     });
+  }
+
+  // The organizer's events in Upcoming (not ended, or no dates yet) and Past,
+  // each with its next step (spec §3.8).
+  async list(userId: string): Promise<OrganizerEvents> {
+    const profile = await organizerProfile(this.prisma, userId);
+    const role = await this.prisma.userRole.findUniqueOrThrow({ where: { userId_role: { userId, role: 'organizer' } } });
+    const events = await this.prisma.event.findMany({
+      where: { organizerProfileId: profile.id },
+      include: { eventType: true, _count: { select: { slots: { where: { deletedAt: null } } } } },
+      orderBy: [{ startsAt: { sort: 'asc', nulls: 'last' } }, { createdAt: 'asc' }],
+    });
+    const now = new Date();
+    const rows = await Promise.all(
+      events.map(async (e): Promise<OrganizerEventRow & { ended: boolean }> => {
+        let nextStep: string;
+        if (e.status === 'draft') {
+          const list = await this.prisma.$transaction((tx) => checklist(tx, e.id));
+          const missing = (Object.keys(stepActions) as (keyof typeof stepActions)[]).find((k) => !list[k]);
+          nextStep = missing ? stepActions[missing] : isApproved(role) ? 'Open to vendors' : 'Get approved to open';
+        } else if (e.status === 'open_to_vendors') {
+          nextStep = e.applicationsOpen ? 'Applications open' : 'Applications closed';
+        } else {
+          nextStep = { announced: 'Announced', completed: 'Completed', canceled: 'Canceled' }[e.status];
+        }
+        return {
+          id: e.id,
+          slug: e.slug,
+          name: e.name,
+          typeName: e.eventType.name,
+          status: e.status,
+          startDate: e.startsAt ? manilaParts(e.startsAt).date : null,
+          endDate: e.endsAt ? manilaParts(e.endsAt).date : null,
+          venueName: e.venueName,
+          slotCount: e._count.slots,
+          nextStep,
+          ended: e.endsAt !== null && e.endsAt < now,
+        };
+      }),
+    );
+    const strip = ({ ended: _ended, ...row }: OrganizerEventRow & { ended: boolean }) => row;
+    return { upcoming: rows.filter((r) => !r.ended).map(strip), past: rows.filter((r) => r.ended).reverse().map(strip) };
   }
 
   async setup(userId: string, eventId: string): Promise<EventSetup> {

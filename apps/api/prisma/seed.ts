@@ -1,5 +1,5 @@
 // Seed data for local development and staging only (architecture §5.3), so
-// every Phase 1 screen can be seen without clicking through signup:
+// every Phase 1 and Phase 2 screen can be seen without clicking through signup:
 //
 //   admin@creavent.test      admin
 //   vendor@creavent.test     vendor, onboarding finished
@@ -7,10 +7,17 @@
 //   pending@, pending2@, rejected@, later@creavent.test
 //                            organizers in each other approval state
 //
+// Events (Phase 2), for organizer@ unless noted. Seeded events have no cover
+// image, so an open one asks for a cover before its details can be saved.
+//   Matina Night Flea, January  draft, payment details missing (4 of 5 steps)
+//   Lanang Holiday Flea         open to vendors, vendors choose a preferred slot
+//   Bajada Christmas Flea       open to vendors, applications closed
+//   Mintal Weekend Bazaar       pending@'s ready draft, waiting for approval
+//
 // All use SEED_PASSWORD from apps/api/.env. Run with `pnpm db:seed` from the
 // repo root. Safe to run again: existing accounts are left as they are.
 import { hashPassword } from 'better-auth/crypto';
-import type { ApprovalStatus } from '../src/generated/prisma/client.js';
+import type { ApprovalStatus, Prisma } from '../src/generated/prisma/client.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
 
 // Only a database on this machine, unless ALLOW_SEED=staging says otherwise:
@@ -99,6 +106,120 @@ await organizer('pending@creavent.test', 'Bazaar ng Mintal', 'pending_review', 3
 await organizer('pending2@creavent.test', 'Lanang Holiday Flea', 'pending_review', 1);
 await organizer('rejected@creavent.test', 'Bajada Ukay', 'rejected', 5);
 await organizer('later@creavent.test', 'Toril Sunday Market', 'not_submitted', 0);
+
+// Manila time, as the organizer enters it.
+const at = (date: string, time: string) => new Date(`${date}T${time}:00+08:00`);
+
+async function event(email: string, slug: string, data: Omit<Prisma.EventUncheckedCreateInput, 'organizerProfileId' | 'eventTypeId' | 'slug'>) {
+  if (await prisma.event.findUnique({ where: { slug } })) return;
+  const owner = await prisma.organizerProfile.findFirstOrThrow({ where: { user: { email } } });
+  const type = await prisma.eventType.findUniqueOrThrow({ where: { slug: 'flea-market' } });
+  await prisma.event.create({ data: { ...data, slug, organizerProfileId: owner.id, eventTypeId: type.id } });
+}
+
+const category = async (slug: string) => (await prisma.category.findUniqueOrThrow({ where: { slug } })).id;
+const [vintage, crafts, food, plants] = await Promise.all(['vintage', 'handmade-and-crafts', 'food-and-drinks', 'plants'].map(category));
+const policy = [
+  'Pay your slot fee within 24 hours of being assigned a slot. Unpaid slots may be given to another vendor.',
+  'If you withdraw 7 or more days before the event, we refund 50% of your fee. Within 7 days, fees are not refundable.',
+  'If we cancel the event, you get a full refund within 5 days.',
+].join('\n\n');
+const row = (prefix: string, count: number, section: string, sizeLabel: string, start: number, price?: number) =>
+  Array.from({ length: count }, (_, i) => ({
+    label: `${prefix}-${String(i + 1).padStart(2, '0')}`,
+    section,
+    sizeLabel,
+    price: price ?? null,
+    sortOrder: start + i,
+  }));
+const venue = (venueName: string, addressLine: string) => ({ venueName, addressLine, city: 'Davao City' });
+const contact = 'Joanna Lim · 0928 115 7720 · text for questions';
+
+await event('organizer@creavent.test', 'matina-night-flea-january', {
+  name: 'Matina Night Flea, January',
+  description: 'Our monthly night market at Matina Town Square: ukay-ukay, vintage denim, local crafts, plants and street food from sundown until 11.',
+  startsAt: at('2027-01-16', '17:00'),
+  endsAt: at('2027-01-16', '23:00'),
+  ...venue('Matina Town Square', 'MacArthur Highway, Matina'),
+  vendorContactInfo: contact,
+  applicationsCloseAt: at('2027-01-07', '23:59'),
+  ingressInfo: 'From 3 PM, Gate 2',
+  policyText: policy,
+  defaultSlotPrice: 800,
+  categories: { create: [{ categoryId: preloved.id, maxVendors: 12 }, { categoryId: vintage, maxVendors: 6 }, { categoryId: food, maxVendors: 6 }] },
+  documents: { create: [{ name: 'Barangay business clearance', sortOrder: 0 }, { name: 'Sanitary permit', categoryId: food, sortOrder: 1 }] },
+  slots: { create: [...row('A', 16, 'Main walkway', '2 × 2 m', 0), ...row('B', 12, 'Entrance', '3 × 3 m', 16, 1500)] },
+});
+
+await event('organizer@creavent.test', 'lanang-holiday-flea', {
+  name: 'Lanang Holiday Flea',
+  description: 'Three nights of preloved finds, crafts and food before Christmas.',
+  startsAt: at('2026-12-18', '15:00'),
+  endsAt: at('2026-12-20', '23:00'),
+  ...venue('Damosa Gateway', 'Lanang'),
+  vendorContactInfo: contact,
+  applicationsCloseAt: at('2026-12-10', '23:59'),
+  policyText: policy,
+  status: 'open_to_vendors',
+  openedToVendorsAt: new Date(),
+  applicationsOpen: true,
+  slotMode: 'vendor_preference',
+  defaultSlotPrice: 800,
+  categories: {
+    create: [
+      { categoryId: preloved.id, maxVendors: 12 },
+      { categoryId: crafts, maxVendors: 8 },
+      { categoryId: vintage, maxVendors: 6 },
+      { categoryId: food, maxVendors: 6 },
+      { categoryId: plants, maxVendors: 4 },
+    ],
+  },
+  documents: { create: [{ name: 'Barangay business clearance', sortOrder: 0 }, { name: 'Sanitary permit', categoryId: food, sortOrder: 1 }] },
+  paymentMethods: {
+    create: [
+      { channel: 'gcash', label: 'GCash, Joanna L.', accountName: 'Joanna L.', accountNumber: '0928 115 7720', sortOrder: 0 },
+      { channel: 'bank', label: 'Bank transfer, Joanna Lim', accountName: 'Joanna Lim', accountNumber: '1234 5678 90', notes: 'BPI savings', sortOrder: 1 },
+    ],
+  },
+  slots: {
+    create: [
+      ...row('A', 16, 'Main walkway', '2 × 2 m', 0),
+      ...row('B', 12, 'Entrance', '3 × 3 m', 16, 1500),
+      ...row('F', 6, 'Food row', '3 × 3 m', 28, 1200).map((s) => ({ ...s, note: 'With power' })),
+    ],
+  },
+});
+
+await event('organizer@creavent.test', 'bajada-christmas-flea', {
+  name: 'Bajada Christmas Flea',
+  description: 'A one-night Christmas market at the covered court.',
+  startsAt: at('2026-12-12', '16:00'),
+  endsAt: at('2026-12-12', '22:00'),
+  ...venue('Bajada Covered Court', 'J.P. Laurel Avenue, Bajada'),
+  vendorContactInfo: contact,
+  policyText: policy,
+  status: 'open_to_vendors',
+  openedToVendorsAt: new Date(),
+  applicationsOpen: false,
+  defaultSlotPrice: 600,
+  categories: { create: [{ categoryId: preloved.id, maxVendors: 10 }, { categoryId: crafts, maxVendors: null }] },
+  paymentMethods: { create: [{ channel: 'gcash', label: 'GCash, Joanna L.', accountName: 'Joanna L.', accountNumber: '0928 115 7720', sortOrder: 0 }] },
+  slots: { create: row('C', 20, 'Covered court', '2 × 2 m', 0) },
+});
+
+await event('pending@creavent.test', 'mintal-weekend-bazaar', {
+  name: 'Mintal Weekend Bazaar',
+  description: 'Two days of bazaar stalls in Mintal.',
+  startsAt: at('2027-02-06', '09:00'),
+  endsAt: at('2027-02-07', '18:00'),
+  ...venue('Mintal Public Market Grounds', 'Mintal, Tugbok'),
+  vendorContactInfo: 'Text 0917 000 1111',
+  policyText: policy,
+  defaultSlotPrice: 500,
+  categories: { create: [{ categoryId: preloved.id, maxVendors: null }] },
+  paymentMethods: { create: [{ channel: 'maya', label: 'Maya, Bazaar ng Mintal', accountName: 'Bazaar ng Mintal', accountNumber: '0917 000 1111', sortOrder: 0 }] },
+  slots: { create: row('M', 10, 'Grounds', '2 × 2 m', 0) },
+});
 
 await prisma.$disconnect();
 console.log(
