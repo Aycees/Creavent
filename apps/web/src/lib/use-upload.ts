@@ -1,6 +1,6 @@
 "use client"
 
-import { imageMimeTypes, uploadRules, type UploadPurpose, type UploadedFile } from "@creavent/shared"
+import { imageMimeTypes, uploadRules, type Crop, type UploadPurpose, type UploadedFile } from "@creavent/shared"
 import * as React from "react"
 
 import { api } from "./api"
@@ -14,7 +14,8 @@ export function useUpload(purpose: UploadPurpose) {
   const [pending, setPending] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
 
-  async function upload(file: File): Promise<UploadedFile | null> {
+  // `crop` is the frame chosen in the cover crop step (event covers only).
+  async function upload(file: File, options: { crop?: Crop } = {}): Promise<UploadedFile | null> {
     setError(null)
     const rules = uploadRules[purpose]
     if (!(imageMimeTypes as readonly string[]).includes(file.type)) {
@@ -39,7 +40,10 @@ export function useUpload(purpose: UploadPurpose) {
         setError("Upload failed. Try again.")
         return null
       }
-      const done = await api.POST("/api/files/{id}/complete", { params: { path: { id: ask.data.fileId } } })
+      const done = await api.POST("/api/files/{id}/complete", {
+        params: { path: { id: ask.data.fileId } },
+        body: options.crop ? { crop: options.crop } : {},
+      })
       if (!done.data) {
         setError((done.error as ErrorBody)?.message ?? "Upload failed. Try again.")
         return null

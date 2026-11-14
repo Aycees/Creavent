@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Header, Inject, NotFoundException, Param, ParseUUIDPipe, Post, Res, StreamableFile, UseGuards } from '@nestjs/common';
 import type { Response } from 'express';
-import { askUploadResponseSchema, askUploadSchema, uploadedFileSchema, uploadRules, type AskUploadInput } from '@creavent/shared';
+import { askUploadResponseSchema, askUploadSchema, completeUploadSchema, uploadedFileSchema, uploadRules, type AskUploadInput, type CompleteUploadInput } from '@creavent/shared';
 import { AuthGuard, CurrentUser, type SessionUser } from '../auth/auth.guard.js';
 import { ResponseSchema } from '../response-schema.decorator.js';
 import { FilesService } from './files.service.js';
@@ -19,8 +19,12 @@ export class FilesController {
 
   @Post(':id/complete')
   @ResponseSchema(uploadedFileSchema)
-  complete(@CurrentUser() user: SessionUser, @Param('id', ParseUUIDPipe) id: string) {
-    return this.files.complete(user.id, id);
+  complete(
+    @CurrentUser() user: SessionUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body({ schema: completeUploadSchema }) body: CompleteUploadInput,
+  ) {
+    return this.files.complete(user.id, id, body.crop);
   }
 
   // Opens a private file: checks who is asking and sends them to an address

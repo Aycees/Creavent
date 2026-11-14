@@ -10,6 +10,7 @@ import {
 import {
   uploadRules,
   type AskUploadInput,
+  type Crop,
   type UploadPurpose,
   type UploadedFile,
 } from '@creavent/shared';
@@ -115,7 +116,7 @@ export class FilesService {
     return { fileId: id, uploadUrl: signed.url, headers: signed.headers };
   }
 
-  async complete(userId: string, fileId: string): Promise<UploadedFile> {
+  async complete(userId: string, fileId: string, crop?: Crop): Promise<UploadedFile> {
     const file = await this.prisma.file.findFirst({
       where: {
         id: fileId,
@@ -126,9 +127,10 @@ export class FilesService {
     });
     if (!file) throw new NotFoundException('Upload not found');
     const purpose = file.purpose as UploadPurpose;
+    if (crop && purpose !== 'event_cover') throw new BadRequestException('Only event covers can be framed');
 
     try {
-      return await withImageSlot(() => this.finish(file, purpose));
+      return await withImageSlot(() => this.finish(file, purpose, crop));
     } catch (error) {
       if (!(error instanceof UploadRejected)) throw error;
       await this.storage.delete('private', incomingKey(file.id));
@@ -146,6 +148,7 @@ export class FilesService {
   private async finish(
     file: File,
     purpose: UploadPurpose,
+    crop?: Crop,
   ): Promise<UploadedFile> {
     const rules = uploadRules[purpose];
     const body = await this.storage.get('private', incomingKey(file.id));
@@ -171,6 +174,7 @@ export class FilesService {
       purpose,
       rules.minWidth,
       rules.minHeight,
+      crop,
     );
     await this.storage.put(rules.private ? 'private' : 'public', file.storageKey, image.body, 'image/webp');
     await this.storage.delete('private', incomingKey(file.id));

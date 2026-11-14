@@ -505,6 +505,7 @@ All notifications are sent by email through [Resend](https://resend.com). There 
   - The links an organizer submits for approval are their public social links (section 2.1).
 - **Multi-day events and payment options (2026-11-12):** events run 1 to 7 days in a row with the same daily hours, and vendors are locked in for the whole event (section 3.1.1). Vendors select which payment option they paid with when uploading proof (section 6.2). See [Open questions](open-questions.md#l-multi-day-events-and-payment-options).
 - **Event policy prefill (2026-11-14):** a new event copies the policy of the organizer's most recent event. A first event starts from an example to edit. No global policy setting (section 3.7). See [Open questions](open-questions.md#n-event-policy).
+- **Event cover crop (2026-11-15):** one cover per event, framed by the organizer at 16:9 in a crop step after picking the photo. The same frame shows on event cards and the event page (16:9 at every width). No separate thumbnail or banner upload (section 11.5).
 - **Preferred slots (2026-11-14):** each event has a slot mode, "I assign slots" or "Vendors choose a preferred slot". A preference holds nothing, and the organizer still assigns every slot (sections 3.4, 4.3, 5). Slots get an optional section for grouping. The vendor floor plan is uploaded on the Slots tab and shown there as a reference. Prompted by an organizer's registration form with a clickable floor plan. See [Open questions](open-questions.md#m-preferred-slots).
 
 ### Open
@@ -546,7 +547,7 @@ Minimum size: event covers must be at least 1280 x 720 px. Logos and avatars mus
 
 1. **Ask.** The app tells the API the purpose, file type, and size. The API checks that the user is allowed to upload this kind of file here (for example, only the organizer of the event can upload its cover), that the type, size, and count limits hold, and that the user is not over the rate limit. It creates a file record as `pending` and returns a signed upload address that expires in 5 minutes and accepts only the declared type and size.
 2. **Upload.** The browser sends the file straight to the `incoming/` area of the private bucket.
-3. **Complete.** The browser tells the API it is done. The API reads the uploaded file, runs the checks and processing in sections 11.4 and 11.5, writes the final file to the right bucket, deletes the `incoming/` copy, and marks the record `ready`. If any check fails, the record and the upload are deleted and the user sees a clear reason (for example, "This file is over 10 MB" or "This photo is too small. Use at least 1280 x 720").
+3. **Complete.** The browser tells the API it is done, with the 16:9 frame the organizer chose for an event cover (section 11.5). The API reads the uploaded file, runs the checks and processing in sections 11.4 and 11.5, writes the final file to the right bucket, deletes the `incoming/` copy, and marks the record `ready`. If any check fails, the record and the upload are deleted and the user sees a clear reason (for example, "This file is over 10 MB" or "This photo is too small. Use at least 1280 x 720").
 4. **Attach.** A file can be attached to an event, profile, application, or payment only when it is `ready`, only to a place that matches its purpose, and only by the user who uploaded it.
 
 A user can have at most 20 `pending` uploads at a time, and upload requests are rate limited per user. Abandoned uploads are cleaned up (section 11.7).
@@ -568,7 +569,7 @@ Each image is stored in one size:
 
 | Purpose | Stored size |
 |---|---|
-| Event cover | 1600 x 900, cropped to 16:9 from the center |
+| Event cover | Up to 1600 x 900. The organizer frames it at 16:9 in a crop step after picking the photo (drag to move, zoom in down to a 1280 x 720 part of the photo). Without a frame, it is cropped to 16:9 from the center. |
 | Vendor photo | Up to 1600 px on the long edge, shape kept |
 | Organizer logo | Fits inside 512 x 512, no cropping |
 | Avatar | 256 x 256, cropped square |
@@ -593,4 +594,4 @@ Processing runs while the browser waits for the Complete step. The API limits ho
 
 ### 11.8 Not in the MVP
 
-Virus scanning, keeping original files, HEIC, multiple sizes per image, a crop tool beyond the automatic center crop, video, and GIF or animated images.
+Virus scanning, keeping original files (so reframing a cover means uploading the photo again), HEIC, multiple sizes per image, a crop step for pictures other than the event cover, separate thumbnail and banner images, video, and GIF or animated images.

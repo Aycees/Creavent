@@ -229,6 +229,51 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "crop": {
+                    "type": "object",
+                    "properties": {
+                      "x": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "y": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "width": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "exclusiveMinimum": true,
+                        "maximum": 9007199254740991
+                      },
+                      "height": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "exclusiveMinimum": true,
+                        "maximum": 9007199254740991
+                      }
+                    },
+                    "required": [
+                      "x",
+                      "y",
+                      "width",
+                      "height"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "",
@@ -6884,8 +6929,7 @@
                   },
                   "description": {
                     "nullable": true,
-                    "type": "string",
-                    "maxLength": 2000
+                    "type": "string"
                   },
                   "startDate": {
                     "nullable": true,
@@ -6982,8 +7026,7 @@
                   },
                   "vendorContactInfo": {
                     "nullable": true,
-                    "type": "string",
-                    "maxLength": 500
+                    "type": "string"
                   },
                   "applicationsCloseAt": {
                     "nullable": true,
@@ -8247,9 +8290,7 @@
                 "type": "object",
                 "properties": {
                   "text": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 5000
+                    "type": "string"
                   }
                 },
                 "required": [

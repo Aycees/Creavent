@@ -266,6 +266,73 @@ describe('event drafts and details', () => {
       expect((await prisma.file.findUniqueOrThrow({ where: { id: second.body.id } })).deletedAt).toBeNull();
     });
 
+    describe('cover crop', () => {
+      // 3200 x 1800: the left half red, the right half blue.
+      async function halves() {
+        const red = await sharp({ create: { width: 1600, height: 1800, channels: 3, background: '#ff0000' } }).png().toBuffer();
+        return sharp({ create: { width: 3200, height: 1800, channels: 3, background: '#0000ff' } })
+          .composite([{ input: red, left: 0, top: 0 }])
+          .png()
+          .toBuffer();
+      }
+
+      async function upload(browser: Browser, crop: unknown, purpose = 'event_cover') {
+        const body = await halves();
+        const ask = await browser.post('/api/files').send({ purpose, mimeType: 'image/png', sizeBytes: body.length });
+        storage.upload(`incoming/${ask.body.fileId}`, body);
+        return browser.post(`/api/files/${ask.body.fileId}/complete`).send({ crop });
+      }
+
+      async function pixel(id: string, x: number, y: number) {
+        const stored = storage.objects.get(`public/event_cover/${id}.webp`)!.body;
+        const { data, info } = await sharp(stored).raw().toBuffer({ resolveWithObject: true });
+        const i = (y * info.width + x) * info.channels;
+        return { r: data[i], b: data[i + 2] };
+      }
+
+      it('crops the cover to the frame the organizer chose', async () => {
+        const { browser } = await organizer();
+
+        const res = await upload(browser, { x: 1600, y: 0, width: 1600, height: 900 });
+
+        expect(res.status).toBe(201);
+        expect(res.body).toMatchObject({ width: 1600, height: 900 });
+        const left = await pixel(res.body.id, 10, 450);
+        expect(left.b).toBeGreaterThan(200);
+        expect(left.r).toBeLessThan(50);
+      });
+
+      it('scales a larger frame down to 1600 x 900', async () => {
+        const { browser } = await organizer();
+
+        const res = await upload(browser, { x: 0, y: 0, width: 3200, height: 1800 });
+
+        expect(res.body).toMatchObject({ width: 1600, height: 900 });
+      });
+
+      it.each([
+        ['outside the photo', { x: 2000, y: 0, width: 1600, height: 900 }, "The frame doesn't fit inside the photo"],
+        ['not 16:9', { x: 0, y: 0, width: 1600, height: 1600 }, 'Frame the cover at 16:9'],
+        ['smaller than 1280 x 720', { x: 0, y: 0, width: 1200, height: 675 }, 'Zoom out. The cover needs at least 1280 x 720 of the photo'],
+      ])('refuses a frame %s', async (_name, crop, message) => {
+        const { browser } = await organizer();
+
+        const res = await upload(browser, crop);
+
+        expect(res.status).toBe(400);
+        expect(res.body.message).toBe(message);
+      });
+
+      it('refuses a frame for a picture that is not a cover', async () => {
+        const user = await createUser(prisma);
+        const browser = await signInAs(app, user.email);
+
+        const res = await upload(browser, { x: 0, y: 0, width: 1600, height: 900 }, 'avatar');
+
+        expect(res.status).toBe(400);
+      });
+    });
+
     it('is not found for anyone but the event organizer', async () => {
       const owner = await organizer();
       const id = await draft(owner.browser);

@@ -48,3 +48,18 @@ export const uploadedFileSchema = z.object({
   height: z.number().int().nullable(),
 });
 export type UploadedFile = z.infer<typeof uploadedFileSchema>;
+
+// The part of the photo to keep, in the photo's own pixels after it is turned
+// upright. Only event covers take one: a 16:9 frame the organizer moves and
+// zooms. Without it the cover is cropped from the center (spec §11.5).
+export const cropSchema = z.object({
+  x: z.number().int().min(0),
+  y: z.number().int().min(0),
+  width: z.number().int().positive(),
+  height: z.number().int().positive(),
+});
+export type Crop = z.infer<typeof cropSchema>;
+
+// Step 3, Complete.
+export const completeUploadSchema = z.object({ crop: cropSchema.optional() });
+export type CompleteUploadInput = z.infer<typeof completeUploadSchema>;

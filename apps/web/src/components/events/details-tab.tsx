@@ -13,8 +13,10 @@ import { Input, inputClass } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { api } from "@/lib/api"
 import { eventDays, formatSchedule } from "@/lib/event-format"
+import { readPhoto } from "@/lib/read-photo"
 import { useUpload } from "@/lib/use-upload"
 import { cn } from "@/lib/utils"
+import { CoverCropDialog, type PickedPhoto } from "./cover-crop"
 import { EventTypeChips, SetupPanel, TabSaveBar } from "./parts"
 import { saveError, useSetupSaved } from "./queries"
 
@@ -59,6 +61,9 @@ export function DetailsTab({ setup }: { setup: EventSetup }) {
   })
   const values = useWatch({ control }) as Form
   const coverInput = React.useRef<HTMLInputElement>(null)
+  // The picked photo, while the organizer frames it (spec §11.5).
+  const [picked, setPicked] = React.useState<{ file: File; photo: PickedPhoto } | null>(null)
+  const [pickError, setPickError] = React.useState<string | null>(null)
   const coverUrl = values.coverFileId ? covers[values.coverFileId] ?? null : null
   const schedule = {
     startDate: values.startDate || null,
@@ -113,7 +118,7 @@ export function DetailsTab({ setup }: { setup: EventSetup }) {
                 {coverUrl ? <img src={coverUrl} alt="Event cover" className="size-full object-cover" /> : <ImageIcon aria-hidden="true" className="size-6" />}
               </div>
               <div className="flex flex-col gap-2">
-                <p className="text-help text-muted">16:9, at least 1280 × 720 px, up to 10 MB. JPEG, PNG or WebP.</p>
+                <p className="text-help text-muted">At least 1280 × 720 px, up to 10 MB. JPEG, PNG or WebP. You choose the 16:9 part to show. To reframe it later, upload the photo again.</p>
                 <div className="flex flex-wrap gap-2">
                   <Button type="button" variant="secondary" disabled={coverUpload.pending} onClick={() => coverInput.current?.click()}>
                     <UploadSimpleIcon aria-hidden="true" className="size-4" />
@@ -125,7 +130,7 @@ export function DetailsTab({ setup }: { setup: EventSetup }) {
                     </Button>
                   )}
                 </div>
-                {coverUpload.error && <p className="text-help text-danger-ink">{coverUpload.error}</p>}
+                {(pickError ?? coverUpload.error) && <p className="text-help text-danger-ink">{pickError ?? coverUpload.error}</p>}
               </div>
               <input
                 ref={coverInput}
@@ -138,11 +143,14 @@ export function DetailsTab({ setup }: { setup: EventSetup }) {
                   const file = e.target.files?.[0]
                   e.target.value = ""
                   if (!file) return
-                  const done = await coverUpload.upload(file)
-                  if (done) {
-                    setCovers((m) => ({ ...m, [done.id]: done.url }))
-                    setValue("coverFileId", done.id, { shouldDirty: true })
+                  setPickError(null)
+                  const photo = await readPhoto(file)
+                  if (!photo) return setPickError("This file isn't a photo we can open")
+                  if (photo.width < 1280 || photo.height < 720) {
+                    URL.revokeObjectURL(photo.src)
+                    return setPickError("This photo is too small. Use at least 1280 x 720")
                   }
+                  setPicked({ file, photo })
                 }}
               />
             </div>
@@ -209,6 +217,26 @@ export function DetailsTab({ setup }: { setup: EventSetup }) {
             </Field>
           </div>
         </SetupPanel>
+
+        {picked && (
+          <CoverCropDialog
+            photo={picked.photo}
+            onCancel={() => {
+              URL.revokeObjectURL(picked.photo.src)
+              setPicked(null)
+            }}
+            onConfirm={async (crop) => {
+              const { file, photo } = picked
+              setPicked(null)
+              const done = await coverUpload.upload(file, { crop })
+              URL.revokeObjectURL(photo.src)
+              if (done) {
+                setCovers((m) => ({ ...m, [done.id]: done.url }))
+                setValue("coverFileId", done.id, { shouldDirty: true })
+              }
+            }}
+          />
+        )}
 
         <TabSaveBar label="Save details" saving={formState.isSubmitting} dirty={formState.isDirty} error={error} />
       </div>

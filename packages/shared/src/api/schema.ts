@@ -789,7 +789,18 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    crop?: {
+                        x: number;
+                        y: number;
+                        width: number;
+                        height: number;
+                    };
+                };
+            };
+        };
         responses: {
             200: {
                 headers: {

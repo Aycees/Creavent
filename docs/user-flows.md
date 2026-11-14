@@ -137,7 +137,7 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - Details saves the name, type, description, start and end date, opening and closing time, venue name, address, city, cover, contact details for vendors, applications close date, and ingress details. Every field but the name may be empty while the event is a draft.
 - An event runs 1 to 7 days in a row, and the closing time is later than the opening time. The applications close date is not after the start. Each break is refused with a message on its field. Times are in Asia/Manila.
 - The schedule preview reads "Sat, Jan 16 · 5 PM to 11 PM" for one day and "Fri, Jan 15 to Sun, Jan 17 · 5 PM to 11 PM daily" for several.
-- The cover is a 16:9 image of at least 1280 x 720 px. Replacing it retires the old file.
+- The cover photo is at least 1280 x 720 px. After picking it, the organizer drags and zooms a 16:9 frame (keeping at least 1280 x 720 of the photo), and the cover is stored as that frame. Cancel leaves the cover as it was. Replacing it retires the old file. Decided 2026-11-15.
 - Only the event's organizer can read or change its setup. Anyone else gets "Not found".
 
 *Requirements and policy*

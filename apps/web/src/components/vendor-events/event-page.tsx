@@ -74,13 +74,13 @@ function VendorView({ event: e, preview }: { event: VendorEvent; preview: boolea
         )
       )}
 
-      <div className="grid aspect-video w-full place-items-center overflow-hidden rounded-lg bg-sunken text-muted md:aspect-[3/1]">
-        {/* eslint-disable-next-line @next/next/no-img-element -- R2 addresses, already sized */}
-        {e.coverUrl ? <img src={e.coverUrl} alt="" className="size-full object-cover" /> : <ImageIcon aria-hidden="true" className="size-8" />}
-      </div>
-
       <div className="flex flex-col gap-6 md:grid md:grid-cols-[minmax(0,1fr)_340px] md:items-start md:gap-8">
         <div className="flex flex-col gap-6">
+          {/* The cover exactly as the organizer framed it, 16:9 at every width. */}
+          <div className="grid aspect-video w-full place-items-center overflow-hidden rounded-lg bg-sunken text-muted">
+            {/* eslint-disable-next-line @next/next/no-img-element -- R2 addresses, already sized */}
+            {e.coverUrl ? <img src={e.coverUrl} alt="" className="size-full object-cover" /> : <ImageIcon aria-hidden="true" className="size-8" />}
+          </div>
           <header className="flex gap-4">
             {e.startDate && <DateStamp date={stampDate(e.startDate)} endDay={days > 1 && e.endDate ? Number(e.endDate.slice(8)) : undefined} size="lg" />}
             <div className="flex min-w-0 flex-col gap-2">
