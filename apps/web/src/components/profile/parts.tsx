@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { api } from "@/lib/api"
+import { safeLink } from "@/lib/safe-link"
 import { cn } from "@/lib/utils"
 
 export function Panel({ title, intro, aside, children, className }: { title: string; intro?: React.ReactNode; aside?: React.ReactNode; children: React.ReactNode; className?: string }) {
@@ -158,7 +159,10 @@ export function LinkList({
         {links.map((link) => (
           <li key={link} className="flex min-h-12 items-center gap-3 pl-3">
             <GlobeIcon aria-hidden="true" className="size-5 flex-none text-muted" />
-            <span className="min-w-0 flex-1 truncate text-sm">{link.replace(/^https?:\/\//, "")}</span>
+            <span className="flex min-w-0 flex-1 flex-col text-sm">
+              <span className="font-semibold break-all">{safeLink(link)?.host ?? link}</span>
+              {safeLink(link)?.rest && <span className="text-cap break-all text-muted">{safeLink(link)?.rest}</span>}
+            </span>
             {reviewed.includes(link) && (
               <Badge tone="info" dot={false}>
                 Reviewed

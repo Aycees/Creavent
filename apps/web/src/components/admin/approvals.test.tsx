@@ -1,5 +1,5 @@
 import type { ApprovalDetail } from "@creavent/shared"
-import { screen } from "@testing-library/react"
+import { screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { useRouter } from "next/navigation"
 import { beforeEach, describe, expect, it, vi } from "vitest"
@@ -77,9 +77,23 @@ describe("ApprovalReview", () => {
 
     expect(await screen.findByRole("heading", { name: "Bazaar ng Mintal" })).toBeInTheDocument()
     expect(screen.getByText("1 of 7 in queue")).toBeInTheDocument()
-    expect(screen.getByRole("link", { name: /facebook.com\/bazaarngmintal/ })).toHaveAttribute("href", "https://facebook.com/bazaarngmintal")
+    expect(screen.getByRole("link", { name: /facebook\.com.*\/bazaarngmintal/ })).toHaveAttribute("href", "https://facebook.com/bazaarngmintal")
     expect(screen.getByText("bazaar@example.com")).toBeInTheDocument()
     expect(screen.getByText(/also a vendor/)).toBeInTheDocument()
+  })
+
+  it("shows each link's real host, marking sites that aren't well-known social sites", async () => {
+    serve({ ...detail, socialLinks: ["https://www.facebook.com/bazaar", "https://facebook.com-events.evil.example/page", "javascript:alert(1)"] })
+    renderWithQuery(<ApprovalReview userId={userId} />)
+
+    const links = await screen.findByRole("list", { name: "Links to check" })
+    const items = within(links).getAllByRole("listitem")
+    expect(within(items[0]).getByText("www.facebook.com")).toBeInTheDocument()
+    expect(within(items[0]).getByText("Known site")).toBeInTheDocument()
+    expect(within(items[1]).getByText("facebook.com-events.evil.example")).toBeInTheDocument()
+    expect(within(items[1]).getByText("External site")).toBeInTheDocument()
+    expect(within(items[2]).queryByRole("link")).not.toBeInTheDocument()
+    expect(within(items[2]).getByText("Not a valid link")).toBeInTheDocument()
   })
 
   it("approves with the internal note and moves to the next request", async () => {

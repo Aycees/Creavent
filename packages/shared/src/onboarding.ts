@@ -13,11 +13,47 @@ export const phoneSchema = z
   .refine((v) => /^9\d{9}$/.test(v), 'Enter a mobile number like 917 123 4567')
   .transform((v) => `+63${v}`);
 
+// Control characters, zero-width and direction-changing characters can make
+// a link read differently from where it goes, so links may not contain them.
+const HIDDEN_CHARS = /[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u2028-\u202e\u2060-\u2069\ufeff]/;
+
+// A link to a public page: http or https, a real domain name (not an IP
+// address or a bare host like "localhost"), no username or password, at most
+// 2048 characters. Stored in normalized form, so what admins see is what the
+// browser opens.
 const urlSchema = z
   .string()
   .trim()
-  .transform((v) => (/^https?:\/\//i.test(v) ? v : `https://${v}`))
-  .pipe(z.url({ protocol: /^https?$/, message: 'Enter a link like facebook.com/yourpage' }));
+  .max(2048, 'This link is too long')
+  .refine((v) => !HIDDEN_CHARS.test(v), 'This link has hidden characters. Type it again.')
+  .transform((v, ctx) => {
+    let url: URL;
+    try {
+      url = new URL(/^[a-z][a-z0-9+.-]*:/i.test(v) ? v : `https://${v}`);
+    } catch {
+      ctx.addIssue({ code: 'custom', message: 'Enter a link like facebook.com/yourpage' });
+      return z.NEVER;
+    }
+    const host = url.hostname;
+    const isIp = /^\d+(\.\d+){3}$/.test(host) || host.startsWith('[') || /^0x[0-9a-f]+$/i.test(host) || /^\d+$/.test(host);
+    if (!['http:', 'https:'].includes(url.protocol) || isIp || !host.includes('.') || url.username || url.password) {
+      ctx.addIssue({ code: 'custom', message: 'Enter a link to a public page, like facebook.com/yourpage' });
+      return z.NEVER;
+    }
+    return url.href.length > 2048 ? (ctx.addIssue({ code: 'custom', message: 'This link is too long' }), z.NEVER) : url.href;
+  });
+
+// Sites people use for their shop and market pages. Others are fine, but are
+// marked "External site" so an admin looks twice.
+const KNOWN_HOSTS = ['facebook.com', 'fb.com', 'instagram.com', 'tiktok.com', 'youtube.com', 'x.com', 'twitter.com', 'shopee.ph', 'lazada.com.ph', 'carousell.ph'];
+
+// How to show a link: its real host (in punycode, so lookalike letters show),
+// the rest of the link, and whether the host is a well-known site.
+export function describeLink(link: string) {
+  const url = new URL(link);
+  const known = KNOWN_HOSTS.some((h) => url.hostname === h || url.hostname.endsWith(`.${h}`));
+  return { host: url.hostname, rest: `${url.pathname === '/' ? '' : url.pathname}${url.search}${url.hash}`, known };
+}
 
 export const socialLinksSchema = z.array(urlSchema).max(10, 'Add up to 10 links');
 

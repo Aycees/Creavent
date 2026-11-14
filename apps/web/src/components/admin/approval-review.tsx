@@ -1,7 +1,6 @@
 "use client"
 
 import { rejectSchema } from "@creavent/shared"
-import { ArrowSquareOutIcon } from "@phosphor-icons/react"
 import { useQueryClient } from "@tanstack/react-query"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -12,6 +11,7 @@ import { Alert } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ChoiceCard } from "@/components/ui/choice-card"
+import { ExternalLink } from "@/components/ui/external-link"
 import { Field } from "@/components/ui/field"
 import { Textarea } from "@/components/ui/textarea"
 import { api } from "@/lib/api"
@@ -130,19 +130,14 @@ export function ApprovalReview({ userId }: { userId: string }) {
       <div className="flex flex-col gap-4 md:grid md:grid-cols-[minmax(0,1fr)_360px] md:items-start md:gap-6">
         <div className="flex flex-col gap-4">
           <Section title="Links to check">
-            <p className="text-sm text-muted">Look for real past events, recent activity, and the same contact name.</p>
-            <ul className="flex flex-col gap-2">
+            <p className="text-sm text-muted">
+              Look for real past events, recent activity, and the same contact name. Check the host on each link: an
+              External site isn&apos;t a known social site.
+            </p>
+            <ul aria-label="Links to check" className="flex flex-col gap-2">
               {d.socialLinks.map((link) => (
                 <li key={link}>
-                  <a
-                    href={link}
-                    target="_blank"
-                    rel="noopener noreferrer nofollow"
-                    className="flex min-h-11 items-center justify-between gap-3 rounded-md border border-border px-3 text-sm text-ink no-underline hover:border-border-strong"
-                  >
-                    <span className="min-w-0 truncate">{link.replace(/^https?:\/\//, "")}</span>
-                    <ArrowSquareOutIcon aria-hidden="true" className="size-4 flex-none" />
-                  </a>
+                  <ExternalLink link={link} />
                 </li>
               ))}
             </ul>
