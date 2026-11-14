@@ -303,12 +303,15 @@ describe('onboarding', () => {
       expect(await roleOf(user.id, 'organizer')).toMatchObject({ approvalStatus: 'not_submitted', onboardingStep: 4 });
     });
 
-    it('needs at least one link', async () => {
-      const { browser } = await readyForApproval();
+    it('needs at least one link to submit, but not for Do this later', async () => {
+      const { user, browser } = await readyForApproval();
 
-      const res = await browser.post('/api/onboarding/organizer/approval').send({ socialLinks: [], submit: true });
+      const submit = await browser.post('/api/onboarding/organizer/approval').send({ socialLinks: [], submit: true });
+      const later = await browser.post('/api/onboarding/organizer/approval').send({ socialLinks: [], submit: false });
 
-      expect(res.status).toBe(400);
+      expect(submit.status).toBe(400);
+      expect(later.status).toBe(200);
+      expect(await roleOf(user.id, 'organizer')).toMatchObject({ approvalStatus: 'not_submitted', onboardingStep: 4 });
     });
 
     it('needs the contact details before a review can be requested', async () => {

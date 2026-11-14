@@ -178,7 +178,8 @@ export function OrganizerApprovalForm({
 
   function send(submit: boolean) {
     const socialLinks = getValues("socialLinks")
-    if (socialLinks.length === 0) return setLinkError("Add at least one link")
+    // A link is needed to submit for review, not to do it later (flow 2).
+    if (submit && socialLinks.length === 0) return setLinkError("Add at least one link")
     setLinkError(null)
     return save(api.POST("/api/onboarding/organizer/approval", { body: { socialLinks, submit } }))
   }

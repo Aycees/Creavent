@@ -112,11 +112,14 @@ export const organizerContactSchema = z.object({
 });
 export type OrganizerContactInput = z.input<typeof organizerContactSchema>;
 
-export const organizerApprovalSchema = z.object({
-  socialLinks: socialLinksSchema.min(1, 'Add at least one link'),
-  // false is "Do this later": the links are saved, approval stays as it is.
-  submit: z.boolean(),
-});
+export const organizerApprovalSchema = z
+  .object({
+    socialLinks: socialLinksSchema,
+    // false is "Do this later": the links are saved, approval stays as it is.
+    submit: z.boolean(),
+  })
+  // A link is needed to submit for review, not to do it later (flow 2).
+  .refine((v) => !v.submit || v.socialLinks.length > 0, { path: ['socialLinks'], message: 'Add at least one link' });
 export type OrganizerApprovalInput = z.input<typeof organizerApprovalSchema>;
 
 export const categorySchema = z.object({ id: z.uuid(), name: z.string() });

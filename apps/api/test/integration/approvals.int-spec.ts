@@ -106,8 +106,9 @@ describe('admin approvals', () => {
       reviewedById: adminUser.id,
       adminNotes: 'Checked 3 past events',
     });
+    // To the contact email the organizer gave for their approval.
     const email = await prisma.emailNotification.findFirstOrThrow({ where: { type: 'organizer_approved' } });
-    expect(email.toEmail).toBe(organizer.email);
+    expect(email.toEmail).toBe('mintal@example.com');
     const log = await prisma.auditLog.findFirstOrThrow();
     expect(log).toMatchObject({
       actorUserId: adminUser.id,

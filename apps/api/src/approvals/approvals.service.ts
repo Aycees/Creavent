@@ -108,7 +108,8 @@ export class ApprovalsService {
       const name = role.user.fullName;
       await this.outbox.queue(tx, {
         userId,
-        toEmail: role.user.email,
+        // The contact email the organizer gave for their approval (spec §2.1).
+        toEmail: role.contactEmail ?? role.user.email,
         type: decision.approve ? 'organizer_approved' : 'organizer_rejected',
         relatedEntityType: 'user_role',
         relatedEntityId: role.id,
