@@ -38,7 +38,7 @@ export function VendorDone({ me, state }: { me: MeResponse; state: OnboardingSta
             {v?.slug && (
               <>
                 {" "}
-                Shoppers see it on your <TextLink href={`/vendors/${v.slug}`}>public vendor page</TextLink>.
+                Visitors see it on your <TextLink href={`/vendors/${v.slug}`}>public vendor page</TextLink>.
               </>
             )}
           </p>
@@ -125,7 +125,7 @@ export function OrganizerDone({ state }: { state: OnboardingState }) {
           {o.slug && (
             <Link href={`/organizers/${o.slug}`} className="flex flex-col gap-1 rounded-lg border border-border bg-surface p-4 no-underline hover:border-border-strong">
               <span className="text-label font-semibold text-ink">Preview your organizer page</span>
-              <span className="text-sm text-muted">See how shoppers and vendors will see you.</span>
+              <span className="text-sm text-muted">See how visitors and vendors will see you.</span>
             </Link>
           )}
           {!pending && (

@@ -16,7 +16,7 @@ When they disagree: the spec decides behavior and wording rules, the mockup deci
 
 | Who | Account | What they need from the screen |
 |---|---|---|
-| Attendee (shopper) | None | Dates, places, photos, who is selling. Big tap targets on phones. |
+| Attendee (visitor) | None | Dates, places, photos, who is selling. Big tap targets on phones. |
 | Vendor | Yes | Requirements, fees, deadlines, the status of each application and payment. |
 | Organizer | Yes | Checklists, slot counts, payment proofs to check, quick actions. Works on a phone too. |
 | Admin | Internal | Queues, the facts needed to decide, and a clear record of what was done. |
@@ -60,7 +60,7 @@ Plain, specific, and friendly. Say what happens and what to do next.
 |---|---|
 | Notice before paying | Pay Sari-Sari Collective directly using either option. Creavent doesn't hold or process payments. |
 | Deadline | About 21 hours left. Late payments are flagged to the organizer, who may give the slot to someone else. |
-| Vendor-only event | Vendor view. This event is open to vendors. Shoppers can't see it until the organizer announces it. |
+| Vendor-only event | Vendor view. This event is open to vendors. Visitors can't see it until the organizer announces it. |
 | Confirm on approve | Approving reserves B-04 and emails Lola's Ukay. |
 | Release slot | Can't make it? You can release this slot until your payment is approved. The organizer is notified. |
 | Report link | Something wrong with this event? Email us at [support email] and we'll look into it. |

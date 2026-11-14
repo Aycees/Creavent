@@ -1,14 +1,22 @@
 import type { Metadata } from "next"
+import { Suspense } from "react"
 
-import { PlaceholderPage } from "@/components/layout/placeholder-page"
+import { EventPageView } from "@/components/vendor-events/event-page"
 import { Container } from "@/components/ui/container"
 
 export const metadata: Metadata = { title: "Event · Creavent" }
 
-export default function EventPage() {
+async function View({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  return <EventPageView slug={slug} />
+}
+
+export default function EventPage({ params }: PageProps<"/events/[slug]">) {
   return (
-    <Container className="py-8 md:py-12">
-      <PlaceholderPage title="Event" slice="2.6 (vendor view) and 4.2 (public view)" />
+    <Container className="py-6 md:py-10">
+      <Suspense>
+        <View params={params} />
+      </Suspense>
     </Container>
   )
 }

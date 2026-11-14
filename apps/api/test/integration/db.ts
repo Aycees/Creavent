@@ -15,7 +15,7 @@ export async function resetDatabase(prisma: PrismaClient): Promise<void> {
   const tables = await prisma.$queryRaw<{ tablename: string }[]>`
     SELECT tablename FROM pg_tables
     WHERE schemaname = current_schema()
-      AND tablename NOT IN ('_prisma_migrations', 'categories')
+      AND tablename NOT IN ('_prisma_migrations', 'categories', 'event_types')
   `;
   if (tables.length === 0) return;
 

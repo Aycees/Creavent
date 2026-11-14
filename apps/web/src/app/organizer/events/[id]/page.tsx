@@ -1,9 +1,19 @@
 import type { Metadata } from "next"
+import { Suspense } from "react"
 
-import { PlaceholderPage } from "@/components/layout/placeholder-page"
+import { EventSetupPage } from "@/components/events/event-setup"
 
 export const metadata: Metadata = { title: "Event setup · Creavent" }
 
-export default function EventSetupPage() {
-  return <PlaceholderPage title="Event setup" slice="2.1 to 2.5 (event setup tabs)" />
+async function Setup({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  return <EventSetupPage id={id} />
+}
+
+export default function EventSetupRoute({ params }: PageProps<"/organizer/events/[id]">) {
+  return (
+    <Suspense>
+      <Setup params={params} />
+    </Suspense>
+  )
 }

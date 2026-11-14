@@ -58,3 +58,25 @@ export const CurrentUser = createParamDecorator(
   (_data: unknown, context: ExecutionContext): SessionUser =>
     context.switchToHttp().getRequest<Request & { user: SessionUser }>().user,
 );
+
+// Pages anyone can open, that show more to signed-in users (the event page).
+// Sets the user when the session is valid, and carries on without one.
+@Injectable()
+export class OptionalAuthGuard implements CanActivate {
+  constructor(private readonly auth: AuthGuard) {}
+
+  async canActivate(context: ExecutionContext) {
+    try {
+      await this.auth.canActivate(context);
+    } catch (error) {
+      if (!(error instanceof UnauthorizedException || error instanceof ForbiddenException)) throw error;
+      context.switchToHttp().getRequest<Request & { user?: SessionUser }>().user = undefined;
+    }
+    return true;
+  }
+}
+
+export const OptionalUser = createParamDecorator(
+  (_data: unknown, context: ExecutionContext): SessionUser | undefined =>
+    context.switchToHttp().getRequest<Request & { user?: SessionUser }>().user,
+);

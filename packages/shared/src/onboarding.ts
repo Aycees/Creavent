@@ -163,7 +163,8 @@ export const onboardingStateSchema = z.object({
 export type OnboardingState = z.infer<typeof onboardingStateSchema>;
 
 // A page link suggested from a name: lowercase, hyphens, 3 to 40 characters.
-export function slugify(name: string) {
+// `fallback` fills a name with too few letters ("shop" for shops, "my-event" for events).
+export function slugify(name: string, fallback = 'shop') {
   const base = name
     .normalize('NFKD')
     .replace(/[̀-ͯ]/g, '')
@@ -172,7 +173,7 @@ export function slugify(name: string) {
     .replace(/^-+|-+$/g, '')
     .slice(0, 40)
     .replace(/-+$/, '');
-  return base.length >= 3 ? base : `${base}${base ? '-' : ''}shop`.slice(0, 40);
+  return base.length >= 3 ? base : `${base}${base ? '-' : ''}${fallback}`.slice(0, 40);
 }
 
 // Profile edit pages (mockup VendorProfileEdit, OrgProfileEdit). The whole

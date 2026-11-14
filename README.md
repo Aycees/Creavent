@@ -29,6 +29,8 @@ The MVP is built around flea markets and flea market organizers. The platform is
 
 Phase 1 (accounts and approval) is merged ([Aycees/Creavent#12](https://github.com/Aycees/Creavent/pull/12)): sign up and sign in, email verification and password reset, uploads, vendor and organizer onboarding, admin organizer approvals, and the account page. See [Development plan §10](docs/development-plan.md#10-progress).
 
+Phase 2 (events) is built on `feat/phase-2-events` ([Aycees/Creavent#14](https://github.com/Aycees/Creavent/issues/14)): event drafts and the setup tabs (details, requirements, policy, payments, slots, public floor plan), opening an event to vendors, vendor browsing and the vendor view of the event page, and the organizer's event list.
+
 ## Development
 
 Requirements: Node 24, pnpm 9, Docker (for local Postgres).
@@ -57,7 +59,7 @@ pnpm --filter @creavent/api dev:worker
 
 Without a Resend key, set `EMAIL_DRIVER=log` in `apps/api/.env` and the worker prints each email, links included. Uploads need the R2 settings in `apps/api/.env.example`. Google sign-in shows only when `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are set.
 
-Seed accounts for every Phase 1 screen, all with `SEED_PASSWORD` from `apps/api/.env`: `admin@creavent.test` (admin), `vendor@creavent.test` (vendor), `organizer@creavent.test` (approved organizer), and `pending@`, `pending2@`, `rejected@`, `later@creavent.test` (organizers in the other approval states). Seeding again leaves existing accounts as they are.
+Seed accounts for every Phase 1 screen, all with `SEED_PASSWORD` from `apps/api/.env`: `admin@creavent.test` (admin), `vendor@creavent.test` (vendor), `organizer@creavent.test` (approved organizer), and `pending@`, `pending2@`, `rejected@`, `later@creavent.test` (organizers in the other approval states). For Phase 2, `organizer@` has a draft missing its payment details and two events open to vendors (one with applications closed), and `pending@` has a ready draft that waits for approval. Seeded events have no cover image, so add one before saving an open event's details. Seeding again leaves existing accounts and events as they are.
 
 ```bash
 pnpm db:seed

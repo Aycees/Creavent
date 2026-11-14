@@ -10,6 +10,16 @@ export function appConfig() {
     // Placeholder until the support address exists (development plan §9).
     supportEmail: process.env.SUPPORT_EMAIL ?? 'support@creavent.example',
     minimumAge: Number(process.env.MINIMUM_AGE ?? 18),
+    // Hours a vendor has to pay after a slot is assigned, for new events (data model §5.11).
+    defaultPaymentDeadlineHours: Number(process.env.DEFAULT_PAYMENT_DEADLINE_HOURS ?? 24),
+    // Shown on the Policy tab of an organizer's first event (spec §3.7).
+    examplePolicyText:
+      process.env.EXAMPLE_POLICY_TEXT ??
+      [
+        'Pay your slot fee within 24 hours of being assigned a slot. Unpaid slots may be given to another vendor.',
+        'If you withdraw 7 or more days before the event, we refund 50% of your fee. Within 7 days, fees are not refundable.',
+        'If we cancel the event, you get a full refund within 5 days.',
+      ].join('\n\n'),
   };
 }
 

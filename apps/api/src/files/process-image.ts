@@ -1,4 +1,4 @@
-import type { UploadPurpose } from '@creavent/shared';
+import type { Crop, UploadPurpose } from '@creavent/shared';
 import sharp, { type Metadata, type ResizeOptions } from 'sharp';
 
 // A guard against files built to exhaust memory (spec §11.4).
@@ -11,7 +11,31 @@ const resize: Record<UploadPurpose, ResizeOptions> = {
   avatar: { width: 256, height: 256, fit: 'cover', position: 'centre', withoutEnlargement: true },
   organizer_logo: { width: 512, height: 512, fit: 'inside', withoutEnlargement: true },
   vendor_photo: { width: 1600, height: 1600, fit: 'inside', withoutEnlargement: true },
+  event_cover: { width: 1600, height: 900, fit: 'cover', position: 'centre', withoutEnlargement: true },
+  payment_qr: { width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true },
+  vendor_floor_plan: { width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true },
+  public_floor_plan: { width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true },
 };
+
+// Event covers are 16:9, at most 1600 x 900, and never enlarged (spec §11.5).
+// Without a frame from the organizer, they are cropped from the center.
+function coverSize(width: number, height: number): ResizeOptions {
+  const cropWidth = Math.min(width, Math.round((height * 16) / 9));
+  const outWidth = Math.min(1600, cropWidth);
+  return { width: outWidth, height: Math.round((outWidth * 9) / 16), fit: 'cover', position: 'centre' };
+}
+
+// The organizer's frame must sit inside the upright photo, be 16:9 (a pixel
+// of rounding allowed), and keep at least the cover's minimum size.
+function assertFrame(crop: Crop, width: number, height: number, minWidth = 0, minHeight = 0) {
+  if (crop.x + crop.width > width || crop.y + crop.height > height) {
+    throw new UploadRejected("The frame doesn't fit inside the photo");
+  }
+  if (Math.abs(crop.width * 9 - crop.height * 16) > 16) throw new UploadRejected('Frame the cover at 16:9');
+  if (crop.width < minWidth || crop.height < minHeight) {
+    throw new UploadRejected(`Zoom out. The cover needs at least ${minWidth} x ${minHeight} of the photo`);
+  }
+}
 
 // Only so many images are processed at once, so a busy moment can't run the
 // API out of memory (spec §11.5).
@@ -41,7 +65,7 @@ export const withImageSlot = createLimiter(2);
 // purpose, and re-encodes it as WebP. Re-encoding drops all metadata,
 // including a phone photo's GPS location.
 // Call inside withImageSlot.
-export function processImage(input: Buffer, purpose: UploadPurpose, minWidth?: number, minHeight?: number) {
+export function processImage(input: Buffer, purpose: UploadPurpose, minWidth?: number, minHeight?: number, crop?: Crop) {
   return (async () => {
     let meta: Metadata;
     try {
@@ -56,9 +80,16 @@ export function processImage(input: Buffer, purpose: UploadPurpose, minWidth?: n
     if ((minWidth && width < minWidth) || (minHeight && height < minHeight)) {
       throw new UploadRejected(`This photo is too small. Use at least ${minWidth} x ${minHeight}`);
     }
-    const { data, info } = await sharp(input, { limitInputPixels: MAX_PIXELS })
-      .rotate()
-      .resize(resize[purpose])
+    // One pipeline, so the photo is decoded once under the pixel limit. sharp
+    // turns it upright before extracting, so the frame matches what the
+    // browser showed.
+    let pipeline = sharp(input, { limitInputPixels: MAX_PIXELS }).rotate();
+    if (crop) {
+      assertFrame(crop, width, height, minWidth, minHeight);
+      pipeline = pipeline.extract({ left: crop.x, top: crop.y, width: crop.width, height: crop.height });
+    }
+    const { data, info } = await pipeline
+      .resize(purpose === 'event_cover' ? coverSize(crop?.width ?? width, crop?.height ?? height) : resize[purpose])
       .webp({ quality: 82 })
       .toBuffer({ resolveWithObject: true });
     return { body: data, width: info.width, height: info.height };

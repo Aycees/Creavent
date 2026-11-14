@@ -272,13 +272,13 @@ Check a feature when its commit is on the phase branch with its tests passing. C
 - [x] **M1** An organizer signs up and gets approved ([Aycees/Creavent#12](https://github.com/Aycees/Creavent/pull/12), merged 2026-11-14; works on a local run from `main`)
 
 **Phase 2: Events**
-- [ ] 2.1 Create a draft
-- [ ] 2.2 Requirements and policy tabs
-- [ ] 2.3 Payments tab
-- [ ] 2.4 Slots and floor plan tabs
-- [ ] 2.5 Open to vendors
-- [ ] 2.6 Vendor browsing
-- [ ] 2.7 Organizer dashboard (first version)
+- [x] 2.1 Create a draft (branch `feat/phase-2-events`)
+- [x] 2.2 Requirements and policy tabs (branch `feat/phase-2-events`)
+- [x] 2.3 Payments tab (branch `feat/phase-2-events`)
+- [x] 2.4 Slots and floor plan tabs (branch `feat/phase-2-events`)
+- [x] 2.5 Open to vendors (branch `feat/phase-2-events`)
+- [x] 2.6 Vendor browsing (branch `feat/phase-2-events`)
+- [x] 2.7 Organizer dashboard (first version) (branch `feat/phase-2-events`)
 - [ ] **M2** An approved organizer opens an event to vendors
 
 **Phase 3: The core loop**

@@ -386,6 +386,7 @@ erDiagram
         numeric longitude "null"
         text vendor_contact_info "vendors only"
         text policy_text "null, cancellation and withdrawal policy"
+        uuid policy_source_event_id FK "null"
         event_status status
         moderation_state moderation_state
         timestamptz moderated_at "null"
@@ -447,7 +448,7 @@ erDiagram
 | is_active | boolean | Inactive types can't be picked for new events or shown as a filter. |
 | sort_order | int | |
 
-**events** (spec §3.1)
+**events** (spec §3.1). A draft starts from a name and a type (decided 2026-11-14), so the description, dates, venue, and contact columns are null until the organizer fills them. The "Open to vendors" checklist requires them before opening.
 
 | Attribute | Type | Notes |
 |---|---|---|
@@ -465,6 +466,7 @@ erDiagram
 | latitude, longitude | numeric(9,6) null | For a map later. |
 | vendor_contact_info | text | Shown to signed-in vendors, never to attendees. |
 | policy_text | text null | The event's cancellation and withdrawal policy (spec §3.7). Copied from the organizer's most recent event when the draft is created. Null on a first event until the organizer saves it. Required before opening to vendors. |
+| policy_source_event_id | uuid FK → events null | The event the policy was copied from, so the Policy tab can say "Copied from your last event, …" while the text is unchanged. Added 2026-11-14. |
 | status | event_status | `draft` → `open_to_vendors` → `announced` → `completed`, or `canceled`. |
 | moderation_state | moderation_state | `visible` by default. `hidden` = an admin hid it for breaking rules or because the organizer was suspended (spec §2.1). |
 | moderated_at, moderated_by, moderation_reason | timestamptz / uuid FK → users / text, all null | Who hid it and why. |
@@ -506,7 +508,7 @@ erDiagram
 | id | uuid PK | |
 | event_id | uuid FK → events | |
 | channel | payment_channel | |
-| label | text | For example, "GCash, Maria". |
+| label | text | For example, "GCash, Maria". Made from the channel and account name when the option is saved. |
 | account_name, account_number | text null | |
 | qr_file_id | uuid FK → files null | QR code image. |
 | notes | text null | |
@@ -521,7 +523,7 @@ erDiagram
 |---|---|---|
 | id | uuid PK | |
 | event_id | uuid FK → events | |
-| label | text | Slot number. UK with `event_id` among slots that are not deleted. |
+| label | text | Slot number. UK with `event_id` among slots that are not deleted, ignoring case (a partial unique index on `lower(label)`). |
 | section | text null | Optional group, for example "Indoor" or "Outdoor". Vendors see slots grouped by section, or by label prefix when null (spec §3.4). |
 | price | numeric(10,2) null | Null = use `events.default_slot_price`. |
 | size_label | text null | Human-readable size, for example "2m x 2m". |

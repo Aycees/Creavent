@@ -3,18 +3,24 @@ import { z } from 'zod';
 // Upload rules (spec §11.1). Each feature adds its purposes when it is built.
 export const imageMimeTypes = ['image/jpeg', 'image/png', 'image/webp'] as const;
 
-export const uploadPurposeSchema = z.enum(['avatar', 'vendor_photo', 'organizer_logo']);
+export const uploadPurposeSchema = z.enum(['avatar', 'vendor_photo', 'organizer_logo', 'event_cover', 'payment_qr', 'vendor_floor_plan', 'public_floor_plan']);
 export type UploadPurpose = z.infer<typeof uploadPurposeSchema>;
 
 const MB = 1024 * 1024;
 
 export const uploadRules: Record<
   UploadPurpose,
-  { maxBytes: number; minWidth?: number; minHeight?: number; label: string }
+  // Private files go to the private bucket and are opened through the API
+  // with a short-lived address (spec §11.6).
+  { maxBytes: number; minWidth?: number; minHeight?: number; label: string; private?: boolean }
 > = {
   avatar: { maxBytes: 5 * MB, minWidth: 256, minHeight: 256, label: 'Avatar' },
   organizer_logo: { maxBytes: 5 * MB, minWidth: 256, minHeight: 256, label: 'Logo' },
   vendor_photo: { maxBytes: 10 * MB, label: 'Photo' },
+  event_cover: { maxBytes: 10 * MB, minWidth: 1280, minHeight: 720, label: 'Cover' },
+  payment_qr: { maxBytes: 5 * MB, label: 'QR code', private: true },
+  vendor_floor_plan: { maxBytes: 10 * MB, label: 'Vendor floor plan' },
+  public_floor_plan: { maxBytes: 10 * MB, label: 'Public floor plan' },
 };
 
 // Step 1, Ask: what the browser is about to upload.
@@ -42,3 +48,18 @@ export const uploadedFileSchema = z.object({
   height: z.number().int().nullable(),
 });
 export type UploadedFile = z.infer<typeof uploadedFileSchema>;
+
+// The part of the photo to keep, in the photo's own pixels after it is turned
+// upright. Only event covers take one: a 16:9 frame the organizer moves and
+// zooms. Without it the cover is cropped from the center (spec §11.5).
+export const cropSchema = z.object({
+  x: z.number().int().min(0),
+  y: z.number().int().min(0),
+  width: z.number().int().positive(),
+  height: z.number().int().positive(),
+});
+export type Crop = z.infer<typeof cropSchema>;
+
+// Step 3, Complete.
+export const completeUploadSchema = z.object({ crop: cropSchema.optional() });
+export type CompleteUploadInput = z.infer<typeof completeUploadSchema>;

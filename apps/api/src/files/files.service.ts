@@ -10,6 +10,7 @@ import {
 import {
   uploadRules,
   type AskUploadInput,
+  type Crop,
   type UploadPurpose,
   type UploadedFile,
 } from '@creavent/shared';
@@ -31,6 +32,10 @@ const MAX_VENDOR_PHOTOS = 8;
 const needsRole: Partial<Record<UploadPurpose, 'vendor' | 'organizer'>> = {
   organizer_logo: 'organizer',
   vendor_photo: 'vendor',
+  event_cover: 'organizer',
+  payment_qr: 'organizer',
+  vendor_floor_plan: 'organizer',
+  public_floor_plan: 'organizer',
 };
 const incomingKey = (id: string) => `incoming/${id}`;
 
@@ -111,7 +116,7 @@ export class FilesService {
     return { fileId: id, uploadUrl: signed.url, headers: signed.headers };
   }
 
-  async complete(userId: string, fileId: string): Promise<UploadedFile> {
+  async complete(userId: string, fileId: string, crop?: Crop): Promise<UploadedFile> {
     const file = await this.prisma.file.findFirst({
       where: {
         id: fileId,
@@ -122,9 +127,10 @@ export class FilesService {
     });
     if (!file) throw new NotFoundException('Upload not found');
     const purpose = file.purpose as UploadPurpose;
+    if (crop && purpose !== 'event_cover') throw new BadRequestException('Only event covers can be framed');
 
     try {
-      return await withImageSlot(() => this.finish(file, purpose));
+      return await withImageSlot(() => this.finish(file, purpose, crop));
     } catch (error) {
       if (!(error instanceof UploadRejected)) throw error;
       await this.storage.delete('private', incomingKey(file.id));
@@ -142,6 +148,7 @@ export class FilesService {
   private async finish(
     file: File,
     purpose: UploadPurpose,
+    crop?: Crop,
   ): Promise<UploadedFile> {
     const rules = uploadRules[purpose];
     const body = await this.storage.get('private', incomingKey(file.id));
@@ -167,8 +174,9 @@ export class FilesService {
       purpose,
       rules.minWidth,
       rules.minHeight,
+      crop,
     );
-    await this.storage.put('public', file.storageKey, image.body, 'image/webp');
+    await this.storage.put(rules.private ? 'private' : 'public', file.storageKey, image.body, 'image/webp');
     await this.storage.delete('private', incomingKey(file.id));
     const ready = await this.prisma.file.update({
       where: { id: file.id },
@@ -187,7 +195,7 @@ export class FilesService {
     return {
       id: file.id,
       purpose: file.purpose as UploadPurpose,
-      url: this.storage.publicUrl(file.storageKey),
+      url: this.fileUrl(file),
       width: file.width,
       height: file.height,
     };
@@ -195,6 +203,34 @@ export class FilesService {
 
   url(storageKey: string) {
     return this.storage.publicUrl(storageKey);
+  }
+
+  // Where the app shows a file: the public address, or the API's private
+  // file route, which checks who is asking (spec §11.6).
+  fileUrl(file: Pick<File, 'id' | 'purpose' | 'storageKey'>) {
+    return uploadRules[file.purpose as UploadPurpose]?.private ? `/api/files/${file.id}` : this.storage.publicUrl(file.storageKey);
+  }
+
+  // A 5-minute address for a private file, for someone allowed to open it
+  // (data model §6.6). Anyone else gets Not found, so ids can't be probed.
+  async privateUrl(user: { id: string; isAdmin: boolean }, fileId: string) {
+    const file = await this.prisma.file.findFirst({ where: { id: fileId, status: 'ready', deletedAt: null } });
+    if (!file || !uploadRules[file.purpose as UploadPurpose]?.private || !(await this.canOpen(user, file))) {
+      throw new NotFoundException('File not found');
+    }
+    return this.storage.presignGet(file.storageKey);
+  }
+
+  private async canOpen(user: { id: string; isAdmin: boolean }, file: File) {
+    if (user.isAdmin || file.uploadedBy === user.id) return true;
+    if (file.purpose === 'payment_qr') {
+      // The event's organizer. Vendors with a slot are added with slot assignment (Phase 3).
+      const method = await this.prisma.eventPaymentMethod.findFirst({
+        where: { qrFileId: file.id, event: { organizerProfile: { userId: user.id } } },
+      });
+      return method !== null;
+    }
+    return false;
   }
 }
 
