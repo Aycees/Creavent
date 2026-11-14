@@ -15601,6 +15601,638 @@
           "OrganizerEvents"
         ]
       }
+    },
+    "/api/vendor/events": {
+      "get": {
+        "operationId": "VendorEventsController_browse",
+        "parameters": [
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          },
+          {
+            "name": "when",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "any",
+                "weekend",
+                "30d"
+              ]
+            }
+          },
+          {
+            "name": "city",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 60
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "slug": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "typeName": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "draft",
+                              "open_to_vendors",
+                              "announced",
+                              "completed",
+                              "canceled"
+                            ]
+                          },
+                          "startDate": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "endDate": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "opensAt": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "closesAt": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "venueName": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "city": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "coverUrl": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "organizer": {
+                            "type": "object",
+                            "properties": {
+                              "displayName": {
+                                "type": "string"
+                              },
+                              "slug": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "logoUrl": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "approved": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "displayName",
+                              "slug",
+                              "logoUrl",
+                              "approved"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "feeRange": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "applicationsCloseAt": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "acceptingApplications": {
+                            "type": "boolean"
+                          },
+                          "preferredSlots": {
+                            "type": "boolean"
+                          },
+                          "mySpots": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "categoryName": {
+                                  "type": "string"
+                                },
+                                "left": {
+                                  "type": "integer",
+                                  "minimum": -9007199254740991,
+                                  "maximum": 9007199254740991
+                                },
+                                "max": {
+                                  "type": "integer",
+                                  "minimum": -9007199254740991,
+                                  "maximum": 9007199254740991
+                                }
+                              },
+                              "required": [
+                                "categoryName",
+                                "left",
+                                "max"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "slug",
+                          "name",
+                          "typeName",
+                          "status",
+                          "startDate",
+                          "endDate",
+                          "opensAt",
+                          "closesAt",
+                          "venueName",
+                          "city",
+                          "coverUrl",
+                          "organizer",
+                          "feeRange",
+                          "applicationsCloseAt",
+                          "acceptingApplications",
+                          "preferredSlots",
+                          "mySpots"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "events"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "VendorEvents"
+        ]
+      }
+    },
+    "/api/events/{slug}": {
+      "get": {
+        "operationId": "VendorEventsController_page",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "view": {
+                          "type": "string",
+                          "enum": [
+                            "not_public"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "view"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "view": {
+                          "type": "string",
+                          "enum": [
+                            "vendor"
+                          ]
+                        },
+                        "preview": {
+                          "type": "boolean"
+                        },
+                        "event": {
+                          "type": "object",
+                          "properties": {
+                            "slug": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "typeName": {
+                              "type": "string"
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "draft",
+                                "open_to_vendors",
+                                "announced",
+                                "completed",
+                                "canceled"
+                              ]
+                            },
+                            "startDate": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "endDate": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "opensAt": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "closesAt": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "venueName": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "addressLine": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "city": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "description": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "coverUrl": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "organizer": {
+                              "type": "object",
+                              "properties": {
+                                "displayName": {
+                                  "type": "string"
+                                },
+                                "slug": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "logoUrl": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "approved": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "displayName",
+                                "slug",
+                                "logoUrl",
+                                "approved"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "applicationsCloseAt": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "acceptingApplications": {
+                              "type": "boolean"
+                            },
+                            "categories": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "max": {
+                                    "nullable": true,
+                                    "type": "integer",
+                                    "minimum": -9007199254740991,
+                                    "maximum": 9007199254740991
+                                  },
+                                  "left": {
+                                    "nullable": true,
+                                    "type": "integer",
+                                    "minimum": -9007199254740991,
+                                    "maximum": 9007199254740991
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "name",
+                                  "max",
+                                  "left"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "documents": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "categoryName": {
+                                    "nullable": true,
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "name",
+                                  "categoryName"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "preferredSlots": {
+                              "type": "boolean"
+                            },
+                            "slotGroups": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "range": {
+                                    "type": "string"
+                                  },
+                                  "sizes": {
+                                    "nullable": true,
+                                    "type": "string"
+                                  },
+                                  "notes": {
+                                    "nullable": true,
+                                    "type": "string"
+                                  },
+                                  "feeRange": {
+                                    "nullable": true,
+                                    "type": "string"
+                                  },
+                                  "open": {
+                                    "type": "integer",
+                                    "minimum": -9007199254740991,
+                                    "maximum": 9007199254740991
+                                  },
+                                  "total": {
+                                    "type": "integer",
+                                    "minimum": -9007199254740991,
+                                    "maximum": 9007199254740991
+                                  }
+                                },
+                                "required": [
+                                  "name",
+                                  "range",
+                                  "sizes",
+                                  "notes",
+                                  "feeRange",
+                                  "open",
+                                  "total"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "vendorFloorPlanUrl": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "policy": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "summary": {
+                              "type": "object",
+                              "properties": {
+                                "feeRange": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "deadlineHours": {
+                                  "type": "integer",
+                                  "minimum": -9007199254740991,
+                                  "maximum": 9007199254740991
+                                },
+                                "paidTo": {
+                                  "nullable": true,
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "feeRange",
+                                "deadlineHours",
+                                "paidTo"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "vendorContactInfo": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "myCategoryIds": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              }
+                            }
+                          },
+                          "required": [
+                            "slug",
+                            "name",
+                            "typeName",
+                            "status",
+                            "startDate",
+                            "endDate",
+                            "opensAt",
+                            "closesAt",
+                            "venueName",
+                            "addressLine",
+                            "city",
+                            "description",
+                            "coverUrl",
+                            "organizer",
+                            "applicationsCloseAt",
+                            "acceptingApplications",
+                            "categories",
+                            "documents",
+                            "preferredSlots",
+                            "slotGroups",
+                            "vendorFloorPlanUrl",
+                            "policy",
+                            "summary",
+                            "vendorContactInfo",
+                            "myCategoryIds"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "view",
+                        "preview",
+                        "event"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "VendorEvents"
+        ]
+      }
     }
   },
   "info": {

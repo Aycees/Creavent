@@ -4,6 +4,7 @@ export * from './accounts.js';
 export * from './api/client.js';
 export * from './approvals.js';
 export * from './errors.js';
+export * from './event-page.js';
 export * from './events.js';
 export * from './files.js';
 export * from './health.js';

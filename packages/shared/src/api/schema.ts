@@ -644,6 +644,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/vendor/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["VendorEventsController_browse"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["VendorEventsController_page"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -4995,6 +5027,175 @@ export interface operations {
                                 note: string | null;
                                 price: number | null;
                             }[];
+                        };
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    VendorEventsController_browse: {
+        parameters: {
+            query?: {
+                q?: string;
+                when?: "any" | "weekend" | "30d";
+                city?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        events: {
+                            slug: string;
+                            name: string;
+                            typeName: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            venueName: string | null;
+                            city: string | null;
+                            coverUrl: string | null;
+                            organizer: {
+                                displayName: string;
+                                slug: string | null;
+                                logoUrl: string | null;
+                                approved: boolean;
+                            };
+                            feeRange: string | null;
+                            applicationsCloseAt: string | null;
+                            acceptingApplications: boolean;
+                            preferredSlots: boolean;
+                            mySpots: {
+                                categoryName: string;
+                                left: number;
+                                max: number;
+                            }[];
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    VendorEventsController_page: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        view: "not_public";
+                    } | {
+                        /** @enum {string} */
+                        view: "vendor";
+                        preview: boolean;
+                        event: {
+                            slug: string;
+                            name: string;
+                            typeName: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            venueName: string | null;
+                            addressLine: string | null;
+                            city: string | null;
+                            description: string | null;
+                            coverUrl: string | null;
+                            organizer: {
+                                displayName: string;
+                                slug: string | null;
+                                logoUrl: string | null;
+                                approved: boolean;
+                            };
+                            applicationsCloseAt: string | null;
+                            acceptingApplications: boolean;
+                            categories: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                max: number | null;
+                                left: number | null;
+                            }[];
+                            documents: {
+                                name: string;
+                                categoryName: string | null;
+                            }[];
+                            preferredSlots: boolean;
+                            slotGroups: {
+                                name: string;
+                                range: string;
+                                sizes: string | null;
+                                notes: string | null;
+                                feeRange: string | null;
+                                open: number;
+                                total: number;
+                            }[];
+                            vendorFloorPlanUrl: string | null;
+                            policy: string | null;
+                            summary: {
+                                feeRange: string | null;
+                                deadlineHours: number;
+                                paidTo: string | null;
+                            };
+                            vendorContactInfo: string | null;
+                            myCategoryIds: string[];
                         };
                     };
                 };
