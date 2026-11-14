@@ -160,6 +160,7 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - The organizer can close and reopen applications while the event is open to vendors. Status changes go through one function and are written to the audit log.
 - While the event is open, a save that would undo a required step (for example removing the last slot or the last payment option, or clearing the venue) is refused.
 - **Preview as vendor** shows the event page as a vendor sees it, at any status.
+- **Delete draft** deletes a draft for good after "Delete this draft? … This can't be undone.", with its requirements, slots, and payment options, retires its pictures, and is written to the audit log. Any other status is refused with "Only drafts can be deleted. Cancel this event instead." Decided 2026-11-15.
 
 *Organizer dashboard (first version)*
 - `/organizer` lists the organizer's events in Upcoming (ends today or later, or no date yet) and Past tabs, each with the date, name, type tag, venue, status, slot count, and the next step ("Add payment details", "Open to vendors", "Get approved to open", "Applications open"). **Create event** leads to `/organizer/events/new`.

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, Put, UseGuards } from '@nestjs/common';
 import { ApiCreatedResponse } from '@nestjs/swagger';
 import {
   applicationsToggleSchema,
@@ -52,6 +52,12 @@ export class OrganizerEventsController {
   @ResponseSchema(eventSetupSchema)
   setup(@CurrentUser() user: SessionUser, @Param('id', ParseUUIDPipe) id: string) {
     return this.events.setup(user.id, id);
+  }
+
+  @Delete('organizer/events/:id')
+  @HttpCode(204)
+  async deleteDraft(@CurrentUser() user: SessionUser, @Param('id', ParseUUIDPipe) id: string) {
+    await this.events.deleteDraft(user.id, id);
   }
 
   @Put('organizer/events/:id/details')

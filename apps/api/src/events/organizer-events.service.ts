@@ -253,6 +253,28 @@ export class OrganizerEventsService {
     return this.setup(userId, eventId);
   }
 
+  // Deletes a draft for good (decided 2026-11-15). A draft was never shown to
+  // anyone. Events vendors could see are canceled instead, never deleted, so
+  // their records stay (spec §3.1, §6.7).
+  async deleteDraft(userId: string, eventId: string) {
+    await this.prisma.$transaction(async (tx) => {
+      const event = await ownEvent(tx, userId, eventId, true);
+      if (event.status !== 'draft') throw new ConflictException('Only drafts can be deleted. Cancel this event instead.');
+      const qrs = await tx.eventPaymentMethod.findMany({ where: { eventId: event.id }, select: { qrFileId: true } });
+      // Requirements, slots, and payment options go with the event (cascade).
+      await tx.event.delete({ where: { id: event.id } });
+      // Its pictures are marked deleted, and the cleanup job removes them.
+      await retireFiles(tx, [event.coverFileId, event.vendorFloorPlanFileId, event.publicFloorPlanFileId, ...qrs.map((q) => q.qrFileId)], []);
+      await writeAuditLog(tx, {
+        actorUserId: userId,
+        action: 'event.delete_draft',
+        entityType: 'event',
+        entityId: event.id,
+        changes: { name: event.name, slug: event.slug },
+      });
+    });
+  }
+
   // Close or reopen applications (spec §3.3) on an event vendors can see.
   async setApplications(userId: string, eventId: string, open: boolean) {
     await this.prisma.$transaction(async (tx) => {

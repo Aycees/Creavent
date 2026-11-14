@@ -7,8 +7,9 @@ import { renderWithQuery } from "@/test-utils"
 import { EventSetupPage } from "./event-setup"
 import { EVENT_ID, setupFixture } from "./fixtures"
 
-vi.mock("next/navigation", () => ({ useSearchParams: () => new URLSearchParams() }))
-vi.mock("@/lib/api", () => ({ api: { GET: vi.fn(), PUT: vi.fn(), POST: vi.fn() } }))
+const push = vi.fn()
+vi.mock("next/navigation", () => ({ useSearchParams: () => new URLSearchParams(), useRouter: () => ({ push }) }))
+vi.mock("@/lib/api", () => ({ api: { GET: vi.fn(), PUT: vi.fn(), POST: vi.fn(), DELETE: vi.fn() } }))
 vi.mock("sonner", () => ({ toast: { success: vi.fn() } }))
 
 let setup = setupFixture()
@@ -77,5 +78,37 @@ describe("applications on an open event", () => {
 
     expect(api.PUT).toHaveBeenCalledWith("/api/organizer/events/{id}/applications", { params: { path: { id: EVENT_ID } }, body: { open: false } })
     expect(await screen.findByRole("button", { name: "Open applications" })).toBeInTheDocument()
+  })
+})
+
+describe("deleting a draft", () => {
+  it("deletes a draft after confirming, and goes back to the dashboard", async () => {
+    vi.mocked(api.DELETE).mockResolvedValue({ response: { status: 204 } } as never)
+    renderWithQuery(<EventSetupPage id={EVENT_ID} />)
+
+    await userEvent.click(await screen.findByRole("button", { name: "Delete draft" }))
+    const dialog = await screen.findByRole("dialog", { name: "Delete this draft?" })
+    expect(dialog).toHaveTextContent("This can't be undone.")
+    await userEvent.click(within(dialog).getByRole("button", { name: "Delete draft" }))
+
+    expect(api.DELETE).toHaveBeenCalledWith("/api/organizer/events/{id}", { params: { path: { id: EVENT_ID } } })
+    expect(push).toHaveBeenCalledWith("/organizer")
+  })
+
+  it("keeps the draft when the organizer changes their mind", async () => {
+    renderWithQuery(<EventSetupPage id={EVENT_ID} />)
+
+    await userEvent.click(await screen.findByRole("button", { name: "Delete draft" }))
+    await userEvent.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Keep draft" }))
+
+    expect(api.DELETE).not.toHaveBeenCalled()
+  })
+
+  it("offers no delete once the event is open to vendors", async () => {
+    setup = setupFixture({ checklist: ready, status: "open_to_vendors", applicationsOpen: true })
+    renderWithQuery(<EventSetupPage id={EVENT_ID} />)
+
+    await screen.findByText(/Vendors can find this event and apply/)
+    expect(screen.queryByRole("button", { name: "Delete draft" })).not.toBeInTheDocument()
   })
 })

@@ -8,7 +8,7 @@ import { readPhoto } from "@/lib/read-photo"
 import { EventSetupPage } from "./event-setup"
 import { EVENT_ID, eventTypes, setupFixture } from "./fixtures"
 
-vi.mock("next/navigation", () => ({ useSearchParams: () => new URLSearchParams() }))
+vi.mock("next/navigation", () => ({ useSearchParams: () => new URLSearchParams(), useRouter: () => ({ push: vi.fn() }) }))
 vi.mock("@/lib/api", () => ({ api: { GET: vi.fn(), PUT: vi.fn(), POST: vi.fn() } }))
 vi.mock("sonner", () => ({ toast: { success: vi.fn() } }))
 vi.mock("@/lib/read-photo", () => ({ readPhoto: vi.fn() }))

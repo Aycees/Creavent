@@ -7,7 +7,7 @@ import { renderWithQuery } from "@/test-utils"
 import { EventSetupPage } from "./event-setup"
 import { EVENT_ID, setupFixture } from "./fixtures"
 
-vi.mock("next/navigation", () => ({ useSearchParams: () => new URLSearchParams("tab=payments") }))
+vi.mock("next/navigation", () => ({ useSearchParams: () => new URLSearchParams("tab=payments"), useRouter: () => ({ push: vi.fn() }) }))
 vi.mock("@/lib/api", () => ({ api: { GET: vi.fn(), PUT: vi.fn(), POST: vi.fn() } }))
 vi.mock("sonner", () => ({ toast: { success: vi.fn() } }))
 

@@ -462,7 +462,7 @@ export interface paths {
         get: operations["OrganizerEventsController_setup"];
         put?: never;
         post?: never;
-        delete?: never;
+        delete: operations["OrganizerEventsController_deleteDraft"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2813,6 +2813,42 @@ export interface operations {
                         };
                     };
                 };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OrganizerEventsController_deleteDraft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Error */
             default: {

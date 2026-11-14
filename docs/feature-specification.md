@@ -139,6 +139,7 @@ Notes:
   - **Announced:** the organizer chooses when to announce. The event appears in attendee discovery. Organizers are expected to finalize vendors before announcing.
   - Edit an open or announced event. Changes to date, time, or location notify applied and confirmed vendors by email.
   - Cancel an event. Applied and confirmed vendors are notified by email. Any refunds are handled between the organizer and vendors.
+  - Delete a draft. A draft was never shown to vendors or visitors, so it is deleted for good, with its requirements, slots, and payment details, after a confirmation. Once an event has been opened to vendors it can't be deleted, only canceled, so its records stay.
   - Completed events remain on the platform as past events.
 - Event page, shared by link. Signed-in vendors can see it once the event is open to vendors. Attendees can see it once the event is announced.
 
@@ -505,6 +506,7 @@ All notifications are sent by email through [Resend](https://resend.com). There 
   - The links an organizer submits for approval are their public social links (section 2.1).
 - **Multi-day events and payment options (2026-11-12):** events run 1 to 7 days in a row with the same daily hours, and vendors are locked in for the whole event (section 3.1.1). Vendors select which payment option they paid with when uploading proof (section 6.2). See [Open questions](open-questions.md#l-multi-day-events-and-payment-options).
 - **Event policy prefill (2026-11-14):** a new event copies the policy of the organizer's most recent event. A first event starts from an example to edit. No global policy setting (section 3.7). See [Open questions](open-questions.md#n-event-policy).
+- **Deleting events (2026-11-15):** only drafts can be deleted, for good. Events that were opened to vendors are canceled instead, never deleted (section 3.1).
 - **Event cover crop (2026-11-15):** one cover per event, framed by the organizer at 16:9 in a crop step after picking the photo. The same frame shows on event cards and the event page (16:9 at every width). No separate thumbnail or banner upload (section 11.5).
 - **Preferred slots (2026-11-14):** each event has a slot mode, "I assign slots" or "Vendors choose a preferred slot". A preference holds nothing, and the organizer still assigns every slot (sections 3.4, 4.3, 5). Slots get an optional section for grouping. The vendor floor plan is uploaded on the Slots tab and shown there as a reference. Prompted by an organizer's registration form with a clickable floor plan. See [Open questions](open-questions.md#m-preferred-slots).
 

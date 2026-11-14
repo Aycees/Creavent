@@ -176,3 +176,76 @@ describe('opening an event to vendors', () => {
     });
   });
 });
+
+// Deleting a draft (decided 2026-11-15). Events vendors could see are canceled
+// instead (4.1), never deleted.
+describe('deleting a draft', () => {
+  let prisma: PrismaClient;
+  let app: INestApplication<App>;
+
+  beforeAll(() => {
+    prisma = createTestPrisma();
+  });
+
+  beforeEach(async () => {
+    await resetDatabase(prisma);
+    app = await createTestApp();
+  });
+
+  afterEach(async () => {
+    await app.close();
+  });
+
+  afterAll(async () => {
+    await prisma.$disconnect();
+  });
+
+  it('deletes a draft with its requirements, slots, and payment options, retires its pictures, and logs it', async () => {
+    const { user, profile } = await createOrganizer(prisma);
+    const browser = await signInAs(app, user.email);
+    const id = await readyEvent(prisma, profile.id);
+    const coverId = (await prisma.event.findUniqueOrThrow({ where: { id } })).coverFileId!;
+
+    const res = await browser.delete(`/api/organizer/events/${id}`);
+
+    expect(res.status).toBe(204);
+    expect(await prisma.event.findUnique({ where: { id } })).toBeNull();
+    expect(await prisma.slot.count({ where: { eventId: id } })).toBe(0);
+    expect(await prisma.eventPaymentMethod.count({ where: { eventId: id } })).toBe(0);
+    expect((await prisma.file.findUniqueOrThrow({ where: { id: coverId } })).deletedAt).not.toBeNull();
+    expect(await prisma.auditLog.findFirst({ where: { entityId: id, action: 'event.delete_draft' } })).toMatchObject({ actorUserId: user.id });
+  });
+
+  it('keeps an event whose policy was copied from the deleted draft', async () => {
+    const { user, profile } = await createOrganizer(prisma);
+    const browser = await signInAs(app, user.email);
+    const source = await readyEvent(prisma, profile.id);
+    const type = await prisma.eventType.findFirstOrThrow({ where: { slug: 'flea-market' } });
+    const copy = (await browser.post('/api/organizer/events').send({ name: 'Next market', eventTypeId: type.id })).body.id;
+
+    await browser.delete(`/api/organizer/events/${source}`);
+
+    expect(await prisma.event.findUniqueOrThrow({ where: { id: copy } })).toMatchObject({ policyText: 'Pay within 24 hours.', policySourceEventId: null });
+  });
+
+  it.each(['open_to_vendors', 'announced', 'completed', 'canceled'] as const)('refuses an event that is %s', async (status) => {
+    const { user, profile } = await createOrganizer(prisma);
+    const browser = await signInAs(app, user.email);
+    const id = await readyEvent(prisma, profile.id, { status });
+
+    const res = await browser.delete(`/api/organizer/events/${id}`);
+
+    expect(res.status).toBe(409);
+    expect(res.body.message).toBe('Only drafts can be deleted. Cancel this event instead.');
+    expect(await prisma.event.findUnique({ where: { id } })).not.toBeNull();
+  });
+
+  it("is not found for another organizer's draft", async () => {
+    const owner = await createOrganizer(prisma);
+    const id = await readyEvent(prisma, owner.profile.id);
+    const other = await createOrganizer(prisma);
+
+    expect((await (await signInAs(app, other.user.email)).delete(`/api/organizer/events/${id}`)).status).toBe(404);
+    expect(await prisma.event.findUnique({ where: { id } })).not.toBeNull();
+  });
+});

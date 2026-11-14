@@ -8,7 +8,7 @@ import { EventSetupPage } from "./event-setup"
 import { categories, EVENT_ID, setupFixture } from "./fixtures"
 
 let tab = "requirements"
-vi.mock("next/navigation", () => ({ useSearchParams: () => new URLSearchParams(`tab=${tab}`) }))
+vi.mock("next/navigation", () => ({ useSearchParams: () => new URLSearchParams(`tab=${tab}`), useRouter: () => ({ push: vi.fn() }) }))
 vi.mock("@/lib/api", () => ({ api: { GET: vi.fn(), PUT: vi.fn(), POST: vi.fn() } }))
 vi.mock("sonner", () => ({ toast: { success: vi.fn() } }))
 

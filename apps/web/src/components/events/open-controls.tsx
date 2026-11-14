@@ -3,12 +3,15 @@
 import type { EventChecklist, EventSetup } from "@creavent/shared"
 import { CheckCircleIcon, WarningIcon } from "@phosphor-icons/react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import * as React from "react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { api } from "@/lib/api"
+import { useQueryClient } from "@tanstack/react-query"
+
 import { saveError, useSetupSaved } from "./queries"
 
 type Step = { key: keyof EventChecklist; label: string; missing: string; action: string; tab: string }
@@ -149,5 +152,55 @@ export function ApplicationsPanel({ setup }: { setup: EventSetup }) {
         {open ? "Close applications" : "Open applications"}
       </Button>
     </section>
+  )
+}
+
+// Delete a draft for good (decided 2026-11-15). Events vendors could see are
+// canceled instead, so this shows on drafts only.
+export function DeleteDraftButton({ setup }: { setup: EventSetup }) {
+  const router = useRouter()
+  const queryClient = useQueryClient()
+  const [confirming, setConfirming] = React.useState(false)
+  const [deleting, setDeleting] = React.useState(false)
+  const [error, setError] = React.useState<string | null>(null)
+
+  async function remove() {
+    setDeleting(true)
+    setError(null)
+    const res = await api.DELETE("/api/organizer/events/{id}", { params: { path: { id: setup.id } } })
+    if (res.response.status !== 204) {
+      setDeleting(false)
+      return setError(saveError(res.error).message)
+    }
+    await queryClient.invalidateQueries({ queryKey: ["organizer-events"] })
+    toast.success("Draft deleted")
+    router.push("/organizer")
+  }
+
+  return (
+    <>
+      <Button type="button" variant="danger-ghost" onClick={() => setConfirming(true)}>
+        Delete draft
+      </Button>
+      <Dialog open={confirming} onOpenChange={setConfirming}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete this draft?</DialogTitle>
+            <DialogDescription>
+              {setup.details.name}, with its requirements, slots and payment details, is deleted for good. This can&apos;t be undone.
+            </DialogDescription>
+          </DialogHeader>
+          {error && <p className="text-help text-danger-ink">{error}</p>}
+          <DialogFooter className="flex flex-col-reverse gap-2 md:flex-row md:justify-end">
+            <Button type="button" variant="ghost" onClick={() => setConfirming(false)}>
+              Keep draft
+            </Button>
+            <Button type="button" variant="danger" disabled={deleting} onClick={remove}>
+              Delete draft
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

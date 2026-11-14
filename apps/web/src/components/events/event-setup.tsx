@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { stampDate } from "@/lib/event-format"
 import { DetailsTab } from "./details-tab"
 import { RequirementsTab } from "./requirements-tab"
-import { ApplicationsPanel, Checklist, OpenButton } from "./open-controls"
+import { ApplicationsPanel, Checklist, DeleteDraftButton, OpenButton } from "./open-controls"
 import { EventStatusBadge } from "./parts"
 import { PaymentsTab } from "./payments-tab"
 import { PolicyTab } from "./policy-tab"
@@ -85,6 +85,7 @@ function Setup({ setup }: { setup: EventSetup }) {
             <Link href={`/events/${setup.slug}`}>Preview as vendor</Link>
           </Button>
           {setup.status === "draft" && <OpenButton setup={setup} />}
+          {setup.status === "draft" && <DeleteDraftButton setup={setup} />}
         </div>
       </div>
 
