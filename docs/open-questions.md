@@ -56,7 +56,7 @@ All questions in this section are resolved. See "Resolved" below.
 
 | # | Question | Suggested |
 |---|---|---|
-| I2 | **Public file domain:** the public bucket needs a custom domain on Cloudflare. R2's built-in public address is rate limited and meant for development only. | Deferred again on 2026-11-12 with E1: pick the domain first (H1), then serve public files from `files.<domain>`. Use the built-in address in development only. Needed before staging is shared with testers. |
+| I2 | **Public file domain:** the public bucket needs a custom domain on Cloudflare. R2's built-in public address is rate limited and meant for development only. | Deferred again on 2026-11-12 with E1: pick the domain first (H1), then serve public files from `files.<domain>`. Until then the API serves public pictures, because some networks block the built-in r2.dev address (found 2026-11-14). Needed before staging is shared with testers. |
 
 ## J. Public pages, onboarding, and event types
 

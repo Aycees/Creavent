@@ -11,4 +11,10 @@ describe('R2Storage', () => {
 
     expect(new R2Storage().publicUrl('avatar/1.webp')).toBe('https://pub-abc.r2.dev/avatar/1.webp');
   });
+
+  it('points at the API when no public address is set', () => {
+    delete process.env.R2_PUBLIC_URL;
+
+    expect(new R2Storage().publicUrl('avatar/1.webp')).toBe('/api/files/public/avatar/1.webp');
+  });
 });

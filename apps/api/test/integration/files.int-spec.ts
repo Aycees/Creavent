@@ -229,4 +229,27 @@ describe('file uploads', () => {
 
     expect(res.status).toBe(404);
   });
+
+  // Public pictures are served through the API, because some networks block
+  // the bucket's r2.dev address.
+  it('serves a public picture to anyone, with a long cache', async () => {
+    const id = crypto.randomUUID();
+    await storage.put('public', `avatar/${id}.webp`, Buffer.from('webp bytes'), 'image/webp');
+
+    const res = await agent(app).get(`/api/files/public/avatar/${id}.webp`);
+
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toBe('image/webp');
+    expect(res.headers['cache-control']).toBe('public, max-age=31536000, immutable');
+    expect(Buffer.from(res.body).toString()).toBe('webp bytes');
+  });
+
+  it('answers 404 for a picture that is not there or a name it never makes', async () => {
+    const id = crypto.randomUUID();
+    await storage.put('public', `notes/${id}.webp`, Buffer.from('x'), 'image/webp');
+
+    expect((await agent(app).get(`/api/files/public/avatar/${id}.webp`)).status).toBe(404);
+    expect((await agent(app).get(`/api/files/public/notes/${id}.webp`)).status).toBe(404);
+    expect((await agent(app).get('/api/files/public/avatar/not-an-id.webp')).status).toBe(404);
+  });
 });

@@ -51,7 +51,7 @@ Add these to `creavent-staging-secrets`. `apps/api/.env.example` describes each 
 | `WEB_URL` | API, worker | The web service's address. Email links and Google's redirect use it. |
 | `RESEND_API_KEY`, `EMAIL_FROM` | Worker | The worker refuses to start without the key. |
 | `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` | API | An R2 API token for the two staging buckets. |
-| `R2_PUBLIC_BUCKET`, `R2_PRIVATE_BUCKET`, `R2_PUBLIC_URL` | API | The private bucket needs a CORS rule allowing `PUT` from `WEB_URL` with the `Content-Type` header. |
+| `R2_PUBLIC_BUCKET`, `R2_PRIVATE_BUCKET`, `R2_PUBLIC_URL` | API | The private bucket needs a CORS rule allowing `PUT` from `WEB_URL` with the `Content-Type` header. `R2_PUBLIC_URL` is the public bucket's custom domain. Leave it empty until one exists: the API then serves pictures at `/api/files/public/...`. Don't use the r2.dev address, which some networks block. |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | API | Optional. Redirect URI: `<WEB_URL>/api/auth/callback/google`. |
 | `SUPPORT_EMAIL`, `TERMS_VERSION`, `PRIVACY_VERSION`, `MINIMUM_AGE` | API | Configuration with defaults (data model §5.11). |
 | `SEED_PASSWORD`, `ALLOW_SEED=staging` | One-off seed run | Only when seeding staging. |

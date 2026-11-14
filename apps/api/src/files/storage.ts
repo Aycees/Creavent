@@ -85,7 +85,10 @@ export class R2Storage implements ObjectStorage {
     await this.s3().send(new DeleteObjectCommand({ Bucket: this.name(bucket), Key: key }));
   }
 
+  // The bucket's own address when R2_PUBLIC_URL is set (a custom domain),
+  // otherwise the API's picture route.
   publicUrl(key: string) {
-    return `${required('R2_PUBLIC_URL').replace(/\/$/, '')}/${key}`;
+    const base = process.env.R2_PUBLIC_URL?.trim();
+    return base ? `${base.replace(/\/$/, '')}/${key}` : `/api/files/public/${key}`;
   }
 }

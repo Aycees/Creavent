@@ -191,7 +191,7 @@ No websockets and no polling in the MVP. Signed-in screens refetch when the tab 
 The upload rules are in [Feature specification §11](feature-specification.md#11-file-uploads). This section only adds the technical choices.
 
 - **Upload:** Ask, Upload, Complete, Attach, as in spec §11.3. The browser uploads straight to the `incoming/` area of the private bucket with a signed URL. On Complete, the API checks the real file type (from the file's first bytes) and the size.
-- **Buckets:** the public and private buckets of spec §11.2, plus a third private bucket per environment for database backups (section 9.3). The public bucket uses R2's built-in address in development and a custom domain once one exists (open question I2).
+- **Buckets:** the public and private buckets of spec §11.2, plus a third private bucket per environment for database backups (section 9.3). Until the public bucket has a custom domain (open question I2), the API serves its pictures at `/api/files/public/<purpose>/<id>.webp`. R2's built-in r2.dev address is not used, because some networks block it.
 - **Processing:** the API uses sharp during the Complete step, with a limit on how many images it processes at once (spec §11.5). Re-encoding to WebP **removes all photo metadata, including the GPS location**, which matters most for permits and payment screenshots. HEIC is not accepted in the MVP (spec §11.1).
 - File paths are never reused. Replacing a file creates a new one.
 
