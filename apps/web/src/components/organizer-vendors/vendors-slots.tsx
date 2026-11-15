@@ -480,7 +480,7 @@ function MarkPaidDialog({ eventId, assignment: a, onClose, onDone }: { eventId: 
 
 // Remove a vendor at any time (spec §6.6, flow 9): choose whether they can
 // apply again. Their payment records are kept, read-only.
-function RemoveDialog({
+export function RemoveDialog({
   eventId,
   applicationId,
   shopName,

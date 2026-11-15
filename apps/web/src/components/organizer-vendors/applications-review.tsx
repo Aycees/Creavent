@@ -99,17 +99,14 @@ function ApplicationCard({
   const id = React.useId()
   const [deciding, setDeciding] = React.useState<"approve" | "decline" | null>(null)
   return (
-    <article aria-labelledby={id} className="flex flex-col gap-4 rounded-lg border border-border bg-surface p-4 md:p-5">
+    <article aria-labelledby={id} className="relative flex flex-col gap-4 rounded-lg border border-border bg-surface p-4 hover:border-border-strong md:p-5 [&_a:not([href^='/organizer/applications'])]:relative [&_a:not([href^='/organizer/applications'])]:z-1 [&_button]:relative [&_button]:z-1">
       <div className="flex flex-wrap items-start gap-x-4 gap-y-2">
         <div className="flex min-w-0 flex-[1_1_220px] flex-col gap-1">
           <h2 id={id} className="text-h3">
-            {a.vendor.slug ? (
-              <Link href={`/vendors/${a.vendor.slug}`} className="hover:underline">
-                {a.vendor.shopName}
-              </Link>
-            ) : (
-              a.vendor.shopName
-            )}
+            {/* The whole card opens the application detail (decided 2026-11-15). */}
+            <Link href={`/organizer/applications/${a.id}`} className="after:absolute after:inset-0 after:rounded-lg hover:underline">
+              {a.vendor.shopName}
+            </Link>
           </h2>
           <p className="text-sm text-muted">
             {`${a.categories.map((c) => c.name).join(", ")} · applied ${dateFormat.format(new Date(a.submittedAt))}`}
@@ -265,7 +262,7 @@ function DecisionDialog({
 }
 
 // Allow or block a removed vendor from applying again (spec §3.3).
-function ReapplyControl({ application: a, eventId }: { application: OrganizerApplication; eventId: string }) {
+export function ReapplyControl({ application: a, eventId }: { application: Pick<OrganizerApplication, "id" | "canReapply">; eventId: string }) {
   const queryClient = useQueryClient()
   const [error, setError] = React.useState<string | null>(null)
   const [sending, setSending] = React.useState(false)

@@ -5850,7 +5850,14 @@ export interface operations {
                             proofsTotal: number;
                         };
                         counts: {
-                            [key: string]: number;
+                            waiting: number;
+                            approved_no_slot: number;
+                            slot_assigned: number;
+                            reserved: number;
+                            declined: number;
+                            withdrawn: number;
+                            removed: number;
+                            all: number;
                         };
                         events: {
                             /** Format: uuid */

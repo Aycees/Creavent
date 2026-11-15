@@ -31,6 +31,7 @@ describe("ApplicationsReview (/organizer/events/[id]/applications)", () => {
     renderWithQuery(<ApplicationsReview eventId={EVENT_ID} />)
 
     const card = await screen.findByRole("article", { name: "Lola's Ukay" })
+    expect(within(card).getByRole("link", { name: "Lola's Ukay" })).toHaveAttribute("href", "/organizer/applications/a0000000-0000-4000-8000-000000000001")
     expect(within(card).getByText("+639174821093")).toBeInTheDocument()
     expect(within(card).getByRole("link", { name: /Barangay business clearance/ })).toHaveAttribute("href", "/api/files/f1")
     expect(within(card).getByText("B-03")).toBeInTheDocument()

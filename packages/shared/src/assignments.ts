@@ -290,7 +290,7 @@ export const organizerApplicationsSchema = z.object({
     proofsToCheck: z.number().int(),
     proofsTotal: z.number(),
   }),
-  counts: z.record(applicationFilterSchema, z.number().int()),
+  counts: z.object(Object.fromEntries(applicationFilterSchema.options.map((k) => [k, z.number().int()])) as Record<ApplicationFilter, z.ZodNumber>),
   events: z.array(z.object({ id: z.uuid(), name: z.string(), startDate: z.string().nullable() })),
   applications: z.array(applicationCardSchema),
 });

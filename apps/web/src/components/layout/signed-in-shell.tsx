@@ -5,6 +5,7 @@ import type * as React from "react"
 
 import { toShellUser, type ShellUser } from "@/lib/shell-user"
 import { useApprovalQueue } from "@/components/admin/queries"
+import { useWaitingCount } from "@/components/organizer-applications/queries"
 import { AppShell } from "./app-shell"
 import type { Area } from "./app-nav"
 import { PublicHeader } from "./public-header"
@@ -37,6 +38,18 @@ function AdminShell({ me, children }: { me: MeResponse | undefined; children: Re
   )
 }
 
+// The organizer menu's Applications count: applications waiting for review.
+function OrganizerShell({ me, children }: { me: MeResponse | undefined; children: React.ReactNode }) {
+  const isOrganizer = Boolean(me?.roles.some((r) => r.role === "organizer"))
+  const { data: waiting } = useWaitingCount(isOrganizer)
+  const counts = { ...countsFor(me), ...(waiting ? { "/organizer/applications": waiting } : {}) }
+  return (
+    <AppShell area="organizer" user={me ? toShellUser(me) : loadingUser} counts={counts}>
+      {children}
+    </AppShell>
+  )
+}
+
 // The vendor, organizer, and admin areas: signed-in users with that role.
 export function SignedInShell({ area, children }: { area: Area; children: React.ReactNode }) {
   return (
@@ -44,6 +57,8 @@ export function SignedInShell({ area, children }: { area: Area; children: React.
       {(me) =>
         area === "admin" ? (
           <AdminShell me={me}>{children}</AdminShell>
+        ) : area === "organizer" ? (
+          <OrganizerShell me={me}>{children}</OrganizerShell>
         ) : (
           <AppShell area={area} user={me ? toShellUser(me) : loadingUser} counts={countsFor(me)}>
             {children}
