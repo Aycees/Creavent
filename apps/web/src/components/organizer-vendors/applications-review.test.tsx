@@ -1,4 +1,5 @@
-import { screen, within } from "@testing-library/react"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
@@ -100,10 +101,12 @@ describe("ApplicationsReview (/organizer/events/[id]/applications)", () => {
       data: eventApplicationsFixture({ applications: [applicationFixture({ status: "removed", canReapply: false })] }),
       response: { status: 200 },
     } as never)
-    vi.mocked(api.POST).mockResolvedValue({
-      data: eventApplicationsFixture({ applications: [applicationFixture({ status: "removed", canReapply: true })] }),
-      response: { status: 201 },
-    } as never)
+    const allowed = { data: eventApplicationsFixture({ applications: [applicationFixture({ status: "removed", canReapply: true })] }), response: { status: 201 } }
+    // After the change, the server answers with the new state, refetches included.
+    vi.mocked(api.POST).mockImplementation(async () => {
+      vi.mocked(api.GET).mockResolvedValue({ ...allowed, response: { status: 200 } } as never)
+      return allowed as never
+    })
     renderWithQuery(<ApplicationsReview eventId={EVENT_ID} />)
 
     await userEvent.click(await screen.findByRole("button", { name: /Removed/ }))
@@ -116,5 +119,25 @@ describe("ApplicationsReview (/organizer/events/[id]/applications)", () => {
       body: { canReapply: true },
     })
     expect(await within(card).findByText("Can apply again")).toBeInTheDocument()
+  })
+
+  it("refreshes Vendors and slots and the dashboard after a decision, so they're current without a reload", async () => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 30_000 } } })
+    client.setQueryData(["event-vendors", EVENT_ID], { cached: true })
+    client.setQueryData(["organizer-events"], { cached: true })
+    vi.mocked(api.POST).mockResolvedValue({ data: eventApplicationsFixture(), response: { status: 201 } } as never)
+    render(
+      <QueryClientProvider client={client}>
+        <ApplicationsReview eventId={EVENT_ID} />
+      </QueryClientProvider>
+    )
+
+    const card = await screen.findByRole("article", { name: "Lola's Ukay" })
+    await userEvent.click(within(card).getByRole("button", { name: "Approve" }))
+    await userEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Approve" }))
+    await screen.findByText(/is approved/)
+
+    expect(client.getQueryState(["event-vendors", EVENT_ID])?.isInvalidated).toBe(true)
+    expect(client.getQueryState(["organizer-events"])?.isInvalidated).toBe(true)
   })
 })

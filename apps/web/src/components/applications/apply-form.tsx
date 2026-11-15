@@ -2,7 +2,7 @@
 
 import { formatPeso, MAX_FILES_PER_DOCUMENT, type ApplyBlock, type ApplyForm } from "@creavent/shared"
 import { ArrowLeftIcon, CheckIcon, FileTextIcon, ImageIcon, InfoIcon, XIcon } from "@phosphor-icons/react"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import * as React from "react"
@@ -97,6 +97,7 @@ function Blocked({ form, reason }: { form: ApplyForm; reason: ApplyBlock }) {
 
 function Form({ form }: { form: ApplyForm }) {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const [categoryIds, setCategoryIds] = React.useState<string[]>([])
   const [files, setFiles] = React.useState<Record<string, Uploaded[]>>({})
   const [slotId, setSlotId] = React.useState<string | null>(null)
@@ -128,6 +129,7 @@ function Form({ form }: { form: ApplyForm }) {
     })
     setSending(false)
     if (!res.data) return setError((res.error as ErrorBody)?.message ?? "Something went wrong. Try again.")
+    void queryClient.invalidateQueries()
     router.push(`/vendor/applications/${res.data.id}`)
   }
 

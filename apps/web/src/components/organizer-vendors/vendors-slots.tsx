@@ -204,6 +204,8 @@ function AssignDialog({
     setSending(false)
     if (!res.data) return setError((res.error as ErrorBody)?.message ?? "Something went wrong. Try again.")
     queryClient.setQueryData(vendorsKey(eventId), res.data)
+    // Other screens (lists, dashboards) show the change without a reload.
+    void queryClient.invalidateQueries()
     onAssigned(picked.label)
     onClose()
   }
@@ -340,7 +342,11 @@ function VendorList({ eventId, assignments, onDone }: { eventId: string; assignm
 
 function useSave(eventId: string) {
   const queryClient = useQueryClient()
-  return (data: EventVendors) => queryClient.setQueryData(vendorsKey(eventId), data)
+  return (data: EventVendors) => {
+    queryClient.setQueryData(vendorsKey(eventId), data)
+    // Other screens (Applications, the dashboard) show it without a reload.
+    void queryClient.invalidateQueries()
+  }
 }
 
 // The proof review panel (spec §6.3, mockup OrgVendorsPhone).

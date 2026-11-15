@@ -223,6 +223,8 @@ function DecisionDialog({
     setSending(false)
     if (!res.data) return setError((res.error as ErrorBody)?.message ?? "Something went wrong. Try again.")
     queryClient.setQueryData<EventApplications>(applicationsKey(eventId), res.data)
+    // Other screens (lists, dashboards) show the change without a reload.
+    void queryClient.invalidateQueries()
     onDecided(
       action === "approve"
         ? `${a.vendor.shopName} is approved. Assign them a slot on Vendors and slots.`
@@ -278,6 +280,8 @@ function ReapplyControl({ application: a, eventId }: { application: OrganizerApp
     setSending(false)
     if (!res.data) return setError((res.error as ErrorBody)?.message ?? "Something went wrong. Try again.")
     queryClient.setQueryData<EventApplications>(applicationsKey(eventId), res.data)
+    // Other screens (lists, dashboards) show the change without a reload.
+    void queryClient.invalidateQueries()
   }
 
   return (

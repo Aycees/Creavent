@@ -1,4 +1,5 @@
-import { screen, within } from "@testing-library/react"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
@@ -67,6 +68,17 @@ describe("VendorApplicationPage (/vendor/applications/[id])", () => {
     const contact = screen.getByRole("region", { name: "Organizer" })
     expect(within(contact).getByText("Joanna Lim · 0928 115 7720")).toBeInTheDocument()
     expect(within(contact).getByText("hello@sarisaricollective.ph")).toBeInTheDocument()
+  })
+
+  it("moves the timeline back to 'Slot assigned' after the vendor releases their slot", async () => {
+    serve(vendorApplicationFixture({ status: "approved", assignment: { ...vendorApplicationFixture().assignment!, status: "released", archived: true } }))
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    const steps = within(await screen.findByRole("list", { name: "Progress" })).getAllByRole("listitem")
+    expect(steps[2]).toHaveTextContent("Slot assigned")
+    expect(steps[2]).not.toHaveTextContent("B-04")
+    expect(steps[2]).toHaveAttribute("aria-current", "step")
+    expect(steps[3]).not.toHaveAttribute("aria-current")
   })
 
   it("shows the preferred slot and the next step before a slot is assigned", async () => {
@@ -169,6 +181,31 @@ describe("Release and removal", () => {
     await user.click(within(dialog).getByRole("button", { name: "Release slot" }))
 
     expect(api.POST).toHaveBeenCalledWith("/api/vendor/applications/{id}/release", { params: { path: { id: APPLICATION_ID } } })
+  })
+
+  it("refreshes the dashboard and applications list after a release", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 30_000 } } })
+    client.setQueryData(["vendor-dashboard"], { cached: true })
+    client.setQueryData(["vendor-applications"], { cached: true })
+    serve(vendorApplicationFixture())
+    const released = { data: vendorApplicationFixture({ status: "approved", assignment: null }), response: { status: 201 } }
+    vi.mocked(api.POST).mockImplementation(async () => {
+      serve(released.data)
+      return released as never
+    })
+    render(
+      <QueryClientProvider client={client}>
+        <VendorApplicationPage id={APPLICATION_ID} />
+      </QueryClientProvider>
+    )
+
+    await user.click(await screen.findByRole("button", { name: "Release slot B-04" }))
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Release slot" }))
+    await screen.findByText(/You're approved/)
+
+    expect(client.getQueryState(["vendor-dashboard"])?.isInvalidated).toBe(true)
+    expect(client.getQueryState(["vendor-applications"])?.isInvalidated).toBe(true)
   })
 
   it("tells a vendor with a reserved slot to contact the organizer instead", async () => {

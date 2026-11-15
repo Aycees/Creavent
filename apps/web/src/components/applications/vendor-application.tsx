@@ -308,7 +308,9 @@ function CopyButton({ text, label }: { text: string; label: string }) {
 
 // Applied, approved, slot assigned, pay and upload proof, slot reserved (spec §4.6).
 function Timeline({ application: a }: { application: VendorApplication }) {
-  const slot = a.assignment
+  // Only an active slot counts: after a release or removal the vendor is back
+  // to waiting for one (or out of the event).
+  const slot = a.assignment && (a.assignment.status === "assigned" || a.assignment.status === "reserved") ? a.assignment : null
   const steps = [
     { label: "Applied", detail: `${day(a.submittedAt)}${a.documentCount ? ` · ${a.documentCount} document${a.documentCount > 1 ? "s" : ""}` : ""}`, done: true },
     { label: "Approved", detail: a.decidedAt && a.status !== "declined" ? day(a.decidedAt) : "After the organizer reviews it", done: Boolean(a.decidedAt) && !["declined", "submitted", "withdrawn"].includes(a.status) },
@@ -398,6 +400,8 @@ function ProofSection({ applicationId, slot }: { applicationId: string; slot: Sl
       return setError(body?.details?.[0]?.message ?? body?.message ?? "Something went wrong. Try again.")
     }
     queryClient.setQueryData(vendorApplicationKey(applicationId), res.data)
+    // Other screens (lists, dashboards) show the change without a reload.
+    void queryClient.invalidateQueries()
   }
 
   return (
@@ -471,6 +475,8 @@ function ReleaseSlot({ applicationId, label }: { applicationId: string; label: s
     setSending(false)
     if (!res.data) return setError((res.error as ErrorBody)?.message ?? "Something went wrong. Try again.")
     queryClient.setQueryData(vendorApplicationKey(applicationId), res.data)
+    // Other screens (lists, dashboards) show the change without a reload.
+    void queryClient.invalidateQueries()
     setOpen(false)
   }
 
