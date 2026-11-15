@@ -268,6 +268,13 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - **Vendor paid in cash, or someone else paid for them:** the organizer taps **Mark paid** (approve without a proof image) and adds a required note, for example "Paid cash at the office". Spec §6.3.
 - **The organizer's payment details looked suspicious:** the vendor can report the organizer with the report button. Spec §6.6.
 
+**Acceptance criteria (Phase 3)**
+- While the slot is assigned and the payment is pending or rejected, the vendor's application page has "2. Upload your proof of payment": a screenshot (JPEG, PNG, or WebP, private), the option paid with (one of the options copied at assignment, required), the amount sent (filled in with the amount due), and an optional reference number. Sending it makes the payment `submitted`, and the organizer gets the "Proof of payment" email. A second proof can't be sent while one waits for review. After a rejection the page shows the reason and the form again.
+- On Vendors and slots, the vendor list filters by All, Needs attention (overdue, proof submitted, or proof rejected), and Reserved. Each row shows the slot, shop, amount, deadline ("was due" when overdue), payment status (Waiting, Proof submitted, Proof rejected with the reason, Overdue, Reserved), and the next action.
+- Review proof opens the receipt, the amount due and the amount sent, the option paid with, the reference, and a reminder to check that account's history. Approve payment makes the proof and payment approved (amount paid taken from the amount sent) and the slot `reserved`, and emails the vendor. Reject needs a reason, makes the payment `rejected`, and emails the vendor the reason.
+- Mark paid approves a payment without a proof, with a required note (for example, "Paid cash at the office"). The slot becomes `reserved` and the vendor is emailed.
+- A proof can be decided once. Nothing can be approved or sent after the slot is reserved. Only the event's organizer can review, and a hidden event refuses it. A proof image opens only for the vendor who sent it, the event's organizer, and admins.
+
 ## 8. Announce the event
 
 *Organizer.*

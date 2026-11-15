@@ -114,7 +114,11 @@ export class VendorEventsService {
 
   private async vendorView(e: FullEvent, viewerId: string) {
     const now = new Date();
-    const mine = await this.prisma.vendorProfileCategory.findMany({ where: { vendorProfile: { userId: viewerId } }, select: { categoryId: true } });
+    const mine = await this.prisma.vendorProfileCategory.findMany({
+      where: { vendorProfile: { userId: viewerId } },
+      select: { categoryId: true },
+      orderBy: { category: { sortOrder: 'asc' } },
+    });
     const profile = await this.prisma.vendorProfile.findUnique({ where: { userId: viewerId }, select: { id: true } });
     const latest = profile ? (await this.latestApplications(profile.id, [e.id])).get(e.id) : undefined;
     const taken = await takenSlotIds(this.prisma, e.id);

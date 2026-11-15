@@ -2,7 +2,7 @@
 
 import { formatPeso, vendorStatusLabels, type VendorApplication, type VendorApplicationRow, type VendorStatus } from "@creavent/shared"
 import { CheckIcon, ClockIcon, CopyIcon, QrCodeIcon } from "@phosphor-icons/react"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import Link from "next/link"
 import * as React from "react"
 
@@ -11,8 +11,11 @@ import { ApprovedMark } from "@/components/ui/approved-mark"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { DateStamp } from "@/components/ui/date-stamp"
+import { DropZone } from "@/components/ui/drop-zone"
+import { Input } from "@/components/ui/input"
 import { api } from "@/lib/api"
 import { eventDays, formatDeadline, formatSchedule, stampDate, timeLeft } from "@/lib/event-format"
+import { useUpload } from "@/lib/use-upload"
 import { cn } from "@/lib/utils"
 
 export const vendorApplicationKey = (id: string) => ["vendor-application", id] as const
@@ -100,7 +103,7 @@ function ApplicationRow({ application: a }: { application: VendorApplicationRow 
 }
 
 // /vendor/applications/[id] (spec §4.6, §6.2, mockup VendorApplication).
-export function VendorApplicationPage({ id, children }: { id: string; children?: (a: VendorApplication) => React.ReactNode }) {
+export function VendorApplicationPage({ id }: { id: string }) {
   const { data, isError } = useVendorApplication(id)
   const [now] = React.useState(() => Date.now())
   if (isError) return <Alert tone="danger">We couldn&apos;t load this application. Refresh to try again.</Alert>
@@ -173,7 +176,7 @@ export function VendorApplicationPage({ id, children }: { id: string; children?:
           )}
 
           {paying && slot && <PaymentOptions slot={slot} organizer={a.organizer.displayName} />}
-          {children?.(a)}
+          {paying && slot && <ProofSection applicationId={a.id} slot={slot} />}
         </div>
 
         <aside className="flex flex-col gap-4 md:col-start-2">
@@ -323,6 +326,120 @@ function Timeline({ application: a }: { application: VendorApplication }) {
           </li>
         ))}
       </ol>
+    </section>
+  )
+}
+
+type Slot = NonNullable<VendorApplication["assignment"]>
+type ErrorBody = { message?: string; details?: { path: string; message: string }[] } | undefined
+
+// "2. Upload your proof of payment" (spec §6.2, mockup VendorApplication).
+function ProofSection({ applicationId, slot }: { applicationId: string; slot: Slot }) {
+  const queryClient = useQueryClient()
+  const { upload, pending, error: uploadError } = useUpload("payment_proof")
+  const [file, setFile] = React.useState<{ id: string; name: string } | null>(null)
+  const [methodId, setMethodId] = React.useState(slot.instructions.length === 1 ? slot.instructions[0].id : "")
+  const [amount, setAmount] = React.useState(String(slot.amountDue))
+  const [reference, setReference] = React.useState("")
+  const [error, setError] = React.useState<string | null>(null)
+  const [sending, setSending] = React.useState(false)
+  const latest = slot.proofs[0]
+
+  if (slot.paymentStatus === "submitted") {
+    return (
+      <section aria-label="2. Upload your proof of payment" className="flex flex-col gap-2 rounded-lg border border-border bg-surface p-4 md:p-6">
+        <h2 className="text-h2">2. Upload your proof of payment</h2>
+        <p className="text-body">Your proof is with the organizer. We&apos;ll email you when they review it.</p>
+        {latest && (
+          <a href={latest.fileUrl} target="_blank" rel="noreferrer" className="self-start text-sm underline">
+            See the screenshot you sent
+          </a>
+        )}
+      </section>
+    )
+  }
+
+  async function pick(event: React.ChangeEvent<HTMLInputElement>) {
+    const picked = event.target.files?.[0]
+    event.target.value = ""
+    if (!picked) return
+    const done = await upload(picked)
+    if (done) setFile({ id: done.id, name: picked.name })
+  }
+
+  async function submit(event: React.FormEvent) {
+    event.preventDefault()
+    setError(null)
+    if (!file) return setError("Add a screenshot of your payment")
+    if (!methodId) return setError("Pick the option you paid with")
+    const amountClaimed = Number(amount.replace(/[₱,\s]/g, ""))
+    if (!Number.isFinite(amountClaimed) || amountClaimed < 0) return setError("Enter the amount you sent")
+    setSending(true)
+    const res = await api.POST("/api/vendor/applications/{id}/proofs", {
+      params: { path: { id: applicationId } },
+      body: { fileId: file.id, paymentMethodId: methodId, amountClaimed, ...(reference.trim() ? { referenceNumber: reference.trim() } : {}) },
+    })
+    setSending(false)
+    if (!res.data) {
+      const body = res.error as ErrorBody
+      return setError(body?.details?.[0]?.message ?? body?.message ?? "Something went wrong. Try again.")
+    }
+    queryClient.setQueryData(vendorApplicationKey(applicationId), res.data)
+  }
+
+  return (
+    <section aria-labelledby="proof-h" className="flex flex-col gap-4 rounded-lg border border-border bg-surface p-4 md:gap-5 md:p-6">
+      <div>
+        <h2 id="proof-h" className="text-h2">2. Upload your proof of payment</h2>
+        <p className="text-sm text-muted">A screenshot of the GCash receipt or bank confirmation. The organizer checks it and confirms your slot.</p>
+      </div>
+      {latest?.status === "rejected" && (
+        <Alert tone="danger">{`The organizer couldn't approve your last proof: ${latest.rejectionReason ?? "no reason given"}`}</Alert>
+      )}
+      <form onSubmit={submit} noValidate className="flex flex-col gap-4">
+        <DropZone
+          id="proof-file"
+          accept="image/jpeg,image/png,image/webp"
+          onChange={pick}
+          disabled={pending}
+          prompt={pending ? "Uploading…" : file ? `${file.name} · choose a file to replace it` : "Take a photo or choose a file"}
+          hint="JPEG, PNG or WebP, up to 10 MB"
+        />
+        {uploadError && <p className="text-help text-danger-ink">{uploadError}</p>}
+        <fieldset className="flex flex-col gap-2.5">
+          <legend className="mb-2.5 text-label">Paid with</legend>
+          <div className="grid gap-3 md:grid-cols-2">
+            {slot.instructions.map((i) => (
+              <label key={i.id} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-border-strong bg-surface p-4 has-checked:border-2 has-checked:border-ink has-checked:p-[15px] has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-focus">
+                <input type="radio" name="paid-with" value={i.id} checked={methodId === i.id} onChange={() => setMethodId(i.id)} className="size-5 flex-none accent-ink" />
+                <span className="flex flex-col">
+                  <span className="text-label font-semibold">{i.label}</span>
+                  <span className="text-cap text-muted">{[i.accountName, i.accountNumber].filter(Boolean).join(" · ")}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="flex flex-col gap-2">
+            <label htmlFor="proof-amount" className="text-label">Amount sent</label>
+            <Input id="proof-amount" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label htmlFor="proof-ref" className="text-label">
+              Reference number <span className="font-normal text-muted">(optional)</span>
+            </label>
+            <Input id="proof-ref" value={reference} maxLength={60} onChange={(e) => setReference(e.target.value)} placeholder="For example, 7012 345 678901" />
+          </div>
+        </div>
+        {error && <Alert tone="danger">{error}</Alert>}
+        <div className="flex flex-wrap items-center gap-3">
+          <Button type="submit" disabled={sending || pending} className="max-md:w-full">
+            Submit proof
+          </Button>
+          <span className="text-sm text-muted">You&apos;ll get an email when it&apos;s approved.</span>
+        </div>
+      </form>
     </section>
   )
 }

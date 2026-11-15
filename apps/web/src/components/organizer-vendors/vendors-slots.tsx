@@ -7,7 +7,9 @@ import * as React from "react"
 import { Alert } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Chip } from "@/components/ui/chip"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Textarea } from "@/components/ui/textarea"
 import { api } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { EventTabs } from "./event-tabs"
@@ -119,38 +121,7 @@ export function VendorsAndSlots({ eventId }: { eventId: string }) {
         )}
       </section>
 
-      <section aria-labelledby="slots-h" className="flex flex-col gap-3">
-        <h2 id="slots-h" className="text-h3">Vendors with a slot</h2>
-        {data.assignments.length === 0 ? (
-          <p className="text-sm text-muted">No slots assigned yet.</p>
-        ) : (
-          <div className="overflow-x-auto rounded-md border border-border bg-surface">
-            <table className="w-full text-sm">
-              <thead className="bg-sunken text-left text-cap text-muted">
-                <tr>
-                  <th className="px-4 py-3 font-medium">Vendor and slot</th>
-                  <th className="px-4 py-3 font-medium">Payment</th>
-                  <th className="px-4 py-3 font-medium">Deadline</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {data.assignments.map((a) => (
-                  <tr key={a.id}>
-                    <td className="px-4 py-3">
-                      <p className="font-medium">{a.shopName}</p>
-                      <p className="text-cap text-muted">
-                        <span className="font-mono">{a.slotLabel}</span> · <span className="tabular-nums">{formatPeso(a.amountDue)}</span>
-                      </p>
-                    </td>
-                    <td className="px-4 py-3"><PaymentBadge assignment={a} /></td>
-                    <td className="px-4 py-3 whitespace-nowrap">{a.status === "reserved" ? "Paid" : formatDeadline(a.deadlineAt)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
+      <VendorList eventId={eventId} assignments={data.assignments} onDone={setDone} />
 
       {assigning && (
         <AssignDialog
@@ -282,6 +253,193 @@ function AssignDialog({
           <Button disabled={!picked || sending} onClick={confirm}>
             {picked ? `Assign ${picked.label}` : "Assign"}
           </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+type ListFilter = "all" | "attention" | "reserved"
+const needsAttention = (a: Assignment) => a.status === "assigned" && (a.overdue || a.paymentStatus === "submitted" || a.paymentStatus === "rejected")
+
+// Every vendor with a slot, with payment and the next step (mockup OrgVendors).
+function VendorList({ eventId, assignments, onDone }: { eventId: string; assignments: Assignment[]; onDone: (message: string) => void }) {
+  const [filter, setFilter] = React.useState<ListFilter>("all")
+  const [reviewing, setReviewing] = React.useState<Assignment | null>(null)
+  const [marking, setMarking] = React.useState<Assignment | null>(null)
+  const counts = { all: assignments.length, attention: assignments.filter(needsAttention).length, reserved: assignments.filter((a) => a.status === "reserved").length }
+  const shown = assignments.filter((a) => filter === "all" || (filter === "attention" ? needsAttention(a) : a.status === "reserved"))
+  return (
+    <section aria-labelledby="slots-h" className="flex flex-col gap-3">
+      <h2 id="slots-h" className="text-h3">Vendors with a slot</h2>
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 md:mx-0 md:px-0">
+        <Chip pressed={filter === "all"} count={counts.all} onClick={() => setFilter("all")}>All</Chip>
+        <Chip pressed={filter === "attention"} count={counts.attention} onClick={() => setFilter("attention")}>Needs attention</Chip>
+        <Chip pressed={filter === "reserved"} count={counts.reserved} onClick={() => setFilter("reserved")}>Reserved</Chip>
+      </div>
+      {shown.length === 0 ? (
+        <p className="text-sm text-muted">{assignments.length === 0 ? "No slots assigned yet." : "None here."}</p>
+      ) : (
+        <ul className="flex flex-col divide-y divide-border rounded-md border border-border bg-surface">
+          {shown.map((a) => (
+            <li key={a.id} aria-label={`${a.shopName}, ${a.slotLabel}`} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 md:flex-nowrap">
+              <span className="w-12 flex-none font-mono text-sm">{a.slotLabel}</span>
+              <div className="min-w-0 flex-[1_1_160px]">
+                <p className="text-label font-semibold">{a.shopName}</p>
+                <p className="text-cap text-muted">
+                  <span className="tabular-nums">{formatPeso(a.amountDue)}</span>
+                  {a.status === "reserved" ? (a.paymentNote ? ` · ${a.paymentNote}` : "") : ` · ${a.overdue ? "was due" : "due"} ${formatDeadline(a.deadlineAt)}`}
+                </p>
+                {a.paymentStatus === "rejected" && a.proof?.rejectionReason && <p className="text-cap text-muted">{`Proof rejected: ${a.proof.rejectionReason}`}</p>}
+              </div>
+              <PaymentBadge assignment={a} />
+              {a.status === "assigned" && (
+                <div className="flex w-full gap-2 md:w-auto">
+                  {a.paymentStatus === "submitted" && a.proof ? (
+                    <Button size="sm" className="h-11 flex-1 md:h-9 md:flex-none" onClick={() => setReviewing(a)}>Review proof</Button>
+                  ) : (
+                    <Button variant="ghost" size="sm" className="h-11 flex-1 md:h-9 md:flex-none" onClick={() => setMarking(a)}>Mark paid</Button>
+                  )}
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+      {reviewing && <ReviewDialog eventId={eventId} assignment={reviewing} onClose={() => setReviewing(null)} onDone={onDone} />}
+      {marking && <MarkPaidDialog eventId={eventId} assignment={marking} onClose={() => setMarking(null)} onDone={onDone} />}
+    </section>
+  )
+}
+
+function useSave(eventId: string) {
+  const queryClient = useQueryClient()
+  return (data: EventVendors) => queryClient.setQueryData(vendorsKey(eventId), data)
+}
+
+// The proof review panel (spec §6.3, mockup OrgVendorsPhone).
+function ReviewDialog({ eventId, assignment: a, onClose, onDone }: { eventId: string; assignment: Assignment; onClose: () => void; onDone: (m: string) => void }) {
+  const save = useSave(eventId)
+  const proof = a.proof!
+  const [rejecting, setRejecting] = React.useState(false)
+  const [reason, setReason] = React.useState("")
+  const [error, setError] = React.useState<string | null>(null)
+  const [sending, setSending] = React.useState(false)
+
+  async function approve() {
+    setSending(true)
+    setError(null)
+    const res = await api.POST("/api/organizer/events/{id}/proofs/{proofId}/approve", { params: { path: { id: eventId, proofId: proof.id } }, body: {} })
+    setSending(false)
+    if (!res.data) return setError((res.error as ErrorBody)?.message ?? "Something went wrong. Try again.")
+    save(res.data)
+    onDone(`${a.shopName} is confirmed. ${a.slotLabel} is reserved.`)
+    onClose()
+  }
+
+  async function reject() {
+    setError(null)
+    if (!reason.trim()) return setError('Say what to fix, for example "Short by ₱100"')
+    setSending(true)
+    const res = await api.POST("/api/organizer/events/{id}/proofs/{proofId}/reject", { params: { path: { id: eventId, proofId: proof.id } }, body: { reason: reason.trim() } })
+    setSending(false)
+    if (!res.data) return setError((res.error as ErrorBody)?.message ?? "Something went wrong. Try again.")
+    save(res.data)
+    onDone(`We told ${a.shopName} what to fix. They can upload new proof.`)
+    onClose()
+  }
+
+  const short = proof.amountClaimed !== null && proof.amountClaimed < a.amountDue
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent aria-label={`Review payment: ${a.shopName}, ${a.slotLabel}`}>
+        <DialogHeader>
+          <DialogTitle>{`Review payment: ${a.shopName}, ${a.slotLabel}`}</DialogTitle>
+          <DialogDescription>Check the reference in that account&apos;s history (for example, your GCash) before you approve.</DialogDescription>
+        </DialogHeader>
+        <a href={proof.fileUrl} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-lg border border-border bg-sunken">
+          {/* eslint-disable-next-line @next/next/no-img-element -- a private image behind a short-lived address */}
+          <img src={proof.fileUrl} alt="" className="max-h-64 w-full object-contain" />
+          <span className="block px-3 py-2 text-cap">Open the receipt full size</span>
+        </a>
+        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
+          <dt className="text-muted">Amount due</dt>
+          <dd className="font-semibold tabular-nums">{formatPeso(a.amountDue)}</dd>
+          <dt className="text-muted">Vendor sent</dt>
+          <dd className={cn("tabular-nums", short && "text-danger-ink")}>{proof.amountClaimed === null ? "Not given" : formatPeso(proof.amountClaimed)}</dd>
+          <dt className="text-muted">Paid with</dt>
+          <dd>{proof.methodLabel}</dd>
+          <dt className="text-muted">Reference</dt>
+          <dd className="font-mono">{proof.referenceNumber ?? "None given"}</dd>
+          {proof.note && (
+            <>
+              <dt className="text-muted">Note</dt>
+              <dd>{proof.note}</dd>
+            </>
+          )}
+        </dl>
+        {rejecting && (
+          <div className="flex flex-col gap-2">
+            <label htmlFor="reject-reason" className="text-label">What should they fix?</label>
+            <Textarea id="reject-reason" value={reason} maxLength={300} onChange={(e) => setReason(e.target.value)} placeholder="For example, short by ₱100, or the screenshot is unreadable" />
+          </div>
+        )}
+        {error && <p className="text-help text-danger-ink">{error}</p>}
+        <DialogFooter className="flex flex-row gap-2 md:justify-end">
+          {rejecting ? (
+            <>
+              <Button variant="secondary" className="flex-1 md:flex-none" onClick={() => setRejecting(false)}>Back</Button>
+              <Button variant="danger" className="flex-[2] md:flex-none" disabled={sending} onClick={reject}>Reject proof</Button>
+            </>
+          ) : (
+            <>
+              <Button variant="secondary" className="flex-1 md:flex-none" onClick={() => setRejecting(true)}>Reject</Button>
+              <Button className="flex-[2] md:flex-none" disabled={sending} onClick={approve}>Approve payment</Button>
+            </>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// Approve without a proof image, with a note (spec §6.3).
+function MarkPaidDialog({ eventId, assignment: a, onClose, onDone }: { eventId: string; assignment: Assignment; onClose: () => void; onDone: (m: string) => void }) {
+  const save = useSave(eventId)
+  const [note, setNote] = React.useState("")
+  const [error, setError] = React.useState<string | null>(null)
+  const [sending, setSending] = React.useState(false)
+
+  async function confirm() {
+    setError(null)
+    if (!note.trim()) return setError('Add a note, for example "Paid cash at the office"')
+    setSending(true)
+    const res = await api.POST("/api/organizer/events/{id}/assignments/{assignmentId}/mark-paid", {
+      params: { path: { id: eventId, assignmentId: a.id } },
+      body: { note: note.trim(), method: "cash" },
+    })
+    setSending(false)
+    if (!res.data) return setError((res.error as ErrorBody)?.message ?? "Something went wrong. Try again.")
+    save(res.data)
+    onDone(`${a.shopName} is confirmed. ${a.slotLabel} is reserved.`)
+    onClose()
+  }
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent aria-label={`Mark ${a.shopName} as paid?`}>
+        <DialogHeader>
+          <DialogTitle>{`Mark ${a.shopName} as paid?`}</DialogTitle>
+          <DialogDescription>{`For a payment without a screenshot, like cash on site. ${a.slotLabel} becomes reserved, and we email ${a.shopName}.`}</DialogDescription>
+        </DialogHeader>
+        <div className="flex flex-col gap-2">
+          <label htmlFor="paid-note" className="text-label">Note</label>
+          <Textarea id="paid-note" value={note} maxLength={300} onChange={(e) => setNote(e.target.value)} placeholder="For example, paid cash at the office" />
+        </div>
+        {error && <p className="text-help text-danger-ink">{error}</p>}
+        <DialogFooter className="flex flex-col-reverse gap-2 md:flex-row md:justify-end">
+          <Button variant="secondary" onClick={onClose}>Cancel</Button>
+          <Button disabled={sending} onClick={confirm}>Mark paid</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

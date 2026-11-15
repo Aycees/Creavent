@@ -7,6 +7,7 @@ import { Prisma } from '../generated/prisma/client.js';
 import { OutboxService } from '../notifications/outbox.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { assertVisible } from './organizer-applications.service.js';
+import { PaymentsService } from './payments.service.js';
 import { ACTIVE, isOverdue } from './slot-status.js';
 
 // The organizer's Vendors and slots page (spec §3.4, §5, sitemap §4).
@@ -15,6 +16,7 @@ export class OrganizerVendorsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly outbox: OutboxService,
+    private readonly payments: PaymentsService,
   ) {}
 
   async vendors(userId: string, eventId: string): Promise<EventVendors> {
@@ -27,7 +29,11 @@ export class OrganizerVendorsService {
     const [assignments, approved, waiting] = await Promise.all([
       this.prisma.slotAssignment.findMany({
         where: { eventId, status: { in: [...ACTIVE] } },
-        include: { slot: true, payment: true, vendorProfile: { include: { user: true } } },
+        include: {
+          slot: true,
+          payment: { include: { proofs: { orderBy: { uploadedAt: 'desc' }, take: 1, include: { paymentMethod: true, file: true } } } },
+          vendorProfile: { include: { user: true } },
+        },
         orderBy: { slot: { sortOrder: 'asc' } },
       }),
       this.prisma.application.findMany({
@@ -93,6 +99,8 @@ export class OrganizerVendorsService {
         paymentStatus: a.payment?.status ?? 'pending',
         deadlineAt: a.deadlineAt.toISOString(),
         overdue: isOverdue(a, now),
+        proof: a.payment?.proofs[0] ? this.payments.toProof(a.payment.proofs[0]) : null,
+        paymentNote: a.payment?.method !== 'proof_upload' ? (a.payment?.decisionNote ?? null) : null,
       })),
     };
   }

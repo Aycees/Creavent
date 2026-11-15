@@ -1,15 +1,19 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Post, UseGuards } from '@nestjs/common';
 import { ApiCreatedResponse } from '@nestjs/swagger';
-import { applyFormSchema, applySchema, createdApplicationSchema, vendorApplicationSchema, vendorApplicationsSchema } from '@creavent/shared';
+import { applyFormSchema, applySchema, createdApplicationSchema, uploadProofSchema, vendorApplicationSchema, vendorApplicationsSchema } from '@creavent/shared';
 import type { z } from 'zod';
 import { AuthGuard, CurrentUser, type SessionUser } from '../auth/auth.guard.js';
 import { ResponseSchema } from '../response-schema.decorator.js';
+import { PaymentsService } from './payments.service.js';
 import { VendorApplicationsService } from './vendor-applications.service.js';
 
 @Controller()
 @UseGuards(AuthGuard)
 export class VendorApplicationsController {
-  constructor(private readonly applications: VendorApplicationsService) {}
+  constructor(
+    private readonly applications: VendorApplicationsService,
+    private readonly payments: PaymentsService,
+  ) {}
 
   @Get('vendor/events/:slug/apply')
   @ResponseSchema(applyFormSchema)
@@ -32,6 +36,15 @@ export class VendorApplicationsController {
   @Get('vendor/applications/:id')
   @ResponseSchema(vendorApplicationSchema)
   detail(@CurrentUser() user: SessionUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.applications.detail(user.id, id);
+  }
+
+  // Proof of payment (spec §6.2). Answers with the application page.
+  @Post('vendor/applications/:id/proofs')
+  @ApiCreatedResponse({ standardSchema: vendorApplicationSchema })
+  @ResponseSchema(vendorApplicationSchema)
+  async uploadProof(@CurrentUser() user: SessionUser, @Param('id', ParseUUIDPipe) id: string, @Body({ schema: uploadProofSchema }) body: z.output<typeof uploadProofSchema>) {
+    await this.payments.uploadProof(user.id, id, body);
     return this.applications.detail(user.id, id);
   }
 

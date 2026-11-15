@@ -205,6 +205,46 @@ const templates = {
       </>
     ),
   },
+  proof_uploaded: {
+    payload: z.object({ name: z.string(), shopName: z.string(), eventName: z.string(), slotLabel: z.string(), amount: z.string(), url: z.string(), supportEmail: z.string() }),
+    subject: (p: { shopName: string; slotLabel: string }) => `Proof of payment from ${p.shopName} (${p.slotLabel})`,
+    body: (p: { name: string; shopName: string; eventName: string; slotLabel: string; amount: string; url: string }) => (
+      <>
+        <Heading>Proof of payment to check</Heading>
+        <Paragraph>Hi {firstName(p.name)},</Paragraph>
+        <Paragraph>
+          {p.shopName} uploaded proof of paying {p.amount} for slot {p.slotLabel} at {p.eventName}. Check the reference in that
+          account&apos;s history before you approve it.
+        </Paragraph>
+        <ActionButton href={p.url}>Review the payment</ActionButton>
+      </>
+    ),
+  },
+  payment_approved: {
+    payload: z.object({ name: z.string(), eventName: z.string(), slotLabel: z.string(), amount: z.string(), url: z.string(), supportEmail: z.string() }),
+    subject: (p: { slotLabel: string; eventName: string }) => `You're confirmed: slot ${p.slotLabel} at ${p.eventName}`,
+    body: (p: { name: string; eventName: string; slotLabel: string; url: string }) => (
+      <>
+        <Heading>You&apos;re confirmed</Heading>
+        <Paragraph>Hi {firstName(p.name)},</Paragraph>
+        <Paragraph>The organizer approved your payment. Slot {p.slotLabel} at {p.eventName} is reserved for you.</Paragraph>
+        <ActionButton href={p.url}>See your slot and setup details</ActionButton>
+      </>
+    ),
+  },
+  payment_rejected: {
+    payload: z.object({ name: z.string(), eventName: z.string(), slotLabel: z.string(), amount: z.string(), reason: z.string(), url: z.string(), supportEmail: z.string() }),
+    subject: (p: { slotLabel: string }) => `Your proof for slot ${p.slotLabel} needs another look`,
+    body: (p: { name: string; eventName: string; slotLabel: string; reason: string; url: string }) => (
+      <>
+        <Paragraph>Hi {firstName(p.name)},</Paragraph>
+        <Paragraph>The organizer of {p.eventName} couldn&apos;t approve your proof of payment for slot {p.slotLabel}.</Paragraph>
+        <InfoBox label="What to fix" lines={[p.reason]} />
+        <Paragraph>Fix it and upload a new screenshot. Your slot stays yours unless the organizer removes you.</Paragraph>
+        <ActionButton href={p.url}>Upload new proof</ActionButton>
+      </>
+    ),
+  },
 } satisfies Record<NotificationType, unknown>;
 
 export async function renderEmail(type: NotificationType, payload: unknown) {

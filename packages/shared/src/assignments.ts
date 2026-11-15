@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { paymentChannelSchema } from './events.js';
+import { optionalLongText, paymentChannelSchema, text } from './events.js';
 import { preferredSlotStateSchema, vendorStatusSchema } from './applications.js';
 
 // Slot assignment and payments (spec §5, §6, data model §5.7).
@@ -21,6 +21,43 @@ export const paymentInstructionSchema = z.object({
   notes: z.string().nullable(),
 });
 export type PaymentInstruction = z.infer<typeof paymentInstructionSchema>;
+
+// ─── Proof of payment (spec §6.2, §6.3) ────────────────────────────────────
+
+export const proofStatusSchema = z.enum(['submitted', 'approved', 'rejected']);
+const money = z.number().min(0, 'Enter an amount of ₱0 or more').max(10_000_000).multipleOf(0.01, 'Use at most 2 decimal places');
+
+export const uploadProofSchema = z.object({
+  fileId: z.uuid(),
+  // The option the vendor paid with (required).
+  paymentMethodId: z.uuid('Pick the option you paid with'),
+  amountClaimed: money,
+  referenceNumber: text(60, 'reference number').transform((v) => v || null).nullable().default(null),
+  note: optionalLongText(300),
+});
+export type UploadProofInput = z.input<typeof uploadProofSchema>;
+
+export const approveProofSchema = z.object({ amountPaid: money.nullable().default(null) });
+export const rejectProofSchema = z.object({ reason: text(300, 'reason').min(1, 'Say what to fix, for example "Short by ₱100"') });
+export const markPaidSchema = z.object({
+  note: text(300, 'note').min(1, 'Add a note, for example "Paid cash at the office"'),
+  method: z.enum(['cash', 'other']).default('cash'),
+});
+
+export const proofSchema = z.object({
+  id: z.uuid(),
+  status: proofStatusSchema,
+  uploadedAt: z.string(),
+  fileUrl: z.string(),
+  methodLabel: z.string(),
+  methodAccount: z.string().nullable(),
+  amountClaimed: z.number().nullable(),
+  referenceNumber: z.string().nullable(),
+  note: z.string().nullable(),
+  rejectionReason: z.string().nullable(),
+  archived: z.boolean(),
+});
+export type Proof = z.infer<typeof proofSchema>;
 
 // Slot status is worked out from the slot's active assignment (data model §7).
 export const slotStateSchema = z.enum(['open', 'assigned', 'reserved']);
@@ -72,6 +109,9 @@ export const eventVendorsSchema = z.object({
       deadlineAt: z.string(),
       // Assigned, payment pending or rejected, deadline passed (spec §6.4).
       overdue: z.boolean(),
+      // The latest proof, for the review panel (spec §6.3).
+      proof: proofSchema.nullable(),
+      paymentNote: z.string().nullable(),
     }),
   ),
 });
@@ -143,6 +183,10 @@ export const vendorApplicationSchema = z.object({
       paymentStatus: paymentStatusSchema,
       // The payment options as they were when the slot was assigned.
       instructions: z.array(paymentInstructionSchema.extend({ qrUrl: z.string().nullable() })),
+      proofs: z.array(proofSchema),
+      // Set when the organizer marked it paid without a proof.
+      paymentNote: z.string().nullable(),
+      archived: z.boolean(),
     })
     .nullable(),
 });

@@ -19,6 +19,8 @@ import { OutboxService } from '../notifications/outbox.service.js';
 import { PrismaService, type Tx } from '../prisma/prisma.service.js';
 import { changeApplicationStatus } from './application-status.js';
 import { approvedPerCategory, spotsLeft } from './category-counts.js';
+import { PaymentsService } from './payments.service.js';
+import { vendorProfile } from './vendor-profile.js';
 import { ACTIVE, takenSlotIds } from './slot-status.js';
 
 type Db = Tx | PrismaService;
@@ -40,6 +42,7 @@ export class VendorApplicationsService {
     private readonly prisma: PrismaService,
     private readonly files: FilesService,
     private readonly outbox: OutboxService,
+    private readonly payments: PaymentsService,
   ) {}
 
   async form(userId: string, slug: string): Promise<ApplyForm> {
@@ -212,7 +215,11 @@ export class VendorApplicationsService {
         _count: { select: { documents: true } },
         preferredSlot: true,
         event: { include: { vendorFloorPlanFile: true, organizerProfile: { include: { user: { include: { roles: { where: { role: 'organizer' } } } } } } } },
-        assignments: { orderBy: { assignedAt: 'desc' }, take: 1, include: { slot: true, payment: true } },
+        assignments: {
+          orderBy: { assignedAt: 'desc' },
+          take: 1,
+          include: { slot: true, payment: { include: { proofs: { orderBy: { uploadedAt: 'desc' }, include: { paymentMethod: true, file: true } } } } },
+        },
       },
     });
     if (!a) throw new NotFoundException('Application not found');
@@ -262,6 +269,9 @@ export class VendorApplicationsService {
             reservedAt: latest.reservedAt?.toISOString() ?? null,
             paymentStatus: latest.payment?.status ?? 'pending',
             instructions: instructions.map((i) => ({ ...i, qrUrl: i.qrFileId ? `/api/files/${i.qrFileId}` : null })),
+            proofs: (latest.payment?.proofs ?? []).filter((p) => !p.file.deletedAt).map((p) => this.payments.toProof(p)),
+            paymentNote: latest.payment?.method !== 'proof_upload' ? (latest.payment?.decisionNote ?? null) : null,
+            archived: latest.payment?.archivedAt != null,
           }
         : null,
     };
@@ -352,16 +362,6 @@ function eventSummary(e: { slug: string; name: string; startsAt: Date | null; en
     closesAt: end?.time ?? null,
     venueName: e.venueName,
   };
-}
-
-// The vendor role, not suspended, with a shop profile.
-export async function vendorProfile(db: Db, userId: string) {
-  const role = await db.userRole.findUnique({ where: { userId_role: { userId, role: 'vendor' } } });
-  if (!role) throw new ForbiddenException('Add the vendor role first');
-  if (role.suspendedAt) throw new ForbiddenException('Your vendor role is suspended');
-  const profile = await db.vendorProfile.findUnique({ where: { userId }, include: { categories: true, user: true } });
-  if (!profile) throw new ForbiddenException('Finish your shop profile first');
-  return profile;
 }
 
 // A vendor applies only with a shop name, mobile number, and a category (spec §1.1).

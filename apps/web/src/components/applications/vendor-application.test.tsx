@@ -3,11 +3,15 @@ import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { api } from "@/lib/api"
+import { useUpload } from "@/lib/use-upload"
 import { renderWithQuery } from "@/test-utils"
-import { APPLICATION_ID, vendorApplicationFixture } from "./fixtures"
+import { APPLICATION_ID, proofFixture, vendorApplicationFixture } from "./fixtures"
 import { VendorApplicationPage, VendorApplicationsList } from "./vendor-application"
 
 vi.mock("@/lib/api", () => ({ api: { GET: vi.fn(), POST: vi.fn() } }))
+vi.mock("@/lib/use-upload", () => ({ useUpload: vi.fn() }))
+
+const upload = vi.fn()
 
 function serve(data: unknown) {
   vi.mocked(api.GET).mockResolvedValue({ data, response: { status: 200 } } as never)
@@ -15,6 +19,7 @@ function serve(data: unknown) {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  vi.mocked(useUpload).mockReturnValue({ upload, pending: false, error: null })
   vi.useFakeTimers({ shouldAdvanceTime: true, now: new Date("2026-11-12T04:00:00.000Z") })
 })
 
@@ -95,6 +100,59 @@ describe("VendorApplicationPage (/vendor/applications/[id])", () => {
     renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
 
     expect(await screen.findByText("Application not found")).toBeInTheDocument()
+  })
+})
+
+describe("Proof of payment", () => {
+  it("uploads the screenshot with the option paid with, the amount sent, and a reference", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    serve(vendorApplicationFixture())
+    vi.mocked(api.POST).mockResolvedValue({ data: vendorApplicationFixture(), response: { status: 201 } } as never)
+    upload.mockResolvedValue({ id: "f2000000-0000-4000-8000-000000000001", purpose: "payment_proof", url: "/api/files/f2", width: 800, height: 1600 })
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    const section = await screen.findByRole("region", { name: "2. Upload your proof of payment" })
+    expect(within(section).getByLabelText("Amount sent")).toHaveValue("1500")
+    await user.upload(within(section).getByLabelText(/choose a file/i), new File(["x"], "receipt.png", { type: "image/png" }))
+    await user.click(within(section).getByRole("radio", { name: /BPI bank transfer/ }))
+    await user.type(within(section).getByLabelText(/Reference number/), "BPI-123")
+    await user.click(within(section).getByRole("button", { name: "Submit proof" }))
+
+    expect(api.POST).toHaveBeenCalledWith("/api/vendor/applications/{id}/proofs", {
+      params: { path: { id: APPLICATION_ID } },
+      body: { fileId: "f2000000-0000-4000-8000-000000000001", paymentMethodId: "m0000000-0000-4000-8000-000000000002", amountClaimed: 1500, referenceNumber: "BPI-123" },
+    })
+  })
+
+  it("asks for the screenshot and the option paid with", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    serve(vendorApplicationFixture())
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    await user.click(await screen.findByRole("button", { name: "Submit proof" }))
+
+    expect(await screen.findByText("Add a screenshot of your payment")).toBeInTheDocument()
+    expect(api.POST).not.toHaveBeenCalled()
+  })
+
+  it("says the proof is with the organizer while it waits", async () => {
+    serve(vendorApplicationFixture({ assignment: { ...vendorApplicationFixture().assignment!, paymentStatus: "submitted", proofs: [proofFixture()] } }))
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    expect(await screen.findByText("Your proof is with the organizer. We'll email you when they review it.")).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Submit proof" })).not.toBeInTheDocument()
+  })
+
+  it("shows why a proof was rejected and asks for a new one", async () => {
+    serve(
+      vendorApplicationFixture({
+        assignment: { ...vendorApplicationFixture().assignment!, paymentStatus: "rejected", proofs: [proofFixture({ status: "rejected", rejectionReason: "Short by ₱100" })] },
+      })
+    )
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    expect(await screen.findByText("The organizer couldn't approve your last proof: Short by ₱100")).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Submit proof" })).toBeInTheDocument()
   })
 })
 

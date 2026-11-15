@@ -74,6 +74,8 @@ model User {
   paymentsMade        Payment[]           @relation("PaymentPayer")
   paymentsReceived    Payment[]           @relation("PaymentPayee")
   paymentsDecided     Payment[]           @relation("PaymentDecider")
+  proofsUploaded      PaymentProof[]      @relation("ProofUploader")
+  proofsDecided       PaymentProof[]      @relation("ProofDecider")
 
   @@map("users")
 }
@@ -240,6 +242,7 @@ model File {
   qrOf                 EventPaymentMethod[]
   vendorFloorPlanOf    Event[]               @relation("VendorFloorPlan")
   applicationDocuments ApplicationDocument[]
+  paymentProofs        PaymentProof[]
   publicFloorPlanOf    Event[]               @relation("PublicFloorPlan")
 
   @@index([uploadedBy, status])
@@ -301,6 +304,7 @@ model VendorProfile {
   photos       VendorProfilePhoto[]
   applications Application[]
   assignments  SlotAssignment[]
+  proofs       PaymentProof[]
 
   @@map("vendor_profiles")
 }
@@ -427,6 +431,7 @@ model Event {
   applications        Application[]
   assignments         SlotAssignment[]
   payments            Payment[]
+  proofs              PaymentProof[]
   vendorFloorPlanFile File?                      @relation("VendorFloorPlan", fields: [vendorFloorPlanFileId], references: [id])
   publicFloorPlanFile File?                      @relation("PublicFloorPlan", fields: [publicFloorPlanFileId], references: [id])
 
@@ -496,8 +501,9 @@ model EventPaymentMethod {
   createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz
   updatedAt     DateTime       @updatedAt @map("updated_at") @db.Timestamptz
 
-  event  Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  qrFile File? @relation(fields: [qrFileId], references: [id])
+  event  Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  qrFile File?          @relation(fields: [qrFileId], references: [id])
+  proofs PaymentProof[]
 
   @@index([eventId])
   @@map("event_payment_methods")
@@ -719,9 +725,55 @@ model Payment {
   payer          User           @relation("PaymentPayer", fields: [payerUserId], references: [id])
   payee          User           @relation("PaymentPayee", fields: [payeeUserId], references: [id])
   decidedBy      User?          @relation("PaymentDecider", fields: [decidedById], references: [id])
+  proofs         PaymentProof[]
 
   @@index([eventId, status])
   @@map("payments")
+}
+
+enum ProofStatus {
+  submitted
+  approved
+  rejected
+
+  @@map("proof_status")
+}
+
+// One uploaded screenshot for one payment (spec §6.2). A payment can have
+// several over time: a rejected one, then a new one.
+model PaymentProof {
+  id              String      @id @default(uuid()) @db.Uuid
+  paymentId       String      @map("payment_id") @db.Uuid
+  eventId         String      @map("event_id") @db.Uuid
+  vendorProfileId String      @map("vendor_profile_id") @db.Uuid
+  uploadedById    String      @map("uploaded_by") @db.Uuid
+  fileId          String      @map("file_id") @db.Uuid
+  // The option the vendor says they paid with: one in the assignment's copy.
+  paymentMethodId String      @map("payment_method_id") @db.Uuid
+  amountClaimed   Decimal?    @map("amount_claimed") @db.Decimal(10, 2)
+  referenceNumber String?     @map("reference_number")
+  note            String?
+  status          ProofStatus @default(submitted)
+  uploadedAt      DateTime    @default(now()) @map("uploaded_at") @db.Timestamptz
+  decidedById     String?     @map("decided_by") @db.Uuid
+  decidedAt       DateTime?   @map("decided_at") @db.Timestamptz
+  rejectionReason String?     @map("rejection_reason")
+  archivedAt      DateTime?   @map("archived_at") @db.Timestamptz
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime    @updatedAt @map("updated_at") @db.Timestamptz
+
+  payment       Payment            @relation(fields: [paymentId], references: [id])
+  event         Event              @relation(fields: [eventId], references: [id])
+  vendorProfile VendorProfile      @relation(fields: [vendorProfileId], references: [id])
+  uploadedBy    User               @relation("ProofUploader", fields: [uploadedById], references: [id])
+  decidedBy     User?              @relation("ProofDecider", fields: [decidedById], references: [id])
+  file          File               @relation(fields: [fileId], references: [id])
+  paymentMethod EventPaymentMethod @relation(fields: [paymentMethodId], references: [id])
+
+  @@index([paymentId])
+  @@index([eventId, status])
+  @@index([fileId])
+  @@map("payment_proofs")
 }
 
 // ─── Email notifications (data model §5.9) ─────────────────────────────────
@@ -746,6 +798,9 @@ enum NotificationType {
   application_approved
   application_declined
   slot_assigned
+  proof_uploaded
+  payment_approved
+  payment_rejected
 
   @@map("notification_type")
 }

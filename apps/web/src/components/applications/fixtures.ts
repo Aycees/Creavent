@@ -1,4 +1,4 @@
-import type { ApplyForm, VendorApplication } from "@creavent/shared"
+import type { ApplyForm, Proof, VendorApplication } from "@creavent/shared"
 
 export const PRELOVED = "c1c1c1c1-0000-4000-8000-000000000001"
 export const FOOD = "c1c1c1c1-0000-4000-8000-000000000004"
@@ -84,7 +84,27 @@ export function vendorApplicationFixture(overrides: Partial<VendorApplication> =
         { id: "m0000000-0000-4000-8000-000000000001", channel: "gcash", label: "GCash", accountName: "Joanna L.", accountNumber: "0928 115 7720", qrFileId: "q0000000-0000-4000-8000-000000000001", notes: null, qrUrl: "/api/files/q1" },
         { id: "m0000000-0000-4000-8000-000000000002", channel: "bank", label: "BPI bank transfer", accountName: "Sari-Sari Collective Trading", accountNumber: "4419 0582 31", qrFileId: null, notes: null, qrUrl: null },
       ],
+      proofs: [],
+      paymentNote: null,
+      archived: false,
     },
+    ...overrides,
+  }
+}
+
+export function proofFixture(overrides: Partial<Proof> = {}): Proof {
+  return {
+    id: "p0000000-0000-4000-8000-000000000001",
+    status: "submitted",
+    uploadedAt: "2026-11-12T03:00:00.000Z",
+    fileUrl: "/api/files/proof1",
+    methodLabel: "GCash",
+    methodAccount: "0928 115 7720",
+    amountClaimed: 1500,
+    referenceNumber: "7012 345 678901",
+    note: null,
+    rejectionReason: null,
+    archived: false,
     ...overrides,
   }
 }

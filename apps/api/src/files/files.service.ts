@@ -265,6 +265,13 @@ export class FilesService {
       });
       return method !== null;
     }
+    if (file.purpose === 'payment_proof') {
+      // The organizer of the event the proof was sent for (data model §6.6).
+      const proof = await this.prisma.paymentProof.findFirst({
+        where: { fileId: file.id, event: { organizerProfile: { userId: user.id } } },
+      });
+      return proof !== null;
+    }
     if (file.purpose === 'application_document') {
       // The organizer of the event the vendor applied to (data model §6.6).
       const doc = await this.prisma.applicationDocument.findFirst({
