@@ -1,7 +1,7 @@
 "use client"
 
 import { formatPeso, vendorStatusLabels, type VendorApplication, type VendorApplicationRow, type VendorStatus } from "@creavent/shared"
-import { CheckIcon, ClockIcon, CopyIcon, QrCodeIcon } from "@phosphor-icons/react"
+import { ArrowsLeftRightIcon, CheckIcon, ClockIcon, CopyIcon, MinusSquareIcon, QrCodeIcon, XCircleIcon } from "@phosphor-icons/react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import Link from "next/link"
 import * as React from "react"
@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { ApprovedMark } from "@/components/ui/approved-mark"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Chip } from "@/components/ui/chip"
 import { DateStamp } from "@/components/ui/date-stamp"
 import { DropZone } from "@/components/ui/drop-zone"
 import { Input } from "@/components/ui/input"
@@ -46,8 +47,17 @@ const statusTone: Record<VendorStatus, "neutral" | "info" | "success" | "warning
 const dayFormat = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Manila", weekday: "short", month: "short", day: "numeric" })
 const day = (iso: string) => dayFormat.format(new Date(iso))
 
-// /vendor/applications (spec §4.6).
+const ACTIVE_STATUSES: VendorStatus[] = ["submitted", "approved", "slot_assigned", "reserved"]
+
+// What to do next for each status (mockup VendorApplicationsList).
+function nextStep(a: VendorApplicationRow) {
+  if (a.status === "slot_assigned") return a.paymentStatus === "submitted" ? "Proof sent, waiting for review" : "Upload proof of payment"
+  return { submitted: "Waiting for review", approved: "Waiting for a slot", reserved: "You're confirmed", declined: "Apply again if you like", withdrawn: "Apply again if you like", removed: "See the organizer's note" }[a.status]
+}
+
+// /vendor/applications (spec §4.6, mockup VendorApplicationsList).
 export function VendorApplicationsList() {
+  const [show, setShow] = React.useState<"active" | "past">("active")
   const { data, isError } = useQuery({
     queryKey: ["vendor-applications"],
     queryFn: async (): Promise<VendorApplicationRow[]> => {
@@ -57,9 +67,20 @@ export function VendorApplicationsList() {
     },
   })
   if (isError) return <Alert tone="danger">We couldn&apos;t load your applications. Refresh to try again.</Alert>
+  const active = data?.filter((a) => ACTIVE_STATUSES.includes(a.status)) ?? []
+  const past = data?.filter((a) => !ACTIVE_STATUSES.includes(a.status)) ?? []
+  const shown = show === "active" ? active : past
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-h1">Applications</h1>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-h1">Applications</h1>
+          <p className="text-body text-muted">Every event you applied to, with what to do next.</p>
+        </div>
+        <Button asChild variant="secondary">
+          <Link href="/vendor/events">Find events to join</Link>
+        </Button>
+      </div>
       {data === undefined ? (
         <p role="status" className="text-sm text-muted">Loading…</p>
       ) : data.length === 0 ? (
@@ -70,13 +91,23 @@ export function VendorApplicationsList() {
           </Button>
         </div>
       ) : (
-        <ul className="flex flex-col gap-3">
-          {data.map((a) => (
-            <li key={a.id}>
-              <ApplicationRow application={a} />
-            </li>
-          ))}
-        </ul>
+        <>
+          <div className="flex gap-2">
+            <Chip pressed={show === "active"} count={active.length} onClick={() => setShow("active")}>Active</Chip>
+            <Chip pressed={show === "past"} count={past.length} onClick={() => setShow("past")}>Past and closed</Chip>
+          </div>
+          {shown.length === 0 ? (
+            <p className="text-sm text-muted">{show === "active" ? "Nothing active right now." : "Nothing here yet."}</p>
+          ) : (
+            <ul className="flex flex-col gap-3 md:gap-0 md:divide-y md:divide-border md:overflow-hidden md:rounded-lg md:border md:border-border md:bg-surface">
+              {shown.map((a) => (
+                <li key={a.id}>
+                  <ApplicationRow application={a} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
       )}
     </div>
   )
@@ -84,21 +115,20 @@ export function VendorApplicationsList() {
 
 function ApplicationRow({ application: a }: { application: VendorApplicationRow }) {
   const id = React.useId()
+  const due = a.status === "slot_assigned" && a.deadlineAt && a.paymentStatus !== "submitted"
   return (
-    <article aria-labelledby={id} className="relative flex items-center gap-4 rounded-lg border border-border bg-surface p-4">
+    <article aria-labelledby={id} className={cn("relative flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border bg-surface p-4 md:rounded-none md:border-0 md:px-5", due ? "border-warning" : "border-border")}>
       {a.event.startDate && <DateStamp date={stampDate(a.event.startDate)} />}
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <h2 id={id} className="text-h3">
+      <div className="flex min-w-0 flex-[1_1_200px] flex-col gap-1">
+        <h2 id={id} className="text-label font-semibold md:text-base">
           <Link href={`/vendor/applications/${a.id}`} className="after:absolute after:inset-0 hover:underline">
             {a.event.name}
           </Link>
         </h2>
-        <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
-          <Badge tone={statusTone[a.status]}>{vendorStatusLabels[a.status]}</Badge>
-          {a.slotLabel && a.amountDue !== null && <span className="tabular-nums">{`${a.slotLabel} · ${formatPeso(a.amountDue)}`}</span>}
-          {a.status === "slot_assigned" && a.deadlineAt && <span>{`Pay by ${formatDeadline(a.deadlineAt)}`}</span>}
-        </div>
+        <p className="text-cap text-muted">{a.slotLabel && a.amountDue !== null ? `Slot ${a.slotLabel} · ${formatPeso(a.amountDue)}` : a.decisionNote && a.status === "declined" ? `"${a.decisionNote}"` : "No slot yet"}</p>
       </div>
+      <Badge tone={due ? "warning" : statusTone[a.status]}>{due ? `Pay by ${formatDeadline(a.deadlineAt!)}` : vendorStatusLabels[a.status]}</Badge>
+      <p className="w-full text-sm md:w-48 md:text-right">{nextStep(a)}</p>
     </article>
   )
 }
@@ -177,7 +207,11 @@ export function VendorApplicationPage({ id }: { id: string }) {
           )}
 
           {paying && slot && <PaymentOptions slot={slot} organizer={a.organizer.displayName} />}
+          {!slot && (a.status === "submitted" || a.status === "approved") && (a.event.preferredSlots || a.preferredSlot) && (
+            <PreferredSlotCard application={a} />
+          )}
           {paying && slot && <ProofSection applicationId={a.id} slot={slot} />}
+          {paying && slot && <ChangeOfPlans application={a} slotLabel={slot.slotLabel} />}
           {(() => {
             // Read-only proofs: an ended slot's, and those of earlier slots.
             const records = [...(a.assignment && !slot ? a.assignment.proofs : []), ...a.pastProofs]
@@ -196,7 +230,7 @@ export function VendorApplicationPage({ id }: { id: string }) {
             <p className="text-sm">{[a.organizer.fullName, a.organizer.phone].filter(Boolean).join(" · ")}</p>
             {a.organizer.contactEmail && <p className="text-sm break-all">{a.organizer.contactEmail}</p>}
           </section>
-          {paying && slot && <ReleaseSlot applicationId={a.id} label={slot.slotLabel} />}
+          {!slot && (a.status === "submitted" || a.status === "approved") && <WithdrawControl application={a} />}
           {slot?.status === "reserved" && (
             <p className="rounded-md bg-sunken p-4 text-sm text-muted">Can&apos;t make it? Contact the organizer. They decide under their policy.</p>
           )}
@@ -230,12 +264,6 @@ function StatusPanel({ application: a }: { application: VendorApplication }) {
         {a.status === "reserved" && <CheckIcon aria-hidden="true" className="size-5 text-success" weight="bold" />}
         {text}
       </p>
-      {a.preferredSlot && (
-        <p className="text-sm">
-          {a.preferredSlot.state === "removed" ? `Preferred slot ${a.preferredSlot.label} is no longer available` : `Preferred slot: ${a.preferredSlot.label}`}
-          {a.preferredSlot.state === "taken" && <span className="text-muted"> (now taken)</span>}
-        </p>
-      )}
       {(a.decisionNote || a.removalNote) && (
         <blockquote className="border-l-2 border-border-strong pl-3 text-sm whitespace-pre-line">{a.status === "removed" ? a.removalNote : a.decisionNote}</blockquote>
       )}
@@ -461,47 +489,181 @@ function ProofSection({ applicationId, slot }: { applicationId: string; slot: Sl
   )
 }
 
-// Release an assigned slot before payment is approved (spec §6.6).
-function ReleaseSlot({ applicationId, label }: { applicationId: string; label: string }) {
+// The preferred slot while no slot is assigned: change it or clear it
+// (decided 2026-11-15). A preference holds nothing (spec §4.3).
+function PreferredSlotCard({ application: a }: { application: VendorApplication }) {
+  const save = useSaved(a.id)
+  const [error, setError] = React.useState<string | null>(null)
+  const [sending, setSending] = React.useState(false)
+  const p = a.preferredSlot
+
+  async function clear() {
+    setSending(true)
+    setError(null)
+    const res = await api.PUT("/api/vendor/applications/{id}/preference", { params: { path: { id: a.id } }, body: { preferredSlotId: null } })
+    setSending(false)
+    if (!res.data) return setError((res.error as ErrorBody)?.message ?? "Something went wrong. Try again.")
+    save(res.data)
+  }
+
+  return (
+    <section aria-labelledby="pref-h" className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4 md:p-5">
+      <div className="flex items-center justify-between gap-3">
+        <h2 id="pref-h" className="text-h3">Preferred slot</h2>
+        {p && <Badge tone={p.state === "open" ? "success" : "warning"}>{p.state === "open" ? "Open" : p.state === "taken" ? "Taken" : "No longer available"}</Badge>}
+      </div>
+      <p className="text-sm">{p ? <span className="font-mono">{p.label}</span> : "No preference. The organizer picks a slot for you."}</p>
+      {p && <p className="text-cap text-muted">Your pick isn&apos;t reserved until the organizer assigns it.</p>}
+      {a.event.preferredSlots && (
+        <div className="flex gap-2">
+          <Button asChild variant="secondary" size="sm" className="h-11 flex-1 md:h-9 md:flex-none">
+            <Link href={`/vendor/applications/${a.id}/slot`}>{p ? "Change slot" : "Pick a slot"}</Link>
+          </Button>
+          {p && (
+            <Button variant="ghost" size="sm" className="h-11 flex-1 md:h-9 md:flex-none" disabled={sending} onClick={clear}>
+              No preference
+            </Button>
+          )}
+        </div>
+      )}
+      {error && <Alert tone="danger">{error}</Alert>}
+    </section>
+  )
+}
+
+// Withdraw while applied or approved (decided 2026-11-15).
+function WithdrawControl({ application: a }: { application: VendorApplication }) {
+  return (
+    <div className="flex flex-col gap-2 rounded-md bg-sunken p-4">
+      <p className="text-sm text-muted">Can&apos;t join anymore? Withdraw your application. The organizer is emailed, and you can apply again while the event takes applications.</p>
+      <ConfirmAction
+        application={a}
+        kind="withdraw"
+        trigger={(open) => (
+          <Button variant="danger-ghost" size="sm" className="-ml-3.5 h-11 self-start md:h-9" onClick={open}>
+            Withdraw application
+          </Button>
+        )}
+      />
+    </div>
+  )
+}
+
+// With an unpaid slot: pick another, release, or withdraw (decided 2026-11-15).
+function ChangeOfPlans({ application: a, slotLabel }: { application: VendorApplication; slotLabel: string }) {
+  const plan = "flex min-h-11 w-full items-start gap-3.5 rounded-md border border-border bg-surface p-4 text-left hover:border-border-strong"
+  return (
+    <section aria-labelledby="plans-h" className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4 md:p-6">
+      <div>
+        <h2 id="plans-h" className="text-h2">Change of plans?</h2>
+        <p className="text-sm text-muted">You can change this until your payment is approved. The organizer is emailed either way.</p>
+      </div>
+      {a.event.preferredSlots && (
+        <Link href={`/vendor/applications/${a.id}/slot`} className={plan}>
+          <ArrowsLeftRightIcon aria-hidden="true" className="size-6 flex-none" />
+          <span>
+            <span className="block text-label font-semibold">Pick another slot</span>
+            <span className="block text-sm text-muted">{`Choose a different open slot. ${slotLabel} opens again, and the organizer assigns your new pick.`}</span>
+          </span>
+        </Link>
+      )}
+      <ConfirmAction
+        application={a}
+        kind="release"
+        slotLabel={slotLabel}
+        trigger={(open) => (
+          <button type="button" className={plan} onClick={open}>
+            <MinusSquareIcon aria-hidden="true" className="size-6 flex-none" />
+            <span>
+              <span className="block text-label font-semibold">{`Release slot ${slotLabel}`}</span>
+              <span className="block text-sm text-muted">Give up this slot but stay approved. The organizer can assign you another one.</span>
+            </span>
+          </button>
+        )}
+      />
+      <ConfirmAction
+        application={a}
+        kind="withdraw"
+        slotLabel={slotLabel}
+        trigger={(open) => (
+          <button type="button" className={cn(plan, "border-danger-soft")} onClick={open}>
+            <XCircleIcon aria-hidden="true" className="size-6 flex-none text-danger-ink" />
+            <span>
+              <span className="block text-label font-semibold text-danger-ink">Withdraw from this event</span>
+              <span className="block text-sm text-muted">Release the slot and end your application. You can apply again while the event takes applications.</span>
+            </span>
+          </button>
+        )}
+      />
+    </section>
+  )
+}
+
+function useSaved(applicationId: string) {
+  const queryClient = useQueryClient()
+  return (data: VendorApplication) => {
+    queryClient.setQueryData(vendorApplicationKey(applicationId), data)
+    // Other screens (lists, dashboards) show the change without a reload.
+    void queryClient.invalidateQueries()
+  }
+}
+
+// A confirm step for releasing or withdrawing.
+function ConfirmAction({
+  application: a,
+  kind,
+  slotLabel,
+  trigger,
+}: {
+  application: VendorApplication
+  kind: "release" | "withdraw"
+  slotLabel?: string
+  trigger: (open: () => void) => React.ReactNode
+}) {
   const queryClient = useQueryClient()
   const [open, setOpen] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [sending, setSending] = React.useState(false)
+  const release = kind === "release"
 
-  async function release() {
+  async function confirm() {
     setSending(true)
     setError(null)
-    const res = await api.POST("/api/vendor/applications/{id}/release", { params: { path: { id: applicationId } } })
+    const res = release
+      ? await api.POST("/api/vendor/applications/{id}/release", { params: { path: { id: a.id } } })
+      : await api.POST("/api/vendor/applications/{id}/withdraw", { params: { path: { id: a.id } } })
     setSending(false)
     if (!res.data) return setError((res.error as ErrorBody)?.message ?? "Something went wrong. Try again.")
-    queryClient.setQueryData(vendorApplicationKey(applicationId), res.data)
-    // Other screens (lists, dashboards) show the change without a reload.
+    if (release) queryClient.setQueryData(vendorApplicationKey(a.id), res.data)
     void queryClient.invalidateQueries()
     setOpen(false)
   }
 
   return (
-    <div className="flex flex-col gap-2 rounded-md bg-sunken p-4">
-      <p className="text-sm text-muted">Can&apos;t make it? You can release this slot until your payment is approved. The organizer is notified.</p>
-      <Button variant="danger-ghost" size="sm" className="-ml-3.5 h-11 self-start md:h-9" onClick={() => setOpen(true)}>
-        {`Release slot ${label}`}
-      </Button>
+    <>
+      {trigger(() => setOpen(true))}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent aria-label={`Release slot ${label}?`}>
+        <DialogContent aria-label={release ? `Release slot ${slotLabel}?` : `Withdraw from ${a.event.name}?`}>
           <DialogHeader>
-            <DialogTitle>{`Release slot ${label}?`}</DialogTitle>
+            <DialogTitle>{release ? `Release slot ${slotLabel}?` : `Withdraw from ${a.event.name}?`}</DialogTitle>
             <DialogDescription>
-              The slot opens for other vendors, and the organizer gets an email. If you release it by mistake, contact the organizer, who can assign it to you again.
+              {release
+                ? "The slot opens for other vendors, and the organizer gets an email. If you release it by mistake, contact the organizer, who can assign it to you again."
+                : `${slotLabel ? `Slot ${slotLabel} opens for other vendors and your` : "Your"} application ends. The organizer gets an email. You can apply again while the event takes applications.`}
             </DialogDescription>
           </DialogHeader>
           {error && <Alert tone="danger">{error}</Alert>}
           <DialogFooter className="flex flex-col-reverse gap-2 md:flex-row md:justify-end">
-            <Button variant="secondary" onClick={() => setOpen(false)}>Keep my slot</Button>
-            <Button variant="danger" disabled={sending} onClick={release}>Release slot</Button>
+            <Button variant="secondary" onClick={() => setOpen(false)}>
+              {release ? "Keep my slot" : "Stay in"}
+            </Button>
+            <Button variant="danger" disabled={sending} onClick={confirm}>
+              {release ? "Release slot" : "Withdraw"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   )
 }
 

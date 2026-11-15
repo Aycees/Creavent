@@ -9,7 +9,7 @@ import { renderWithQuery } from "@/test-utils"
 import { APPLICATION_ID, proofFixture, vendorApplicationFixture } from "./fixtures"
 import { VendorApplicationPage, VendorApplicationsList } from "./vendor-application"
 
-vi.mock("@/lib/api", () => ({ api: { GET: vi.fn(), POST: vi.fn() } }))
+vi.mock("@/lib/api", () => ({ api: { GET: vi.fn(), POST: vi.fn(), PUT: vi.fn() } }))
 vi.mock("@/lib/use-upload", () => ({ useUpload: vi.fn() }))
 
 const upload = vi.fn()
@@ -86,7 +86,7 @@ describe("VendorApplicationPage (/vendor/applications/[id])", () => {
     renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
 
     expect(await screen.findByText("Waiting for the organizer to review your application.")).toBeInTheDocument()
-    expect(screen.getByText("Preferred slot: A-05")).toBeInTheDocument()
+    expect(within(screen.getByRole("region", { name: "Preferred slot" })).getByText("A-05")).toBeInTheDocument()
     expect(screen.queryByRole("region", { name: "1. Send your payment" })).not.toBeInTheDocument()
   })
 
@@ -175,7 +175,7 @@ describe("Release and removal", () => {
     vi.mocked(api.POST).mockResolvedValue({ data: vendorApplicationFixture({ status: "approved", assignment: null }), response: { status: 201 } } as never)
     renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
 
-    await user.click(await screen.findByRole("button", { name: "Release slot B-04" }))
+    await user.click(await screen.findByRole("button", { name: /Release slot B-04/ }))
     const dialog = screen.getByRole("dialog", { name: "Release slot B-04?" })
     expect(within(dialog).getByText(/contact the organizer, who can assign it to you again/)).toBeInTheDocument()
     await user.click(within(dialog).getByRole("button", { name: "Release slot" }))
@@ -200,7 +200,7 @@ describe("Release and removal", () => {
       </QueryClientProvider>
     )
 
-    await user.click(await screen.findByRole("button", { name: "Release slot B-04" }))
+    await user.click(await screen.findByRole("button", { name: /Release slot B-04/ }))
     await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Release slot" }))
     await screen.findByText(/You're approved/)
 
@@ -214,6 +214,7 @@ describe("Release and removal", () => {
 
     expect(await screen.findByText("Can't make it? Contact the organizer. They decide under their policy.")).toBeInTheDocument()
     expect(screen.queryByRole("button", { name: /Release slot/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole("region", { name: "Change of plans?" })).not.toBeInTheDocument()
   })
 
   it("keeps the payment records readable after removal", async () => {
@@ -260,6 +261,60 @@ describe("Reapplying after removal", () => {
   })
 })
 
+describe("Change of plans", () => {
+  const applied = () =>
+    vendorApplicationFixture({ status: "approved", assignment: null, preferredSlot: { label: "A-05", state: "open" } })
+
+  it("lets an approved vendor change or clear the preferred slot", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    serve(applied())
+    vi.mocked(api.PUT).mockResolvedValue({ data: vendorApplicationFixture({ status: "approved", assignment: null }), response: { status: 200 } } as never)
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    const pref = await screen.findByRole("region", { name: "Preferred slot" })
+    expect(within(pref).getByRole("link", { name: "Change slot" })).toHaveAttribute("href", `/vendor/applications/${APPLICATION_ID}/slot`)
+    await user.click(within(pref).getByRole("button", { name: "No preference" }))
+
+    expect(api.PUT).toHaveBeenCalledWith("/api/vendor/applications/{id}/preference", { params: { path: { id: APPLICATION_ID } }, body: { preferredSlotId: null } })
+  })
+
+  it("lets an applied or approved vendor withdraw after confirming", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    serve(applied())
+    vi.mocked(api.POST).mockResolvedValue({ data: { id: APPLICATION_ID }, response: { status: 201 } } as never)
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    await user.click(await screen.findByRole("button", { name: "Withdraw application" }))
+    const dialog = screen.getByRole("dialog", { name: "Withdraw from Bajada Christmas Flea?" })
+    await user.click(within(dialog).getByRole("button", { name: "Withdraw" }))
+
+    expect(api.POST).toHaveBeenCalledWith("/api/vendor/applications/{id}/withdraw", { params: { path: { id: APPLICATION_ID } } })
+  })
+
+  it("offers pick another slot, release, or withdraw while a slot is unpaid", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    serve(vendorApplicationFixture())
+    vi.mocked(api.POST).mockResolvedValue({ data: { id: APPLICATION_ID }, response: { status: 201 } } as never)
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    const plans = await screen.findByRole("region", { name: "Change of plans?" })
+    expect(within(plans).getByRole("link", { name: /Pick another slot/ })).toHaveAttribute("href", `/vendor/applications/${APPLICATION_ID}/slot`)
+    expect(within(plans).getByRole("button", { name: /Release slot B-04/ })).toBeInTheDocument()
+    await user.click(within(plans).getByRole("button", { name: /Withdraw from this event/ }))
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Withdraw" }))
+
+    expect(api.POST).toHaveBeenCalledWith("/api/vendor/applications/{id}/withdraw", { params: { path: { id: APPLICATION_ID } } })
+  })
+
+  it("doesn't offer another slot when the organizer assigns slots", async () => {
+    serve(vendorApplicationFixture({ event: { ...vendorApplicationFixture().event, preferredSlots: false } }))
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    await screen.findByRole("region", { name: "Change of plans?" })
+    expect(screen.queryByRole("link", { name: /Pick another slot/ })).not.toBeInTheDocument()
+  })
+})
+
 describe("VendorApplicationsList (/vendor/applications)", () => {
   it("lists each event with its status, slot, payment, and a link", async () => {
     serve({
@@ -270,9 +325,22 @@ describe("VendorApplicationsList (/vendor/applications)", () => {
     renderWithQuery(<VendorApplicationsList />)
 
     const row = await screen.findByRole("article", { name: "Bajada Christmas Flea" })
-    expect(within(row).getByText("Slot assigned")).toBeInTheDocument()
-    expect(within(row).getByText("B-04 · ₱1,500")).toBeInTheDocument()
+    expect(within(row).getByText("Pay by Fri, Nov 13 · 9 AM")).toBeInTheDocument()
+    expect(within(row).getByText("Slot B-04 · ₱1,500")).toBeInTheDocument()
+    expect(within(row).getByText("Upload proof of payment")).toBeInTheDocument()
     expect(within(row).getByRole("link", { name: "Bajada Christmas Flea" })).toHaveAttribute("href", `/vendor/applications/${APPLICATION_ID}`)
+  })
+
+  it("keeps closed applications under Past and closed", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    serve({
+      applications: [{ id: APPLICATION_ID, event: vendorApplicationFixture().event, status: "declined", slotLabel: null, amountDue: null, paymentStatus: null, deadlineAt: null, decisionNote: "Full" }],
+    })
+    renderWithQuery(<VendorApplicationsList />)
+
+    expect(await screen.findByText("Nothing active right now.")).toBeInTheDocument()
+    await user.click(screen.getByRole("button", { name: /Past and closed/ }))
+    expect(screen.getByRole("article", { name: "Bajada Christmas Flea" })).toHaveTextContent("Declined")
   })
 
   it("invites the vendor to browse when there are none", async () => {
