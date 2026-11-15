@@ -251,3 +251,90 @@ export const vendorDashboardSchema = z.object({
   openEvents: z.array(z.object({ slug: z.string(), name: z.string(), startDate: z.string().nullable(), endDate: z.string().nullable(), applicationsCloseAt: z.string().nullable(), applied: z.boolean() })),
 });
 export type VendorDashboard = z.infer<typeof vendorDashboardSchema>;
+
+// ─── The organizer's Applications page and detail (decided 2026-11-15) ─────
+
+export const applicationFilterSchema = z.enum(['waiting', 'approved_no_slot', 'slot_assigned', 'reserved', 'declined', 'withdrawn', 'removed', 'all']);
+export type ApplicationFilter = z.infer<typeof applicationFilterSchema>;
+
+export const organizerApplicationsQuerySchema = z.object({
+  eventId: z.uuid().optional(),
+  status: applicationFilterSchema.default('waiting'),
+  q: z.string().trim().max(100).optional(),
+});
+
+const slotPreference = z.object({ label: z.string(), state: preferredSlotStateSchema }).nullable();
+
+export const applicationCardSchema = z.object({
+  id: z.uuid(),
+  eventId: z.uuid(),
+  eventName: z.string(),
+  eventStartDate: z.string().nullable(),
+  stage: vendorStatusSchema,
+  shopName: z.string(),
+  avatarUrl: z.string().nullable(),
+  categories: z.array(z.string()),
+  documents: z.object({ count: z.number().int(), pdfs: z.number().int(), missing: z.array(z.string()) }),
+  submittedAt: z.string(),
+  preferredSlot: slotPreference,
+  slotLabel: z.string().nullable(),
+});
+export type ApplicationCard = z.infer<typeof applicationCardSchema>;
+
+export const organizerApplicationsSchema = z.object({
+  summary: z.object({
+    waiting: z.number().int(),
+    oldestWaitingAt: z.string().nullable(),
+    approvedNoSlot: z.number().int(),
+    openSlots: z.number().int(),
+    proofsToCheck: z.number().int(),
+    proofsTotal: z.number(),
+  }),
+  counts: z.record(applicationFilterSchema, z.number().int()),
+  events: z.array(z.object({ id: z.uuid(), name: z.string(), startDate: z.string().nullable() })),
+  applications: z.array(applicationCardSchema),
+});
+export type OrganizerApplications = z.infer<typeof organizerApplicationsSchema>;
+
+export const applicationDetailSchema = z.object({
+  id: z.uuid(),
+  stage: vendorStatusSchema,
+  submittedAt: z.string(),
+  decidedAt: z.string().nullable(),
+  decisionNote: z.string().nullable(),
+  note: z.string().nullable(),
+  removalNote: z.string().nullable(),
+  canReapply: z.boolean().nullable(),
+  policyAcceptedAt: z.string(),
+  event: z.object({
+    id: z.uuid(),
+    name: z.string(),
+    slug: z.string(),
+    startDate: z.string().nullable(),
+    endDate: z.string().nullable(),
+    preferredSlots: z.boolean(),
+    vendorFloorPlanUrl: z.string().nullable(),
+  }),
+  vendor: z.object({
+    shopName: z.string(),
+    slug: z.string().nullable(),
+    avatarUrl: z.string().nullable(),
+    description: z.string().nullable(),
+    products: z.string().nullable(),
+    photoUrls: z.array(z.string()),
+    fullName: z.string(),
+    phone: z.string().nullable(),
+  }),
+  categories: z.array(z.object({ name: z.string(), approved: z.number().int(), max: z.number().int().nullable() })),
+  documents: z.array(z.object({ id: z.uuid(), name: z.string(), url: z.string(), isPdf: z.boolean(), uploadedAt: z.string() })),
+  missingDocuments: z.array(z.string()),
+  preferredSlot: z
+    .object({ label: z.string(), section: z.string().nullable(), sizeLabel: z.string().nullable(), price: z.number().nullable(), state: preferredSlotStateSchema, preferredByOthers: z.number().int() })
+    .nullable(),
+  assignment: z
+    .object({ status: assignmentStatusSchema, slotLabel: z.string(), amountDue: z.number(), paymentStatus: paymentStatusSchema, deadlineAt: z.string() })
+    .nullable(),
+  history: z.array(z.object({ id: z.uuid(), status: z.string(), submittedAt: z.string() })),
+  nextWaitingId: z.uuid().nullable(),
+});
+export type ApplicationDetail = z.infer<typeof applicationDetailSchema>;

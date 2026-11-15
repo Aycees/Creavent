@@ -17035,6 +17035,825 @@
         ]
       }
     },
+    "/api/organizer/applications": {
+      "get": {
+        "operationId": "OrganizerAllApplicationsController_list",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "waiting",
+              "type": "string",
+              "enum": [
+                "waiting",
+                "approved_no_slot",
+                "slot_assigned",
+                "reserved",
+                "declined",
+                "withdrawn",
+                "removed",
+                "all"
+              ]
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "summary": {
+                      "type": "object",
+                      "properties": {
+                        "waiting": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "oldestWaitingAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "approvedNoSlot": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "openSlots": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "proofsToCheck": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "proofsTotal": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "waiting",
+                        "oldestWaitingAt",
+                        "approvedNoSlot",
+                        "openSlots",
+                        "proofsToCheck",
+                        "proofsTotal"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "counts": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "required": [
+                        "waiting",
+                        "approved_no_slot",
+                        "slot_assigned",
+                        "reserved",
+                        "declined",
+                        "withdrawn",
+                        "removed",
+                        "all"
+                      ]
+                    },
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "startDate": {
+                            "nullable": true,
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "startDate"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "applications": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "eventId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "eventName": {
+                            "type": "string"
+                          },
+                          "eventStartDate": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "stage": {
+                            "type": "string",
+                            "enum": [
+                              "submitted",
+                              "approved",
+                              "slot_assigned",
+                              "reserved",
+                              "declined",
+                              "withdrawn",
+                              "removed"
+                            ]
+                          },
+                          "shopName": {
+                            "type": "string"
+                          },
+                          "avatarUrl": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "categories": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "documents": {
+                            "type": "object",
+                            "properties": {
+                              "count": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "pdfs": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "missing": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "required": [
+                              "count",
+                              "pdfs",
+                              "missing"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "submittedAt": {
+                            "type": "string"
+                          },
+                          "preferredSlot": {
+                            "nullable": true,
+                            "type": "object",
+                            "properties": {
+                              "label": {
+                                "type": "string"
+                              },
+                              "state": {
+                                "type": "string",
+                                "enum": [
+                                  "open",
+                                  "taken",
+                                  "removed"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "label",
+                              "state"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "slotLabel": {
+                            "nullable": true,
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "eventId",
+                          "eventName",
+                          "eventStartDate",
+                          "stage",
+                          "shopName",
+                          "avatarUrl",
+                          "categories",
+                          "documents",
+                          "submittedAt",
+                          "preferredSlot",
+                          "slotLabel"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "summary",
+                    "counts",
+                    "events",
+                    "applications"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "OrganizerAllApplications"
+        ]
+      }
+    },
+    "/api/organizer/applications/count": {
+      "get": {
+        "operationId": "OrganizerAllApplicationsController_count",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "waiting": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "waiting"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "OrganizerAllApplications"
+        ]
+      }
+    },
+    "/api/organizer/applications/{id}": {
+      "get": {
+        "operationId": "OrganizerAllApplicationsController_detail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "stage": {
+                      "type": "string",
+                      "enum": [
+                        "submitted",
+                        "approved",
+                        "slot_assigned",
+                        "reserved",
+                        "declined",
+                        "withdrawn",
+                        "removed"
+                      ]
+                    },
+                    "submittedAt": {
+                      "type": "string"
+                    },
+                    "decidedAt": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "decisionNote": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "note": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "removalNote": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "canReapply": {
+                      "nullable": true,
+                      "type": "boolean"
+                    },
+                    "policyAcceptedAt": {
+                      "type": "string"
+                    },
+                    "event": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "slug": {
+                          "type": "string"
+                        },
+                        "startDate": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "endDate": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "preferredSlots": {
+                          "type": "boolean"
+                        },
+                        "vendorFloorPlanUrl": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "slug",
+                        "startDate",
+                        "endDate",
+                        "preferredSlots",
+                        "vendorFloorPlanUrl"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "vendor": {
+                      "type": "object",
+                      "properties": {
+                        "shopName": {
+                          "type": "string"
+                        },
+                        "slug": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "avatarUrl": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "description": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "products": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "photoUrls": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "fullName": {
+                          "type": "string"
+                        },
+                        "phone": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "shopName",
+                        "slug",
+                        "avatarUrl",
+                        "description",
+                        "products",
+                        "photoUrls",
+                        "fullName",
+                        "phone"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "categories": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "approved": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "max": {
+                            "nullable": true,
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "approved",
+                          "max"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "documents": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "url": {
+                            "type": "string"
+                          },
+                          "isPdf": {
+                            "type": "boolean"
+                          },
+                          "uploadedAt": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "url",
+                          "isPdf",
+                          "uploadedAt"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "missingDocuments": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "preferredSlot": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "label": {
+                          "type": "string"
+                        },
+                        "section": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "sizeLabel": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "price": {
+                          "nullable": true,
+                          "type": "number"
+                        },
+                        "state": {
+                          "type": "string",
+                          "enum": [
+                            "open",
+                            "taken",
+                            "removed"
+                          ]
+                        },
+                        "preferredByOthers": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        }
+                      },
+                      "required": [
+                        "label",
+                        "section",
+                        "sizeLabel",
+                        "price",
+                        "state",
+                        "preferredByOthers"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "assignment": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "assigned",
+                            "reserved",
+                            "released",
+                            "removed",
+                            "canceled"
+                          ]
+                        },
+                        "slotLabel": {
+                          "type": "string"
+                        },
+                        "amountDue": {
+                          "type": "number"
+                        },
+                        "paymentStatus": {
+                          "type": "string",
+                          "enum": [
+                            "pending",
+                            "submitted",
+                            "approved",
+                            "rejected"
+                          ]
+                        },
+                        "deadlineAt": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "slotLabel",
+                        "amountDue",
+                        "paymentStatus",
+                        "deadlineAt"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "history": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "submittedAt": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "status",
+                          "submittedAt"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "nextWaitingId": {
+                      "nullable": true,
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "stage",
+                    "submittedAt",
+                    "decidedAt",
+                    "decisionNote",
+                    "note",
+                    "removalNote",
+                    "canReapply",
+                    "policyAcceptedAt",
+                    "event",
+                    "vendor",
+                    "categories",
+                    "documents",
+                    "missingDocuments",
+                    "preferredSlot",
+                    "assignment",
+                    "history",
+                    "nextWaitingId"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "OrganizerAllApplications"
+        ]
+      }
+    },
     "/api/vendor/events/{slug}/apply": {
       "get": {
         "operationId": "VendorApplicationsController_form",
@@ -18188,6 +19007,9 @@
                           "nullable": true,
                           "type": "string"
                         },
+                        "preferredSlots": {
+                          "type": "boolean"
+                        },
                         "vendorFloorPlanUrl": {
                           "nullable": true,
                           "type": "string"
@@ -18204,6 +19026,7 @@
                         "addressLine",
                         "city",
                         "ingressInfo",
+                        "preferredSlots",
                         "vendorFloorPlanUrl"
                       ],
                       "additionalProperties": false
@@ -18757,6 +19580,9 @@
                           "nullable": true,
                           "type": "string"
                         },
+                        "preferredSlots": {
+                          "type": "boolean"
+                        },
                         "vendorFloorPlanUrl": {
                           "nullable": true,
                           "type": "string"
@@ -18773,6 +19599,7 @@
                         "addressLine",
                         "city",
                         "ingressInfo",
+                        "preferredSlots",
                         "vendorFloorPlanUrl"
                       ],
                       "additionalProperties": false
@@ -19216,6 +20043,9 @@
                           "nullable": true,
                           "type": "string"
                         },
+                        "preferredSlots": {
+                          "type": "boolean"
+                        },
                         "vendorFloorPlanUrl": {
                           "nullable": true,
                           "type": "string"
@@ -19232,6 +20062,7 @@
                         "addressLine",
                         "city",
                         "ingressInfo",
+                        "preferredSlots",
                         "vendorFloorPlanUrl"
                       ],
                       "additionalProperties": false
@@ -19743,6 +20574,9 @@
                           "nullable": true,
                           "type": "string"
                         },
+                        "preferredSlots": {
+                          "type": "boolean"
+                        },
                         "vendorFloorPlanUrl": {
                           "nullable": true,
                           "type": "string"
@@ -19759,6 +20593,7 @@
                         "addressLine",
                         "city",
                         "ingressInfo",
+                        "preferredSlots",
                         "vendorFloorPlanUrl"
                       ],
                       "additionalProperties": false
@@ -20202,6 +21037,9 @@
                           "nullable": true,
                           "type": "string"
                         },
+                        "preferredSlots": {
+                          "type": "boolean"
+                        },
                         "vendorFloorPlanUrl": {
                           "nullable": true,
                           "type": "string"
@@ -20218,6 +21056,1730 @@
                         "addressLine",
                         "city",
                         "ingressInfo",
+                        "preferredSlots",
+                        "vendorFloorPlanUrl"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "organizer": {
+                      "type": "object",
+                      "properties": {
+                        "displayName": {
+                          "type": "string"
+                        },
+                        "fullName": {
+                          "type": "string"
+                        },
+                        "phone": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "contactEmail": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "approved": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "displayName",
+                        "fullName",
+                        "phone",
+                        "contactEmail",
+                        "approved"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "preferredSlot": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "label": {
+                          "type": "string"
+                        },
+                        "state": {
+                          "type": "string",
+                          "enum": [
+                            "open",
+                            "taken",
+                            "removed"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "label",
+                        "state"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "assignment": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "assigned",
+                            "reserved",
+                            "released",
+                            "removed",
+                            "canceled"
+                          ]
+                        },
+                        "slotLabel": {
+                          "type": "string"
+                        },
+                        "sizeLabel": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "note": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "amountDue": {
+                          "type": "number"
+                        },
+                        "assignedAt": {
+                          "type": "string"
+                        },
+                        "deadlineAt": {
+                          "type": "string"
+                        },
+                        "reservedAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "paymentStatus": {
+                          "type": "string",
+                          "enum": [
+                            "pending",
+                            "submitted",
+                            "approved",
+                            "rejected"
+                          ]
+                        },
+                        "instructions": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "channel": {
+                                "type": "string",
+                                "enum": [
+                                  "gcash",
+                                  "maya",
+                                  "bank",
+                                  "other"
+                                ]
+                              },
+                              "label": {
+                                "type": "string"
+                              },
+                              "accountName": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "accountNumber": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "qrFileId": {
+                                "nullable": true,
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "notes": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "qrUrl": {
+                                "nullable": true,
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "channel",
+                              "label",
+                              "accountName",
+                              "accountNumber",
+                              "qrFileId",
+                              "notes",
+                              "qrUrl"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "proofs": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "status": {
+                                "type": "string",
+                                "enum": [
+                                  "submitted",
+                                  "approved",
+                                  "rejected"
+                                ]
+                              },
+                              "uploadedAt": {
+                                "type": "string"
+                              },
+                              "fileUrl": {
+                                "type": "string"
+                              },
+                              "methodLabel": {
+                                "type": "string"
+                              },
+                              "methodAccount": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "amountClaimed": {
+                                "nullable": true,
+                                "type": "number"
+                              },
+                              "referenceNumber": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "note": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "rejectionReason": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "archived": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "status",
+                              "uploadedAt",
+                              "fileUrl",
+                              "methodLabel",
+                              "methodAccount",
+                              "amountClaimed",
+                              "referenceNumber",
+                              "note",
+                              "rejectionReason",
+                              "archived"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "paymentNote": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "archived": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "status",
+                        "slotLabel",
+                        "sizeLabel",
+                        "note",
+                        "amountDue",
+                        "assignedAt",
+                        "deadlineAt",
+                        "reservedAt",
+                        "paymentStatus",
+                        "instructions",
+                        "proofs",
+                        "paymentNote",
+                        "archived"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "status",
+                    "submittedAt",
+                    "decidedAt",
+                    "decisionNote",
+                    "removalNote",
+                    "canReapply",
+                    "categories",
+                    "documentCount",
+                    "pastProofs",
+                    "event",
+                    "organizer",
+                    "preferredSlot",
+                    "assignment"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "VendorApplications"
+        ]
+      }
+    },
+    "/api/vendor/applications/{id}/slots": {
+      "get": {
+        "operationId": "VendorApplicationsController_slots",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "currentSlotLabel": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "preferredSlotId": {
+                      "nullable": true,
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "vendorFloorPlanUrl": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "slotGroups": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "slots": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "label": {
+                                  "type": "string"
+                                },
+                                "sizeLabel": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "note": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "price": {
+                                  "nullable": true,
+                                  "type": "number"
+                                },
+                                "taken": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "label",
+                                "sizeLabel",
+                                "note",
+                                "price",
+                                "taken"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "slots"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "currentSlotLabel",
+                    "preferredSlotId",
+                    "vendorFloorPlanUrl",
+                    "slotGroups"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "VendorApplications"
+        ]
+      }
+    },
+    "/api/vendor/applications/{id}/preference": {
+      "put": {
+        "operationId": "VendorApplicationsController_preference",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "preferredSlotId": {
+                    "nullable": true,
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  }
+                },
+                "required": [
+                  "preferredSlotId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "submitted",
+                        "approved",
+                        "slot_assigned",
+                        "reserved",
+                        "declined",
+                        "withdrawn",
+                        "removed"
+                      ]
+                    },
+                    "submittedAt": {
+                      "type": "string"
+                    },
+                    "decidedAt": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "decisionNote": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "removalNote": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "canReapply": {
+                      "nullable": true,
+                      "type": "boolean"
+                    },
+                    "categories": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "documentCount": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "pastProofs": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "submitted",
+                              "approved",
+                              "rejected"
+                            ]
+                          },
+                          "uploadedAt": {
+                            "type": "string"
+                          },
+                          "fileUrl": {
+                            "type": "string"
+                          },
+                          "methodLabel": {
+                            "type": "string"
+                          },
+                          "methodAccount": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "amountClaimed": {
+                            "nullable": true,
+                            "type": "number"
+                          },
+                          "referenceNumber": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "note": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "rejectionReason": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "archived": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "status",
+                          "uploadedAt",
+                          "fileUrl",
+                          "methodLabel",
+                          "methodAccount",
+                          "amountClaimed",
+                          "referenceNumber",
+                          "note",
+                          "rejectionReason",
+                          "archived"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "event": {
+                      "type": "object",
+                      "properties": {
+                        "slug": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "startDate": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "endDate": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "opensAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "closesAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "venueName": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "addressLine": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "city": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "ingressInfo": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "preferredSlots": {
+                          "type": "boolean"
+                        },
+                        "vendorFloorPlanUrl": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "slug",
+                        "name",
+                        "startDate",
+                        "endDate",
+                        "opensAt",
+                        "closesAt",
+                        "venueName",
+                        "addressLine",
+                        "city",
+                        "ingressInfo",
+                        "preferredSlots",
+                        "vendorFloorPlanUrl"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "organizer": {
+                      "type": "object",
+                      "properties": {
+                        "displayName": {
+                          "type": "string"
+                        },
+                        "fullName": {
+                          "type": "string"
+                        },
+                        "phone": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "contactEmail": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "approved": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "displayName",
+                        "fullName",
+                        "phone",
+                        "contactEmail",
+                        "approved"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "preferredSlot": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "label": {
+                          "type": "string"
+                        },
+                        "state": {
+                          "type": "string",
+                          "enum": [
+                            "open",
+                            "taken",
+                            "removed"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "label",
+                        "state"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "assignment": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "assigned",
+                            "reserved",
+                            "released",
+                            "removed",
+                            "canceled"
+                          ]
+                        },
+                        "slotLabel": {
+                          "type": "string"
+                        },
+                        "sizeLabel": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "note": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "amountDue": {
+                          "type": "number"
+                        },
+                        "assignedAt": {
+                          "type": "string"
+                        },
+                        "deadlineAt": {
+                          "type": "string"
+                        },
+                        "reservedAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "paymentStatus": {
+                          "type": "string",
+                          "enum": [
+                            "pending",
+                            "submitted",
+                            "approved",
+                            "rejected"
+                          ]
+                        },
+                        "instructions": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "channel": {
+                                "type": "string",
+                                "enum": [
+                                  "gcash",
+                                  "maya",
+                                  "bank",
+                                  "other"
+                                ]
+                              },
+                              "label": {
+                                "type": "string"
+                              },
+                              "accountName": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "accountNumber": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "qrFileId": {
+                                "nullable": true,
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "notes": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "qrUrl": {
+                                "nullable": true,
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "channel",
+                              "label",
+                              "accountName",
+                              "accountNumber",
+                              "qrFileId",
+                              "notes",
+                              "qrUrl"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "proofs": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "status": {
+                                "type": "string",
+                                "enum": [
+                                  "submitted",
+                                  "approved",
+                                  "rejected"
+                                ]
+                              },
+                              "uploadedAt": {
+                                "type": "string"
+                              },
+                              "fileUrl": {
+                                "type": "string"
+                              },
+                              "methodLabel": {
+                                "type": "string"
+                              },
+                              "methodAccount": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "amountClaimed": {
+                                "nullable": true,
+                                "type": "number"
+                              },
+                              "referenceNumber": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "note": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "rejectionReason": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "archived": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "status",
+                              "uploadedAt",
+                              "fileUrl",
+                              "methodLabel",
+                              "methodAccount",
+                              "amountClaimed",
+                              "referenceNumber",
+                              "note",
+                              "rejectionReason",
+                              "archived"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "paymentNote": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "archived": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "status",
+                        "slotLabel",
+                        "sizeLabel",
+                        "note",
+                        "amountDue",
+                        "assignedAt",
+                        "deadlineAt",
+                        "reservedAt",
+                        "paymentStatus",
+                        "instructions",
+                        "proofs",
+                        "paymentNote",
+                        "archived"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "status",
+                    "submittedAt",
+                    "decidedAt",
+                    "decisionNote",
+                    "removalNote",
+                    "canReapply",
+                    "categories",
+                    "documentCount",
+                    "pastProofs",
+                    "event",
+                    "organizer",
+                    "preferredSlot",
+                    "assignment"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "VendorApplications"
+        ]
+      }
+    },
+    "/api/vendor/applications/{id}/change-slot": {
+      "post": {
+        "operationId": "VendorApplicationsController_changeSlot",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "preferredSlotId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  }
+                },
+                "required": [
+                  "preferredSlotId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "submitted",
+                        "approved",
+                        "slot_assigned",
+                        "reserved",
+                        "declined",
+                        "withdrawn",
+                        "removed"
+                      ]
+                    },
+                    "submittedAt": {
+                      "type": "string"
+                    },
+                    "decidedAt": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "decisionNote": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "removalNote": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "canReapply": {
+                      "nullable": true,
+                      "type": "boolean"
+                    },
+                    "categories": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "documentCount": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "pastProofs": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "submitted",
+                              "approved",
+                              "rejected"
+                            ]
+                          },
+                          "uploadedAt": {
+                            "type": "string"
+                          },
+                          "fileUrl": {
+                            "type": "string"
+                          },
+                          "methodLabel": {
+                            "type": "string"
+                          },
+                          "methodAccount": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "amountClaimed": {
+                            "nullable": true,
+                            "type": "number"
+                          },
+                          "referenceNumber": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "note": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "rejectionReason": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "archived": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "status",
+                          "uploadedAt",
+                          "fileUrl",
+                          "methodLabel",
+                          "methodAccount",
+                          "amountClaimed",
+                          "referenceNumber",
+                          "note",
+                          "rejectionReason",
+                          "archived"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "event": {
+                      "type": "object",
+                      "properties": {
+                        "slug": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "startDate": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "endDate": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "opensAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "closesAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "venueName": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "addressLine": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "city": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "ingressInfo": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "preferredSlots": {
+                          "type": "boolean"
+                        },
+                        "vendorFloorPlanUrl": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "slug",
+                        "name",
+                        "startDate",
+                        "endDate",
+                        "opensAt",
+                        "closesAt",
+                        "venueName",
+                        "addressLine",
+                        "city",
+                        "ingressInfo",
+                        "preferredSlots",
+                        "vendorFloorPlanUrl"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "organizer": {
+                      "type": "object",
+                      "properties": {
+                        "displayName": {
+                          "type": "string"
+                        },
+                        "fullName": {
+                          "type": "string"
+                        },
+                        "phone": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "contactEmail": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "approved": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "displayName",
+                        "fullName",
+                        "phone",
+                        "contactEmail",
+                        "approved"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "preferredSlot": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "label": {
+                          "type": "string"
+                        },
+                        "state": {
+                          "type": "string",
+                          "enum": [
+                            "open",
+                            "taken",
+                            "removed"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "label",
+                        "state"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "assignment": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "assigned",
+                            "reserved",
+                            "released",
+                            "removed",
+                            "canceled"
+                          ]
+                        },
+                        "slotLabel": {
+                          "type": "string"
+                        },
+                        "sizeLabel": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "note": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "amountDue": {
+                          "type": "number"
+                        },
+                        "assignedAt": {
+                          "type": "string"
+                        },
+                        "deadlineAt": {
+                          "type": "string"
+                        },
+                        "reservedAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "paymentStatus": {
+                          "type": "string",
+                          "enum": [
+                            "pending",
+                            "submitted",
+                            "approved",
+                            "rejected"
+                          ]
+                        },
+                        "instructions": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "channel": {
+                                "type": "string",
+                                "enum": [
+                                  "gcash",
+                                  "maya",
+                                  "bank",
+                                  "other"
+                                ]
+                              },
+                              "label": {
+                                "type": "string"
+                              },
+                              "accountName": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "accountNumber": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "qrFileId": {
+                                "nullable": true,
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "notes": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "qrUrl": {
+                                "nullable": true,
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "channel",
+                              "label",
+                              "accountName",
+                              "accountNumber",
+                              "qrFileId",
+                              "notes",
+                              "qrUrl"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "proofs": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "status": {
+                                "type": "string",
+                                "enum": [
+                                  "submitted",
+                                  "approved",
+                                  "rejected"
+                                ]
+                              },
+                              "uploadedAt": {
+                                "type": "string"
+                              },
+                              "fileUrl": {
+                                "type": "string"
+                              },
+                              "methodLabel": {
+                                "type": "string"
+                              },
+                              "methodAccount": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "amountClaimed": {
+                                "nullable": true,
+                                "type": "number"
+                              },
+                              "referenceNumber": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "note": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "rejectionReason": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "archived": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "status",
+                              "uploadedAt",
+                              "fileUrl",
+                              "methodLabel",
+                              "methodAccount",
+                              "amountClaimed",
+                              "referenceNumber",
+                              "note",
+                              "rejectionReason",
+                              "archived"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "paymentNote": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "archived": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "status",
+                        "slotLabel",
+                        "sizeLabel",
+                        "note",
+                        "amountDue",
+                        "assignedAt",
+                        "deadlineAt",
+                        "reservedAt",
+                        "paymentStatus",
+                        "instructions",
+                        "proofs",
+                        "paymentNote",
+                        "archived"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "status",
+                    "submittedAt",
+                    "decidedAt",
+                    "decisionNote",
+                    "removalNote",
+                    "canReapply",
+                    "categories",
+                    "documentCount",
+                    "pastProofs",
+                    "event",
+                    "organizer",
+                    "preferredSlot",
+                    "assignment"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "submitted",
+                        "approved",
+                        "slot_assigned",
+                        "reserved",
+                        "declined",
+                        "withdrawn",
+                        "removed"
+                      ]
+                    },
+                    "submittedAt": {
+                      "type": "string"
+                    },
+                    "decidedAt": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "decisionNote": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "removalNote": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "canReapply": {
+                      "nullable": true,
+                      "type": "boolean"
+                    },
+                    "categories": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "documentCount": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "pastProofs": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "submitted",
+                              "approved",
+                              "rejected"
+                            ]
+                          },
+                          "uploadedAt": {
+                            "type": "string"
+                          },
+                          "fileUrl": {
+                            "type": "string"
+                          },
+                          "methodLabel": {
+                            "type": "string"
+                          },
+                          "methodAccount": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "amountClaimed": {
+                            "nullable": true,
+                            "type": "number"
+                          },
+                          "referenceNumber": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "note": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "rejectionReason": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "archived": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "status",
+                          "uploadedAt",
+                          "fileUrl",
+                          "methodLabel",
+                          "methodAccount",
+                          "amountClaimed",
+                          "referenceNumber",
+                          "note",
+                          "rejectionReason",
+                          "archived"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "event": {
+                      "type": "object",
+                      "properties": {
+                        "slug": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "startDate": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "endDate": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "opensAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "closesAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "venueName": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "addressLine": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "city": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "ingressInfo": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "preferredSlots": {
+                          "type": "boolean"
+                        },
+                        "vendorFloorPlanUrl": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "slug",
+                        "name",
+                        "startDate",
+                        "endDate",
+                        "opensAt",
+                        "closesAt",
+                        "venueName",
+                        "addressLine",
+                        "city",
+                        "ingressInfo",
+                        "preferredSlots",
                         "vendorFloorPlanUrl"
                       ],
                       "additionalProperties": false
