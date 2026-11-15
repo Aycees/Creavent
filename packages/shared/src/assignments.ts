@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { optionalLongText, paymentChannelSchema, text } from './events.js';
+import { eventStatusSchema, optionalLongText, paymentChannelSchema, text } from './events.js';
 import { preferredSlotStateSchema, vendorStatusSchema } from './applications.js';
 
 // Slot assignment and payments (spec §5, §6, data model §5.7).
@@ -67,7 +67,7 @@ export const eventVendorsSchema = z.object({
     id: z.uuid(),
     slug: z.string(),
     name: z.string(),
-    status: z.string(),
+    status: eventStatusSchema,
     applicationsOpen: z.boolean(),
     preferredSlots: z.boolean(),
     deadlineHours: z.number().int(),
@@ -115,6 +115,17 @@ export const eventVendorsSchema = z.object({
       paymentNote: z.string().nullable(),
     }),
   ),
+  archived: z.array(
+    z.object({
+      assignmentId: z.uuid(),
+      shopName: z.string(),
+      slotLabel: z.string(),
+      status: assignmentStatusSchema,
+      amountDue: z.number(),
+      endedAt: z.string().nullable(),
+      proofs: z.array(proofSchema),
+    }),
+  ),
 });
 export type EventVendors = z.infer<typeof eventVendorsSchema>;
 
@@ -153,6 +164,8 @@ export const vendorApplicationSchema = z.object({
   removalNote: z.string().nullable(),
   categories: z.array(z.string()),
   documentCount: z.number().int(),
+  // Proofs from earlier slots of this application, read-only.
+  pastProofs: z.array(proofSchema),
   event: eventSummary.extend({
     addressLine: z.string().nullable(),
     city: z.string().nullable(),

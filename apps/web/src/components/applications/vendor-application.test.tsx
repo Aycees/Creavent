@@ -195,6 +195,16 @@ describe("Release and removal", () => {
   })
 })
 
+describe("Payment records from an earlier slot", () => {
+  it("keeps proofs from a released slot readable next to the new slot", async () => {
+    serve(vendorApplicationFixture({ pastProofs: [proofFixture({ id: "p-old", status: "rejected", archived: true, fileUrl: "/api/files/old" })] }))
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    const records = await screen.findByRole("region", { name: "Payment records" })
+    expect(within(records).getByRole("link", { name: /Screenshot sent/ })).toHaveAttribute("href", "/api/files/old")
+  })
+})
+
 describe("VendorApplicationsList (/vendor/applications)", () => {
   it("lists each event with its status, slot, payment, and a link", async () => {
     serve({

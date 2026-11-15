@@ -291,13 +291,19 @@ export class VendorApplicationsService {
         event: { include: { vendorFloorPlanFile: true, organizerProfile: { include: { user: { include: { roles: { where: { role: 'organizer' } } } } } } } },
         assignments: {
           orderBy: { assignedAt: 'desc' },
-          take: 1,
           include: { slot: true, payment: { include: { proofs: { orderBy: { uploadedAt: 'desc' }, include: { paymentMethod: true, file: true } } } } },
         },
       },
     });
     if (!a) throw new NotFoundException('Application not found');
     const latest = a.assignments[0] ?? null;
+    // Proofs of earlier assignments of this application (a released slot,
+    // then a new one) stay readable under Payment records (spec §6.6).
+    const pastProofs = a.assignments
+      .slice(1)
+      .flatMap((x) => x.payment?.proofs ?? [])
+      .filter((p) => !p.file.deletedAt)
+      .map((p) => this.payments.toProof(p));
     const active = latest && (latest.status === 'assigned' || latest.status === 'reserved') ? latest : null;
     const organizer = a.event.organizerProfile.user;
     const role = organizer.roles[0];
@@ -312,6 +318,7 @@ export class VendorApplicationsService {
       removalNote: a.removalNote,
       categories: a.categories.map((c) => c.category.name),
       documentCount: a._count.documents,
+      pastProofs,
       event: {
         ...eventSummary(a.event),
         addressLine: a.event.addressLine,

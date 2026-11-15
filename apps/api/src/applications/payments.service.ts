@@ -1,7 +1,6 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { formatPeso, type PaymentInstruction, type Proof, type uploadProofSchema } from '@creavent/shared';
 import type { z } from 'zod';
-import { writeAuditLog } from '../audit/audit-log.js';
 import { appConfig } from '../config.js';
 import { ownEvent } from '../events/organizer-events.service.js';
 import type { EventPaymentMethod, File, Payment, PaymentProof, Prisma } from '../generated/prisma/client.js';
@@ -9,6 +8,7 @@ import { assertAttachable, FilesService } from '../files/files.service.js';
 import { OutboxService } from '../notifications/outbox.service.js';
 import { PrismaService, type Tx } from '../prisma/prisma.service.js';
 import { changeAssignmentStatus } from './assignment-status.js';
+import { changePaymentStatus, changeProofStatus } from './payment-status.js';
 import { assertVisible } from './organizer-applications.service.js';
 import { vendorProfile } from './vendor-profile.js';
 
@@ -58,14 +58,7 @@ export class PaymentsService {
           note: input.note,
         },
       });
-      await tx.payment.update({ where: { id: payment.id }, data: { status: 'submitted' } });
-      await writeAuditLog(tx, {
-        actorUserId: userId,
-        action: 'payment.proof_uploaded',
-        entityType: 'payment',
-        entityId: payment.id,
-        changes: { status: { from: payment.status, to: 'submitted' }, proofId: proof.id },
-      });
+      await changePaymentStatus(tx, { paymentId: payment.id, from: payment.status, action: 'submit', actorUserId: userId, reason: `Proof ${proof.id}` });
       const organizer = assignment.event.organizerProfile.user;
       const config = appConfig();
       await this.outbox.queue(tx, {
@@ -90,7 +83,7 @@ export class PaymentsService {
   async approveProof(userId: string, eventId: string, proofId: string, amountPaid: number | null) {
     await this.prisma.$transaction(async (tx) => {
       const { proof, assignment } = await this.waitingProof(tx, userId, eventId, proofId);
-      await tx.paymentProof.update({ where: { id: proof.id }, data: { status: 'approved', decidedById: userId, decidedAt: new Date() } });
+      await changeProofStatus(tx, { proofId: proof.id, action: 'approve', actorUserId: userId, data: { decidedById: userId, decidedAt: new Date() } });
       await this.approvePayment(tx, userId, assignment, {
         method: 'proof_upload',
         amountPaid: amountPaid ?? (proof.amountClaimed === null ? Number(assignment.payment.amountDue) : Number(proof.amountClaimed)),
@@ -103,14 +96,13 @@ export class PaymentsService {
     await this.prisma.$transaction(async (tx) => {
       const { proof, assignment } = await this.waitingProof(tx, userId, eventId, proofId);
       const now = new Date();
-      await tx.paymentProof.update({ where: { id: proof.id }, data: { status: 'rejected', decidedById: userId, decidedAt: now, rejectionReason: reason } });
-      await tx.payment.update({ where: { id: assignment.payment.id }, data: { status: 'rejected', decidedById: userId, decidedAt: now } });
-      await writeAuditLog(tx, {
+      await changeProofStatus(tx, { proofId: proof.id, action: 'reject', actorUserId: userId, data: { decidedById: userId, decidedAt: now, rejectionReason: reason }, reason });
+      await changePaymentStatus(tx, {
+        paymentId: assignment.payment.id,
+        from: assignment.payment.status,
+        action: 'reject',
         actorUserId: userId,
-        action: 'payment.reject',
-        entityType: 'payment',
-        entityId: assignment.payment.id,
-        changes: { status: { from: 'submitted', to: 'rejected' }, proofId: proof.id },
+        data: { decidedById: userId, decidedAt: now },
         reason,
       });
       await this.emailVendor(tx, assignment, 'payment_rejected', { reason });
@@ -126,6 +118,11 @@ export class PaymentsService {
       if (!assignment?.payment) throw new NotFoundException('Slot not found');
       if (assignment.status !== 'assigned' || assignment.payment.status === 'approved' || assignment.payment.archivedAt) {
         throw new ConflictException('This payment is already approved, or the vendor no longer has this slot');
+      }
+      // A waiting proof is decided with approve or reject, so it isn't left
+      // in "proofs to check" (spec §6.3).
+      if (assignment.payment.status === 'submitted') {
+        throw new ConflictException('A proof is waiting for your review. Approve or reject it instead.');
       }
       await this.approvePayment(tx, userId, { ...assignment, payment: assignment.payment }, { method, amountPaid: Number(assignment.payment.amountDue), note });
     });
@@ -151,16 +148,12 @@ export class PaymentsService {
     input: { method: 'proof_upload' | 'cash' | 'other'; amountPaid: number; note: string | null },
   ) {
     const now = new Date();
-    await tx.payment.update({
-      where: { id: assignment.payment.id },
-      data: { status: 'approved', method: input.method, amountPaid: input.amountPaid, decidedById: userId, decidedAt: now, decisionNote: input.note },
-    });
-    await writeAuditLog(tx, {
+    await changePaymentStatus(tx, {
+      paymentId: assignment.payment.id,
+      from: assignment.payment.status,
+      action: 'approve',
       actorUserId: userId,
-      action: 'payment.approve',
-      entityType: 'payment',
-      entityId: assignment.payment.id,
-      changes: { status: { from: assignment.payment.status, to: 'approved' }, method: input.method },
+      data: { method: input.method, amountPaid: input.amountPaid, decidedById: userId, decidedAt: now, decisionNote: input.note },
       reason: input.note,
     });
     await changeAssignmentStatus(tx, { assignmentId: assignment.id, from: 'assigned', action: 'reserve', actorUserId: userId, data: { reservedAt: now } });

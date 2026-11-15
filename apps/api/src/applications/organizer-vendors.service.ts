@@ -28,6 +28,15 @@ export class OrganizerVendorsService {
       include: { slots: { where: { deletedAt: null }, orderBy: [{ sortOrder: 'asc' }, { label: 'asc' }] } },
     });
     if (!event) throw new NotFoundException('Event not found');
+    const ended = await this.prisma.slotAssignment.findMany({
+      where: { eventId, status: { in: ['released', 'removed', 'canceled'] }, payment: { proofs: { some: {} } } },
+      include: {
+        slot: true,
+        vendorProfile: true,
+        payment: { include: { proofs: { orderBy: { uploadedAt: 'desc' }, include: { paymentMethod: true, file: true } } } },
+      },
+      orderBy: { endedAt: 'desc' },
+    });
     const [assignments, approved, waiting] = await Promise.all([
       this.prisma.slotAssignment.findMany({
         where: { eventId, status: { in: [...ACTIVE] } },
@@ -105,6 +114,17 @@ export class OrganizerVendorsService {
         proof: a.payment?.proofs[0] ? this.payments.toProof(a.payment.proofs[0]) : null,
         paymentNote: a.payment?.method !== 'proof_upload' ? (a.payment?.decisionNote ?? null) : null,
       })),
+      // Payment records of vendors who released or were removed: read-only,
+      // and still readable for disputes (spec §6.6).
+      archived: ended.map((a) => ({
+        assignmentId: a.id,
+        shopName: a.vendorProfile.shopName,
+        slotLabel: a.slot.label,
+        status: a.status,
+        amountDue: Number(a.priceLocked),
+        endedAt: a.endedAt?.toISOString() ?? null,
+        proofs: (a.payment?.proofs ?? []).filter((p) => !p.file.deletedAt).map((p) => this.payments.toProof(p)),
+      })),
     };
   }
 
@@ -113,6 +133,9 @@ export class OrganizerVendorsService {
       await this.prisma.$transaction(async (tx) => {
         const event = await ownEvent(tx, userId, eventId);
         assertVisible(event);
+        if (event.status !== 'open_to_vendors' && event.status !== 'announced') {
+          throw new ConflictException('This event is not taking vendors anymore');
+        }
         const application = await tx.application.findFirst({
           where: { id: applicationId, eventId },
           include: { vendorProfile: { include: { user: true } } },

@@ -126,6 +126,7 @@ export function VendorsAndSlots({ eventId }: { eventId: string }) {
       </section>
 
       <VendorList eventId={eventId} assignments={data.assignments} onDone={setDone} />
+      {data.archived.length > 0 && <PaymentRecords records={data.archived} />}
 
       {removingUnassigned && (
         <RemoveDialog
@@ -543,5 +544,33 @@ function RemoveDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  )
+}
+
+const endedLabels = { released: "Released", removed: "Removed", canceled: "Canceled", assigned: "Assigned", reserved: "Reserved" } as const
+const recordDay = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Manila", weekday: "short", month: "short", day: "numeric" })
+
+// Payment records of vendors who released or were removed (spec §6.6):
+// read-only, kept for disputes until retention ends.
+function PaymentRecords({ records }: { records: EventVendors["archived"] }) {
+  return (
+    <section aria-labelledby="records-h" className="flex flex-col gap-3">
+      <div>
+        <h2 id="records-h" className="text-h3">Payment records</h2>
+        <p className="text-sm text-muted">From vendors who released their slot or were removed. Read-only.</p>
+      </div>
+      <ul className="flex flex-col divide-y divide-border rounded-md border border-border bg-surface">
+        {records.map((r) => (
+          <li key={r.assignmentId} className="flex flex-col gap-1 px-4 py-3">
+            <p className="text-label font-semibold">{`${r.shopName} · ${r.slotLabel} · ${endedLabels[r.status]}`}</p>
+            {r.proofs.map((p) => (
+              <a key={p.id} href={p.fileUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center text-sm underline md:min-h-0">
+                {`Screenshot sent ${recordDay.format(new Date(p.uploadedAt))} · ${p.methodLabel}${p.amountClaimed !== null ? ` · ${formatPeso(p.amountClaimed)}` : ""}`}
+              </a>
+            ))}
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }

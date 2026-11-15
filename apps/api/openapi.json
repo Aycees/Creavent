@@ -18066,6 +18066,73 @@
                       "minimum": -9007199254740991,
                       "maximum": 9007199254740991
                     },
+                    "pastProofs": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "submitted",
+                              "approved",
+                              "rejected"
+                            ]
+                          },
+                          "uploadedAt": {
+                            "type": "string"
+                          },
+                          "fileUrl": {
+                            "type": "string"
+                          },
+                          "methodLabel": {
+                            "type": "string"
+                          },
+                          "methodAccount": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "amountClaimed": {
+                            "nullable": true,
+                            "type": "number"
+                          },
+                          "referenceNumber": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "note": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "rejectionReason": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "archived": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "status",
+                          "uploadedAt",
+                          "fileUrl",
+                          "methodLabel",
+                          "methodAccount",
+                          "amountClaimed",
+                          "referenceNumber",
+                          "note",
+                          "rejectionReason",
+                          "archived"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
                     "event": {
                       "type": "object",
                       "properties": {
@@ -18392,6 +18459,7 @@
                     "removalNote",
                     "categories",
                     "documentCount",
+                    "pastProofs",
                     "event",
                     "organizer",
                     "preferredSlot",
@@ -18562,6 +18630,73 @@
                       "minimum": -9007199254740991,
                       "maximum": 9007199254740991
                     },
+                    "pastProofs": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "submitted",
+                              "approved",
+                              "rejected"
+                            ]
+                          },
+                          "uploadedAt": {
+                            "type": "string"
+                          },
+                          "fileUrl": {
+                            "type": "string"
+                          },
+                          "methodLabel": {
+                            "type": "string"
+                          },
+                          "methodAccount": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "amountClaimed": {
+                            "nullable": true,
+                            "type": "number"
+                          },
+                          "referenceNumber": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "note": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "rejectionReason": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "archived": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "status",
+                          "uploadedAt",
+                          "fileUrl",
+                          "methodLabel",
+                          "methodAccount",
+                          "amountClaimed",
+                          "referenceNumber",
+                          "note",
+                          "rejectionReason",
+                          "archived"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
                     "event": {
                       "type": "object",
                       "properties": {
@@ -18888,6 +19023,7 @@
                     "removalNote",
                     "categories",
                     "documentCount",
+                    "pastProofs",
                     "event",
                     "organizer",
                     "preferredSlot",
@@ -18948,6 +19084,73 @@
                       "minimum": -9007199254740991,
                       "maximum": 9007199254740991
                     },
+                    "pastProofs": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "submitted",
+                              "approved",
+                              "rejected"
+                            ]
+                          },
+                          "uploadedAt": {
+                            "type": "string"
+                          },
+                          "fileUrl": {
+                            "type": "string"
+                          },
+                          "methodLabel": {
+                            "type": "string"
+                          },
+                          "methodAccount": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "amountClaimed": {
+                            "nullable": true,
+                            "type": "number"
+                          },
+                          "referenceNumber": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "note": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "rejectionReason": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "archived": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "status",
+                          "uploadedAt",
+                          "fileUrl",
+                          "methodLabel",
+                          "methodAccount",
+                          "amountClaimed",
+                          "referenceNumber",
+                          "note",
+                          "rejectionReason",
+                          "archived"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
                     "event": {
                       "type": "object",
                       "properties": {
@@ -19274,6 +19477,7 @@
                     "removalNote",
                     "categories",
                     "documentCount",
+                    "pastProofs",
                     "event",
                     "organizer",
                     "preferredSlot",
@@ -19402,6 +19606,73 @@
                       "minimum": -9007199254740991,
                       "maximum": 9007199254740991
                     },
+                    "pastProofs": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "submitted",
+                              "approved",
+                              "rejected"
+                            ]
+                          },
+                          "uploadedAt": {
+                            "type": "string"
+                          },
+                          "fileUrl": {
+                            "type": "string"
+                          },
+                          "methodLabel": {
+                            "type": "string"
+                          },
+                          "methodAccount": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "amountClaimed": {
+                            "nullable": true,
+                            "type": "number"
+                          },
+                          "referenceNumber": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "note": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "rejectionReason": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "archived": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "status",
+                          "uploadedAt",
+                          "fileUrl",
+                          "methodLabel",
+                          "methodAccount",
+                          "amountClaimed",
+                          "referenceNumber",
+                          "note",
+                          "rejectionReason",
+                          "archived"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
                     "event": {
                       "type": "object",
                       "properties": {
@@ -19728,6 +19999,7 @@
                     "removalNote",
                     "categories",
                     "documentCount",
+                    "pastProofs",
                     "event",
                     "organizer",
                     "preferredSlot",
@@ -19788,6 +20060,73 @@
                       "minimum": -9007199254740991,
                       "maximum": 9007199254740991
                     },
+                    "pastProofs": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "submitted",
+                              "approved",
+                              "rejected"
+                            ]
+                          },
+                          "uploadedAt": {
+                            "type": "string"
+                          },
+                          "fileUrl": {
+                            "type": "string"
+                          },
+                          "methodLabel": {
+                            "type": "string"
+                          },
+                          "methodAccount": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "amountClaimed": {
+                            "nullable": true,
+                            "type": "number"
+                          },
+                          "referenceNumber": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "note": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "rejectionReason": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "archived": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "status",
+                          "uploadedAt",
+                          "fileUrl",
+                          "methodLabel",
+                          "methodAccount",
+                          "amountClaimed",
+                          "referenceNumber",
+                          "note",
+                          "rejectionReason",
+                          "archived"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
                     "event": {
                       "type": "object",
                       "properties": {
@@ -20114,6 +20453,7 @@
                     "removalNote",
                     "categories",
                     "documentCount",
+                    "pastProofs",
                     "event",
                     "organizer",
                     "preferredSlot",
@@ -21471,7 +21811,14 @@
                           "type": "string"
                         },
                         "status": {
-                          "type": "string"
+                          "type": "string",
+                          "enum": [
+                            "draft",
+                            "open_to_vendors",
+                            "announced",
+                            "completed",
+                            "canceled"
+                          ]
                         },
                         "applicationsOpen": {
                           "type": "boolean"
@@ -21785,6 +22132,119 @@
                         ],
                         "additionalProperties": false
                       }
+                    },
+                    "archived": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "assignmentId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "shopName": {
+                            "type": "string"
+                          },
+                          "slotLabel": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "assigned",
+                              "reserved",
+                              "released",
+                              "removed",
+                              "canceled"
+                            ]
+                          },
+                          "amountDue": {
+                            "type": "number"
+                          },
+                          "endedAt": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "proofs": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "status": {
+                                  "type": "string",
+                                  "enum": [
+                                    "submitted",
+                                    "approved",
+                                    "rejected"
+                                  ]
+                                },
+                                "uploadedAt": {
+                                  "type": "string"
+                                },
+                                "fileUrl": {
+                                  "type": "string"
+                                },
+                                "methodLabel": {
+                                  "type": "string"
+                                },
+                                "methodAccount": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "amountClaimed": {
+                                  "nullable": true,
+                                  "type": "number"
+                                },
+                                "referenceNumber": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "note": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "rejectionReason": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "archived": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "status",
+                                "uploadedAt",
+                                "fileUrl",
+                                "methodLabel",
+                                "methodAccount",
+                                "amountClaimed",
+                                "referenceNumber",
+                                "note",
+                                "rejectionReason",
+                                "archived"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "assignmentId",
+                          "shopName",
+                          "slotLabel",
+                          "status",
+                          "amountDue",
+                          "endedAt",
+                          "proofs"
+                        ],
+                        "additionalProperties": false
+                      }
                     }
                   },
                   "required": [
@@ -21792,7 +22252,8 @@
                     "glance",
                     "slots",
                     "unassigned",
-                    "assignments"
+                    "assignments",
+                    "archived"
                   ],
                   "additionalProperties": false
                 }
@@ -21915,7 +22376,14 @@
                           "type": "string"
                         },
                         "status": {
-                          "type": "string"
+                          "type": "string",
+                          "enum": [
+                            "draft",
+                            "open_to_vendors",
+                            "announced",
+                            "completed",
+                            "canceled"
+                          ]
                         },
                         "applicationsOpen": {
                           "type": "boolean"
@@ -22229,6 +22697,119 @@
                         ],
                         "additionalProperties": false
                       }
+                    },
+                    "archived": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "assignmentId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "shopName": {
+                            "type": "string"
+                          },
+                          "slotLabel": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "assigned",
+                              "reserved",
+                              "released",
+                              "removed",
+                              "canceled"
+                            ]
+                          },
+                          "amountDue": {
+                            "type": "number"
+                          },
+                          "endedAt": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "proofs": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "status": {
+                                  "type": "string",
+                                  "enum": [
+                                    "submitted",
+                                    "approved",
+                                    "rejected"
+                                  ]
+                                },
+                                "uploadedAt": {
+                                  "type": "string"
+                                },
+                                "fileUrl": {
+                                  "type": "string"
+                                },
+                                "methodLabel": {
+                                  "type": "string"
+                                },
+                                "methodAccount": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "amountClaimed": {
+                                  "nullable": true,
+                                  "type": "number"
+                                },
+                                "referenceNumber": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "note": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "rejectionReason": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "archived": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "status",
+                                "uploadedAt",
+                                "fileUrl",
+                                "methodLabel",
+                                "methodAccount",
+                                "amountClaimed",
+                                "referenceNumber",
+                                "note",
+                                "rejectionReason",
+                                "archived"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "assignmentId",
+                          "shopName",
+                          "slotLabel",
+                          "status",
+                          "amountDue",
+                          "endedAt",
+                          "proofs"
+                        ],
+                        "additionalProperties": false
+                      }
                     }
                   },
                   "required": [
@@ -22236,7 +22817,8 @@
                     "glance",
                     "slots",
                     "unassigned",
-                    "assignments"
+                    "assignments",
+                    "archived"
                   ],
                   "additionalProperties": false
                 }
@@ -22265,7 +22847,14 @@
                           "type": "string"
                         },
                         "status": {
-                          "type": "string"
+                          "type": "string",
+                          "enum": [
+                            "draft",
+                            "open_to_vendors",
+                            "announced",
+                            "completed",
+                            "canceled"
+                          ]
                         },
                         "applicationsOpen": {
                           "type": "boolean"
@@ -22579,6 +23168,119 @@
                         ],
                         "additionalProperties": false
                       }
+                    },
+                    "archived": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "assignmentId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "shopName": {
+                            "type": "string"
+                          },
+                          "slotLabel": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "assigned",
+                              "reserved",
+                              "released",
+                              "removed",
+                              "canceled"
+                            ]
+                          },
+                          "amountDue": {
+                            "type": "number"
+                          },
+                          "endedAt": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "proofs": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "status": {
+                                  "type": "string",
+                                  "enum": [
+                                    "submitted",
+                                    "approved",
+                                    "rejected"
+                                  ]
+                                },
+                                "uploadedAt": {
+                                  "type": "string"
+                                },
+                                "fileUrl": {
+                                  "type": "string"
+                                },
+                                "methodLabel": {
+                                  "type": "string"
+                                },
+                                "methodAccount": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "amountClaimed": {
+                                  "nullable": true,
+                                  "type": "number"
+                                },
+                                "referenceNumber": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "note": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "rejectionReason": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "archived": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "status",
+                                "uploadedAt",
+                                "fileUrl",
+                                "methodLabel",
+                                "methodAccount",
+                                "amountClaimed",
+                                "referenceNumber",
+                                "note",
+                                "rejectionReason",
+                                "archived"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "assignmentId",
+                          "shopName",
+                          "slotLabel",
+                          "status",
+                          "amountDue",
+                          "endedAt",
+                          "proofs"
+                        ],
+                        "additionalProperties": false
+                      }
                     }
                   },
                   "required": [
@@ -22586,7 +23288,8 @@
                     "glance",
                     "slots",
                     "unassigned",
-                    "assignments"
+                    "assignments",
+                    "archived"
                   ],
                   "additionalProperties": false
                 }
@@ -22711,7 +23414,14 @@
                           "type": "string"
                         },
                         "status": {
-                          "type": "string"
+                          "type": "string",
+                          "enum": [
+                            "draft",
+                            "open_to_vendors",
+                            "announced",
+                            "completed",
+                            "canceled"
+                          ]
                         },
                         "applicationsOpen": {
                           "type": "boolean"
@@ -23025,6 +23735,119 @@
                         ],
                         "additionalProperties": false
                       }
+                    },
+                    "archived": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "assignmentId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "shopName": {
+                            "type": "string"
+                          },
+                          "slotLabel": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "assigned",
+                              "reserved",
+                              "released",
+                              "removed",
+                              "canceled"
+                            ]
+                          },
+                          "amountDue": {
+                            "type": "number"
+                          },
+                          "endedAt": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "proofs": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "status": {
+                                  "type": "string",
+                                  "enum": [
+                                    "submitted",
+                                    "approved",
+                                    "rejected"
+                                  ]
+                                },
+                                "uploadedAt": {
+                                  "type": "string"
+                                },
+                                "fileUrl": {
+                                  "type": "string"
+                                },
+                                "methodLabel": {
+                                  "type": "string"
+                                },
+                                "methodAccount": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "amountClaimed": {
+                                  "nullable": true,
+                                  "type": "number"
+                                },
+                                "referenceNumber": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "note": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "rejectionReason": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "archived": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "status",
+                                "uploadedAt",
+                                "fileUrl",
+                                "methodLabel",
+                                "methodAccount",
+                                "amountClaimed",
+                                "referenceNumber",
+                                "note",
+                                "rejectionReason",
+                                "archived"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "assignmentId",
+                          "shopName",
+                          "slotLabel",
+                          "status",
+                          "amountDue",
+                          "endedAt",
+                          "proofs"
+                        ],
+                        "additionalProperties": false
+                      }
                     }
                   },
                   "required": [
@@ -23032,7 +23855,8 @@
                     "glance",
                     "slots",
                     "unassigned",
-                    "assignments"
+                    "assignments",
+                    "archived"
                   ],
                   "additionalProperties": false
                 }
@@ -23061,7 +23885,14 @@
                           "type": "string"
                         },
                         "status": {
-                          "type": "string"
+                          "type": "string",
+                          "enum": [
+                            "draft",
+                            "open_to_vendors",
+                            "announced",
+                            "completed",
+                            "canceled"
+                          ]
                         },
                         "applicationsOpen": {
                           "type": "boolean"
@@ -23375,6 +24206,119 @@
                         ],
                         "additionalProperties": false
                       }
+                    },
+                    "archived": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "assignmentId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "shopName": {
+                            "type": "string"
+                          },
+                          "slotLabel": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "assigned",
+                              "reserved",
+                              "released",
+                              "removed",
+                              "canceled"
+                            ]
+                          },
+                          "amountDue": {
+                            "type": "number"
+                          },
+                          "endedAt": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "proofs": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "status": {
+                                  "type": "string",
+                                  "enum": [
+                                    "submitted",
+                                    "approved",
+                                    "rejected"
+                                  ]
+                                },
+                                "uploadedAt": {
+                                  "type": "string"
+                                },
+                                "fileUrl": {
+                                  "type": "string"
+                                },
+                                "methodLabel": {
+                                  "type": "string"
+                                },
+                                "methodAccount": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "amountClaimed": {
+                                  "nullable": true,
+                                  "type": "number"
+                                },
+                                "referenceNumber": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "note": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "rejectionReason": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "archived": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "status",
+                                "uploadedAt",
+                                "fileUrl",
+                                "methodLabel",
+                                "methodAccount",
+                                "amountClaimed",
+                                "referenceNumber",
+                                "note",
+                                "rejectionReason",
+                                "archived"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "assignmentId",
+                          "shopName",
+                          "slotLabel",
+                          "status",
+                          "amountDue",
+                          "endedAt",
+                          "proofs"
+                        ],
+                        "additionalProperties": false
+                      }
                     }
                   },
                   "required": [
@@ -23382,7 +24326,8 @@
                     "glance",
                     "slots",
                     "unassigned",
-                    "assignments"
+                    "assignments",
+                    "archived"
                   ],
                   "additionalProperties": false
                 }
@@ -23507,7 +24452,14 @@
                           "type": "string"
                         },
                         "status": {
-                          "type": "string"
+                          "type": "string",
+                          "enum": [
+                            "draft",
+                            "open_to_vendors",
+                            "announced",
+                            "completed",
+                            "canceled"
+                          ]
                         },
                         "applicationsOpen": {
                           "type": "boolean"
@@ -23821,6 +24773,119 @@
                         ],
                         "additionalProperties": false
                       }
+                    },
+                    "archived": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "assignmentId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "shopName": {
+                            "type": "string"
+                          },
+                          "slotLabel": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "assigned",
+                              "reserved",
+                              "released",
+                              "removed",
+                              "canceled"
+                            ]
+                          },
+                          "amountDue": {
+                            "type": "number"
+                          },
+                          "endedAt": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "proofs": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "status": {
+                                  "type": "string",
+                                  "enum": [
+                                    "submitted",
+                                    "approved",
+                                    "rejected"
+                                  ]
+                                },
+                                "uploadedAt": {
+                                  "type": "string"
+                                },
+                                "fileUrl": {
+                                  "type": "string"
+                                },
+                                "methodLabel": {
+                                  "type": "string"
+                                },
+                                "methodAccount": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "amountClaimed": {
+                                  "nullable": true,
+                                  "type": "number"
+                                },
+                                "referenceNumber": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "note": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "rejectionReason": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "archived": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "status",
+                                "uploadedAt",
+                                "fileUrl",
+                                "methodLabel",
+                                "methodAccount",
+                                "amountClaimed",
+                                "referenceNumber",
+                                "note",
+                                "rejectionReason",
+                                "archived"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "assignmentId",
+                          "shopName",
+                          "slotLabel",
+                          "status",
+                          "amountDue",
+                          "endedAt",
+                          "proofs"
+                        ],
+                        "additionalProperties": false
+                      }
                     }
                   },
                   "required": [
@@ -23828,7 +24893,8 @@
                     "glance",
                     "slots",
                     "unassigned",
-                    "assignments"
+                    "assignments",
+                    "archived"
                   ],
                   "additionalProperties": false
                 }
@@ -23857,7 +24923,14 @@
                           "type": "string"
                         },
                         "status": {
-                          "type": "string"
+                          "type": "string",
+                          "enum": [
+                            "draft",
+                            "open_to_vendors",
+                            "announced",
+                            "completed",
+                            "canceled"
+                          ]
                         },
                         "applicationsOpen": {
                           "type": "boolean"
@@ -24171,6 +25244,119 @@
                         ],
                         "additionalProperties": false
                       }
+                    },
+                    "archived": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "assignmentId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "shopName": {
+                            "type": "string"
+                          },
+                          "slotLabel": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "assigned",
+                              "reserved",
+                              "released",
+                              "removed",
+                              "canceled"
+                            ]
+                          },
+                          "amountDue": {
+                            "type": "number"
+                          },
+                          "endedAt": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "proofs": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "status": {
+                                  "type": "string",
+                                  "enum": [
+                                    "submitted",
+                                    "approved",
+                                    "rejected"
+                                  ]
+                                },
+                                "uploadedAt": {
+                                  "type": "string"
+                                },
+                                "fileUrl": {
+                                  "type": "string"
+                                },
+                                "methodLabel": {
+                                  "type": "string"
+                                },
+                                "methodAccount": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "amountClaimed": {
+                                  "nullable": true,
+                                  "type": "number"
+                                },
+                                "referenceNumber": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "note": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "rejectionReason": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "archived": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "status",
+                                "uploadedAt",
+                                "fileUrl",
+                                "methodLabel",
+                                "methodAccount",
+                                "amountClaimed",
+                                "referenceNumber",
+                                "note",
+                                "rejectionReason",
+                                "archived"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "assignmentId",
+                          "shopName",
+                          "slotLabel",
+                          "status",
+                          "amountDue",
+                          "endedAt",
+                          "proofs"
+                        ],
+                        "additionalProperties": false
+                      }
                     }
                   },
                   "required": [
@@ -24178,7 +25364,8 @@
                     "glance",
                     "slots",
                     "unassigned",
-                    "assignments"
+                    "assignments",
+                    "archived"
                   ],
                   "additionalProperties": false
                 }
@@ -24311,7 +25498,14 @@
                           "type": "string"
                         },
                         "status": {
-                          "type": "string"
+                          "type": "string",
+                          "enum": [
+                            "draft",
+                            "open_to_vendors",
+                            "announced",
+                            "completed",
+                            "canceled"
+                          ]
                         },
                         "applicationsOpen": {
                           "type": "boolean"
@@ -24625,6 +25819,119 @@
                         ],
                         "additionalProperties": false
                       }
+                    },
+                    "archived": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "assignmentId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "shopName": {
+                            "type": "string"
+                          },
+                          "slotLabel": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "assigned",
+                              "reserved",
+                              "released",
+                              "removed",
+                              "canceled"
+                            ]
+                          },
+                          "amountDue": {
+                            "type": "number"
+                          },
+                          "endedAt": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "proofs": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "status": {
+                                  "type": "string",
+                                  "enum": [
+                                    "submitted",
+                                    "approved",
+                                    "rejected"
+                                  ]
+                                },
+                                "uploadedAt": {
+                                  "type": "string"
+                                },
+                                "fileUrl": {
+                                  "type": "string"
+                                },
+                                "methodLabel": {
+                                  "type": "string"
+                                },
+                                "methodAccount": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "amountClaimed": {
+                                  "nullable": true,
+                                  "type": "number"
+                                },
+                                "referenceNumber": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "note": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "rejectionReason": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "archived": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "status",
+                                "uploadedAt",
+                                "fileUrl",
+                                "methodLabel",
+                                "methodAccount",
+                                "amountClaimed",
+                                "referenceNumber",
+                                "note",
+                                "rejectionReason",
+                                "archived"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "assignmentId",
+                          "shopName",
+                          "slotLabel",
+                          "status",
+                          "amountDue",
+                          "endedAt",
+                          "proofs"
+                        ],
+                        "additionalProperties": false
+                      }
                     }
                   },
                   "required": [
@@ -24632,7 +25939,8 @@
                     "glance",
                     "slots",
                     "unassigned",
-                    "assignments"
+                    "assignments",
+                    "archived"
                   ],
                   "additionalProperties": false
                 }
@@ -24661,7 +25969,14 @@
                           "type": "string"
                         },
                         "status": {
-                          "type": "string"
+                          "type": "string",
+                          "enum": [
+                            "draft",
+                            "open_to_vendors",
+                            "announced",
+                            "completed",
+                            "canceled"
+                          ]
                         },
                         "applicationsOpen": {
                           "type": "boolean"
@@ -24975,6 +26290,119 @@
                         ],
                         "additionalProperties": false
                       }
+                    },
+                    "archived": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "assignmentId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "shopName": {
+                            "type": "string"
+                          },
+                          "slotLabel": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "assigned",
+                              "reserved",
+                              "released",
+                              "removed",
+                              "canceled"
+                            ]
+                          },
+                          "amountDue": {
+                            "type": "number"
+                          },
+                          "endedAt": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "proofs": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "status": {
+                                  "type": "string",
+                                  "enum": [
+                                    "submitted",
+                                    "approved",
+                                    "rejected"
+                                  ]
+                                },
+                                "uploadedAt": {
+                                  "type": "string"
+                                },
+                                "fileUrl": {
+                                  "type": "string"
+                                },
+                                "methodLabel": {
+                                  "type": "string"
+                                },
+                                "methodAccount": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "amountClaimed": {
+                                  "nullable": true,
+                                  "type": "number"
+                                },
+                                "referenceNumber": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "note": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "rejectionReason": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "archived": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "status",
+                                "uploadedAt",
+                                "fileUrl",
+                                "methodLabel",
+                                "methodAccount",
+                                "amountClaimed",
+                                "referenceNumber",
+                                "note",
+                                "rejectionReason",
+                                "archived"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "assignmentId",
+                          "shopName",
+                          "slotLabel",
+                          "status",
+                          "amountDue",
+                          "endedAt",
+                          "proofs"
+                        ],
+                        "additionalProperties": false
+                      }
                     }
                   },
                   "required": [
@@ -24982,7 +26410,8 @@
                     "glance",
                     "slots",
                     "unassigned",
-                    "assignments"
+                    "assignments",
+                    "archived"
                   ],
                   "additionalProperties": false
                 }
@@ -25109,7 +26538,14 @@
                           "type": "string"
                         },
                         "status": {
-                          "type": "string"
+                          "type": "string",
+                          "enum": [
+                            "draft",
+                            "open_to_vendors",
+                            "announced",
+                            "completed",
+                            "canceled"
+                          ]
                         },
                         "applicationsOpen": {
                           "type": "boolean"
@@ -25423,6 +26859,119 @@
                         ],
                         "additionalProperties": false
                       }
+                    },
+                    "archived": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "assignmentId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "shopName": {
+                            "type": "string"
+                          },
+                          "slotLabel": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "assigned",
+                              "reserved",
+                              "released",
+                              "removed",
+                              "canceled"
+                            ]
+                          },
+                          "amountDue": {
+                            "type": "number"
+                          },
+                          "endedAt": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "proofs": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "status": {
+                                  "type": "string",
+                                  "enum": [
+                                    "submitted",
+                                    "approved",
+                                    "rejected"
+                                  ]
+                                },
+                                "uploadedAt": {
+                                  "type": "string"
+                                },
+                                "fileUrl": {
+                                  "type": "string"
+                                },
+                                "methodLabel": {
+                                  "type": "string"
+                                },
+                                "methodAccount": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "amountClaimed": {
+                                  "nullable": true,
+                                  "type": "number"
+                                },
+                                "referenceNumber": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "note": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "rejectionReason": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "archived": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "status",
+                                "uploadedAt",
+                                "fileUrl",
+                                "methodLabel",
+                                "methodAccount",
+                                "amountClaimed",
+                                "referenceNumber",
+                                "note",
+                                "rejectionReason",
+                                "archived"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "assignmentId",
+                          "shopName",
+                          "slotLabel",
+                          "status",
+                          "amountDue",
+                          "endedAt",
+                          "proofs"
+                        ],
+                        "additionalProperties": false
+                      }
                     }
                   },
                   "required": [
@@ -25430,7 +26979,8 @@
                     "glance",
                     "slots",
                     "unassigned",
-                    "assignments"
+                    "assignments",
+                    "archived"
                   ],
                   "additionalProperties": false
                 }
@@ -25459,7 +27009,14 @@
                           "type": "string"
                         },
                         "status": {
-                          "type": "string"
+                          "type": "string",
+                          "enum": [
+                            "draft",
+                            "open_to_vendors",
+                            "announced",
+                            "completed",
+                            "canceled"
+                          ]
                         },
                         "applicationsOpen": {
                           "type": "boolean"
@@ -25773,6 +27330,119 @@
                         ],
                         "additionalProperties": false
                       }
+                    },
+                    "archived": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "assignmentId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "shopName": {
+                            "type": "string"
+                          },
+                          "slotLabel": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "assigned",
+                              "reserved",
+                              "released",
+                              "removed",
+                              "canceled"
+                            ]
+                          },
+                          "amountDue": {
+                            "type": "number"
+                          },
+                          "endedAt": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "proofs": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "status": {
+                                  "type": "string",
+                                  "enum": [
+                                    "submitted",
+                                    "approved",
+                                    "rejected"
+                                  ]
+                                },
+                                "uploadedAt": {
+                                  "type": "string"
+                                },
+                                "fileUrl": {
+                                  "type": "string"
+                                },
+                                "methodLabel": {
+                                  "type": "string"
+                                },
+                                "methodAccount": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "amountClaimed": {
+                                  "nullable": true,
+                                  "type": "number"
+                                },
+                                "referenceNumber": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "note": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "rejectionReason": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "archived": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "status",
+                                "uploadedAt",
+                                "fileUrl",
+                                "methodLabel",
+                                "methodAccount",
+                                "amountClaimed",
+                                "referenceNumber",
+                                "note",
+                                "rejectionReason",
+                                "archived"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "assignmentId",
+                          "shopName",
+                          "slotLabel",
+                          "status",
+                          "amountDue",
+                          "endedAt",
+                          "proofs"
+                        ],
+                        "additionalProperties": false
+                      }
                     }
                   },
                   "required": [
@@ -25780,7 +27450,8 @@
                     "glance",
                     "slots",
                     "unassigned",
-                    "assignments"
+                    "assignments",
+                    "archived"
                   ],
                   "additionalProperties": false
                 }

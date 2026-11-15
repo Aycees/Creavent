@@ -6032,6 +6032,21 @@ export interface operations {
                         removalNote: string | null;
                         categories: string[];
                         documentCount: number;
+                        pastProofs: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "submitted" | "approved" | "rejected";
+                            uploadedAt: string;
+                            fileUrl: string;
+                            methodLabel: string;
+                            methodAccount: string | null;
+                            amountClaimed: number | null;
+                            referenceNumber: string | null;
+                            note: string | null;
+                            rejectionReason: string | null;
+                            archived: boolean;
+                        }[];
                         event: {
                             slug: string;
                             name: string;
@@ -6163,6 +6178,21 @@ export interface operations {
                         removalNote: string | null;
                         categories: string[];
                         documentCount: number;
+                        pastProofs: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "submitted" | "approved" | "rejected";
+                            uploadedAt: string;
+                            fileUrl: string;
+                            methodLabel: string;
+                            methodAccount: string | null;
+                            amountClaimed: number | null;
+                            referenceNumber: string | null;
+                            note: string | null;
+                            rejectionReason: string | null;
+                            archived: boolean;
+                        }[];
                         event: {
                             slug: string;
                             name: string;
@@ -6252,6 +6282,21 @@ export interface operations {
                         removalNote: string | null;
                         categories: string[];
                         documentCount: number;
+                        pastProofs: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "submitted" | "approved" | "rejected";
+                            uploadedAt: string;
+                            fileUrl: string;
+                            methodLabel: string;
+                            methodAccount: string | null;
+                            amountClaimed: number | null;
+                            referenceNumber: string | null;
+                            note: string | null;
+                            rejectionReason: string | null;
+                            archived: boolean;
+                        }[];
                         event: {
                             slug: string;
                             name: string;
@@ -6371,6 +6416,21 @@ export interface operations {
                         removalNote: string | null;
                         categories: string[];
                         documentCount: number;
+                        pastProofs: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "submitted" | "approved" | "rejected";
+                            uploadedAt: string;
+                            fileUrl: string;
+                            methodLabel: string;
+                            methodAccount: string | null;
+                            amountClaimed: number | null;
+                            referenceNumber: string | null;
+                            note: string | null;
+                            rejectionReason: string | null;
+                            archived: boolean;
+                        }[];
                         event: {
                             slug: string;
                             name: string;
@@ -6460,6 +6520,21 @@ export interface operations {
                         removalNote: string | null;
                         categories: string[];
                         documentCount: number;
+                        pastProofs: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "submitted" | "approved" | "rejected";
+                            uploadedAt: string;
+                            fileUrl: string;
+                            methodLabel: string;
+                            methodAccount: string | null;
+                            amountClaimed: number | null;
+                            referenceNumber: string | null;
+                            note: string | null;
+                            rejectionReason: string | null;
+                            archived: boolean;
+                        }[];
                         event: {
                             slug: string;
                             name: string;
@@ -6933,7 +7008,8 @@ export interface operations {
                             id: string;
                             slug: string;
                             name: string;
-                            status: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
                             applicationsOpen: boolean;
                             preferredSlots: boolean;
                             deadlineHours: number;
@@ -7001,6 +7077,31 @@ export interface operations {
                                 archived: boolean;
                             } | null;
                             paymentNote: string | null;
+                        }[];
+                        archived: {
+                            /** Format: uuid */
+                            assignmentId: string;
+                            shopName: string;
+                            slotLabel: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            amountDue: number;
+                            endedAt: string | null;
+                            proofs: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            }[];
                         }[];
                     };
                 };
@@ -7055,7 +7156,8 @@ export interface operations {
                             id: string;
                             slug: string;
                             name: string;
-                            status: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
                             applicationsOpen: boolean;
                             preferredSlots: boolean;
                             deadlineHours: number;
@@ -7123,6 +7225,31 @@ export interface operations {
                                 archived: boolean;
                             } | null;
                             paymentNote: string | null;
+                        }[];
+                        archived: {
+                            /** Format: uuid */
+                            assignmentId: string;
+                            shopName: string;
+                            slotLabel: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            amountDue: number;
+                            endedAt: string | null;
+                            proofs: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            }[];
                         }[];
                     };
                 };
@@ -7138,7 +7265,8 @@ export interface operations {
                             id: string;
                             slug: string;
                             name: string;
-                            status: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
                             applicationsOpen: boolean;
                             preferredSlots: boolean;
                             deadlineHours: number;
@@ -7206,6 +7334,31 @@ export interface operations {
                                 archived: boolean;
                             } | null;
                             paymentNote: string | null;
+                        }[];
+                        archived: {
+                            /** Format: uuid */
+                            assignmentId: string;
+                            shopName: string;
+                            slotLabel: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            amountDue: number;
+                            endedAt: string | null;
+                            proofs: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            }[];
                         }[];
                     };
                 };
@@ -7259,7 +7412,8 @@ export interface operations {
                             id: string;
                             slug: string;
                             name: string;
-                            status: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
                             applicationsOpen: boolean;
                             preferredSlots: boolean;
                             deadlineHours: number;
@@ -7327,6 +7481,31 @@ export interface operations {
                                 archived: boolean;
                             } | null;
                             paymentNote: string | null;
+                        }[];
+                        archived: {
+                            /** Format: uuid */
+                            assignmentId: string;
+                            shopName: string;
+                            slotLabel: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            amountDue: number;
+                            endedAt: string | null;
+                            proofs: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            }[];
                         }[];
                     };
                 };
@@ -7342,7 +7521,8 @@ export interface operations {
                             id: string;
                             slug: string;
                             name: string;
-                            status: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
                             applicationsOpen: boolean;
                             preferredSlots: boolean;
                             deadlineHours: number;
@@ -7410,6 +7590,31 @@ export interface operations {
                                 archived: boolean;
                             } | null;
                             paymentNote: string | null;
+                        }[];
+                        archived: {
+                            /** Format: uuid */
+                            assignmentId: string;
+                            shopName: string;
+                            slotLabel: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            amountDue: number;
+                            endedAt: string | null;
+                            proofs: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            }[];
                         }[];
                     };
                 };
@@ -7462,7 +7667,8 @@ export interface operations {
                             id: string;
                             slug: string;
                             name: string;
-                            status: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
                             applicationsOpen: boolean;
                             preferredSlots: boolean;
                             deadlineHours: number;
@@ -7530,6 +7736,31 @@ export interface operations {
                                 archived: boolean;
                             } | null;
                             paymentNote: string | null;
+                        }[];
+                        archived: {
+                            /** Format: uuid */
+                            assignmentId: string;
+                            shopName: string;
+                            slotLabel: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            amountDue: number;
+                            endedAt: string | null;
+                            proofs: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            }[];
                         }[];
                     };
                 };
@@ -7545,7 +7776,8 @@ export interface operations {
                             id: string;
                             slug: string;
                             name: string;
-                            status: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
                             applicationsOpen: boolean;
                             preferredSlots: boolean;
                             deadlineHours: number;
@@ -7613,6 +7845,31 @@ export interface operations {
                                 archived: boolean;
                             } | null;
                             paymentNote: string | null;
+                        }[];
+                        archived: {
+                            /** Format: uuid */
+                            assignmentId: string;
+                            shopName: string;
+                            slotLabel: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            amountDue: number;
+                            endedAt: string | null;
+                            proofs: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            }[];
                         }[];
                     };
                 };
@@ -7670,7 +7927,8 @@ export interface operations {
                             id: string;
                             slug: string;
                             name: string;
-                            status: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
                             applicationsOpen: boolean;
                             preferredSlots: boolean;
                             deadlineHours: number;
@@ -7738,6 +7996,31 @@ export interface operations {
                                 archived: boolean;
                             } | null;
                             paymentNote: string | null;
+                        }[];
+                        archived: {
+                            /** Format: uuid */
+                            assignmentId: string;
+                            shopName: string;
+                            slotLabel: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            amountDue: number;
+                            endedAt: string | null;
+                            proofs: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            }[];
                         }[];
                     };
                 };
@@ -7753,7 +8036,8 @@ export interface operations {
                             id: string;
                             slug: string;
                             name: string;
-                            status: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
                             applicationsOpen: boolean;
                             preferredSlots: boolean;
                             deadlineHours: number;
@@ -7821,6 +8105,31 @@ export interface operations {
                                 archived: boolean;
                             } | null;
                             paymentNote: string | null;
+                        }[];
+                        archived: {
+                            /** Format: uuid */
+                            assignmentId: string;
+                            shopName: string;
+                            slotLabel: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            amountDue: number;
+                            endedAt: string | null;
+                            proofs: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            }[];
                         }[];
                     };
                 };
@@ -7874,7 +8183,8 @@ export interface operations {
                             id: string;
                             slug: string;
                             name: string;
-                            status: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
                             applicationsOpen: boolean;
                             preferredSlots: boolean;
                             deadlineHours: number;
@@ -7942,6 +8252,31 @@ export interface operations {
                                 archived: boolean;
                             } | null;
                             paymentNote: string | null;
+                        }[];
+                        archived: {
+                            /** Format: uuid */
+                            assignmentId: string;
+                            shopName: string;
+                            slotLabel: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            amountDue: number;
+                            endedAt: string | null;
+                            proofs: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            }[];
                         }[];
                     };
                 };
@@ -7957,7 +8292,8 @@ export interface operations {
                             id: string;
                             slug: string;
                             name: string;
-                            status: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
                             applicationsOpen: boolean;
                             preferredSlots: boolean;
                             deadlineHours: number;
@@ -8025,6 +8361,31 @@ export interface operations {
                                 archived: boolean;
                             } | null;
                             paymentNote: string | null;
+                        }[];
+                        archived: {
+                            /** Format: uuid */
+                            assignmentId: string;
+                            shopName: string;
+                            slotLabel: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            amountDue: number;
+                            endedAt: string | null;
+                            proofs: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            }[];
                         }[];
                     };
                 };

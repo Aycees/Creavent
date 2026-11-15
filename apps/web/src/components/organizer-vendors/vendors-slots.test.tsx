@@ -161,4 +161,28 @@ describe("VendorsAndSlots (/organizer/events/[id]/vendors)", () => {
     })
     expect(await screen.findByText("Thrift Kingdom is removed. A-02 is open again.")).toBeInTheDocument()
   })
+
+  it("keeps the payment records of removed vendors readable", async () => {
+    vi.mocked(api.GET).mockResolvedValue({
+      data: eventVendorsFixture({
+        archived: [
+          {
+            assignmentId: "as000000-0000-4000-8000-000000000009",
+            shopName: "Retro Laruan",
+            slotLabel: "A-15",
+            status: "removed",
+            amountDue: 800,
+            endedAt: "2026-11-12T03:00:00.000Z",
+            proofs: [{ id: "p9", status: "approved", uploadedAt: "2026-11-11T03:00:00.000Z", fileUrl: "/api/files/proof9", methodLabel: "GCash", methodAccount: null, amountClaimed: 800, referenceNumber: null, note: null, rejectionReason: null, archived: true }],
+          },
+        ],
+      }),
+      response: { status: 200 },
+    } as never)
+    renderWithQuery(<VendorsAndSlots eventId={EVENT_ID} />)
+
+    const records = await screen.findByRole("region", { name: "Payment records" })
+    expect(within(records).getByText(/Retro Laruan · A-15 · Removed/)).toBeInTheDocument()
+    expect(within(records).getByRole("link", { name: /Screenshot sent/ })).toHaveAttribute("href", "/api/files/proof9")
+  })
 })

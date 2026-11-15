@@ -96,6 +96,7 @@ export function eventVendorsFixture(overrides: Partial<EventVendors> = {}): Even
         },
       },
     ],
+    archived: [],
     ...overrides,
   }
 }

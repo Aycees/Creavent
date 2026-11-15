@@ -178,7 +178,11 @@ export function VendorApplicationPage({ id }: { id: string }) {
 
           {paying && slot && <PaymentOptions slot={slot} organizer={a.organizer.displayName} />}
           {paying && slot && <ProofSection applicationId={a.id} slot={slot} />}
-          {a.assignment && !slot && a.assignment.proofs.length > 0 && <PaymentRecords proofs={a.assignment.proofs} />}
+          {(() => {
+            // Read-only proofs: an ended slot's, and those of earlier slots.
+            const records = [...(a.assignment && !slot ? a.assignment.proofs : []), ...a.pastProofs]
+            return records.length > 0 ? <PaymentRecords proofs={records} /> : null
+          })()}
         </div>
 
         <aside className="flex flex-col gap-4 md:col-start-2">

@@ -3,13 +3,15 @@ import os from "node:os"
 import path from "node:path"
 import { defineConfig, devices } from "@playwright/test"
 
-// The local API settings (apps/api/.env): the web address, the database the
-// test reads verification links from, and the seed admin's password.
+// The local API settings (apps/api/.env) the test needs: the web address, the
+// database it reads verification links from, and the seed admin's password.
+// Only these are read, so no other secret reaches the test process or traces.
+const needed = ["WEB_URL", "DATABASE_URL", "SEED_PASSWORD"]
 const env = Object.fromEntries(
   readFileSync(path.join(__dirname, "../api/.env"), "utf8")
     .split("\n")
-    .filter((line) => /^[A-Z_]+=/.test(line))
-    .map((line) => [line.slice(0, line.indexOf("=")), line.slice(line.indexOf("=") + 1).trim().replace(/^"(.*)"$/, "$1")])
+    .map((line): [string, string] => [line.slice(0, line.indexOf("=")), line.slice(line.indexOf("=") + 1).trim().replace(/^"(.*)"$/, "$1")])
+    .filter(([key]) => needed.includes(key))
 )
 for (const [key, value] of Object.entries(env)) process.env[key] ??= value
 
@@ -30,6 +32,7 @@ export default defineConfig({
   use: {
     baseURL: process.env.E2E_BASE_URL ?? process.env.WEB_URL ?? "http://localhost:3000",
     ...devices["Pixel 7"],
-    trace: "retain-on-failure",
+    // Traces would keep the typed seed password, so only screenshots are kept.
+    screenshot: "only-on-failure",
   },
 })

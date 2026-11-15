@@ -251,19 +251,18 @@ export class FilesService {
   private async canOpen(user: { id: string; isAdmin: boolean }, file: File) {
     if (user.isAdmin || file.uploadedBy === user.id) return true;
     if (file.purpose === 'payment_qr') {
-      // The event's organizer, and vendors with an active assignment there.
+      // The event's organizer, and vendors with an active assignment whose
+      // copied payment details show this QR (the one they were told to pay to,
+      // even if the organizer replaced it later).
       const method = await this.prisma.eventPaymentMethod.findFirst({
-        where: {
-          qrFileId: file.id,
-          event: {
-            OR: [
-              { organizerProfile: { userId: user.id } },
-              { assignments: { some: { status: { in: ['assigned', 'reserved'] }, vendorProfile: { userId: user.id } } } },
-            ],
-          },
-        },
+        where: { qrFileId: file.id, event: { organizerProfile: { userId: user.id } } },
       });
-      return method !== null;
+      if (method) return true;
+      const assignments = await this.prisma.slotAssignment.findMany({
+        where: { status: { in: ['assigned', 'reserved'] }, vendorProfile: { userId: user.id } },
+        select: { paymentInstructionsSnapshot: true },
+      });
+      return assignments.some((a) => ((a.paymentInstructionsSnapshot ?? []) as { qrFileId?: string | null }[]).some((i) => i.qrFileId === file.id));
     }
     if (file.purpose === 'payment_proof') {
       // The organizer of the event the proof was sent for (data model §6.6).

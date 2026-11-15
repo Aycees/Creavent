@@ -54,6 +54,7 @@ export function vendorApplicationFixture(overrides: Partial<VendorApplication> =
     removalNote: null,
     categories: ["Preloved clothing"],
     documentCount: 2,
+    pastProofs: [],
     event: {
       slug: "bajada-christmas-flea",
       name: "Bajada Christmas Flea",
