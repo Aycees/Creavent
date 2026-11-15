@@ -275,6 +275,10 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - Mark paid approves a payment without a proof, with a required note (for example, "Paid cash at the office"). The slot becomes `reserved` and the vendor is emailed.
 - A proof can be decided once. Nothing can be approved or sent after the slot is reserved. Only the event's organizer can review, and a hidden event refuses it. A proof image opens only for the vendor who sent it, the event's organizer, and admins.
 
+**Acceptance criteria (Phase 3: dashboards)**
+- `/organizer` shows "To do for <event>" for each upcoming event open to vendors or announced that has something waiting: applications to review (with the date of the oldest, linking to Applications), payment proofs to check (with their total, linking to Vendors and slots), payments overdue, and approved vendors with no slot (with the number of open slots). Each event row shows how its slots are filled ("18 reserved · 7 assigned · 5 open") and "Review N applications" as the next step when applications wait.
+- `/vendor` shows Needs your action (each payment due, or a rejected proof, with the amount, slot, event, deadline, who to pay and how, and "Upload proof of payment"), the latest applications with their status and "See all", "You're confirmed" for the next event with a reserved slot (slot, organizer contact, ingress details, vendor floor plan), and up to 5 events open to vendors in the vendor's categories, marking those already applied to, with the applications close date.
+
 ## 8. Announce the event
 
 *Organizer.*

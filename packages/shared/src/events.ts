@@ -380,7 +380,7 @@ export type EventSetup = z.infer<typeof eventSetupSchema>;
 
 export const createdEventSchema = z.object({ id: z.uuid() });
 
-// One row of the organizer's event list (spec §3.8). Counts come with Phase 3.
+// One row of the organizer's event list (spec §3.8).
 export const organizerEventRowSchema = z.object({
   id: z.uuid(),
   slug: z.string(),
@@ -392,10 +392,28 @@ export const organizerEventRowSchema = z.object({
   venueName: z.string().nullable(),
   slotCount: z.number().int(),
   nextStep: z.string(),
+  // How the slots are filled, once the event is open to vendors.
+  fill: z.object({ reserved: z.number().int(), assigned: z.number().int(), open: z.number().int() }).nullable(),
 });
 export type OrganizerEventRow = z.infer<typeof organizerEventRowSchema>;
 
+// "To do for Bajada Christmas Flea" (spec §3.8), for events open to vendors
+// or announced with something waiting.
+export const organizerTodoSchema = z.object({
+  eventId: z.uuid(),
+  name: z.string(),
+  applicationsToReview: z.number().int(),
+  oldestApplicationAt: z.string().nullable(),
+  proofsToCheck: z.number().int(),
+  proofsTotal: z.number(),
+  overduePayments: z.number().int(),
+  approvedNoSlot: z.number().int(),
+  openSlots: z.number().int(),
+});
+export type OrganizerTodo = z.infer<typeof organizerTodoSchema>;
+
 export const organizerEventsSchema = z.object({
+  todo: z.array(organizerTodoSchema),
   upcoming: z.array(organizerEventRowSchema),
   past: z.array(organizerEventRowSchema),
 });

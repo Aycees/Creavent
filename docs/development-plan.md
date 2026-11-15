@@ -288,7 +288,7 @@ Check a feature when its commit is on the phase branch with its tests passing. C
 - [x] 3.4 Vendor application page (branch `feat/phase-3-core-loop`)
 - [x] 3.5 Pay and confirm (branch `feat/phase-3-core-loop`)
 - [x] 3.6 Release, remove, change (branch `feat/phase-3-core-loop`)
-- [ ] 3.7 Dashboards
+- [x] 3.7 Dashboards (branch `feat/phase-3-core-loop`)
 - [ ] 3.8 End-to-end test
 - [ ] **M3** A vendor gets a confirmed spot
 

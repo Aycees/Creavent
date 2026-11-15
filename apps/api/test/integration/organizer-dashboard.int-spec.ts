@@ -4,6 +4,7 @@ import type { PrismaClient } from '../../src/generated/prisma/client.js';
 import { createTestApp, signInAs } from './app.js';
 import { createTestPrisma, resetDatabase } from './db.js';
 import { readyEvent } from './events.js';
+import { assignedSlot, eventParts, readyFile, submittedApplication } from './applications.js';
 import { createOrganizer, createVendor } from './factories.js';
 
 // Feature 2.7: the organizer dashboard's event list (spec §3.8).
@@ -80,5 +81,42 @@ describe('organizer dashboard', () => {
     const browser = await signInAs(app, user.email);
 
     expect((await browser.get('/api/organizer/events')).status).toBe(403);
+  });
+
+  it('counts what needs doing per open event, and how the slots are filled', async () => {
+    const { user, profile } = await createOrganizer(prisma);
+    const eventId = await readyEvent(prisma, profile.id, { status: 'open_to_vendors', startsAt: new Date(Date.now() + 10 * 86_400_000), endsAt: new Date(Date.now() + 10 * 86_400_000 + 6 * 3_600_000) });
+    const parts = await eventParts(prisma, eventId);
+    const base = { eventId, categoryId: parts.preloved.id, organizerUserId: user.id };
+    const v = await Promise.all([0, 1, 2, 3, 4].map(() => createVendor(prisma, [parts.preloved.id])));
+    await submittedApplication(prisma, { ...base, vendorProfileId: v[0].profile.id, submittedAt: new Date('2026-11-10T02:00:00Z') });
+    await submittedApplication(prisma, { ...base, vendorProfileId: v[1].profile.id });
+    const proof = await assignedSlot(prisma, { ...base, vendorProfileId: v[2].profile.id, slotId: parts.slots[0].id, price: 800 });
+    await prisma.payment.update({ where: { id: proof.payment.id }, data: { status: 'submitted' } });
+    const method = await prisma.eventPaymentMethod.findFirstOrThrow({ where: { eventId } });
+    await prisma.paymentProof.create({
+      data: { paymentId: proof.payment.id, eventId, vendorProfileId: v[2].profile.id, uploadedById: v[2].user.id, fileId: (await readyFile(prisma, v[2].user.id, 'payment_proof')).id, paymentMethodId: method.id },
+    });
+    await assignedSlot(prisma, { ...base, vendorProfileId: v[3].profile.id, slotId: parts.slots[1].id, deadlineAt: new Date(Date.now() - 60_000) });
+    const approved = await submittedApplication(prisma, { ...base, vendorProfileId: v[4].profile.id });
+    await prisma.application.update({ where: { id: approved.id }, data: { status: 'approved' } });
+    const browser = await signInAs(app, user.email);
+
+    const res = await browser.get('/api/organizer/events');
+
+    expect(res.body.todo).toEqual([
+      {
+        eventId,
+        name: expect.any(String),
+        applicationsToReview: 2,
+        oldestApplicationAt: '2026-11-10T02:00:00.000Z',
+        proofsToCheck: 1,
+        proofsTotal: 800,
+        overduePayments: 1,
+        approvedNoSlot: 1,
+        openSlots: 1,
+      },
+    ]);
+    expect(res.body.upcoming[0]).toMatchObject({ fill: { reserved: 0, assigned: 2, open: 1 }, nextStep: 'Review 2 applications' });
   });
 });

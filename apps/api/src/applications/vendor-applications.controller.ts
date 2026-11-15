@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Post, UseGuards } from '@nestjs/common';
 import { ApiCreatedResponse } from '@nestjs/swagger';
-import { applyFormSchema, applySchema, createdApplicationSchema, uploadProofSchema, vendorApplicationSchema, vendorApplicationsSchema } from '@creavent/shared';
+import { applyFormSchema, applySchema, createdApplicationSchema, uploadProofSchema, vendorApplicationSchema, vendorApplicationsSchema, vendorDashboardSchema } from '@creavent/shared';
 import type { z } from 'zod';
 import { AuthGuard, CurrentUser, type SessionUser } from '../auth/auth.guard.js';
 import { ResponseSchema } from '../response-schema.decorator.js';
@@ -25,6 +25,12 @@ export class VendorApplicationsController {
   @ApiCreatedResponse({ standardSchema: createdApplicationSchema })
   apply(@CurrentUser() user: SessionUser, @Param('slug') slug: string, @Body({ schema: applySchema }) body: z.output<typeof applySchema>) {
     return this.applications.apply(user.id, slug, body);
+  }
+
+  @Get('vendor/dashboard')
+  @ResponseSchema(vendorDashboardSchema)
+  dashboard(@CurrentUser() user: SessionUser) {
+    return this.applications.dashboard(user.id);
   }
 
   @Get('vendor/applications')

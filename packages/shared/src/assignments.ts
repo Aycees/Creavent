@@ -199,3 +199,38 @@ export const removeVendorSchema = z.object({
   note: optionalLongText(300),
 });
 export type RemoveVendorInput = z.input<typeof removeVendorSchema>;
+
+// ─── Vendor dashboard (spec §4.6, mockup VendorDashboard) ───────────────────
+
+export const vendorDashboardSchema = z.object({
+  // Payments due: an assigned slot whose payment is pending or rejected.
+  needsAction: z.array(
+    z.object({
+      applicationId: z.uuid(),
+      eventName: z.string(),
+      startDate: z.string().nullable(),
+      slotLabel: z.string(),
+      amountDue: z.number(),
+      deadlineAt: z.string(),
+      organizerName: z.string(),
+      paidTo: z.string().nullable(),
+      rejected: z.boolean(),
+    }),
+  ),
+  applications: z.array(vendorApplicationRowSchema),
+  // The next event with a reserved slot ("You're confirmed").
+  nextEvent: z
+    .object({
+      applicationId: z.uuid(),
+      event: eventSummary,
+      slotLabel: z.string(),
+      organizerName: z.string(),
+      organizerPhone: z.string().nullable(),
+      ingressInfo: z.string().nullable(),
+      vendorFloorPlanUrl: z.string().nullable(),
+    })
+    .nullable(),
+  // Events open to vendors that accept the vendor's categories.
+  openEvents: z.array(z.object({ slug: z.string(), name: z.string(), startDate: z.string().nullable(), endDate: z.string().nullable(), applicationsCloseAt: z.string().nullable(), applied: z.boolean() })),
+});
+export type VendorDashboard = z.infer<typeof vendorDashboardSchema>;

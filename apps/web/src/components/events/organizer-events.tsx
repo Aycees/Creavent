@@ -1,6 +1,6 @@
 "use client"
 
-import type { OrganizerEventRow, OrganizerEvents } from "@creavent/shared"
+import { formatPeso, type OrganizerEventRow, type OrganizerEvents, type OrganizerTodo } from "@creavent/shared"
 import { PlusIcon } from "@phosphor-icons/react"
 import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
@@ -26,8 +26,8 @@ function useOrganizerEvents() {
   })
 }
 
-// "Your events" in Upcoming and Past tabs (spec §3.8, mockup OrgDashboard).
-// The to-do counts come with Phase 3.
+// To-do counts per event, then "Your events" in Upcoming and Past tabs
+// (spec §3.8, mockup OrgDashboard).
 export function OrganizerEventsList({ title }: { title: string }) {
   const { data, isError } = useOrganizerEvents()
 
@@ -45,6 +45,7 @@ export function OrganizerEventsList({ title }: { title: string }) {
 
       {isError && <Alert tone="danger">We couldn&apos;t load your events. Refresh to try again.</Alert>}
       {!data && !isError && <p role="status" className="text-sm text-muted">Loading…</p>}
+      {data?.todo.map((t) => <Todo key={t.eventId} todo={t} />)}
       {data && (
         <section aria-label="Your events" className="flex flex-col gap-4">
           <h2 className="text-h2">Your events</h2>
@@ -84,6 +85,7 @@ function Rows({ rows, empty }: { rows: OrganizerEventRow[]; empty: string }) {
 }
 
 function slotsText(r: OrganizerEventRow) {
+  if (r.fill) return `${r.fill.reserved} reserved · ${r.fill.assigned} assigned · ${r.fill.open} open`
   const count = `${r.slotCount} ${r.slotCount === 1 ? "slot" : "slots"}`
   return r.status === "draft" ? `${count} · not open to vendors yet` : count
 }
@@ -124,5 +126,40 @@ function Row({ row: r }: { row: OrganizerEventRow }) {
         </Link>
       </Button>
     </article>
+  )
+}
+
+const shortDay = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Manila", weekday: "short", month: "short", day: "numeric" })
+
+// "To do for Bajada Christmas Flea": each count links to the page that
+// handles it (spec §3.8).
+function Todo({ todo: t }: { todo: OrganizerTodo }) {
+  const id = React.useId()
+  const base = `/organizer/events/${t.eventId}`
+  const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
+  const items = [
+    t.applicationsToReview > 0 && {
+      href: `${base}/applications`,
+      label: plural(t.applicationsToReview, "application to review", "applications to review"),
+      detail: t.oldestApplicationAt ? `Oldest from ${shortDay.format(new Date(t.oldestApplicationAt))}` : null,
+    },
+    t.proofsToCheck > 0 && { href: `${base}/vendors`, label: plural(t.proofsToCheck, "payment proof to check", "payment proofs to check"), detail: `${formatPeso(t.proofsTotal)} in total` },
+    t.overduePayments > 0 && { href: `${base}/vendors`, label: plural(t.overduePayments, "payment overdue", "payments overdue"), detail: "Wait, or remove the vendor", warn: true },
+    t.approvedNoSlot > 0 && { href: `${base}/vendors`, label: `${t.approvedNoSlot} approved, no slot yet`, detail: plural(t.openSlots, "slot open", "slots open") },
+  ].filter(Boolean) as { href: string; label: string; detail: string | null; warn?: boolean }[]
+  return (
+    <section aria-labelledby={id} className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4 md:p-5">
+      <h2 id={id} className="text-h3">{`To do for ${t.name}`}</h2>
+      <ul className="grid gap-2 md:grid-cols-2">
+        {items.map((i) => (
+          <li key={i.label}>
+            <Link href={i.href} className={`flex min-h-11 flex-col rounded-md px-4 py-3 hover:bg-sunken ${i.warn ? "bg-warning-soft text-warning-ink" : "bg-canvas"}`}>
+              <span className="text-label font-semibold">{i.label}</span>
+              {i.detail && <span className="text-cap">{i.detail}</span>}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }

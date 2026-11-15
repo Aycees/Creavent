@@ -9,6 +9,8 @@ import {
   type PaymentInstruction,
   type VendorApplication,
   type VendorApplicationRow,
+  type VendorDashboard,
+  paymentChannelLabels,
 } from '@creavent/shared';
 import type { z } from 'zod';
 import { writeAuditLog } from '../audit/audit-log.js';
@@ -203,6 +205,77 @@ export class VendorApplicationsService {
           decisionNote: a.decisionNote,
         };
       }),
+    };
+  }
+
+  // /vendor: what needs action, applications, the next confirmed event, and
+  // events open to vendors in the vendor's categories (spec §4.6).
+  async dashboard(userId: string): Promise<VendorDashboard> {
+    const vendor = await vendorProfile(this.prisma, userId);
+    const now = new Date();
+    const [due, confirmed, { applications }] = await Promise.all([
+      this.prisma.slotAssignment.findMany({
+        where: { vendorProfileId: vendor.id, status: 'assigned', payment: { status: { in: ['pending', 'rejected'] } } },
+        include: { slot: true, payment: true, event: { include: { organizerProfile: true } } },
+        orderBy: { deadlineAt: 'asc' },
+      }),
+      this.prisma.slotAssignment.findFirst({
+        where: { vendorProfileId: vendor.id, status: 'reserved', event: { endsAt: { gte: now }, status: { in: ['open_to_vendors', 'announced'] } } },
+        include: { slot: true, event: { include: { vendorFloorPlanFile: true, organizerProfile: { include: { user: true } } } } },
+        orderBy: { event: { startsAt: 'asc' } },
+      }),
+      this.list(userId),
+    ]);
+    const mine = vendor.categories.map((c) => c.categoryId);
+    const open = await this.prisma.event.findMany({
+      where: {
+        status: 'open_to_vendors',
+        moderationState: 'visible',
+        applicationsOpen: true,
+        endsAt: { gte: now },
+        OR: [{ applicationsCloseAt: null }, { applicationsCloseAt: { gt: now } }],
+        categories: { some: { categoryId: { in: mine } } },
+      },
+      orderBy: { startsAt: 'asc' },
+      take: 5,
+      include: { applications: { where: { vendorProfileId: vendor.id, status: { in: ['submitted', 'approved'] } }, select: { id: true } } },
+    });
+    return {
+      needsAction: due.map((a) => {
+        const options = (a.paymentInstructionsSnapshot ?? []) as PaymentInstruction[];
+        const channels = [...new Set(options.map((o) => paymentChannelLabels[o.channel]))];
+        return {
+          applicationId: a.applicationId,
+          eventName: a.event.name,
+          startDate: a.event.startsAt ? manilaParts(a.event.startsAt).date : null,
+          slotLabel: a.slot.label,
+          amountDue: Number(a.priceLocked),
+          deadlineAt: a.deadlineAt.toISOString(),
+          organizerName: a.event.organizerProfile.displayName,
+          paidTo: channels.length ? channels.join(' or ') : null,
+          rejected: a.payment?.status === 'rejected',
+        };
+      }),
+      applications: applications.slice(0, 6),
+      nextEvent: confirmed
+        ? {
+            applicationId: confirmed.applicationId,
+            event: eventSummary(confirmed.event),
+            slotLabel: confirmed.slot.label,
+            organizerName: confirmed.event.organizerProfile.displayName,
+            organizerPhone: confirmed.event.organizerProfile.user.phone,
+            ingressInfo: confirmed.event.ingressInfo,
+            vendorFloorPlanUrl: confirmed.event.vendorFloorPlanFile ? this.files.url(confirmed.event.vendorFloorPlanFile.storageKey) : null,
+          }
+        : null,
+      openEvents: open.map((e) => ({
+        slug: e.slug,
+        name: e.name,
+        startDate: e.startsAt ? manilaParts(e.startsAt).date : null,
+        endDate: e.endsAt ? manilaParts(e.endsAt).date : null,
+        applicationsCloseAt: e.applicationsCloseAt ? `${manilaParts(e.applicationsCloseAt).date}T${manilaParts(e.applicationsCloseAt).time}` : null,
+        applied: e.applications.length > 0,
+      })),
     };
   }
 

@@ -708,6 +708,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/vendor/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["VendorApplicationsController_dashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/vendor/applications": {
         parameters: {
             query?: never;
@@ -2825,6 +2841,18 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
+                        todo: {
+                            /** Format: uuid */
+                            eventId: string;
+                            name: string;
+                            applicationsToReview: number;
+                            oldestApplicationAt: string | null;
+                            proofsToCheck: number;
+                            proofsTotal: number;
+                            overduePayments: number;
+                            approvedNoSlot: number;
+                            openSlots: number;
+                        }[];
                         upcoming: {
                             /** Format: uuid */
                             id: string;
@@ -2838,6 +2866,11 @@ export interface operations {
                             venueName: string | null;
                             slotCount: number;
                             nextStep: string;
+                            fill: {
+                                reserved: number;
+                                assigned: number;
+                                open: number;
+                            } | null;
                         }[];
                         past: {
                             /** Format: uuid */
@@ -2852,6 +2885,11 @@ export interface operations {
                             venueName: string | null;
                             slotCount: number;
                             nextStep: string;
+                            fill: {
+                                reserved: number;
+                                assigned: number;
+                                open: number;
+                            } | null;
                         }[];
                     };
                 };
@@ -5791,6 +5829,102 @@ export interface operations {
                     "application/json": {
                         /** Format: uuid */
                         id: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    VendorApplicationsController_dashboard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        needsAction: {
+                            /** Format: uuid */
+                            applicationId: string;
+                            eventName: string;
+                            startDate: string | null;
+                            slotLabel: string;
+                            amountDue: number;
+                            deadlineAt: string;
+                            organizerName: string;
+                            paidTo: string | null;
+                            rejected: boolean;
+                        }[];
+                        applications: {
+                            /** Format: uuid */
+                            id: string;
+                            event: {
+                                slug: string;
+                                name: string;
+                                startDate: string | null;
+                                endDate: string | null;
+                                opensAt: string | null;
+                                closesAt: string | null;
+                                venueName: string | null;
+                            };
+                            /** @enum {string} */
+                            status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed";
+                            slotLabel: string | null;
+                            amountDue: number | null;
+                            /** @enum {string|null} */
+                            paymentStatus: "pending" | "submitted" | "approved" | "rejected" | null;
+                            deadlineAt: string | null;
+                            decisionNote: string | null;
+                        }[];
+                        nextEvent: {
+                            /** Format: uuid */
+                            applicationId: string;
+                            event: {
+                                slug: string;
+                                name: string;
+                                startDate: string | null;
+                                endDate: string | null;
+                                opensAt: string | null;
+                                closesAt: string | null;
+                                venueName: string | null;
+                            };
+                            slotLabel: string;
+                            organizerName: string;
+                            organizerPhone: string | null;
+                            ingressInfo: string | null;
+                            vendorFloorPlanUrl: string | null;
+                        } | null;
+                        openEvents: {
+                            slug: string;
+                            name: string;
+                            startDate: string | null;
+                            endDate: string | null;
+                            applicationsCloseAt: string | null;
+                            applied: boolean;
+                        }[];
                     };
                 };
             };

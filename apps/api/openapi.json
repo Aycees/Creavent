@@ -6133,6 +6133,66 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "todo": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "eventId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "applicationsToReview": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "oldestApplicationAt": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "proofsToCheck": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "proofsTotal": {
+                            "type": "number"
+                          },
+                          "overduePayments": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "approvedNoSlot": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "openSlots": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          }
+                        },
+                        "required": [
+                          "eventId",
+                          "name",
+                          "applicationsToReview",
+                          "oldestApplicationAt",
+                          "proofsToCheck",
+                          "proofsTotal",
+                          "overduePayments",
+                          "approvedNoSlot",
+                          "openSlots"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
                     "upcoming": {
                       "type": "array",
                       "items": {
@@ -6181,6 +6241,33 @@
                           },
                           "nextStep": {
                             "type": "string"
+                          },
+                          "fill": {
+                            "nullable": true,
+                            "type": "object",
+                            "properties": {
+                              "reserved": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "assigned": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "open": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              }
+                            },
+                            "required": [
+                              "reserved",
+                              "assigned",
+                              "open"
+                            ],
+                            "additionalProperties": false
                           }
                         },
                         "required": [
@@ -6193,7 +6280,8 @@
                           "endDate",
                           "venueName",
                           "slotCount",
-                          "nextStep"
+                          "nextStep",
+                          "fill"
                         ],
                         "additionalProperties": false
                       }
@@ -6246,6 +6334,33 @@
                           },
                           "nextStep": {
                             "type": "string"
+                          },
+                          "fill": {
+                            "nullable": true,
+                            "type": "object",
+                            "properties": {
+                              "reserved": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "assigned": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "open": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              }
+                            },
+                            "required": [
+                              "reserved",
+                              "assigned",
+                              "open"
+                            ],
+                            "additionalProperties": false
                           }
                         },
                         "required": [
@@ -6258,13 +6373,15 @@
                           "endDate",
                           "venueName",
                           "slotCount",
-                          "nextStep"
+                          "nextStep",
+                          "fill"
                         ],
                         "additionalProperties": false
                       }
                     }
                   },
                   "required": [
+                    "todo",
                     "upcoming",
                     "past"
                   ],
@@ -17297,6 +17414,356 @@
                   },
                   "required": [
                     "id"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "VendorApplications"
+        ]
+      }
+    },
+    "/api/vendor/dashboard": {
+      "get": {
+        "operationId": "VendorApplicationsController_dashboard",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "needsAction": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "applicationId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "eventName": {
+                            "type": "string"
+                          },
+                          "startDate": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "slotLabel": {
+                            "type": "string"
+                          },
+                          "amountDue": {
+                            "type": "number"
+                          },
+                          "deadlineAt": {
+                            "type": "string"
+                          },
+                          "organizerName": {
+                            "type": "string"
+                          },
+                          "paidTo": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "rejected": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "applicationId",
+                          "eventName",
+                          "startDate",
+                          "slotLabel",
+                          "amountDue",
+                          "deadlineAt",
+                          "organizerName",
+                          "paidTo",
+                          "rejected"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "applications": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "event": {
+                            "type": "object",
+                            "properties": {
+                              "slug": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "startDate": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "endDate": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "opensAt": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "closesAt": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "venueName": {
+                                "nullable": true,
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "slug",
+                              "name",
+                              "startDate",
+                              "endDate",
+                              "opensAt",
+                              "closesAt",
+                              "venueName"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "submitted",
+                              "approved",
+                              "slot_assigned",
+                              "reserved",
+                              "declined",
+                              "withdrawn",
+                              "removed"
+                            ]
+                          },
+                          "slotLabel": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "amountDue": {
+                            "nullable": true,
+                            "type": "number"
+                          },
+                          "paymentStatus": {
+                            "nullable": true,
+                            "type": "string",
+                            "enum": [
+                              "pending",
+                              "submitted",
+                              "approved",
+                              "rejected"
+                            ]
+                          },
+                          "deadlineAt": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "decisionNote": {
+                            "nullable": true,
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "event",
+                          "status",
+                          "slotLabel",
+                          "amountDue",
+                          "paymentStatus",
+                          "deadlineAt",
+                          "decisionNote"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "nextEvent": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "applicationId": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "event": {
+                          "type": "object",
+                          "properties": {
+                            "slug": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "startDate": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "endDate": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "opensAt": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "closesAt": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "venueName": {
+                              "nullable": true,
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "slug",
+                            "name",
+                            "startDate",
+                            "endDate",
+                            "opensAt",
+                            "closesAt",
+                            "venueName"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "slotLabel": {
+                          "type": "string"
+                        },
+                        "organizerName": {
+                          "type": "string"
+                        },
+                        "organizerPhone": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "ingressInfo": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "vendorFloorPlanUrl": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "applicationId",
+                        "event",
+                        "slotLabel",
+                        "organizerName",
+                        "organizerPhone",
+                        "ingressInfo",
+                        "vendorFloorPlanUrl"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "openEvents": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "slug": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "startDate": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "endDate": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "applicationsCloseAt": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "applied": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "slug",
+                          "name",
+                          "startDate",
+                          "endDate",
+                          "applicationsCloseAt",
+                          "applied"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "needsAction",
+                    "applications",
+                    "nextEvent",
+                    "openEvents"
                   ],
                   "additionalProperties": false
                 }
