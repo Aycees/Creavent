@@ -85,7 +85,7 @@ describe('organizer dashboard', () => {
 
   it('counts what needs doing per open event, and how the slots are filled', async () => {
     const { user, profile } = await createOrganizer(prisma);
-    const eventId = await readyEvent(prisma, profile.id, { status: 'open_to_vendors', startsAt: new Date(Date.now() + 10 * 86_400_000), endsAt: new Date(Date.now() + 10 * 86_400_000 + 6 * 3_600_000) });
+    const eventId = await readyEvent(prisma, profile.id, { status: 'open_to_vendors', startsAt: new Date(Date.now() + 10 * 86_400_000), endsAt: new Date(Date.now() + 11 * 86_400_000 + 60_000) });
     const parts = await eventParts(prisma, eventId);
     const base = { eventId, categoryId: parts.preloved.id, organizerUserId: user.id };
     const v = await Promise.all([0, 1, 2, 3, 4].map(() => createVendor(prisma, [parts.preloved.id])));

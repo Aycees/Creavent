@@ -29,7 +29,9 @@ describe('the vendor dashboard', () => {
     await prisma.$disconnect();
   });
 
-  const days = (n: number) => ({ startsAt: new Date(Date.now() + n * 86_400_000), endsAt: new Date(Date.now() + n * 86_400_000 + 6 * 3_600_000) });
+  // Ends a day and a minute later, so the closing time is always after the
+  // opening time whatever the hour the tests run (data model §6.13).
+  const days = (n: number) => ({ startsAt: new Date(Date.now() + n * 86_400_000), endsAt: new Date(Date.now() + (n + 1) * 86_400_000 + 60_000) });
 
   it('shows the payment due, the applications, the next confirmed event, and events open to vendors', async () => {
     const organizer = await createOrganizer(prisma, { displayName: 'Sari-Sari Collective' });

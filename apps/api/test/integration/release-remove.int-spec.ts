@@ -78,7 +78,7 @@ describe('releasing and removing', () => {
       const res = await release(s);
 
       expect(res.status).toBe(409);
-      expect(res.body.message).toBe('Only a slot that is not yet paid can be released. Contact the organizer.');
+      expect(res.body.message).toBe('Your payment is approved, so contact the organizer to cancel');
     });
 
     it("is Not found for another vendor", async () => {

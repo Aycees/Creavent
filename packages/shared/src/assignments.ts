@@ -173,6 +173,8 @@ export const vendorApplicationSchema = z.object({
     city: z.string().nullable(),
     // Shown to vendors with a slot (spec §3.1).
     ingressInfo: z.string().nullable(),
+    // Whether vendors choose a preferred slot here (spec §3.4).
+    preferredSlots: z.boolean(),
     vendorFloorPlanUrl: z.string().nullable(),
   }),
   // Vendors who applied see the organizer's contact (spec §8.2).

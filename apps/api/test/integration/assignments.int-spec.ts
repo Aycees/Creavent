@@ -99,7 +99,7 @@ describe('assigning slots', () => {
 
   it('never sets a deadline after the event starts', async () => {
     const startsAt = new Date(Date.now() + 2 * 3_600_000);
-    const s = await setup({ startsAt, endsAt: new Date(startsAt.getTime() + 4 * 3_600_000) });
+    const s = await setup({ startsAt, endsAt: new Date(startsAt.getTime() + 86_400_000 + 60_000) });
 
     await assign(s, s.slots[0].id);
 

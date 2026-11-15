@@ -10,6 +10,7 @@ import {
   type VendorApplication,
   type VendorApplicationRow,
   type VendorDashboard,
+  type ApplicationSlots,
   paymentChannelLabels,
 } from '@creavent/shared';
 import type { z } from 'zod';
@@ -66,8 +67,6 @@ export class VendorApplicationsService {
     else if (categories.length === 0) blocked = 'no_matching_category';
 
     const preferred = event.slotMode === 'vendor_preference';
-    const taken = preferred ? await takenSlotIds(this.prisma, event.id) : new Set<string>();
-    const fallback = event.defaultSlotPrice === null ? null : Number(event.defaultSlotPrice);
     return {
       event: {
         slug: event.slug,
@@ -92,19 +91,7 @@ export class VendorApplicationsService {
         categoryName: d.category?.name ?? null,
         required: d.isRequired,
       })),
-      slotGroups: preferred
-        ? groupSlots(event.slots).map((g) => ({
-            name: g.name,
-            slots: g.slots.map((s) => ({
-              id: s.id,
-              label: s.label,
-              sizeLabel: s.sizeLabel,
-              note: s.note,
-              price: s.price === null ? fallback : Number(s.price),
-              taken: taken.has(s.id),
-            })),
-          }))
-        : [],
+      slotGroups: preferred ? await this.slotGroups(this.prisma, event) : [],
     };
   }
 
@@ -171,6 +158,9 @@ export class VendorApplicationsService {
         include: { vendorProfile: true, event: { include: eventInclude } },
       });
       if (!application) throw new NotFoundException('Application not found');
+      await tx.$queryRaw`SELECT id FROM events WHERE id = ${application.eventId}::uuid FOR UPDATE`;
+      // An unpaid slot is released with the withdrawal; a paid one isn't.
+      await this.releaseActive(tx, userId, applicationId);
       await changeApplicationStatus(tx, {
         applicationId,
         from: application.status,
@@ -325,6 +315,7 @@ export class VendorApplicationsService {
         addressLine: a.event.addressLine,
         city: a.event.city,
         ingressInfo: active ? a.event.ingressInfo : null,
+        preferredSlots: a.event.slotMode === 'vendor_preference',
         vendorFloorPlanUrl: a.event.vendorFloorPlanFile ? this.files.url(a.event.vendorFloorPlanFile.storageKey) : null,
       },
       organizer: {
@@ -335,7 +326,7 @@ export class VendorApplicationsService {
         approved: role?.approvalStatus === 'approved' && role.suspendedAt === null,
       },
       preferredSlot:
-        a.preferredSlot && !latest
+        a.preferredSlot && !active
           ? { label: a.preferredSlot.label, state: a.preferredSlot.deletedAt ? 'removed' : taken.has(a.preferredSlot.id) ? 'taken' : 'open' }
           : null,
       assignment: latest
@@ -363,26 +354,125 @@ export class VendorApplicationsService {
   // turn this off (spec §6.6). The vendor stays approved, without a slot.
   async release(userId: string, applicationId: string) {
     await this.prisma.$transaction(async (tx) => {
-      const vendor = await vendorProfile(tx, userId);
-      const application = await tx.application.findFirst({ where: { id: applicationId, vendorProfileId: vendor.id } });
-      if (!application) throw new NotFoundException('Application not found');
-      await tx.$queryRaw`SELECT id FROM events WHERE id = ${application.eventId}::uuid FOR UPDATE`;
-      const assignment = await tx.slotAssignment.findFirst({
-        where: { applicationId, status: { in: [...ACTIVE] } },
-        include: { slot: true, event: { include: eventInclude } },
-      });
-      if (!assignment) throw new ConflictException('You have no slot to release here');
-      const now = new Date();
-      await changeAssignmentStatus(tx, {
-        assignmentId: assignment.id,
-        from: assignment.status,
-        action: 'release',
-        actorUserId: userId,
-        data: { endedAt: now, endedById: userId, endedReason: 'Released by the vendor' },
-      });
-      await archivePayment(tx, assignment.id, now);
-      await this.emailOrganizer(tx, assignment.event, 'slot_released', applicationId, vendor.shopName, { slotLabel: assignment.slot.label });
+      const { application, vendor } = await this.ownApplication(tx, userId, applicationId);
+      const released = await this.releaseActive(tx, userId, applicationId);
+      if (!released) throw new ConflictException('You have no slot to release here');
+      await this.emailOrganizer(tx, released.event, 'slot_released', application.id, vendor.shopName, { slotLabel: released.slot.label });
     });
+  }
+
+  // Change or clear the preferred slot while no slot is assigned (decided
+  // 2026-11-15). A preference still holds nothing (spec §4.3).
+  async setPreference(userId: string, applicationId: string, slotId: string | null) {
+    await this.prisma.$transaction(async (tx) => {
+      const { application } = await this.ownApplication(tx, userId, applicationId);
+      if (!['submitted', 'approved'].includes(application.status) || (await this.activeAssignment(tx, applicationId))) {
+        throw new ConflictException('You can change your preferred slot only before a slot is assigned');
+      }
+      const event = await tx.event.findUniqueOrThrow({ where: { id: application.eventId }, include: eventInclude });
+      if (event.slotMode !== 'vendor_preference') throw new ConflictException('The organizer assigns slots at this event');
+      const preferredSlotId = slotId === null ? null : await this.checkPreference(tx, event, slotId);
+      await tx.application.update({ where: { id: applicationId }, data: { preferredSlotId } });
+      await writeAuditLog(tx, {
+        actorUserId: userId,
+        action: 'application.preference_change',
+        entityType: 'application',
+        entityId: applicationId,
+        changes: { preferredSlotId: { from: application.preferredSlotId, to: preferredSlotId } },
+      });
+    });
+  }
+
+  // Swap an unpaid slot for a new preferred one: the slot is released and the
+  // organizer assigns the new pick (decided 2026-11-15).
+  async changeSlot(userId: string, applicationId: string, slotId: string) {
+    await this.prisma.$transaction(async (tx) => {
+      const { application, vendor } = await this.ownApplication(tx, userId, applicationId);
+      const event = await tx.event.findUniqueOrThrow({ where: { id: application.eventId }, include: eventInclude });
+      if (event.slotMode !== 'vendor_preference') throw new ConflictException('The organizer assigns slots at this event');
+      const active = await this.activeAssignment(tx, applicationId);
+      if (!active) throw new ConflictException('You have no slot to change here');
+      if (active.slotId === slotId) throw new BadRequestException('Pick a different slot');
+      if (active.status === 'reserved') throw new ConflictException('Your payment is approved, so contact the organizer to change slots');
+      const preferredSlotId = await this.checkPreference(tx, event, slotId);
+      const released = (await this.releaseActive(tx, userId, applicationId))!;
+      await tx.application.update({ where: { id: applicationId }, data: { preferredSlotId } });
+      const newLabel = event.slots.find((x) => x.id === preferredSlotId)!.label;
+      await writeAuditLog(tx, {
+        actorUserId: userId,
+        action: 'application.preference_change',
+        entityType: 'application',
+        entityId: applicationId,
+        changes: { preferredSlotId: { from: application.preferredSlotId, to: preferredSlotId } },
+      });
+      await this.emailOrganizer(tx, event, 'slot_released', applicationId, vendor.shopName, { slotLabel: released.slot.label, newPreference: newLabel });
+    });
+  }
+
+  // Open and taken slots, for picking a new preference.
+  async slots(userId: string, applicationId: string): Promise<ApplicationSlots> {
+    const { application } = await this.ownApplication(this.prisma, userId, applicationId, false);
+    const event = await this.prisma.event.findUniqueOrThrow({ where: { id: application.eventId }, include: eventInclude });
+    const active = await this.activeAssignment(this.prisma, applicationId);
+    const slot = active ? event.slots.find((x) => x.id === active.slotId) : null;
+    return {
+      currentSlotLabel: slot?.label ?? null,
+      preferredSlotId: application.preferredSlotId,
+      vendorFloorPlanUrl: event.vendorFloorPlanFile ? this.files.url(event.vendorFloorPlanFile.storageKey) : null,
+      slotGroups: await this.slotGroups(this.prisma, event),
+    };
+  }
+
+  // The vendor's own application, or Not found. In a transaction, its event
+  // row is locked so the change runs after any organizer decision on it.
+  private async ownApplication(db: Db, userId: string, applicationId: string, lock = true) {
+    const vendor = await vendorProfile(db, userId);
+    const application = await db.application.findFirst({ where: { id: applicationId, vendorProfileId: vendor.id } });
+    if (!application) throw new NotFoundException('Application not found');
+    if (lock) await db.$queryRaw`SELECT id FROM events WHERE id = ${application.eventId}::uuid FOR UPDATE`;
+    return { application, vendor };
+  }
+
+  private activeAssignment(db: Db, applicationId: string) {
+    return db.slotAssignment.findFirst({ where: { applicationId, status: { in: [...ACTIVE] } } });
+  }
+
+  // Release an active, unpaid slot: ends the assignment and archives its
+  // payment. Refuses a paid (reserved) slot. Returns null with no slot.
+  private async releaseActive(tx: Tx, userId: string, applicationId: string) {
+    const assignment = await tx.slotAssignment.findFirst({
+      where: { applicationId, status: { in: [...ACTIVE] } },
+      include: { slot: true, event: { include: eventInclude } },
+    });
+    if (!assignment) return null;
+    if (assignment.status === 'reserved') throw new ConflictException('Your payment is approved, so contact the organizer to cancel');
+    const now = new Date();
+    await changeAssignmentStatus(tx, {
+      assignmentId: assignment.id,
+      from: assignment.status,
+      action: 'release',
+      actorUserId: userId,
+      data: { endedAt: now, endedById: userId, endedReason: 'Released by the vendor' },
+    });
+    await archivePayment(tx, assignment.id, now);
+    return assignment;
+  }
+
+  // The event's slots by section, each open or taken (spec §4.3).
+  private async slotGroups(db: Db, event: ApplyEvent) {
+    const taken = await takenSlotIds(db, event.id);
+    const fallback = event.defaultSlotPrice === null ? null : Number(event.defaultSlotPrice);
+    return groupSlots(event.slots).map((g) => ({
+      name: g.name,
+      slots: g.slots.map((x) => ({
+        id: x.id,
+        label: x.label,
+        sizeLabel: x.sizeLabel,
+        note: x.note,
+        price: x.price === null ? fallback : Number(x.price),
+        taken: taken.has(x.id),
+      })),
+    }));
   }
 
   // The vendor's active application here, and whether a removal blocks them.

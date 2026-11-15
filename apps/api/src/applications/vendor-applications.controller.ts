@@ -1,6 +1,6 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Put, UseGuards } from '@nestjs/common';
 import { ApiCreatedResponse } from '@nestjs/swagger';
-import { applyFormSchema, applySchema, createdApplicationSchema, uploadProofSchema, vendorApplicationSchema, vendorApplicationsSchema, vendorDashboardSchema } from '@creavent/shared';
+import { applicationSlotsSchema, changeSlotSchema, preferenceSchema, applyFormSchema, applySchema, createdApplicationSchema, uploadProofSchema, vendorApplicationSchema, vendorApplicationsSchema, vendorDashboardSchema } from '@creavent/shared';
 import type { z } from 'zod';
 import { AuthGuard, CurrentUser, type SessionUser } from '../auth/auth.guard.js';
 import { ResponseSchema } from '../response-schema.decorator.js';
@@ -59,6 +59,27 @@ export class VendorApplicationsController {
   @ResponseSchema(vendorApplicationSchema)
   async release(@CurrentUser() user: SessionUser, @Param('id', ParseUUIDPipe) id: string) {
     await this.applications.release(user.id, id);
+    return this.applications.detail(user.id, id);
+  }
+
+  @Get('vendor/applications/:id/slots')
+  @ResponseSchema(applicationSlotsSchema)
+  slots(@CurrentUser() user: SessionUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.applications.slots(user.id, id);
+  }
+
+  @Put('vendor/applications/:id/preference')
+  @ResponseSchema(vendorApplicationSchema)
+  async preference(@CurrentUser() user: SessionUser, @Param('id', ParseUUIDPipe) id: string, @Body({ schema: preferenceSchema }) body: z.output<typeof preferenceSchema>) {
+    await this.applications.setPreference(user.id, id, body.preferredSlotId);
+    return this.applications.detail(user.id, id);
+  }
+
+  @Post('vendor/applications/:id/change-slot')
+  @ApiCreatedResponse({ standardSchema: vendorApplicationSchema })
+  @ResponseSchema(vendorApplicationSchema)
+  async changeSlot(@CurrentUser() user: SessionUser, @Param('id', ParseUUIDPipe) id: string, @Body({ schema: changeSlotSchema }) body: z.output<typeof changeSlotSchema>) {
+    await this.applications.changeSlot(user.id, id, body.preferredSlotId);
     return this.applications.detail(user.id, id);
   }
 

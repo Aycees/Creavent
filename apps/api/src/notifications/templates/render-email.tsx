@@ -246,14 +246,15 @@ const templates = {
     ),
   },
   slot_released: {
-    payload: z.object({ name: z.string(), shopName: z.string(), eventName: z.string(), slotLabel: z.string(), url: z.string(), supportEmail: z.string() }),
+    payload: z.object({ name: z.string(), shopName: z.string(), eventName: z.string(), slotLabel: z.string(), newPreference: z.string().optional(), url: z.string(), supportEmail: z.string() }),
     subject: (p: { shopName: string; slotLabel: string }) => `${p.shopName} released slot ${p.slotLabel}`,
-    body: (p: { name: string; shopName: string; eventName: string; slotLabel: string; url: string }) => (
+    body: (p: { name: string; shopName: string; eventName: string; slotLabel: string; newPreference?: string; url: string }) => (
       <>
         <Paragraph>Hi {firstName(p.name)},</Paragraph>
         <Paragraph>
           {p.shopName} released slot {p.slotLabel} at {p.eventName} before paying. The slot is open again, and they&apos;re back in
           your approved list without a slot.
+          {p.newPreference ? ` They'd like slot ${p.newPreference} instead.` : ''}
         </Paragraph>
         <ActionButton href={p.url}>See vendors and slots</ActionButton>
       </>

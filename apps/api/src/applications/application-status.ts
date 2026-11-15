@@ -7,7 +7,8 @@ import type { Tx } from '../prisma/prisma.service.js';
 export type ApplicationAction = 'withdraw' | 'approve' | 'decline' | 'remove';
 
 const actions: Record<ApplicationAction, { from: ApplicationStatus[]; to: ApplicationStatus; refusal: string }> = {
-  withdraw: { from: ['submitted'], to: 'withdrawn', refusal: 'This application was already decided. Contact the organizer instead.' },
+  // While applied or approved (decided 2026-11-15). A reserved slot is checked by the caller.
+  withdraw: { from: ['submitted', 'approved'], to: 'withdrawn', refusal: 'This application can no longer be withdrawn' },
   approve: { from: ['submitted'], to: 'approved', refusal: 'This application was already decided' },
   decline: { from: ['submitted'], to: 'declined', refusal: 'This application was already decided' },
   remove: { from: ['approved'], to: 'removed', refusal: 'Only approved vendors can be removed' },

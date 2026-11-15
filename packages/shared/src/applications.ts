@@ -146,3 +146,16 @@ export type EventApplications = z.infer<typeof eventApplicationsSchema>;
 
 // Allow or block a removed vendor from applying again (spec §3.3).
 export const reapplySchema = z.object({ canReapply: z.boolean() });
+
+// The vendor's change of plans (decided 2026-11-15).
+export const preferenceSchema = z.object({ preferredSlotId: z.uuid().nullable() });
+export const changeSlotSchema = z.object({ preferredSlotId: z.uuid() });
+
+// Open and taken slots for picking a new preference.
+export const applicationSlotsSchema = z.object({
+  currentSlotLabel: z.string().nullable(),
+  preferredSlotId: z.uuid().nullable(),
+  vendorFloorPlanUrl: z.string().nullable(),
+  slotGroups: applyFormSchema.shape.slotGroups,
+});
+export type ApplicationSlots = z.infer<typeof applicationSlotsSchema>;

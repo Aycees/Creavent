@@ -278,7 +278,7 @@ describe('applying to an event', () => {
     it('refuses to withdraw once the application is decided', async () => {
       const s = await setup();
       const first = await apply(s);
-      await prisma.application.update({ where: { id: first.body.id }, data: { status: 'approved' } });
+      await prisma.application.update({ where: { id: first.body.id }, data: { status: 'declined' } });
 
       const res = await s.browser.post(`/api/vendor/applications/${first.body.id}/withdraw`).send({});
 
