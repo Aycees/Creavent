@@ -140,7 +140,9 @@ function VendorView({ event: e, preview }: { event: VendorEvent; preview: boolea
             {e.myApplication && !preview && (
               <p className="rounded-md bg-sunken px-4 py-3 text-label">{`Your application: ${vendorStatusLabels[e.myApplication.status]}`}</p>
             )}
-            {e.myApplication && !preview && !["declined", "withdrawn"].includes(e.myApplication.status) ? (
+            {e.myApplication?.status === "removed" && !e.myApplication.canReapply && !preview ? (
+              <p className="text-sm">You can&apos;t reapply to this event.</p>
+            ) : e.myApplication && !preview && !["declined", "withdrawn", "removed"].includes(e.myApplication.status) ? (
               <Button asChild variant="secondary" block>
                 <Link href={`/vendor/applications/${e.myApplication.id}`}>View your application</Link>
               </Button>

@@ -239,7 +239,10 @@ function StatusPanel({ application: a }: { application: VendorApplication }) {
       {(a.decisionNote || a.removalNote) && (
         <blockquote className="border-l-2 border-border-strong pl-3 text-sm whitespace-pre-line">{a.status === "removed" ? a.removalNote : a.decisionNote}</blockquote>
       )}
-      {again && (
+      {a.status === "removed" && (
+        <p className="text-sm">{a.canReapply ? "The organizer lets you apply to this event again." : "You can't reapply to this event."}</p>
+      )}
+      {(again || (a.status === "removed" && a.canReapply)) && (
         <Button asChild variant="secondary" className="self-start">
           <Link href={`/vendor/events/${a.event.slug}/apply`}>Apply again</Link>
         </Button>

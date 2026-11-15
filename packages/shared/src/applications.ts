@@ -131,6 +131,8 @@ export const organizerApplicationSchema = z.object({
   categories: z.array(z.object({ id: z.uuid(), name: z.string() })),
   documents: z.array(z.object({ id: z.uuid(), name: z.string(), url: z.string(), isPdf: z.boolean() })),
   preferredSlot: z.object({ id: z.uuid(), label: z.string(), state: preferredSlotStateSchema }).nullable(),
+  // Set on removal: whether the vendor may apply to this event again.
+  canReapply: z.boolean().nullable(),
 });
 export type OrganizerApplication = z.infer<typeof organizerApplicationSchema>;
 
@@ -141,3 +143,6 @@ export const eventApplicationsSchema = z.object({
   applications: z.array(organizerApplicationSchema),
 });
 export type EventApplications = z.infer<typeof eventApplicationsSchema>;
+
+// Allow or block a removed vendor from applying again (spec §3.3).
+export const reapplySchema = z.object({ canReapply: z.boolean() });

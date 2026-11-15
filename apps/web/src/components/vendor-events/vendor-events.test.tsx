@@ -100,7 +100,7 @@ describe("EventPageView (/events/[slug])", () => {
   })
 
   it("shows the vendor's status and a link to their application instead of Apply", async () => {
-    show({ view: "vendor", preview: false, event: eventFixture({ myApplication: { id: "a1", status: "submitted" } }) })
+    show({ view: "vendor", preview: false, event: eventFixture({ myApplication: { id: "a1", status: "submitted", canReapply: null } }) })
     renderWithQuery(<EventPageView slug="lanang-holiday-flea" />)
 
     expect(await screen.findByText("Your application: Submitted")).toBeInTheDocument()
@@ -109,11 +109,24 @@ describe("EventPageView (/events/[slug])", () => {
   })
 
   it("offers Apply again after a decline or withdrawal", async () => {
-    show({ view: "vendor", preview: false, event: eventFixture({ myApplication: { id: "a1", status: "declined" } }) })
+    show({ view: "vendor", preview: false, event: eventFixture({ myApplication: { id: "a1", status: "declined", canReapply: null } }) })
     renderWithQuery(<EventPageView slug="lanang-holiday-flea" />)
 
     expect(await screen.findByText("Your application: Declined")).toBeInTheDocument()
     expect(screen.getByRole("link", { name: "Apply again" })).toHaveAttribute("href", "/vendor/events/lanang-holiday-flea/apply")
+  })
+
+  it("tells a removed vendor whether they can apply again", async () => {
+    show({ view: "vendor", preview: false, event: eventFixture({ myApplication: { id: "a1", status: "removed", canReapply: false } }) })
+    const { unmount } = renderWithQuery(<EventPageView slug="lanang-holiday-flea" />)
+
+    expect(await screen.findByText("You can't reapply to this event.")).toBeInTheDocument()
+    expect(screen.queryByRole("link", { name: /Apply/ })).not.toBeInTheDocument()
+    unmount()
+
+    show({ view: "vendor", preview: false, event: eventFixture({ myApplication: { id: "a1", status: "removed", canReapply: true } }) })
+    renderWithQuery(<EventPageView slug="lanang-holiday-flea" />)
+    expect(await screen.findByRole("link", { name: "Apply again" })).toHaveAttribute("href", "/vendor/events/lanang-holiday-flea/apply")
   })
 
   it("says when the vendor's category isn't accepted", async () => {

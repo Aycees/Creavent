@@ -836,6 +836,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/organizer/events/{id}/applications/{applicationId}/reapply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OrganizerApplicationsController_reapply"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/organizer/events/{id}/vendors": {
         parameters: {
             query?: never;
@@ -5351,6 +5367,7 @@ export interface operations {
                                 /** @enum {string} */
                                 state: "open" | "taken" | "removed";
                             } | null;
+                            canReapply: boolean | null;
                         }[];
                     };
                 };
@@ -5684,6 +5701,7 @@ export interface operations {
                                 id: string;
                                 /** @enum {string} */
                                 status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed";
+                                canReapply: boolean | null;
                             } | null;
                         };
                     };
@@ -6030,6 +6048,7 @@ export interface operations {
                         decidedAt: string | null;
                         decisionNote: string | null;
                         removalNote: string | null;
+                        canReapply: boolean | null;
                         categories: string[];
                         documentCount: number;
                         pastProofs: {
@@ -6176,6 +6195,7 @@ export interface operations {
                         decidedAt: string | null;
                         decisionNote: string | null;
                         removalNote: string | null;
+                        canReapply: boolean | null;
                         categories: string[];
                         documentCount: number;
                         pastProofs: {
@@ -6280,6 +6300,7 @@ export interface operations {
                         decidedAt: string | null;
                         decisionNote: string | null;
                         removalNote: string | null;
+                        canReapply: boolean | null;
                         categories: string[];
                         documentCount: number;
                         pastProofs: {
@@ -6414,6 +6435,7 @@ export interface operations {
                         decidedAt: string | null;
                         decisionNote: string | null;
                         removalNote: string | null;
+                        canReapply: boolean | null;
                         categories: string[];
                         documentCount: number;
                         pastProofs: {
@@ -6518,6 +6540,7 @@ export interface operations {
                         decidedAt: string | null;
                         decisionNote: string | null;
                         removalNote: string | null;
+                        canReapply: boolean | null;
                         categories: string[];
                         documentCount: number;
                         pastProofs: {
@@ -6743,6 +6766,7 @@ export interface operations {
                                 /** @enum {string} */
                                 state: "open" | "taken" | "removed";
                             } | null;
+                            canReapply: boolean | null;
                         }[];
                     };
                 };
@@ -6804,6 +6828,7 @@ export interface operations {
                                 /** @enum {string} */
                                 state: "open" | "taken" | "removed";
                             } | null;
+                            canReapply: boolean | null;
                         }[];
                     };
                 };
@@ -6902,6 +6927,7 @@ export interface operations {
                                 /** @enum {string} */
                                 state: "open" | "taken" | "removed";
                             } | null;
+                            canReapply: boolean | null;
                         }[];
                     };
                 };
@@ -6963,6 +6989,168 @@ export interface operations {
                                 /** @enum {string} */
                                 state: "open" | "taken" | "removed";
                             } | null;
+                            canReapply: boolean | null;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OrganizerApplicationsController_reapply: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    canReapply: boolean;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            status: string;
+                            applicationsOpen: boolean;
+                            preferredSlots: boolean;
+                        };
+                        counters: {
+                            /** Format: uuid */
+                            categoryId: string;
+                            name: string;
+                            approved: number;
+                            max: number | null;
+                        }[];
+                        applications: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "submitted" | "approved" | "declined" | "removed" | "withdrawn";
+                            submittedAt: string;
+                            decidedAt: string | null;
+                            note: string | null;
+                            decisionNote: string | null;
+                            vendor: {
+                                shopName: string;
+                                slug: string | null;
+                                fullName: string;
+                                phone: string | null;
+                                avatarUrl: string | null;
+                            };
+                            categories: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            }[];
+                            documents: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                url: string;
+                                isPdf: boolean;
+                            }[];
+                            preferredSlot: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                /** @enum {string} */
+                                state: "open" | "taken" | "removed";
+                            } | null;
+                            canReapply: boolean | null;
+                        }[];
+                    };
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            status: string;
+                            applicationsOpen: boolean;
+                            preferredSlots: boolean;
+                        };
+                        counters: {
+                            /** Format: uuid */
+                            categoryId: string;
+                            name: string;
+                            approved: number;
+                            max: number | null;
+                        }[];
+                        applications: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "submitted" | "approved" | "declined" | "removed" | "withdrawn";
+                            submittedAt: string;
+                            decidedAt: string | null;
+                            note: string | null;
+                            decisionNote: string | null;
+                            vendor: {
+                                shopName: string;
+                                slug: string | null;
+                                fullName: string;
+                                phone: string | null;
+                                avatarUrl: string | null;
+                            };
+                            categories: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            }[];
+                            documents: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                url: string;
+                                isPdf: boolean;
+                            }[];
+                            preferredSlot: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                /** @enum {string} */
+                                state: "open" | "taken" | "removed";
+                            } | null;
+                            canReapply: boolean | null;
                         }[];
                     };
                 };

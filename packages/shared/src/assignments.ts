@@ -162,6 +162,8 @@ export const vendorApplicationSchema = z.object({
   decidedAt: z.string().nullable(),
   decisionNote: z.string().nullable(),
   removalNote: z.string().nullable(),
+  // After a removal: whether the organizer lets the vendor apply again.
+  canReapply: z.boolean().nullable(),
   categories: z.array(z.string()),
   documentCount: z.number().int(),
   // Proofs from earlier slots of this application, read-only.

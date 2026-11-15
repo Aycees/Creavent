@@ -22,6 +22,7 @@
 //   vendor6@ Habi Mindanao   slot A-02, payment waiting
 //   vendor7@ Kalye Kicks     slot B-04, reserved (payment approved)
 //   vendor8@ Bulak Studio    slot A-03, payment overdue
+//   vendor9@ Retro Laruan    removed, can't apply again
 //
 // All use SEED_PASSWORD from apps/api/.env. Run with `pnpm db:seed` from the
 // repo root. Safe to run again: existing accounts are left as they are.
@@ -327,6 +328,16 @@ const bulak = await seedVendor('vendor8@creavent.test', 'Nina Go', 'Bulak Studio
 await seedAssignment(habi.id, crafts, 'A-02', 'waiting');
 await seedAssignment(bulak.id, crafts, 'A-03', 'overdue');
 await seedAssignment(kalye.id, preloved.id, 'B-04', 'reserved');
+const retro = await seedVendor('vendor9@creavent.test', 'Lito Ramos', 'Retro Laruan', 'retro-laruan', [crafts]);
+await application(retro.id, 'lanang-holiday-flea', crafts, {
+  status: 'removed',
+  removedAt: new Date(),
+  removedById: organizerUser.id,
+  removalNote: 'No payment by the deadline',
+  canReapply: false,
+  daysAgo: 9,
+  ...decided,
+});
 
 await prisma.$disconnect();
 console.log(

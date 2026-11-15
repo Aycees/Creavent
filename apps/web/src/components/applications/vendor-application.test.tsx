@@ -205,6 +205,24 @@ describe("Payment records from an earlier slot", () => {
   })
 })
 
+describe("Reapplying after removal", () => {
+  it("says the vendor can't reapply when the organizer blocked it", async () => {
+    serve(vendorApplicationFixture({ status: "removed", canReapply: false, removalNote: "No payment", assignment: null }))
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    expect(await screen.findByText("You can't reapply to this event.")).toBeInTheDocument()
+    expect(screen.queryByRole("link", { name: "Apply again" })).not.toBeInTheDocument()
+  })
+
+  it("offers Apply again when the organizer allows it", async () => {
+    serve(vendorApplicationFixture({ status: "removed", canReapply: true, assignment: null }))
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    expect(await screen.findByText("The organizer lets you apply to this event again.")).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "Apply again" })).toHaveAttribute("href", "/vendor/events/bajada-christmas-flea/apply")
+  })
+})
+
 describe("VendorApplicationsList (/vendor/applications)", () => {
   it("lists each event with its status, slot, payment, and a link", async () => {
     serve({

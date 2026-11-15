@@ -4,7 +4,8 @@ import { appConfig } from '../config.js';
 import { organizerProfile, ownEvent } from '../events/organizer-events.service.js';
 import { FilesService } from '../files/files.service.js';
 import { OutboxService } from '../notifications/outbox.service.js';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { PrismaService, type Tx } from '../prisma/prisma.service.js';
+import { writeAuditLog } from '../audit/audit-log.js';
 import { changeApplicationStatus } from './application-status.js';
 import { approvedPerCategory } from './category-counts.js';
 import { takenSlotIds } from './slot-status.js';
@@ -74,6 +75,7 @@ export class OrganizerApplicationsService {
             url: this.files.fileUrl(d.file),
             isPdf: d.file.mimeType === 'application/pdf',
           })),
+        canReapply: a.canReapply,
         preferredSlot: a.preferredSlot
           ? {
               id: a.preferredSlot.id,
@@ -83,6 +85,11 @@ export class OrganizerApplicationsService {
           : null,
       })),
     };
+  }
+
+  async reapply(userId: string, eventId: string, applicationId: string, canReapply: boolean) {
+    await this.prisma.$transaction((tx) => setReapply(tx, userId, eventId, applicationId, canReapply));
+    return this.list(userId, eventId);
   }
 
   async decide(userId: string, eventId: string, applicationId: string, action: 'approve' | 'decline', note: string | null) {
@@ -120,6 +127,23 @@ export class OrganizerApplicationsService {
     });
     return this.list(userId, eventId);
   }
+}
+
+// Allow or block a removed vendor from applying again, after the removal
+// (spec §3.3). The removed application stays as history.
+export async function setReapply(tx: Tx, userId: string, eventId: string, applicationId: string, canReapply: boolean) {
+  await ownEvent(tx, userId, eventId);
+  const application = await tx.application.findFirst({ where: { id: applicationId, eventId } });
+  if (!application) throw new NotFoundException('Application not found');
+  if (application.status !== 'removed') throw new ConflictException('Only removed vendors can be allowed or blocked from applying again');
+  await tx.application.update({ where: { id: applicationId }, data: { canReapply } });
+  await writeAuditLog(tx, {
+    actorUserId: userId,
+    action: canReapply ? 'application.reapply_allowed' : 'application.reapply_blocked',
+    entityType: 'application',
+    entityId: applicationId,
+    changes: { canReapply: { from: application.canReapply, to: canReapply } },
+  });
 }
 
 // A hidden event takes no new applications, assignments, proofs, or

@@ -85,7 +85,7 @@ export const vendorEventSchema = z.object({
   myCategoryIds: z.array(z.uuid()),
   // The viewer's latest application here: the page shows its status and a
   // link instead of Apply (sitemap §3).
-  myApplication: z.object({ id: z.uuid(), status: vendorStatusSchema }).nullable(),
+  myApplication: z.object({ id: z.uuid(), status: vendorStatusSchema, canReapply: z.boolean().nullable() }).nullable(),
 });
 export type VendorEvent = z.infer<typeof vendorEventSchema>;
 

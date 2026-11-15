@@ -198,6 +198,11 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - The event page and Browse events show the vendor's own status. The event page links to the application instead of Apply, and offers "Apply again" after a decline or withdrawal.
 - Only the vendor, the event's organizer, and admins can open an application document. PDFs download, named from the purpose and date.
 
+**Acceptance criteria (Phase 3: reapplying after removal)**
+- When removing a vendor, the organizer chooses whether they can apply again. Later, on Applications under Removed, each removed application shows "Can apply again" or "Can't apply again" with a button to change it. The change is audit logged. Only removed applications can change, and only by the event's organizer.
+- A blocked vendor sees "You can't reapply to this event." on their application page, on the event page (instead of Apply), and on the apply page, and the API refuses a new application. An allowed vendor sees "The organizer lets you apply to this event again." with Apply again.
+- Applying again creates a new application. The removed one stays, with its note and payment records. Only the latest removal decides whether the vendor can apply.
+
 ## 5. Review applications
 
 *Organizer.*

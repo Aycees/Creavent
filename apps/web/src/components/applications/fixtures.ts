@@ -52,6 +52,7 @@ export function vendorApplicationFixture(overrides: Partial<VendorApplication> =
     decidedAt: "2026-11-06T02:00:00.000Z",
     decisionNote: null,
     removalNote: null,
+    canReapply: null,
     categories: ["Preloved clothing"],
     documentCount: 2,
     pastProofs: [],

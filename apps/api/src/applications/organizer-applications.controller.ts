@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Post, UseGuards } from '@nestjs/common';
 import { ApiCreatedResponse } from '@nestjs/swagger';
-import { decisionSchema, eventApplicationsSchema } from '@creavent/shared';
+import { decisionSchema, eventApplicationsSchema, reapplySchema } from '@creavent/shared';
 import type { z } from 'zod';
 import { AuthGuard, CurrentUser, type SessionUser } from '../auth/auth.guard.js';
 import { ResponseSchema } from '../response-schema.decorator.js';
@@ -39,5 +39,17 @@ export class OrganizerApplicationsController {
     @Body({ schema: decisionSchema }) body: z.output<typeof decisionSchema>,
   ) {
     return this.applications.decide(user.id, id, applicationId, 'decline', body.note);
+  }
+
+  @Post(':applicationId/reapply')
+  @ApiCreatedResponse({ standardSchema: eventApplicationsSchema })
+  @ResponseSchema(eventApplicationsSchema)
+  reapply(
+    @CurrentUser() user: SessionUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('applicationId', ParseUUIDPipe) applicationId: string,
+    @Body({ schema: reapplySchema }) body: z.output<typeof reapplySchema>,
+  ) {
+    return this.applications.reapply(user.id, id, applicationId, body.canReapply);
   }
 }

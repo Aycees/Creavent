@@ -178,6 +178,7 @@ function ApplicationCard({
         )}
       </dl>
 
+      {a.status === "removed" && <ReapplyControl application={a} eventId={eventId} />}
       {a.status === "submitted" && (
         <div className="flex gap-2">
           <Button variant="secondary" className="flex-1 md:flex-none" onClick={() => setDeciding("decline")}>
@@ -258,5 +259,34 @@ function DecisionDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  )
+}
+
+// Allow or block a removed vendor from applying again (spec §3.3).
+function ReapplyControl({ application: a, eventId }: { application: OrganizerApplication; eventId: string }) {
+  const queryClient = useQueryClient()
+  const [error, setError] = React.useState<string | null>(null)
+  const [sending, setSending] = React.useState(false)
+
+  async function change(canReapply: boolean) {
+    setSending(true)
+    setError(null)
+    const res = await api.POST("/api/organizer/events/{id}/applications/{applicationId}/reapply", {
+      params: { path: { id: eventId, applicationId: a.id } },
+      body: { canReapply },
+    })
+    setSending(false)
+    if (!res.data) return setError((res.error as ErrorBody)?.message ?? "Something went wrong. Try again.")
+    queryClient.setQueryData<EventApplications>(applicationsKey(eventId), res.data)
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-3 rounded-md bg-sunken px-4 py-3">
+      <span className="flex-1 text-sm">{a.canReapply ? "Can apply again" : "Can't apply again"}</span>
+      <Button variant="secondary" size="sm" className="h-11 md:h-9" disabled={sending} onClick={() => change(!a.canReapply)}>
+        {a.canReapply ? "Block them from applying again" : "Let them apply again"}
+      </Button>
+      {error && <p className="w-full text-help text-danger-ink">{error}</p>}
+    </div>
   )
 }

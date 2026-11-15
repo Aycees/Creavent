@@ -94,4 +94,27 @@ describe("ApplicationsReview (/organizer/events/[id]/applications)", () => {
 
     expect(await screen.findByText("No applications waiting. New ones show up here, and we email you each one.")).toBeInTheDocument()
   })
+
+  it("lets the organizer allow a removed vendor to apply again", async () => {
+    vi.mocked(api.GET).mockResolvedValue({
+      data: eventApplicationsFixture({ applications: [applicationFixture({ status: "removed", canReapply: false })] }),
+      response: { status: 200 },
+    } as never)
+    vi.mocked(api.POST).mockResolvedValue({
+      data: eventApplicationsFixture({ applications: [applicationFixture({ status: "removed", canReapply: true })] }),
+      response: { status: 201 },
+    } as never)
+    renderWithQuery(<ApplicationsReview eventId={EVENT_ID} />)
+
+    await userEvent.click(await screen.findByRole("button", { name: /Removed/ }))
+    const card = screen.getByRole("article", { name: "Lola's Ukay" })
+    expect(within(card).getByText("Can't apply again")).toBeInTheDocument()
+    await userEvent.click(within(card).getByRole("button", { name: "Let them apply again" }))
+
+    expect(api.POST).toHaveBeenCalledWith("/api/organizer/events/{id}/applications/{applicationId}/reapply", {
+      params: { path: { id: EVENT_ID, applicationId: "a0000000-0000-4000-8000-000000000001" } },
+      body: { canReapply: true },
+    })
+    expect(await within(card).findByText("Can apply again")).toBeInTheDocument()
+  })
 })

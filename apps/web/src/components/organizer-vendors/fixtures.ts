@@ -15,6 +15,7 @@ export function applicationFixture(overrides: Partial<OrganizerApplication> = {}
     categories: [{ id: PRELOVED, name: "Preloved clothing" }],
     documents: [{ id: "d1", name: "Barangay business clearance", url: "/api/files/f1", isPdf: true }],
     preferredSlot: { id: "s1", label: "B-03", state: "open" },
+    canReapply: null,
     ...overrides,
   }
 }

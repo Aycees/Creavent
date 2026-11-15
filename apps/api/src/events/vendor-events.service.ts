@@ -173,10 +173,12 @@ export class VendorEventsService {
     const applications = await this.prisma.application.findMany({
       where: { vendorProfileId, eventId: { in: eventIds } },
       orderBy: { submittedAt: 'desc' },
-      select: { id: true, eventId: true, status: true },
+      select: { id: true, eventId: true, status: true, canReapply: true },
     });
-    const latest = new Map<string, { id: string; status: ReturnType<typeof vendorStatus> }>();
-    for (const a of applications) if (!latest.has(a.eventId)) latest.set(a.eventId, { id: a.id, status: vendorStatus(a.status) });
+    const latest = new Map<string, { id: string; status: ReturnType<typeof vendorStatus>; canReapply: boolean | null }>();
+    for (const a of applications) {
+      if (!latest.has(a.eventId)) latest.set(a.eventId, { id: a.id, status: vendorStatus(a.status), canReapply: a.canReapply });
+    }
     return latest;
   }
 

@@ -316,6 +316,7 @@ export class VendorApplicationsService {
       decidedAt: a.decidedAt?.toISOString() ?? null,
       decisionNote: a.decisionNote,
       removalNote: a.removalNote,
+      canReapply: a.canReapply,
       categories: a.categories.map((c) => c.category.name),
       documentCount: a._count.documents,
       pastProofs,
