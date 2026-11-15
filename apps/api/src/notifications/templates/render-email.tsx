@@ -245,6 +245,36 @@ const templates = {
       </>
     ),
   },
+  slot_released: {
+    payload: z.object({ name: z.string(), shopName: z.string(), eventName: z.string(), slotLabel: z.string(), url: z.string(), supportEmail: z.string() }),
+    subject: (p: { shopName: string; slotLabel: string }) => `${p.shopName} released slot ${p.slotLabel}`,
+    body: (p: { name: string; shopName: string; eventName: string; slotLabel: string; url: string }) => (
+      <>
+        <Paragraph>Hi {firstName(p.name)},</Paragraph>
+        <Paragraph>
+          {p.shopName} released slot {p.slotLabel} at {p.eventName} before paying. The slot is open again, and they&apos;re back in
+          your approved list without a slot.
+        </Paragraph>
+        <ActionButton href={p.url}>See vendors and slots</ActionButton>
+      </>
+    ),
+  },
+  vendor_removed: {
+    payload: z.object({ name: z.string(), eventName: z.string(), note: z.string().nullable(), canReapply: z.boolean(), url: z.string(), supportEmail: z.string() }),
+    subject: (p: { eventName: string }) => `You were removed from ${p.eventName}`,
+    body: (p: { name: string; eventName: string; note: string | null; canReapply: boolean; url: string }) => (
+      <>
+        <Paragraph>Hi {firstName(p.name)},</Paragraph>
+        <Paragraph>The organizer removed you from {p.eventName}. Your slot, if you had one, is no longer yours.</Paragraph>
+        {p.note && <InfoBox label="Note from the organizer" lines={[p.note]} />}
+        <Paragraph>
+          {p.canReapply ? 'You can apply to this event again.' : "You can't apply to this event again."} Refunds, if any, are between you
+          and the organizer. Your payment records stay on your application page.
+        </Paragraph>
+        <ActionButton href={p.url}>See your application</ActionButton>
+      </>
+    ),
+  },
 } satisfies Record<NotificationType, unknown>;
 
 export async function renderEmail(type: NotificationType, payload: unknown) {

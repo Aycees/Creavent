@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Post, UseGuards } from '@nestjs/common';
 import { ApiCreatedResponse } from '@nestjs/swagger';
-import { approveProofSchema, assignSlotSchema, eventVendorsSchema, markPaidSchema, rejectProofSchema } from '@creavent/shared';
+import { approveProofSchema, assignSlotSchema, eventVendorsSchema, markPaidSchema, rejectProofSchema, removeVendorSchema } from '@creavent/shared';
 import type { z } from 'zod';
 import { AuthGuard, CurrentUser, type SessionUser } from '../auth/auth.guard.js';
 import { ResponseSchema } from '../response-schema.decorator.js';
@@ -65,5 +65,17 @@ export class OrganizerVendorsController {
   ) {
     await this.payments.markPaid(user.id, id, assignmentId, body.note, body.method);
     return this.vendors.vendors(user.id, id);
+  }
+
+  @Post('applications/:applicationId/remove')
+  @ApiCreatedResponse({ standardSchema: eventVendorsSchema })
+  @ResponseSchema(eventVendorsSchema)
+  remove(
+    @CurrentUser() user: SessionUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('applicationId', ParseUUIDPipe) applicationId: string,
+    @Body({ schema: removeVendorSchema }) body: z.output<typeof removeVendorSchema>,
+  ) {
+    return this.vendors.remove(user.id, id, applicationId, body.canReapply, body.note);
   }
 }

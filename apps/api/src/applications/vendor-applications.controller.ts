@@ -48,6 +48,14 @@ export class VendorApplicationsController {
     return this.applications.detail(user.id, id);
   }
 
+  @Post('vendor/applications/:id/release')
+  @ApiCreatedResponse({ standardSchema: vendorApplicationSchema })
+  @ResponseSchema(vendorApplicationSchema)
+  async release(@CurrentUser() user: SessionUser, @Param('id', ParseUUIDPipe) id: string) {
+    await this.applications.release(user.id, id);
+    return this.applications.detail(user.id, id);
+  }
+
   @Post('vendor/applications/:id/withdraw')
   @ApiCreatedResponse({ standardSchema: createdApplicationSchema })
   withdraw(@CurrentUser() user: SessionUser, @Param('id', ParseUUIDPipe) id: string) {

@@ -156,6 +156,45 @@ describe("Proof of payment", () => {
   })
 })
 
+describe("Release and removal", () => {
+  it("releases an assigned slot after a confirm step", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    serve(vendorApplicationFixture())
+    vi.mocked(api.POST).mockResolvedValue({ data: vendorApplicationFixture({ status: "approved", assignment: null }), response: { status: 201 } } as never)
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    await user.click(await screen.findByRole("button", { name: "Release slot B-04" }))
+    const dialog = screen.getByRole("dialog", { name: "Release slot B-04?" })
+    expect(within(dialog).getByText(/contact the organizer, who can assign it to you again/)).toBeInTheDocument()
+    await user.click(within(dialog).getByRole("button", { name: "Release slot" }))
+
+    expect(api.POST).toHaveBeenCalledWith("/api/vendor/applications/{id}/release", { params: { path: { id: APPLICATION_ID } } })
+  })
+
+  it("tells a vendor with a reserved slot to contact the organizer instead", async () => {
+    serve(vendorApplicationFixture({ status: "reserved", assignment: { ...vendorApplicationFixture().assignment!, status: "reserved", paymentStatus: "approved" } }))
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    expect(await screen.findByText("Can't make it? Contact the organizer. They decide under their policy.")).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: /Release slot/ })).not.toBeInTheDocument()
+  })
+
+  it("keeps the payment records readable after removal", async () => {
+    serve(
+      vendorApplicationFixture({
+        status: "removed",
+        removalNote: "Agreed cancellation",
+        assignment: { ...vendorApplicationFixture().assignment!, status: "removed", archived: true, proofs: [proofFixture({ status: "approved", archived: true })] },
+      })
+    )
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    expect(await screen.findByText("Agreed cancellation")).toBeInTheDocument()
+    const records = screen.getByRole("region", { name: "Payment records" })
+    expect(within(records).getByRole("link", { name: /Screenshot sent/ })).toHaveAttribute("href", "/api/files/proof1")
+  })
+})
+
 describe("VendorApplicationsList (/vendor/applications)", () => {
   it("lists each event with its status, slot, payment, and a link", async () => {
     serve({

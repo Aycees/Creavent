@@ -311,6 +311,12 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - **Vendor and organizer disagree about a refund:** Creavent doesn't decide. Both sides can still download the payment records as evidence. Spec §6.6.
 - **Vendor is removed and wants their screenshots:** they can still view and download them until 90 days after the event. Spec §6.7.
 
+**Acceptance criteria (Phase 3: release, remove, change)**
+- A vendor whose slot is assigned (payment not yet approved) sees "Release slot B-04" on the application page. A confirm step says the slot opens for others and that the organizer can assign it again if it was a mistake. Releasing ends the assignment as `released`, archives the payment and proofs, keeps the application approved (so the vendor is back in "Approved, no slot yet"), and emails the organizer. A reserved slot can't be released: the page says to contact the organizer.
+- The organizer can remove any approved vendor, with or without a slot, from Vendors and slots. The confirm step asks whether they can apply again (required) and takes an optional note. Removing makes the application `removed` with that choice, ends an active assignment as `removed`, opens the slot, archives the payment and proofs, and emails the vendor. It works on a hidden event too, so an organizer can still let vendors go.
+- Archived screenshots stay readable for the vendor (under "Payment records" on the application page), the organizer, and admins.
+- There is no move: to change a slot, the organizer removes the vendor and assigns another slot once they're approved again.
+
 ## 10. Discover events and vendors
 
 *Attendee. No account.*

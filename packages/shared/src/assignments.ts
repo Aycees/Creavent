@@ -100,6 +100,7 @@ export const eventVendorsSchema = z.object({
   assignments: z.array(
     z.object({
       id: z.uuid(),
+      applicationId: z.uuid(),
       status: assignmentStatusSchema,
       slotLabel: z.string(),
       shopName: z.string(),
@@ -191,3 +192,10 @@ export const vendorApplicationSchema = z.object({
     .nullable(),
 });
 export type VendorApplication = z.infer<typeof vendorApplicationSchema>;
+
+// Remove a vendor (spec §6.6): they choose whether the vendor can reapply.
+export const removeVendorSchema = z.object({
+  canReapply: z.boolean(),
+  note: optionalLongText(300),
+});
+export type RemoveVendorInput = z.input<typeof removeVendorSchema>;

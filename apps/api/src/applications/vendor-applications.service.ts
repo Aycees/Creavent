@@ -18,6 +18,7 @@ import { assertAttachable, FilesService } from '../files/files.service.js';
 import { OutboxService } from '../notifications/outbox.service.js';
 import { PrismaService, type Tx } from '../prisma/prisma.service.js';
 import { changeApplicationStatus } from './application-status.js';
+import { archivePayment, changeAssignmentStatus } from './assignment-status.js';
 import { approvedPerCategory, spotsLeft } from './category-counts.js';
 import { PaymentsService } from './payments.service.js';
 import { vendorProfile } from './vendor-profile.js';
@@ -277,6 +278,32 @@ export class VendorApplicationsService {
     };
   }
 
+  // Release an assigned slot before payment is approved. Organizers can't
+  // turn this off (spec §6.6). The vendor stays approved, without a slot.
+  async release(userId: string, applicationId: string) {
+    await this.prisma.$transaction(async (tx) => {
+      const vendor = await vendorProfile(tx, userId);
+      const application = await tx.application.findFirst({ where: { id: applicationId, vendorProfileId: vendor.id } });
+      if (!application) throw new NotFoundException('Application not found');
+      await tx.$queryRaw`SELECT id FROM events WHERE id = ${application.eventId}::uuid FOR UPDATE`;
+      const assignment = await tx.slotAssignment.findFirst({
+        where: { applicationId, status: { in: [...ACTIVE] } },
+        include: { slot: true, event: { include: eventInclude } },
+      });
+      if (!assignment) throw new ConflictException('You have no slot to release here');
+      const now = new Date();
+      await changeAssignmentStatus(tx, {
+        assignmentId: assignment.id,
+        from: assignment.status,
+        action: 'release',
+        actorUserId: userId,
+        data: { endedAt: now, endedById: userId, endedReason: 'Released by the vendor' },
+      });
+      await archivePayment(tx, assignment.id, now);
+      await this.emailOrganizer(tx, assignment.event, 'slot_released', applicationId, vendor.shopName, { slotLabel: assignment.slot.label });
+    });
+  }
+
   // The vendor's active application here, and whether a removal blocks them.
   private async standing(db: Db, eventId: string, vendorProfileId: string) {
     const active = await db.application.findFirst({ where: { eventId, vendorProfileId, status: { in: ['submitted', 'approved'] } } });
@@ -327,9 +354,10 @@ export class VendorApplicationsService {
   private async emailOrganizer(
     tx: Tx,
     event: ApplyEvent,
-    type: 'application_submitted' | 'application_withdrawn',
+    type: 'application_submitted' | 'application_withdrawn' | 'slot_released',
     applicationId: string,
     shopName: string,
+    extra: Record<string, string> = {},
   ) {
     const organizer = event.organizerProfile.user;
     const config = appConfig();
@@ -341,8 +369,9 @@ export class VendorApplicationsService {
         name: organizer.fullName,
         shopName,
         eventName: event.name,
-        url: `${config.webUrl}/organizer/events/${event.id}/applications`,
+        url: `${config.webUrl}/organizer/events/${event.id}/${type === 'slot_released' ? 'vendors' : 'applications'}`,
         supportEmail: config.supportEmail,
+        ...extra,
       },
       relatedEntityType: 'application',
       relatedEntityId: applicationId,

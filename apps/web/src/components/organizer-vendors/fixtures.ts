@@ -67,10 +67,11 @@ export function eventVendorsFixture(overrides: Partial<EventVendors> = {}): Even
       { applicationId: APPLICATION_SPIN, shopName: "Second Spin Records", categories: ["Vintage"], preferredSlot: { id: "5a000000-0000-4000-8000-000000000001", label: "A-01", state: "taken" } },
     ],
     assignments: [
-      { id: "as000000-0000-4000-8000-000000000001", status: "reserved", slotLabel: "A-01", shopName: "Lola's Ukay", phone: null, amountDue: 800, paymentStatus: "approved", deadlineAt: "2026-11-13T01:00:00.000Z", overdue: false, proof: null, paymentNote: null },
-      { id: "as000000-0000-4000-8000-000000000002", status: "assigned", slotLabel: "A-02", shopName: "Thrift Kingdom", phone: null, amountDue: 800, paymentStatus: "pending", deadlineAt: "2026-11-11T07:00:00.000Z", overdue: true, proof: null, paymentNote: null },
+      { id: "as000000-0000-4000-8000-000000000001", applicationId: "a0000000-0000-4000-8000-0000000000b1", status: "reserved", slotLabel: "A-01", shopName: "Lola's Ukay", phone: null, amountDue: 800, paymentStatus: "approved", deadlineAt: "2026-11-13T01:00:00.000Z", overdue: false, proof: null, paymentNote: null },
+      { id: "as000000-0000-4000-8000-000000000002", applicationId: "a0000000-0000-4000-8000-0000000000b2", status: "assigned", slotLabel: "A-02", shopName: "Thrift Kingdom", phone: null, amountDue: 800, paymentStatus: "pending", deadlineAt: "2026-11-11T07:00:00.000Z", overdue: true, proof: null, paymentNote: null },
       {
         id: "as000000-0000-4000-8000-000000000003",
+        applicationId: "a0000000-0000-4000-8000-0000000000b3",
         status: "assigned",
         slotLabel: "B-04",
         shopName: "Kalye Kicks",

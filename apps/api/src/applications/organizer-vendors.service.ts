@@ -8,6 +8,8 @@ import { OutboxService } from '../notifications/outbox.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { assertVisible } from './organizer-applications.service.js';
 import { PaymentsService } from './payments.service.js';
+import { changeApplicationStatus } from './application-status.js';
+import { archivePayment, changeAssignmentStatus } from './assignment-status.js';
 import { ACTIVE, isOverdue } from './slot-status.js';
 
 // The organizer's Vendors and slots page (spec §3.4, §5, sitemap §4).
@@ -91,6 +93,7 @@ export class OrganizerVendorsService {
       })),
       assignments: assignments.map((a) => ({
         id: a.id,
+        applicationId: a.applicationId,
         status: a.status,
         slotLabel: a.slot.label,
         shopName: a.vendorProfile.shopName,
@@ -187,6 +190,56 @@ export class OrganizerVendorsService {
       }
       throw error;
     }
+    return this.vendors(userId, eventId);
+  }
+
+  // Remove an approved vendor at any time: their slot opens again and the
+  // payment records are archived (spec §6.6). Allowed on a hidden event too.
+  async remove(userId: string, eventId: string, applicationId: string, canReapply: boolean, note: string | null) {
+    await this.prisma.$transaction(async (tx) => {
+      const event = await ownEvent(tx, userId, eventId);
+      const application = await tx.application.findFirst({
+        where: { id: applicationId, eventId },
+        include: { vendorProfile: { include: { user: true } }, assignments: { where: { status: { in: [...ACTIVE] } } } },
+      });
+      if (!application) throw new NotFoundException('Application not found');
+      const now = new Date();
+      await changeApplicationStatus(tx, {
+        applicationId,
+        from: application.status,
+        action: 'remove',
+        actorUserId: userId,
+        data: { removedAt: now, removedById: userId, removalNote: note, canReapply },
+        reason: note,
+      });
+      for (const a of application.assignments) {
+        await changeAssignmentStatus(tx, {
+          assignmentId: a.id,
+          from: a.status,
+          action: 'remove',
+          actorUserId: userId,
+          data: { endedAt: now, endedById: userId, endedReason: note ?? 'Removed by the organizer' },
+        });
+        await archivePayment(tx, a.id, now);
+      }
+      const vendor = application.vendorProfile.user;
+      const config = appConfig();
+      await this.outbox.queue(tx, {
+        userId: vendor.id,
+        toEmail: vendor.email,
+        type: 'vendor_removed',
+        payload: {
+          name: vendor.fullName,
+          eventName: event.name,
+          note,
+          canReapply,
+          url: `${config.webUrl}/vendor/applications/${applicationId}`,
+          supportEmail: config.supportEmail,
+        },
+        relatedEntityType: 'application',
+        relatedEntityId: applicationId,
+      });
+    });
     return this.vendors(userId, eventId);
   }
 }

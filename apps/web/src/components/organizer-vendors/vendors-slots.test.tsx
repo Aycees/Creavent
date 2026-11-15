@@ -144,4 +144,21 @@ describe("VendorsAndSlots (/organizer/events/[id]/vendors)", () => {
       body: { note: "Paid cash at the office", method: "cash" },
     })
   })
+
+  it("removes a vendor and asks whether they can apply again", async () => {
+    vi.mocked(api.POST).mockResolvedValue({ data: eventVendorsFixture(), response: { status: 201 } } as never)
+    renderWithQuery(<VendorsAndSlots eventId={EVENT_ID} />)
+
+    await userEvent.click(within(await screen.findByRole("listitem", { name: "Thrift Kingdom, A-02" })).getByRole("button", { name: "Remove" }))
+    const dialog = screen.getByRole("dialog", { name: "Remove Thrift Kingdom?" })
+    await userEvent.click(within(dialog).getByRole("radio", { name: "Yes, they can apply again" }))
+    await userEvent.type(within(dialog).getByLabelText(/Note to the vendor/), "No payment by the deadline")
+    await userEvent.click(within(dialog).getByRole("button", { name: "Remove vendor" }))
+
+    expect(api.POST).toHaveBeenCalledWith("/api/organizer/events/{id}/applications/{applicationId}/remove", {
+      params: { path: { id: EVENT_ID, applicationId: "a0000000-0000-4000-8000-0000000000b2" } },
+      body: { canReapply: true, note: "No payment by the deadline" },
+    })
+    expect(await screen.findByText("Thrift Kingdom is removed. A-02 is open again.")).toBeInTheDocument()
+  })
 })

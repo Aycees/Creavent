@@ -801,6 +801,8 @@ enum NotificationType {
   proof_uploaded
   payment_approved
   payment_rejected
+  slot_released
+  vendor_removed
 
   @@map("notification_type")
 }

@@ -7,6 +7,7 @@ import Link from "next/link"
 import * as React from "react"
 
 import { Alert } from "@/components/ui/alert"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { ApprovedMark } from "@/components/ui/approved-mark"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -177,6 +178,7 @@ export function VendorApplicationPage({ id }: { id: string }) {
 
           {paying && slot && <PaymentOptions slot={slot} organizer={a.organizer.displayName} />}
           {paying && slot && <ProofSection applicationId={a.id} slot={slot} />}
+          {a.assignment && !slot && a.assignment.proofs.length > 0 && <PaymentRecords proofs={a.assignment.proofs} />}
         </div>
 
         <aside className="flex flex-col gap-4 md:col-start-2">
@@ -190,6 +192,10 @@ export function VendorApplicationPage({ id }: { id: string }) {
             <p className="text-sm">{[a.organizer.fullName, a.organizer.phone].filter(Boolean).join(" · ")}</p>
             {a.organizer.contactEmail && <p className="text-sm break-all">{a.organizer.contactEmail}</p>}
           </section>
+          {paying && slot && <ReleaseSlot applicationId={a.id} label={slot.slotLabel} />}
+          {slot?.status === "reserved" && (
+            <p className="rounded-md bg-sunken p-4 text-sm text-muted">Can&apos;t make it? Contact the organizer. They decide under their policy.</p>
+          )}
           {a.event.ingressInfo && (
             <section aria-labelledby="ingress-h" className="flex flex-col gap-1 rounded-lg border border-border bg-surface p-4 md:p-5">
               <h2 id="ingress-h" className="text-h3">Setting up</h2>
@@ -440,6 +446,67 @@ function ProofSection({ applicationId, slot }: { applicationId: string; slot: Sl
           <span className="text-sm text-muted">You&apos;ll get an email when it&apos;s approved.</span>
         </div>
       </form>
+    </section>
+  )
+}
+
+// Release an assigned slot before payment is approved (spec §6.6).
+function ReleaseSlot({ applicationId, label }: { applicationId: string; label: string }) {
+  const queryClient = useQueryClient()
+  const [open, setOpen] = React.useState(false)
+  const [error, setError] = React.useState<string | null>(null)
+  const [sending, setSending] = React.useState(false)
+
+  async function release() {
+    setSending(true)
+    setError(null)
+    const res = await api.POST("/api/vendor/applications/{id}/release", { params: { path: { id: applicationId } } })
+    setSending(false)
+    if (!res.data) return setError((res.error as ErrorBody)?.message ?? "Something went wrong. Try again.")
+    queryClient.setQueryData(vendorApplicationKey(applicationId), res.data)
+    setOpen(false)
+  }
+
+  return (
+    <div className="flex flex-col gap-2 rounded-md bg-sunken p-4">
+      <p className="text-sm text-muted">Can&apos;t make it? You can release this slot until your payment is approved. The organizer is notified.</p>
+      <Button variant="danger-ghost" size="sm" className="-ml-3.5 h-11 self-start md:h-9" onClick={() => setOpen(true)}>
+        {`Release slot ${label}`}
+      </Button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent aria-label={`Release slot ${label}?`}>
+          <DialogHeader>
+            <DialogTitle>{`Release slot ${label}?`}</DialogTitle>
+            <DialogDescription>
+              The slot opens for other vendors, and the organizer gets an email. If you release it by mistake, contact the organizer, who can assign it to you again.
+            </DialogDescription>
+          </DialogHeader>
+          {error && <Alert tone="danger">{error}</Alert>}
+          <DialogFooter className="flex flex-col-reverse gap-2 md:flex-row md:justify-end">
+            <Button variant="secondary" onClick={() => setOpen(false)}>Keep my slot</Button>
+            <Button variant="danger" disabled={sending} onClick={release}>Release slot</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
+
+// After a release or removal, the screenshots stay readable (spec §6.6).
+function PaymentRecords({ proofs }: { proofs: Slot["proofs"] }) {
+  return (
+    <section aria-labelledby="records-h" className="flex flex-col gap-2 rounded-lg border border-border bg-surface p-4 md:p-5">
+      <h2 id="records-h" className="text-h3">Payment records</h2>
+      <p className="text-sm text-muted">Read-only. You can open them until 90 days after the event.</p>
+      <ul className="flex flex-col gap-1">
+        {proofs.map((p) => (
+          <li key={p.id}>
+            <a href={p.fileUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center text-sm underline md:min-h-0">
+              {`Screenshot sent ${day(p.uploadedAt)} · ${p.methodLabel}${p.amountClaimed !== null ? ` · ${formatPeso(p.amountClaimed)}` : ""}`}
+            </a>
+          </li>
+        ))}
+      </ul>
     </section>
   )
 }

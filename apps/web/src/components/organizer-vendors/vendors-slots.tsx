@@ -37,6 +37,7 @@ export function VendorsAndSlots({ eventId }: { eventId: string }) {
   const { data, isError } = useEventVendors(eventId)
   const [assigning, setAssigning] = React.useState<Unassigned | null>(null)
   const [done, setDone] = React.useState<string | null>(null)
+  const [removingUnassigned, setRemovingUnassigned] = React.useState<Unassigned | null>(null)
 
   if (isError) return <Alert tone="danger">We couldn&apos;t load the vendors. Refresh to try again.</Alert>
   if (data === undefined) return <p role="status" className="text-sm text-muted">Loading…</p>
@@ -104,6 +105,9 @@ export function VendorsAndSlots({ eventId }: { eventId: string }) {
                         ))}
                     </p>
                   </div>
+                  <Button variant="danger-ghost" size="sm" className="h-11 md:h-9" onClick={() => setRemovingUnassigned(u)}>
+                    Remove
+                  </Button>
                   <Button
                     variant="secondary"
                     size="sm"
@@ -123,6 +127,16 @@ export function VendorsAndSlots({ eventId }: { eventId: string }) {
 
       <VendorList eventId={eventId} assignments={data.assignments} onDone={setDone} />
 
+      {removingUnassigned && (
+        <RemoveDialog
+          eventId={eventId}
+          applicationId={removingUnassigned.applicationId}
+          shopName={removingUnassigned.shopName}
+          slotLabel={null}
+          onClose={() => setRemovingUnassigned(null)}
+          onDone={setDone}
+        />
+      )}
       {assigning && (
         <AssignDialog
           eventId={eventId}
@@ -267,6 +281,7 @@ function VendorList({ eventId, assignments, onDone }: { eventId: string; assignm
   const [filter, setFilter] = React.useState<ListFilter>("all")
   const [reviewing, setReviewing] = React.useState<Assignment | null>(null)
   const [marking, setMarking] = React.useState<Assignment | null>(null)
+  const [removing, setRemoving] = React.useState<Assignment | null>(null)
   const counts = { all: assignments.length, attention: assignments.filter(needsAttention).length, reserved: assignments.filter((a) => a.status === "reserved").length }
   const shown = assignments.filter((a) => filter === "all" || (filter === "attention" ? needsAttention(a) : a.status === "reserved"))
   return (
@@ -293,21 +308,31 @@ function VendorList({ eventId, assignments, onDone }: { eventId: string; assignm
                 {a.paymentStatus === "rejected" && a.proof?.rejectionReason && <p className="text-cap text-muted">{`Proof rejected: ${a.proof.rejectionReason}`}</p>}
               </div>
               <PaymentBadge assignment={a} />
-              {a.status === "assigned" && (
-                <div className="flex w-full gap-2 md:w-auto">
-                  {a.paymentStatus === "submitted" && a.proof ? (
+              <div className="flex w-full gap-2 md:w-auto">
+                {a.status === "assigned" &&
+                  (a.paymentStatus === "submitted" && a.proof ? (
                     <Button size="sm" className="h-11 flex-1 md:h-9 md:flex-none" onClick={() => setReviewing(a)}>Review proof</Button>
                   ) : (
                     <Button variant="ghost" size="sm" className="h-11 flex-1 md:h-9 md:flex-none" onClick={() => setMarking(a)}>Mark paid</Button>
-                  )}
-                </div>
-              )}
+                  ))}
+                <Button variant="danger-ghost" size="sm" className="h-11 flex-1 md:h-9 md:flex-none" onClick={() => setRemoving(a)}>Remove</Button>
+              </div>
             </li>
           ))}
         </ul>
       )}
       {reviewing && <ReviewDialog eventId={eventId} assignment={reviewing} onClose={() => setReviewing(null)} onDone={onDone} />}
       {marking && <MarkPaidDialog eventId={eventId} assignment={marking} onClose={() => setMarking(null)} onDone={onDone} />}
+      {removing && (
+        <RemoveDialog
+          eventId={eventId}
+          applicationId={removing.applicationId}
+          shopName={removing.shopName}
+          slotLabel={removing.slotLabel}
+          onClose={() => setRemoving(null)}
+          onDone={onDone}
+        />
+      )}
     </section>
   )
 }
@@ -440,6 +465,81 @@ function MarkPaidDialog({ eventId, assignment: a, onClose, onDone }: { eventId: 
         <DialogFooter className="flex flex-col-reverse gap-2 md:flex-row md:justify-end">
           <Button variant="secondary" onClick={onClose}>Cancel</Button>
           <Button disabled={sending} onClick={confirm}>Mark paid</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// Remove a vendor at any time (spec §6.6, flow 9): choose whether they can
+// apply again. Their payment records are kept, read-only.
+function RemoveDialog({
+  eventId,
+  applicationId,
+  shopName,
+  slotLabel,
+  onClose,
+  onDone,
+}: {
+  eventId: string
+  applicationId: string
+  shopName: string
+  slotLabel: string | null
+  onClose: () => void
+  onDone: (m: string) => void
+}) {
+  const save = useSave(eventId)
+  const [canReapply, setCanReapply] = React.useState<boolean | null>(null)
+  const [note, setNote] = React.useState("")
+  const [error, setError] = React.useState<string | null>(null)
+  const [sending, setSending] = React.useState(false)
+
+  async function confirm() {
+    setError(null)
+    if (canReapply === null) return setError("Choose whether they can apply again")
+    setSending(true)
+    const res = await api.POST("/api/organizer/events/{id}/applications/{applicationId}/remove", {
+      params: { path: { id: eventId, applicationId } },
+      body: { canReapply, note },
+    })
+    setSending(false)
+    if (!res.data) return setError((res.error as ErrorBody)?.message ?? "Something went wrong. Try again.")
+    save(res.data)
+    onDone(slotLabel ? `${shopName} is removed. ${slotLabel} is open again.` : `${shopName} is removed.`)
+    onClose()
+  }
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent aria-label={`Remove ${shopName}?`}>
+        <DialogHeader>
+          <DialogTitle>{`Remove ${shopName}?`}</DialogTitle>
+          <DialogDescription>
+            {`${slotLabel ? `${slotLabel} opens again. ` : ""}We email ${shopName}. Their payment records stay readable for both of you. Refunds are between you and them.`}
+          </DialogDescription>
+        </DialogHeader>
+        <fieldset className="flex flex-col gap-2">
+          <legend className="mb-2 text-label">Can they apply to this event again?</legend>
+          {[
+            { value: true, label: "Yes, they can apply again" },
+            { value: false, label: "No, they can't apply again" },
+          ].map((o) => (
+            <label key={String(o.value)} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-border-strong px-4 has-checked:border-2 has-checked:border-ink has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-focus">
+              <input type="radio" name="can-reapply" checked={canReapply === o.value} onChange={() => setCanReapply(o.value)} className="size-5 accent-ink" />
+              <span className="text-label">{o.label}</span>
+            </label>
+          ))}
+        </fieldset>
+        <div className="flex flex-col gap-2">
+          <label htmlFor="remove-note" className="text-label">
+            Note to the vendor <span className="font-normal text-muted">(optional)</span>
+          </label>
+          <Textarea id="remove-note" value={note} maxLength={300} onChange={(e) => setNote(e.target.value)} />
+        </div>
+        {error && <p className="text-help text-danger-ink">{error}</p>}
+        <DialogFooter className="flex flex-col-reverse gap-2 md:flex-row md:justify-end">
+          <Button variant="secondary" onClick={onClose}>Cancel</Button>
+          <Button variant="danger" disabled={sending} onClick={confirm}>Remove vendor</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

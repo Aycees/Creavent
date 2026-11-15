@@ -34,3 +34,12 @@ export async function changeAssignmentStatus(
     reason: input.reason ?? null,
   });
 }
+
+// When an assignment ends, its payment and proofs become read-only records
+// that both sides can still open (spec §6.6, data model §8).
+export async function archivePayment(tx: Tx, assignmentId: string, at = new Date()) {
+  const payment = await tx.payment.findUnique({ where: { slotAssignmentId: assignmentId } });
+  if (!payment) return;
+  await tx.payment.update({ where: { id: payment.id }, data: { archivedAt: at } });
+  await tx.paymentProof.updateMany({ where: { paymentId: payment.id, archivedAt: null }, data: { archivedAt: at } });
+}
