@@ -120,7 +120,7 @@ describe('vendor browsing and the event page', () => {
       expect(card.mySpots).toEqual([{ categoryName: 'Preloved clothing', left: 10, max: 12 }]);
       expect(card.myStatus).toBe('submitted');
       expect(page.categories[0]).toMatchObject({ name: 'Preloved clothing', left: 10 });
-      expect(page.myApplication).toEqual({ id: mine.id, status: 'submitted' });
+      expect(page.myApplication).toEqual({ id: mine.id, status: 'submitted', canReapply: null });
     });
 
     it('needs the vendor role', async () => {
