@@ -70,7 +70,7 @@ describe('accounts: sign up and sign in', () => {
       'terms 2026-11-12',
     ]);
     const url = await verificationUrl();
-    expect(url.origin).toBe('http://localhost:3000');
+    expect(url.origin).toBe('http://localhost:3100');
     expect(url.pathname).toBe('/api/auth/verify-email');
   });
 
@@ -242,7 +242,7 @@ describe('accounts: sign up and sign in', () => {
     );
     const link = new URL((email.payload as { url: string }).url);
     const followed = await agent(app).get(link.pathname + link.search);
-    const token = new URL(followed.headers.location, 'http://localhost:3000').searchParams.get('token');
+    const token = new URL(followed.headers.location, 'http://localhost:3100').searchParams.get('token');
     await agent(app).post('/api/auth/reset-password').send({ newPassword: 'a-new-password', token });
 
     const res = await agent(app)
@@ -283,7 +283,7 @@ describe('accounts: sign up and sign in', () => {
     );
     const link = new URL((email.payload as { url: string }).url);
     const followed = await agent(app).get(link.pathname + link.search);
-    const token = new URL(followed.headers.location, 'http://localhost:3000').searchParams.get('token');
+    const token = new URL(followed.headers.location, 'http://localhost:3100').searchParams.get('token');
 
     const reset = await agent(app)
       .post('/api/auth/reset-password')

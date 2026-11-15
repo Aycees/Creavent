@@ -35,7 +35,7 @@ export async function createTestApp(
 }
 
 // Requests from the web app's origin, which Better Auth checks.
-export const ORIGIN = 'http://localhost:3000';
+export const ORIGIN = 'http://localhost:3100';
 
 // A signed-in browser for an existing user (made with the factories).
 export async function signInAs(app: INestApplication<App>, email: string) {

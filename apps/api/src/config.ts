@@ -4,7 +4,7 @@ export function appConfig() {
   return {
     // The web app's origin. Links in emails point here, and /api/* on it
     // reaches this API (docs/architecture.md §4.3).
-    webUrl: process.env.WEB_URL ?? 'http://localhost:3000',
+    webUrl: process.env.WEB_URL ?? 'http://localhost:3100',
     termsVersion: process.env.TERMS_VERSION ?? '2026-11-12',
     privacyVersion: process.env.PRIVACY_VERSION ?? '2026-11-12',
     // Placeholder until the support address exists (development plan §9).

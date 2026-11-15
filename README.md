@@ -77,9 +77,9 @@ pnpm db:reset
 
 If another Postgres already uses port 5432, put `POSTGRES_PORT=5435` in a `.env` at the repo root and use that port in `DATABASE_URL`.
 
-The web app runs on http://localhost:3000 and forwards `/api/*` to the API on port 3001 ([Architecture §4.3](docs/architecture.md#43-sessions)).
+The web app runs on http://localhost:3100 and forwards `/api/*` to the API on port 3001 ([Architecture §4.3](docs/architecture.md#43-sessions)).
 
-`pnpm dev` starts the web app on port 3000 (fixed, so it never drifts onto the API's port), the API on 3001, and the shared package in watch mode. Keep `WEB_URL=http://localhost:3000` in `apps/api/.env`: the API only accepts sign-ins from that address and puts it in email links. If the API fails with `EADDRINUSE`, another dev server still holds 3001 or 3000. Stop it (`lsof -i :3001` shows which), then run `pnpm dev` again.
+`pnpm dev` starts the web app on port 3100 (fixed, so it never drifts onto the API's port), the API on 3001, and the shared package in watch mode. Keep `WEB_URL=http://localhost:3100` in `apps/api/.env`: the API only accepts sign-ins from that address and puts it in email links. If the API fails with `EADDRINUSE`, another dev server still holds 3001 or 3100. Stop it (`lsof -i :3001` shows which), then run `pnpm dev` again.
 
 Other commands: `pnpm build`, `pnpm lint`, `pnpm typecheck`, `pnpm test`.
 
@@ -95,6 +95,6 @@ It reads `apps/api/.env` for `WEB_URL`, `DATABASE_URL`, and `SEED_PASSWORD`, and
 
 - **Tokens** live in `apps/web/src/styles/tokens.css`, taken from the mockup's `creavent.css` and the [Design brief](docs/design-brief.md). Tailwind's default colors, type sizes, radii, shadows, and breakpoints are turned off, so only Creavent tokens work: `bg-surface`, `text-ink`, `text-h2`, `rounded-lg`, `shadow-sm`, and one breakpoint, `md` (760 px).
 - **Components** live in `apps/web/src/components/ui`. Shadcn components are restyled to the tokens. Creavent-only pieces (logo, date stamp, badge, approved mark, slot tile, steps, chip, choice card) are written by hand.
-- **Showcase:** http://localhost:3000/dev/ui shows every token and component. It is not served in production.
+- **Showcase:** http://localhost:3100/dev/ui shows every token and component. It is not served in production.
 - **Icons:** Phosphor, regular weight. Import from `@phosphor-icons/react/dist/ssr` in server components and from `@phosphor-icons/react` in client components.
 - **Adding a shadcn component:** `pnpm dlx shadcn@latest add <name>` inside `apps/web`, then replace shadcn's color names (`bg-primary`, `text-muted-foreground`, `ring-ring`) with Creavent tokens. Those names don't exist here, so unconverted classes do nothing.
