@@ -6,7 +6,7 @@ Project context and behavioral guidelines for Claude working on this codebase.
 
 ## Project
 
-Creavent is a web platform that brings vendor-based community events together. Roles: organizers, vendors, attendees. The MVP focuses on flea markets. Status: Phase 1 (accounts and approval) merged. Phase 2 (events) built on `feat/phase-2-events`. Phase 3 (the core loop) is next. Development goes one phase per branch and PR (`docs/development-plan.md`). See `README.md` for development and `docs/` for details.
+Creavent is a web platform that brings vendor-based community events together. Roles: organizers, vendors, attendees. The MVP focuses on flea markets. Status: Phases 1 (accounts and approval) and 2 (events) merged. Phase 3 (the core loop) built on `feat/phase-3-core-loop`. Phase 4 (public discovery) is next. Development goes one phase per branch and PR (`docs/development-plan.md`). See `README.md` for development and `docs/` for details.
 
 ---
 
@@ -41,6 +41,7 @@ Design and build for the smallest screen first, then enhance for larger ones.
 - Touch targets at least 44x44px. Don't rely on hover for anything essential.
 - Body text at least 16px on inputs to avoid iOS zoom. Keep content readable without horizontal scrolling.
 - Verify every UI change at a narrow viewport (about 375px) before wider ones.
+- Render each control once. For phone-only placement (a sticky bar), use `max-md:` classes on the same element instead of a second, hidden copy: duplicates break tests and screen readers.
 - Assume organizers, vendors, and attendees are mostly on phones, often on slow connections. Keep pages light.
 
 ---

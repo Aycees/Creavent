@@ -29,7 +29,9 @@ The MVP is built around flea markets and flea market organizers. The platform is
 
 Phase 1 (accounts and approval) is merged ([Aycees/Creavent#12](https://github.com/Aycees/Creavent/pull/12)): sign up and sign in, email verification and password reset, uploads, vendor and organizer onboarding, admin organizer approvals, and the account page. See [Development plan §10](docs/development-plan.md#10-progress).
 
-Phase 2 (events) is built on `feat/phase-2-events` ([Aycees/Creavent#14](https://github.com/Aycees/Creavent/issues/14)): event drafts and the setup tabs (details, requirements, policy, payments, slots, public floor plan), opening an event to vendors, vendor browsing and the vendor view of the event page, and the organizer's event list.
+Phase 2 (events) is merged ([Aycees/Creavent#15](https://github.com/Aycees/Creavent/pull/15)): event drafts and the setup tabs, opening an event to vendors, vendor browsing and the vendor view of the event page, and the organizer's event list.
+
+Phase 3 (the core loop) is built on `feat/phase-3-core-loop` ([Aycees/Creavent#16](https://github.com/Aycees/Creavent/issues/16)): applying with documents and a preferred slot, reviewing applications, assigning slots, the vendor's application pages, proof of payment and its review, releasing and removing, both dashboards, and an end-to-end test of the main path.
 
 ## Development
 
@@ -59,7 +61,7 @@ pnpm --filter @creavent/api dev:worker
 
 Without a Resend key, set `EMAIL_DRIVER=log` in `apps/api/.env` and the worker prints each email, links included. Uploads need the R2 settings in `apps/api/.env.example`. Google sign-in shows only when `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are set.
 
-Seed accounts for every Phase 1 screen, all with `SEED_PASSWORD` from `apps/api/.env`: `admin@creavent.test` (admin), `vendor@creavent.test` (vendor), `organizer@creavent.test` (approved organizer), and `pending@`, `pending2@`, `rejected@`, `later@creavent.test` (organizers in the other approval states). For Phase 2, `organizer@` has a draft missing its payment details and two events open to vendors (one with applications closed), and `pending@` has a ready draft that waits for approval. Seeded events have no cover image, so add one before saving an open event's details. Seeding again leaves existing accounts and events as they are.
+Seed accounts for every Phase 1 screen, all with `SEED_PASSWORD` from `apps/api/.env`: `admin@creavent.test` (admin), `vendor@creavent.test` (vendor), `organizer@creavent.test` (approved organizer), and `pending@`, `pending2@`, `rejected@`, `later@creavent.test` (organizers in the other approval states). For Phase 2, `organizer@` has a draft missing its payment details and two events open to vendors (one with applications closed), and `pending@` has a ready draft that waits for approval. Seeded events have no cover image, so add one before saving an open event's details. For Phase 3, `vendor2@` to `vendor8@creavent.test` have applications to Lanang Holiday Flea in each state: submitted with a preferred slot, withdrawn, approved with no slot, declined, a slot with payment waiting, a reserved slot, and an overdue payment. `vendor@` has none there, so the Apply page can be tried by hand. Seeded applications and proofs have no files. Seeding again leaves existing accounts and events as they are.
 
 ```bash
 pnpm db:seed
@@ -78,6 +80,14 @@ If another Postgres already uses port 5432, put `POSTGRES_PORT=5435` in a `.env`
 The web app runs on http://localhost:3000 and forwards `/api/*` to the API on port 3001 ([Architecture §4.3](docs/architecture.md#43-sessions)).
 
 Other commands: `pnpm build`, `pnpm lint`, `pnpm typecheck`, `pnpm test`.
+
+The end-to-end test of the main path (sign up, onboard, approve, open an event, apply, assign, pay, confirm) runs locally against a running app and the R2 dev buckets, not in CI. Start `pnpm dev`, seed once, then:
+
+```bash
+pnpm --filter @creavent/web exec playwright test
+```
+
+It reads `apps/api/.env` for `WEB_URL`, `DATABASE_URL`, and `SEED_PASSWORD`, and `E2E_BASE_URL` overrides the address. Each run signs up two new accounts. The API allows 10 sign-ups an hour from one address, kept in memory, so restart the API if a run says "Too many signups from here".
 
 ### Design system
 
