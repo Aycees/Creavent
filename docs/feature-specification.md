@@ -223,17 +223,17 @@ The organizer dashboard (`/organizer`) shows:
 - The event page sums up the slot fee range, the applications close date, the payment deadline ("24 hours after assignment"), and how the organizer is paid (for example, "GCash or bank").
 - Apply to an event and upload the required permits or documents. When the event lets vendors choose, also pick a preferred slot or "No preference" (section 4.3)
 - View application status: `submitted`, `approved`, `declined`, `removed`, `withdrawn`
-- Withdraw an application while it is still `submitted` (not yet approved or declined). The organizer is emailed. After approval, the vendor contacts the organizer instead. A withdrawn vendor can apply again.
+- Withdraw an application while it is `submitted` or `approved`, including with an assigned slot that isn't paid yet, which is released with it. The organizer is emailed. Once the payment is approved (the slot is `reserved`), the vendor contacts the organizer instead. A withdrawn vendor can apply again (decided 2026-11-15).
 - Reapply after a decline. After removal, reapply only if the organizer allows it (section 3.3).
 
 ### 4.3 Slots
 - Slots are assigned by the organizer (section 5). Vendors cannot book or hold a slot themselves.
 - **Preferred slot:** when the organizer chose "Vendors choose a preferred slot" (section 3.4), the apply form shows the vendor floor plan (if uploaded) and the slots grouped by section, each marked **Open** or **Taken** (taken means `assigned` or `reserved`). The vendor picks one open slot, or "No preference". It is optional.
   - A preference holds nothing. Other vendors can prefer the same slot, and it stays open until the organizer assigns someone. The form says "Your pick isn't reserved until the organizer assigns it."
-  - The preference can't be edited after applying. To change it, the vendor contacts the organizer, or withdraws and applies again while the application is still `submitted`.
+  - Until a slot is assigned, the vendor can change the preference to another open slot, or clear it ("No preference"), from the application page. With an assigned slot that isn't paid yet, the vendor can **pick another slot**: the assigned slot is released and the new pick becomes the preference for the organizer to assign. The organizer is emailed (decided 2026-11-15).
 - See the assigned slot's number, size, and price, and the vendor floor plan image if the organizer uploaded one
 - If all slots are taken, there is no waitlist. The vendor can contact the organizer or check back later.
-- Release an assigned slot before payment is approved (see section 6.6). After the slot is reserved, contact the organizer.
+- With an assigned slot before payment is approved, the application page offers a **change of plans**: pick another slot (when the event lets vendors choose), release the slot and stay approved, or withdraw from the event (see section 6.6). After the slot is reserved, contact the organizer.
 
 ### 4.4 Payment
 - View the organizer's payment instructions, the amount due, and the payment deadline
@@ -481,7 +481,7 @@ All notifications are sent by email through [Resend](https://resend.com). There 
 - Images accepted: JPEG, PNG, and WebP. Documents may also be PDF. Maximum size is 5 or 10 MB depending on the purpose (section 11.1). Event covers are 16:9.
 - No virus scanning in the MVP. PDFs are only allowed in private purposes and are served as downloads.
 - Organizers can approve a payment without a proof image, with a required note (for example, cash on site).
-- Vendors can withdraw an application while it is still `submitted`.
+- Vendors can withdraw an application while it is `submitted` or `approved` (an unpaid slot is released with it), change their preferred slot until a slot is assigned, and pick another slot while the assigned one is unpaid (decided 2026-11-15).
 - Users close their account by emailing support (section 1).
 - Payment records, proofs, payment QR images, and application documents are deleted 90 days after the event.
 - Changes to event date, time, or location are not kept as a history. They only send emails.

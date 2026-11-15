@@ -584,7 +584,7 @@ erDiagram
 | policy_accepted_at | timestamptz | |
 | submitted_at | timestamptz | |
 | decided_by, decided_at, decision_note | uuid FK → users / timestamptz / text, all null | Approve or decline, with an optional note. |
-| withdrawn_at | timestamptz null | The vendor withdrew the application. Allowed only while the status is `submitted` (not yet approved or declined). After approval, the vendor contacts the organizer instead. A withdrawn vendor can apply again, like a declined one. The organizer gets an `application_withdrawn` email. |
+| withdrawn_at | timestamptz null | The vendor withdrew the application. Allowed while the status is `submitted` or `approved`. An active assignment that is still `assigned` is released with it; a `reserved` one blocks it, and the vendor contacts the organizer instead (decided 2026-11-15). A withdrawn vendor can apply again, like a declined one. The organizer gets an `application_withdrawn` email. |
 | removed_at, removed_by, removal_note | timestamptz / uuid FK → users / text, all null | Set when the organizer removes the vendor. |
 | can_reapply | boolean null | Set on removal. False blocks new applications from this vendor to this event. |
 

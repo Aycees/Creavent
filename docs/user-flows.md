@@ -182,7 +182,7 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - **Vendor was removed before:** they can apply again only if the organizer allowed it. Otherwise they see "You can't reapply to this event". Spec §3.3.
 - **The slot they want is taken:** it shows as Taken and can't be picked. They pick another or "No preference". Spec §4.3.
 - **Another vendor prefers the same slot:** both can pick it, and neither sees the other's choice. The organizer decides. Spec §5.
-- **Vendor wants a different preferred slot after applying:** it can't be edited. They contact the organizer, or withdraw and apply again while the application is still submitted. Spec §4.3.
+- **Vendor wants a different preferred slot after applying:** until a slot is assigned they change it, or pick "No preference", from the application page. With an unpaid slot they pick another slot, which releases the assigned one. Spec §4.3.
 
 **Acceptance criteria (Phase 2: finding events)**
 - `/vendor/events` lists visible events that are open to vendors or announced and end today or later, soonest first, with search by name or venue, a date filter (Any date, This weekend, Next 30 days), and a city filter. Each shows the date, type, status, name, schedule, venue, the organizer with "Approved by Creavent", the slot fee range, the applications close date, "Choose a preferred slot" when the event allows it, and spots left in the vendor's categories when the organizer set a limit.
@@ -197,6 +197,18 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - A `submitted` application can be withdrawn. The organizer gets an email, and the vendor can apply again. A decided application can't be withdrawn.
 - The event page and Browse events show the vendor's own status. The event page links to the application instead of Apply, and offers "Apply again" after a decline or withdrawal.
 - Only the vendor, the event's organizer, and admins can open an application document. PDFs download, named from the purpose and date.
+
+**Acceptance criteria (Phase 3 review: change of plans, decided 2026-11-15)**
+- While applied or approved without a slot, the application page shows the preferred slot with **Change slot** and **No preference** (when the event lets vendors choose) and **Withdraw application**, each with a confirm step where needed.
+- With an assigned, unpaid slot, a **Change of plans?** panel offers **Pick another slot** (only when the event lets vendors choose), **Release slot**, and **Withdraw from this event**. Picking another slot releases the assigned one and sets the new open slot as the preference; the organizer gets the slot-released email naming the new pick. Withdrawing releases the slot and archives its payment. A reserved (paid) slot refuses all three: the vendor contacts the organizer.
+- `/vendor/applications/[id]/slot` shows the slots by section, open or taken, and saves the new pick as a slot change or a preference.
+- The progress timeline only counts an active slot, so after a release it goes back to "Slot assigned: waiting for the organizer". Every change refreshes the other screens (lists, dashboards, Vendors and slots) without a reload.
+- `/vendor/applications` splits Active from Past and closed, with the next step for each.
+
+**Acceptance criteria (Phase 3 review: the organizer's Applications page, decided 2026-11-15)**
+- The organizer menu has **Applications** with the number of applications waiting for review. `/organizer/applications` lists applications across every event, waiting ones first and oldest at the top, with a summary (waiting with the oldest date, approved without a slot with the open slots, proofs to check with their total), status chips with counts, an event filter, and a shop search.
+- Each card shows the vendor's logo or initials, the event, category chips, the documents ("2 documents, 1 PDF", or a required one missing), how long it has waited, and the preferred or assigned slot. The whole card opens `/organizer/applications/[id]`, as do the cards on an event's Applications tab.
+- The detail page shows the shop (about, photos, products, link to the shop page), the documents with the missing ones, the preferred slot with the floor plan and who else prefers it, the vendor's note and policy acceptance date, contact (call and text), the history at the event, and "Next waiting". Its actions follow the stage: approve or decline with a note and the category counter; Assign a slot; the slot and payment status with a link to Vendors and slots; Remove from this event; and allow or block reapplying after a removal.
 
 **Acceptance criteria (Phase 3: reapplying after removal)**
 - When removing a vendor, the organizer chooses whether they can apply again. Later, on Applications under Removed, each removed application shows "Can apply again" or "Can't apply again" with a button to change it. The change is audit logged. Only removed applications can change, and only by the event's organizer.

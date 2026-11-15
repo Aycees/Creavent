@@ -37,6 +37,7 @@ Vendor (vendor role)
 ├── /vendor/events/[slug]/apply    Apply: categories, documents, preferred slot, policy
 ├── /vendor/applications           Application list
 ├── /vendor/applications/[id]      Application detail, assigned slot, and payment
+├── /vendor/applications/[id]/slot Pick another or a first preferred slot
 └── /vendor/profile                Vendor profile
 
 Organizer (organizer role)
@@ -45,6 +46,8 @@ Organizer (organizer role)
 ├── /organizer/events/[id]         Event setup (tabs, section 4)
 ├── /organizer/events/[id]/applications
 ├── /organizer/events/[id]/vendors Vendors, slot assignment, and payments
+├── /organizer/applications        Applications across every event, with filters
+├── /organizer/applications/[id]   One application: shop, documents, slot, history, actions
 ├── /organizer/profile             Organizer profile (feeds the organizer page)
 └── /organizer/approval            Get approved
 

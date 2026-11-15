@@ -292,6 +292,7 @@ Check a feature when its commit is on the phase branch with its tests passing. C
 - [x] 3.7 Dashboards (branch `feat/phase-3-core-loop`)
 - [x] 3.8 End-to-end test (branch `feat/phase-3-core-loop`; runs locally against the R2 dev buckets, not in CI, decided 2026-11-15)
 - [x] 3.9 Reapply after removal (branch `feat/phase-3-core-loop`)
+- [x] Phase 3 review: the organizer's Applications page and detail, and the vendor's change of plans (decided 2026-11-15, branch `feat/phase-3-core-loop`)
 - [ ] **M3** A vendor gets a confirmed spot
 
 **Phase 4: Public discovery**
