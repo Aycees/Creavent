@@ -148,6 +148,35 @@ const templates = {
       </>
     ),
   },
+  application_approved: {
+    payload: z.object({ name: z.string(), eventName: z.string(), note: z.string().nullable(), url: z.string(), supportEmail: z.string() }),
+    subject: (p: { eventName: string }) => `You're approved for ${p.eventName}`,
+    body: (p: { name: string; eventName: string; note: string | null; url: string }) => (
+      <>
+        <Heading>You&apos;re approved</Heading>
+        <Paragraph>Hi {firstName(p.name)},</Paragraph>
+        <Paragraph>
+          The organizer approved your application to {p.eventName}. Next, they assign you a slot. We&apos;ll email you the
+          slot, the amount, and how to pay.
+        </Paragraph>
+        {p.note && <InfoBox label="Note from the organizer" lines={[p.note]} />}
+        <ActionButton href={p.url}>See your application</ActionButton>
+      </>
+    ),
+  },
+  application_declined: {
+    payload: z.object({ name: z.string(), eventName: z.string(), note: z.string().nullable(), url: z.string(), supportEmail: z.string() }),
+    subject: (p: { eventName: string }) => `Your application to ${p.eventName}`,
+    body: (p: { name: string; eventName: string; note: string | null; url: string }) => (
+      <>
+        <Paragraph>Hi {firstName(p.name)},</Paragraph>
+        <Paragraph>The organizer of {p.eventName} declined your application this time.</Paragraph>
+        {p.note && <InfoBox label="Note from the organizer" lines={[p.note]} />}
+        <Paragraph>You can apply again while the event takes applications, or find other events open to vendors.</Paragraph>
+        <ActionButton href={p.url}>See your application</ActionButton>
+      </>
+    ),
+  },
 } satisfies Record<NotificationType, unknown>;
 
 export async function renderEmail(type: NotificationType, payload: unknown) {

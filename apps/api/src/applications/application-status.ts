@@ -19,7 +19,7 @@ const actions: Record<ApplicationAction, { from: ApplicationStatus[]; to: Applic
 // two decisions at once can't both win.
 export async function changeApplicationStatus(
   tx: Tx,
-  input: { applicationId: string; from: ApplicationStatus; action: ApplicationAction; actorUserId: string; data?: Prisma.ApplicationUpdateManyMutationInput; reason?: string | null },
+  input: { applicationId: string; from: ApplicationStatus; action: ApplicationAction; actorUserId: string; data?: Prisma.ApplicationUncheckedUpdateManyInput; reason?: string | null },
 ) {
   const rule = actions[input.action];
   if (!rule.from.includes(input.from)) throw new ConflictException(rule.refusal);

@@ -104,3 +104,40 @@ export function vendorStatus(application: ApplicationStatus, assignment: 'assign
   if (application === 'approved' && assignment === 'reserved') return 'reserved';
   return application;
 }
+
+// ─── Organizer review (spec §3.3, flow 5) ──────────────────────────────────
+
+export const decisionSchema = z.object({ note: optionalLongText(500) });
+export type DecisionInput = z.input<typeof decisionSchema>;
+
+// A preferred slot as the organizer sees it now: still open, taken by
+// someone else, or deleted ("No longer available", spec §5).
+export const preferredSlotStateSchema = z.enum(['open', 'taken', 'removed']);
+
+export const organizerApplicationSchema = z.object({
+  id: z.uuid(),
+  status: applicationStatusSchema,
+  submittedAt: z.string(),
+  decidedAt: z.string().nullable(),
+  note: z.string().nullable(),
+  decisionNote: z.string().nullable(),
+  vendor: z.object({
+    shopName: z.string(),
+    slug: z.string().nullable(),
+    fullName: z.string(),
+    phone: z.string().nullable(),
+    avatarUrl: z.string().nullable(),
+  }),
+  categories: z.array(z.object({ id: z.uuid(), name: z.string() })),
+  documents: z.array(z.object({ id: z.uuid(), name: z.string(), url: z.string(), isPdf: z.boolean() })),
+  preferredSlot: z.object({ id: z.uuid(), label: z.string(), state: preferredSlotStateSchema }).nullable(),
+});
+export type OrganizerApplication = z.infer<typeof organizerApplicationSchema>;
+
+export const eventApplicationsSchema = z.object({
+  event: z.object({ id: z.uuid(), slug: z.string(), name: z.string(), status: z.string(), applicationsOpen: z.boolean(), preferredSlots: z.boolean() }),
+  // "Food: 4 of 5 accepted" (spec §3.2). A guide only.
+  counters: z.array(z.object({ categoryId: z.uuid(), name: z.string(), approved: z.number().int(), max: z.number().int().nullable() })),
+  applications: z.array(organizerApplicationSchema),
+});
+export type EventApplications = z.infer<typeof eventApplicationsSchema>;

@@ -36,6 +36,14 @@ describe("EventSetupPage header", () => {
     expect(screen.getByRole("tab", { name: /Details/ })).toHaveAttribute("aria-selected", "true")
   })
 
+  it("links an open event to its applications and its vendors and slots", async () => {
+    setup = setupFixture({ status: "open_to_vendors", applicationsOpen: true })
+    renderWithQuery(<EventSetupPage id={EVENT_ID} />)
+
+    expect(await screen.findByRole("link", { name: "Applications" })).toHaveAttribute("href", `/organizer/events/${EVENT_ID}/applications`)
+    expect(screen.getByRole("link", { name: "Vendors and slots" })).toHaveAttribute("href", `/organizer/events/${EVENT_ID}/vendors`)
+  })
+
   it("says when the event isn't found", async () => {
     vi.mocked(api.GET).mockResolvedValue({ error: { message: "Event not found" }, response: { status: 404 } } as never)
     renderWithQuery(<EventSetupPage id={EVENT_ID} />)

@@ -629,6 +629,8 @@ enum NotificationType {
   organizer_rejected
   application_submitted
   application_withdrawn
+  application_approved
+  application_declined
 
   @@map("notification_type")
 }

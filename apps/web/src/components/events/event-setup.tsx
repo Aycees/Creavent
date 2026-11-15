@@ -88,6 +88,16 @@ function Setup({ setup }: { setup: EventSetup }) {
           <Button asChild variant="secondary">
             <Link href={`/events/${setup.slug}`}>Preview as vendor</Link>
           </Button>
+          {setup.status !== "draft" && (
+            <>
+              <Button asChild variant="secondary">
+                <Link href={`/organizer/events/${setup.id}/applications`}>Applications</Link>
+              </Button>
+              <Button asChild variant="secondary">
+                <Link href={`/organizer/events/${setup.id}/vendors`}>Vendors and slots</Link>
+              </Button>
+            </>
+          )}
           {setup.status === "draft" && <OpenButton setup={setup} />}
           {setup.status === "draft" && <DeleteDraftButton setup={setup} />}
         </div>

@@ -212,6 +212,12 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - **Organizer closes applications with some still waiting:** the waiting ones can still be reviewed. **(screen)**
 - **A permit looks wrong or is missing:** the organizer declines with a note, or contacts the vendor first. **(screen)**
 
+**Acceptance criteria (Phase 3)**
+- `/organizer/events/[id]/applications` shares a header with Vendors and slots and Event setup (tabs), shows "Applications: N new", and a counter per accepted category ("Food and drinks: 5 of 5 accepted"). Event setup links to both pages once the event is open.
+- Applications are listed oldest first, filtered by Waiting (the default), Approved, Declined, Withdrawn, Removed, and All. Each shows the shop (linked to its vendor page), categories, the date applied, the vendor's name and mobile number (tap to call), the preferred slot ("No preference", "taken by another vendor", or "B-03 is no longer available"), the documents (opened through the private file route), and the vendor's note.
+- Approve or Decline opens a confirm step with an optional note. Only a `submitted` application can be decided. Going over a category limit, full slots, and closed applications never block a decision. The vendor gets the approved or declined email, with the note.
+- Only the event's organizer (role not suspended) can see or decide them. Another organizer gets Not found. A hidden event refuses decisions.
+
 ## 6. Assign a slot
 
 *The vendor's application must be approved first.*

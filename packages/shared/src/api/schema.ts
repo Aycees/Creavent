@@ -635,7 +635,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["OrganizerApplicationsController_list"];
         put: operations["OrganizerEventsController_applications"];
         post?: never;
         delete?: never;
@@ -718,6 +718,38 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["VendorApplicationsController_withdraw"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organizer/events/{id}/applications/{applicationId}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OrganizerApplicationsController_approve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organizer/events/{id}/applications/{applicationId}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OrganizerApplicationsController_decline"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5053,6 +5085,97 @@ export interface operations {
             };
         };
     };
+    OrganizerApplicationsController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            status: string;
+                            applicationsOpen: boolean;
+                            preferredSlots: boolean;
+                        };
+                        counters: {
+                            /** Format: uuid */
+                            categoryId: string;
+                            name: string;
+                            approved: number;
+                            max: number | null;
+                        }[];
+                        applications: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "submitted" | "approved" | "declined" | "removed" | "withdrawn";
+                            submittedAt: string;
+                            decidedAt: string | null;
+                            note: string | null;
+                            decisionNote: string | null;
+                            vendor: {
+                                shopName: string;
+                                slug: string | null;
+                                fullName: string;
+                                phone: string | null;
+                                avatarUrl: string | null;
+                            };
+                            categories: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            }[];
+                            documents: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                url: string;
+                                isPdf: boolean;
+                            }[];
+                            preferredSlot: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                /** @enum {string} */
+                                state: "open" | "taken" | "removed";
+                            } | null;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
     OrganizerEventsController_applications: {
         parameters: {
             query?: never;
@@ -5549,6 +5672,324 @@ export interface operations {
                     "application/json": {
                         /** Format: uuid */
                         id: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OrganizerApplicationsController_approve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    note?: string | null;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            status: string;
+                            applicationsOpen: boolean;
+                            preferredSlots: boolean;
+                        };
+                        counters: {
+                            /** Format: uuid */
+                            categoryId: string;
+                            name: string;
+                            approved: number;
+                            max: number | null;
+                        }[];
+                        applications: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "submitted" | "approved" | "declined" | "removed" | "withdrawn";
+                            submittedAt: string;
+                            decidedAt: string | null;
+                            note: string | null;
+                            decisionNote: string | null;
+                            vendor: {
+                                shopName: string;
+                                slug: string | null;
+                                fullName: string;
+                                phone: string | null;
+                                avatarUrl: string | null;
+                            };
+                            categories: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            }[];
+                            documents: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                url: string;
+                                isPdf: boolean;
+                            }[];
+                            preferredSlot: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                /** @enum {string} */
+                                state: "open" | "taken" | "removed";
+                            } | null;
+                        }[];
+                    };
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            status: string;
+                            applicationsOpen: boolean;
+                            preferredSlots: boolean;
+                        };
+                        counters: {
+                            /** Format: uuid */
+                            categoryId: string;
+                            name: string;
+                            approved: number;
+                            max: number | null;
+                        }[];
+                        applications: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "submitted" | "approved" | "declined" | "removed" | "withdrawn";
+                            submittedAt: string;
+                            decidedAt: string | null;
+                            note: string | null;
+                            decisionNote: string | null;
+                            vendor: {
+                                shopName: string;
+                                slug: string | null;
+                                fullName: string;
+                                phone: string | null;
+                                avatarUrl: string | null;
+                            };
+                            categories: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            }[];
+                            documents: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                url: string;
+                                isPdf: boolean;
+                            }[];
+                            preferredSlot: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                /** @enum {string} */
+                                state: "open" | "taken" | "removed";
+                            } | null;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OrganizerApplicationsController_decline: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    note?: string | null;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            status: string;
+                            applicationsOpen: boolean;
+                            preferredSlots: boolean;
+                        };
+                        counters: {
+                            /** Format: uuid */
+                            categoryId: string;
+                            name: string;
+                            approved: number;
+                            max: number | null;
+                        }[];
+                        applications: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "submitted" | "approved" | "declined" | "removed" | "withdrawn";
+                            submittedAt: string;
+                            decidedAt: string | null;
+                            note: string | null;
+                            decisionNote: string | null;
+                            vendor: {
+                                shopName: string;
+                                slug: string | null;
+                                fullName: string;
+                                phone: string | null;
+                                avatarUrl: string | null;
+                            };
+                            categories: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            }[];
+                            documents: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                url: string;
+                                isPdf: boolean;
+                            }[];
+                            preferredSlot: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                /** @enum {string} */
+                                state: "open" | "taken" | "removed";
+                            } | null;
+                        }[];
+                    };
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            status: string;
+                            applicationsOpen: boolean;
+                            preferredSlots: boolean;
+                        };
+                        counters: {
+                            /** Format: uuid */
+                            categoryId: string;
+                            name: string;
+                            approved: number;
+                            max: number | null;
+                        }[];
+                        applications: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "submitted" | "approved" | "declined" | "removed" | "withdrawn";
+                            submittedAt: string;
+                            decidedAt: string | null;
+                            note: string | null;
+                            decisionNote: string | null;
+                            vendor: {
+                                shopName: string;
+                                slug: string | null;
+                                fullName: string;
+                                phone: string | null;
+                                avatarUrl: string | null;
+                            };
+                            categories: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            }[];
+                            documents: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                url: string;
+                                isPdf: boolean;
+                            }[];
+                            preferredSlot: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                /** @enum {string} */
+                                state: "open" | "taken" | "removed";
+                            } | null;
+                        }[];
                     };
                 };
             };

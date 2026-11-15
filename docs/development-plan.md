@@ -283,7 +283,7 @@ Check a feature when its commit is on the phase branch with its tests passing. C
 
 **Phase 3: The core loop**
 - [x] 3.1 Apply (branch `feat/phase-3-core-loop`)
-- [ ] 3.2 Review applications
+- [x] 3.2 Review applications (branch `feat/phase-3-core-loop`)
 - [ ] 3.3 Assign a slot
 - [ ] 3.4 Vendor application page
 - [ ] 3.5 Pay and confirm

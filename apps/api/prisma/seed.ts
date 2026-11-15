@@ -17,6 +17,8 @@
 // Applications (Phase 3), at Lanang Holiday Flea:
 //   vendor2@ Tahi-Tahi PH    submitted, prefers B-03
 //   vendor3@ Thrift Kingdom  withdrawn
+//   vendor4@ Paper Bayani    approved, prefers A-05, no slot
+//   vendor5@ Tanim Plant Co. declined with a note
 //
 // All use SEED_PASSWORD from apps/api/.env. Run with `pnpm db:seed` from the
 // repo root. Safe to run again: existing accounts are left as they are.
@@ -272,6 +274,12 @@ const tahi = await seedVendor('vendor2@creavent.test', 'Carla Dizon', 'Tahi-Tahi
 const thrift = await seedVendor('vendor3@creavent.test', 'Ben Uy', 'Thrift Kingdom', 'thrift-kingdom', [preloved.id, vintage]);
 await application(tahi.id, 'lanang-holiday-flea', crafts, { preferredLabel: 'B-03', vendorNote: 'Near the entrance if possible.', daysAgo: 3 });
 await application(thrift.id, 'lanang-holiday-flea', vintage, { status: 'withdrawn', withdrawnAt: new Date(), daysAgo: 4 });
+const organizerUser = await prisma.user.findUniqueOrThrow({ where: { email: 'organizer@creavent.test' } });
+const decided = { decidedById: organizerUser.id, decidedAt: new Date() };
+const paper = await seedVendor('vendor4@creavent.test', 'Mia Santos', 'Paper Bayani', 'paper-bayani', [crafts]);
+const tanim = await seedVendor('vendor5@creavent.test', 'Rafa Lim', 'Tanim Plant Co.', 'tanim-plant-co', [plants]);
+await application(paper.id, 'lanang-holiday-flea', crafts, { status: 'approved', preferredLabel: 'A-05', daysAgo: 6, ...decided });
+await application(tanim.id, 'lanang-holiday-flea', plants, { status: 'declined', decisionNote: 'We have enough plant stalls this time.', daysAgo: 5, ...decided });
 
 await prisma.$disconnect();
 console.log(
