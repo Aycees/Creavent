@@ -119,12 +119,42 @@ const templates = {
       </>
     ),
   },
+  application_submitted: {
+    payload: z.object({ name: z.string(), shopName: z.string(), eventName: z.string(), url: z.string(), supportEmail: z.string() }),
+    subject: (p: { shopName: string; eventName: string }) => `New application: ${p.shopName} for ${p.eventName}`,
+    body: (p: { name: string; shopName: string; eventName: string; url: string }) => (
+      <>
+        <Heading>New application</Heading>
+        <Paragraph>Hi {firstName(p.name)},</Paragraph>
+        <Paragraph>
+          {p.shopName} applied to sell at {p.eventName}. Review their categories, documents, and contact number, then
+          approve or decline.
+        </Paragraph>
+        <ActionButton href={p.url}>Review applications</ActionButton>
+      </>
+    ),
+  },
+  application_withdrawn: {
+    payload: z.object({ name: z.string(), shopName: z.string(), eventName: z.string(), url: z.string(), supportEmail: z.string() }),
+    subject: (p: { shopName: string; eventName: string }) => `${p.shopName} withdrew their application to ${p.eventName}`,
+    body: (p: { name: string; shopName: string; eventName: string; url: string }) => (
+      <>
+        <Paragraph>Hi {firstName(p.name)},</Paragraph>
+        <Paragraph>
+          {p.shopName} withdrew their application to {p.eventName} before you decided on it. Nothing else changes. They
+          can apply again later.
+        </Paragraph>
+        <ActionButton href={p.url}>See applications</ActionButton>
+      </>
+    ),
+  },
 } satisfies Record<NotificationType, unknown>;
 
 export async function renderEmail(type: NotificationType, payload: unknown) {
   const template = templates[type];
   const data = template.payload.parse(payload);
-  const subject = template.subject();
+  // Some subjects name the shop or event, from the same payload.
+  const subject = (template.subject as (p: typeof data) => string)(data);
   const preview = 'preview' in template ? template.preview() : subject;
   // Each body takes its own payload shape, which parse() above guarantees.
   const body = (template.body as (p: typeof data) => React.ReactNode)(data);

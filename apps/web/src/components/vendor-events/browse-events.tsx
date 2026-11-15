@@ -1,6 +1,6 @@
 "use client"
 
-import { eventCities, type VendorEventCard } from "@creavent/shared"
+import { eventCities, vendorStatusLabels, type VendorEventCard } from "@creavent/shared"
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import Link from "next/link"
 import * as React from "react"
@@ -138,6 +138,7 @@ function EventCard({ event: e }: { event: VendorEventCard }) {
                 Choose a preferred slot
               </Badge>
             )}
+            {e.myStatus && <Badge tone="neutral">{`You: ${vendorStatusLabels[e.myStatus]}`}</Badge>}
           </div>
           <h2 id={id} className="text-h3">
             <Link href={`/events/${e.slug}`} className="outline-none after:absolute after:inset-0 after:rounded-lg">

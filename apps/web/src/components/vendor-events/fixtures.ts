@@ -23,6 +23,7 @@ export function cardFixture(overrides: Partial<VendorEventCard> = {}): VendorEve
     acceptingApplications: true,
     preferredSlots: true,
     mySpots: [{ categoryName: "Preloved clothing", left: 5, max: 12 }],
+    myStatus: null,
     ...overrides,
   }
 }
@@ -63,6 +64,7 @@ export function eventFixture(overrides: Partial<VendorEvent> = {}): VendorEvent 
     summary: { feeRange: "₱800 to ₱1,500", deadlineHours: 24, paidTo: "GCash or Bank transfer" },
     vendorContactInfo: "Rhea Montemayor · 0917 482 1093",
     myCategoryIds: [PRELOVED],
+    myApplication: null,
     ...overrides,
   }
 }

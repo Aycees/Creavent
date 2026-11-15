@@ -1,6 +1,6 @@
 "use client"
 
-import { imageMimeTypes, uploadRules, type Crop, type UploadPurpose, type UploadedFile } from "@creavent/shared"
+import { documentMimeTypes, imageMimeTypes, uploadRules, type Crop, type UploadPurpose, type UploadedFile } from "@creavent/shared"
 import * as React from "react"
 
 import { api } from "./api"
@@ -18,8 +18,10 @@ export function useUpload(purpose: UploadPurpose) {
   async function upload(file: File, options: { crop?: Crop } = {}): Promise<UploadedFile | null> {
     setError(null)
     const rules = uploadRules[purpose]
-    if (!(imageMimeTypes as readonly string[]).includes(file.type)) {
-      setError("Use a JPEG, PNG, or WebP photo")
+    // Documents may be PDFs too (spec §11.1).
+    const allowed: readonly string[] = rules.pdf ? documentMimeTypes : imageMimeTypes
+    if (!allowed.includes(file.type)) {
+      setError(rules.pdf ? "Use a JPEG, PNG, or WebP photo, or a PDF" : "Use a JPEG, PNG, or WebP photo")
       return null
     }
     if (file.size > rules.maxBytes) {
@@ -29,7 +31,7 @@ export function useUpload(purpose: UploadPurpose) {
     setPending(true)
     try {
       const ask = await api.POST("/api/files", {
-        body: { purpose, mimeType: file.type as (typeof imageMimeTypes)[number], sizeBytes: file.size },
+        body: { purpose, mimeType: file.type as (typeof documentMimeTypes)[number], sizeBytes: file.size },
       })
       if (!ask.data) {
         setError((ask.error as ErrorBody)?.message ?? "Upload failed. Try again.")

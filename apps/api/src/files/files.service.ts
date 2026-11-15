@@ -36,6 +36,8 @@ const needsRole: Partial<Record<UploadPurpose, 'vendor' | 'organizer'>> = {
   payment_qr: 'organizer',
   vendor_floor_plan: 'organizer',
   public_floor_plan: 'organizer',
+  application_document: 'vendor',
+  payment_proof: 'vendor',
 };
 const incomingKey = (id: string) => `incoming/${id}`;
 
@@ -49,6 +51,8 @@ export class FilesService {
 
   async ask(userId: string, input: AskUploadInput) {
     const rules = uploadRules[input.purpose];
+    const isPdf = input.mimeType === 'application/pdf';
+    if (isPdf && !rules.pdf) throw new BadRequestException('Use a JPEG, PNG, or WebP photo');
     if (input.sizeBytes > rules.maxBytes) {
       throw new BadRequestException(
         `This file is over ${rules.maxBytes / (1024 * 1024)} MB`,
@@ -102,7 +106,7 @@ export class FilesService {
         id,
         uploadedBy: userId,
         purpose: input.purpose,
-        storageKey: `${input.purpose}/${id}.webp`,
+        storageKey: `${input.purpose}/${id}.${isPdf ? 'pdf' : 'webp'}`,
         mimeType: input.mimeType,
         sizeBytes: input.sizeBytes,
       },
@@ -160,6 +164,9 @@ export class FilesService {
     }
     // The real type, from the file's first bytes. Extensions are ignored.
     const real = await fileTypeFromBuffer(body);
+    if (file.mimeType === 'application/pdf' || real?.mime === 'application/pdf') {
+      return this.finishPdf(file, body, real?.mime);
+    }
     if (
       !real ||
       !['image/jpeg', 'image/png', 'image/webp'].includes(real.mime)
@@ -191,6 +198,21 @@ export class FilesService {
     return this.toUploadedFile(ready);
   }
 
+  // PDFs are checked for the signature and stored as uploaded, never
+  // rewritten (spec §11.4). They are only allowed in private purposes.
+  private async finishPdf(file: File, body: Buffer, realMime: string | undefined): Promise<UploadedFile> {
+    if (file.mimeType !== 'application/pdf' || realMime !== 'application/pdf' || !body.subarray(0, 5).equals(Buffer.from('%PDF-'))) {
+      throw new UploadRejected("This file isn't the type it claims to be");
+    }
+    await this.storage.put('private', file.storageKey, body, 'application/pdf');
+    await this.storage.delete('private', incomingKey(file.id));
+    const ready = await this.prisma.file.update({
+      where: { id: file.id },
+      data: { status: 'ready', sizeBytes: body.length },
+    });
+    return this.toUploadedFile(ready);
+  }
+
   toUploadedFile(file: File): UploadedFile {
     return {
       id: file.id,
@@ -218,7 +240,12 @@ export class FilesService {
     if (!file || !uploadRules[file.purpose as UploadPurpose]?.private || !(await this.canOpen(user, file))) {
       throw new NotFoundException('File not found');
     }
-    return this.storage.presignGet(file.storageKey);
+    // PDFs always download, named from the purpose and date (spec §11.6).
+    const download =
+      file.mimeType === 'application/pdf'
+        ? `${file.purpose.replaceAll('_', '-')}-${file.createdAt.toISOString().slice(0, 10)}.pdf`
+        : undefined;
+    return this.storage.presignGet(file.storageKey, download);
   }
 
   private async canOpen(user: { id: string; isAdmin: boolean }, file: File) {
@@ -229,6 +256,13 @@ export class FilesService {
         where: { qrFileId: file.id, event: { organizerProfile: { userId: user.id } } },
       });
       return method !== null;
+    }
+    if (file.purpose === 'application_document') {
+      // The organizer of the event the vendor applied to (data model §6.6).
+      const doc = await this.prisma.applicationDocument.findFirst({
+        where: { fileId: file.id, application: { event: { organizerProfile: { userId: user.id } } } },
+      });
+      return doc !== null;
     }
     return false;
   }

@@ -282,7 +282,7 @@ Check a feature when its commit is on the phase branch with its tests passing. C
 - [ ] **M2** An approved organizer opens an event to vendors
 
 **Phase 3: The core loop**
-- [ ] 3.1 Apply
+- [x] 3.1 Apply (branch `feat/phase-3-core-loop`)
 - [ ] 3.2 Review applications
 - [ ] 3.3 Assign a slot
 - [ ] 3.4 Vendor application page

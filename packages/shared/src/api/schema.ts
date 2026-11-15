@@ -676,6 +676,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/vendor/events/{slug}/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["VendorApplicationsController_form"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vendor/events/{slug}/applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["VendorApplicationsController_apply"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vendor/applications/{id}/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["VendorApplicationsController_withdraw"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -738,9 +786,9 @@ export interface operations {
             content: {
                 "application/json": {
                     /** @enum {string} */
-                    purpose: "avatar" | "vendor_photo" | "organizer_logo" | "event_cover" | "payment_qr" | "vendor_floor_plan" | "public_floor_plan";
+                    purpose: "avatar" | "vendor_photo" | "organizer_logo" | "event_cover" | "payment_qr" | "vendor_floor_plan" | "public_floor_plan" | "application_document" | "payment_proof";
                     /** @enum {string} */
-                    mimeType: "image/jpeg" | "image/png" | "image/webp";
+                    mimeType: "image/jpeg" | "image/png" | "image/webp" | "application/pdf";
                     sizeBytes: number;
                 };
             };
@@ -811,7 +859,7 @@ export interface operations {
                         /** Format: uuid */
                         id: string;
                         /** @enum {string} */
-                        purpose: "avatar" | "vendor_photo" | "organizer_logo" | "event_cover" | "payment_qr" | "vendor_floor_plan" | "public_floor_plan";
+                        purpose: "avatar" | "vendor_photo" | "organizer_logo" | "event_cover" | "payment_qr" | "vendor_floor_plan" | "public_floor_plan" | "application_document" | "payment_proof";
                         url: string;
                         width: number | null;
                         height: number | null;
@@ -5209,6 +5257,8 @@ export interface operations {
                                 left: number;
                                 max: number;
                             }[];
+                            /** @enum {string|null} */
+                            myStatus: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed" | null;
                         }[];
                     };
                 };
@@ -5308,7 +5358,197 @@ export interface operations {
                             };
                             vendorContactInfo: string | null;
                             myCategoryIds: string[];
+                            myApplication: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed";
+                            } | null;
                         };
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    VendorApplicationsController_form: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: {
+                            slug: string;
+                            name: string;
+                            startDate: string | null;
+                            endDate: string | null;
+                            venueName: string | null;
+                            applicationsCloseAt: string | null;
+                            policy: string | null;
+                            deadlineHours: number;
+                            preferredSlots: boolean;
+                            vendorFloorPlanUrl: string | null;
+                        };
+                        /** @enum {string|null} */
+                        blocked: "closed" | "already_applied" | "cannot_reapply" | "no_matching_category" | "profile_incomplete" | null;
+                        /** Format: uuid */
+                        activeApplicationId: string | null;
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            max: number | null;
+                            left: number | null;
+                        }[];
+                        documents: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            description: string | null;
+                            /** Format: uuid */
+                            categoryId: string | null;
+                            categoryName: string | null;
+                            required: boolean;
+                        }[];
+                        slotGroups: {
+                            name: string;
+                            slots: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                sizeLabel: string | null;
+                                note: string | null;
+                                price: number | null;
+                                taken: boolean;
+                            }[];
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    VendorApplicationsController_apply: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    categoryIds: string[];
+                    /** @default [] */
+                    documents?: {
+                        /** Format: uuid */
+                        requirementId: string;
+                        fileIds: string[];
+                    }[];
+                    /**
+                     * Format: uuid
+                     * @default null
+                     */
+                    preferredSlotId?: string | null;
+                    note?: string | null;
+                };
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    VendorApplicationsController_withdraw: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
                     };
                 };
             };

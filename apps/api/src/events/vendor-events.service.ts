@@ -1,6 +1,7 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import {
   formatPriceRange,
+  vendorStatus,
   groupSlots,
   manilaParts,
   paymentChannelLabels,
@@ -11,6 +12,7 @@ import {
 import type { z } from 'zod';
 import type { Prisma } from '../generated/prisma/client.js';
 import type { SessionUser } from '../auth/auth.guard.js';
+import { approvedPerCategory, spotsLeft } from '../applications/category-counts.js';
 import { FilesService } from '../files/files.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
@@ -55,6 +57,19 @@ export class VendorEventsService {
     };
     const events = await this.prisma.event.findMany({ where, include, orderBy: { startsAt: 'asc' }, take: 100 });
     const mine = new Set(vendor.categories.map((c) => c.categoryId));
+    const ids = events.map((e) => e.id);
+    // Approved applications per event and category, for spots left.
+    const approvedRows = await this.prisma.applicationCategory.findMany({
+      where: { application: { eventId: { in: ids }, status: 'approved' } },
+      select: { categoryId: true, application: { select: { eventId: true } } },
+    });
+    const counts = new Map<string, Map<string, number>>();
+    for (const row of approvedRows) {
+      const perEvent = counts.get(row.application.eventId) ?? new Map<string, number>();
+      perEvent.set(row.categoryId, (perEvent.get(row.categoryId) ?? 0) + 1);
+      counts.set(row.application.eventId, perEvent);
+    }
+    const latest = await this.latestApplications(vendor.id, ids);
     return {
       events: events.map((e) => ({
         slug: e.slug,
@@ -70,9 +85,10 @@ export class VendorEventsService {
         applicationsCloseAt: closeAt(e),
         acceptingApplications: accepting(e, now),
         preferredSlots: e.slotMode === 'vendor_preference',
-        mySpots: spots(e)
+        mySpots: spots(e, counts.get(e.id))
           .filter((c) => mine.has(c.id) && c.max !== null)
           .map((c) => ({ categoryName: c.name, left: c.left!, max: c.max! })),
+        myStatus: latest.get(e.id)?.status ?? null,
       })),
     };
   }
@@ -98,6 +114,8 @@ export class VendorEventsService {
   private async vendorView(e: FullEvent, viewerId: string) {
     const now = new Date();
     const mine = await this.prisma.vendorProfileCategory.findMany({ where: { vendorProfile: { userId: viewerId } }, select: { categoryId: true } });
+    const profile = await this.prisma.vendorProfile.findUnique({ where: { userId: viewerId }, select: { id: true } });
+    const latest = profile ? (await this.latestApplications(profile.id, [e.id])).get(e.id) : undefined;
     const defaultPrice = e.defaultSlotPrice === null ? null : Number(e.defaultSlotPrice);
     const channels = [...new Set(e.paymentMethods.map((m) => paymentChannelLabels[m.channel]))];
     return {
@@ -114,7 +132,7 @@ export class VendorEventsService {
       organizer: this.organizer(e),
       applicationsCloseAt: closeAt(e),
       acceptingApplications: accepting(e, now),
-      categories: spots(e),
+      categories: spots(e, await approvedPerCategory(this.prisma, e.id)),
       documents: e.documents.map((d) => ({ name: d.name, categoryName: d.category?.name ?? null })),
       preferredSlots: e.slotMode === 'vendor_preference',
       slotGroups: groupSlots(e.slots).map((g) => {
@@ -141,7 +159,20 @@ export class VendorEventsService {
       },
       vendorContactInfo: e.vendorContactInfo,
       myCategoryIds: mine.map((c) => c.categoryId),
+      myApplication: latest ?? null,
     };
+  }
+
+  // The vendor's latest application at each event, with the combined status.
+  private async latestApplications(vendorProfileId: string, eventIds: string[]) {
+    const applications = await this.prisma.application.findMany({
+      where: { vendorProfileId, eventId: { in: eventIds } },
+      orderBy: { submittedAt: 'desc' },
+      select: { id: true, eventId: true, status: true },
+    });
+    const latest = new Map<string, { id: string; status: ReturnType<typeof vendorStatus> }>();
+    for (const a of applications) if (!latest.has(a.eventId)) latest.set(a.eventId, { id: a.id, status: vendorStatus(a.status) });
+    return latest;
   }
 
   private organizer(e: FullEvent) {
@@ -192,12 +223,12 @@ function prices(e: FullEvent) {
   return e.slots.flatMap((s) => (s.price === null ? (fallback ?? []) : Number(s.price)));
 }
 
-// Accepted categories with their limit and spots left (data model §7). Spots
-// left subtract approved applications once applications exist (Phase 3).
-function spots(e: FullEvent) {
+// Accepted categories with their limit and spots left: the limit minus
+// approved applications in that category (data model §7).
+function spots(e: FullEvent, approved = new Map<string, number>()) {
   return e.categories
     .sort((a, b) => a.category.sortOrder - b.category.sortOrder)
-    .map((c) => ({ id: c.categoryId, name: c.category.name, max: c.maxVendors, left: c.maxVendors }));
+    .map((c) => ({ id: c.categoryId, name: c.category.name, max: c.maxVendors, left: spotsLeft(c.maxVendors, approved.get(c.categoryId) ?? 0) }));
 }
 
 // "This weekend" is the coming Saturday and Sunday (this one, on a weekend);

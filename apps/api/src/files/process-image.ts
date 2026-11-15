@@ -15,6 +15,8 @@ const resize: Record<UploadPurpose, ResizeOptions> = {
   payment_qr: { width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true },
   vendor_floor_plan: { width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true },
   public_floor_plan: { width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true },
+  application_document: { width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true },
+  payment_proof: { width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true },
 };
 
 // Event covers are 16:9, at most 1600 x 900, and never enlarged (spec §11.5).

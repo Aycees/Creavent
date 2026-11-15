@@ -14,6 +14,10 @@
 //   Bajada Christmas Flea       open to vendors, applications closed
 //   Mintal Weekend Bazaar       pending@'s ready draft, waiting for approval
 //
+// Applications (Phase 3), at Lanang Holiday Flea:
+//   vendor2@ Tahi-Tahi PH    submitted, prefers B-03
+//   vendor3@ Thrift Kingdom  withdrawn
+//
 // All use SEED_PASSWORD from apps/api/.env. Run with `pnpm db:seed` from the
 // repo root. Safe to run again: existing accounts are left as they are.
 import { hashPassword } from 'better-auth/crypto';
@@ -220,6 +224,54 @@ await event('pending@creavent.test', 'mintal-weekend-bazaar', {
   paymentMethods: { create: [{ channel: 'maya', label: 'Maya, Bazaar ng Mintal', accountName: 'Bazaar ng Mintal', accountNumber: '0917 000 1111', sortOrder: 0 }] },
   slots: { create: row('M', 10, 'Grounds', '2 × 2 m', 0) },
 });
+
+// Phase 3: more vendors, and applications to Lanang Holiday Flea in each
+// state. vendor@ has none there, so the Apply page can be tried by hand.
+// Seeded applications have no document files.
+async function seedVendor(email: string, fullName: string, shopName: string, slug: string, categoryIds: string[]) {
+  const u = await user(email, fullName, { phone: '+639181234567' });
+  const p = await prisma.vendorProfile.upsert({
+    where: { userId: u.id },
+    update: {},
+    create: { userId: u.id, shopName, slug, socialLinks: [], categories: { create: categoryIds.map((categoryId) => ({ categoryId })) } },
+  });
+  await prisma.userRole.upsert({
+    where: { userId_role: { userId: u.id, role: 'vendor' } },
+    update: {},
+    create: { userId: u.id, role: 'vendor', onboardingStep: 4 },
+  });
+  return p;
+}
+
+async function application(
+  vendorProfileId: string,
+  eventSlug: string,
+  categoryId: string,
+  data: Partial<Prisma.ApplicationUncheckedCreateInput> & { preferredLabel?: string; daysAgo?: number } = {},
+) {
+  const target = await prisma.event.findUniqueOrThrow({ where: { slug: eventSlug } });
+  if (await prisma.application.findFirst({ where: { eventId: target.id, vendorProfileId } })) return null;
+  const { preferredLabel, daysAgo = 1, ...rest } = data;
+  const preferred = preferredLabel ? await prisma.slot.findFirst({ where: { eventId: target.id, label: preferredLabel } }) : null;
+  const submittedAt = new Date(Date.now() - daysAgo * 86_400_000);
+  return prisma.application.create({
+    data: {
+      eventId: target.id,
+      vendorProfileId,
+      preferredSlotId: preferred?.id ?? null,
+      policyTextSnapshot: target.policyText ?? '',
+      policyAcceptedAt: submittedAt,
+      submittedAt,
+      categories: { create: [{ categoryId }] },
+      ...rest,
+    },
+  });
+}
+
+const tahi = await seedVendor('vendor2@creavent.test', 'Carla Dizon', 'Tahi-Tahi PH', 'tahi-tahi-ph', [crafts]);
+const thrift = await seedVendor('vendor3@creavent.test', 'Ben Uy', 'Thrift Kingdom', 'thrift-kingdom', [preloved.id, vintage]);
+await application(tahi.id, 'lanang-holiday-flea', crafts, { preferredLabel: 'B-03', vendorNote: 'Near the entrance if possible.', daysAgo: 3 });
+await application(thrift.id, 'lanang-holiday-flea', vintage, { status: 'withdrawn', withdrawnAt: new Date(), daysAgo: 4 });
 
 await prisma.$disconnect();
 console.log(

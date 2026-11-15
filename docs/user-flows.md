@@ -4,7 +4,7 @@
 
 Last updated: 2026-11-14
 
-Acceptance criteria are written per flow as each phase is built. Flows 1, 2, and the approval part of 11 have them (Phase 1), and flow 3 and the finding part of flow 4 (Phase 2). Each criterion has a test in `apps/api/test/integration` or next to the screen in `apps/web/src`.
+Acceptance criteria are written per flow as each phase is built. Flows 1, 2, and the approval part of 11 have them (Phase 1), flow 3 and the finding part of flow 4 (Phase 2), and flows 4 to 9 as Phase 3 is built. Each criterion has a test in `apps/api/test/integration` or next to the screen in `apps/web/src`.
 
 ## How to read this
 
@@ -188,6 +188,15 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - `/vendor/events` lists visible events that are open to vendors or announced and end today or later, soonest first, with search by name or venue, a date filter (Any date, This weekend, Next 30 days), and a city filter. Each shows the date, type, status, name, schedule, venue, the organizer with "Approved by Creavent", the slot fee range, the applications close date, "Choose a preferred slot" when the event allows it, and spots left in the vendor's categories when the organizer set a limit.
 - The vendor view of `/events/[slug]` shows the applications close date, accepted categories with limit and spots left, the documents to upload (marking those for one category), slots grouped by section (or by label prefix) with size, note, price, and open count, the vendor floor plan, the policy, the summary (fee range, applications close, pay within, paid to), and the contact details for vendors. Apply is shown, or "Applications closed" when applications are closed or the close date passed. The Apply page itself comes in Phase 3.
 - A draft event is "Not found" to vendors. A signed-out visitor sees "This event isn't public yet" for an event that is open to vendors. The event's organizer sees the vendor view through Preview as vendor at any status.
+
+**Acceptance criteria (Phase 3: applying)**
+- `/vendor/events/[slug]/apply` lists the vendor's categories that the event accepts, with spots left (the limit minus approved vendors), the documents for the picked categories (a category's own document appears once it is picked), the policy, and, when the event lets vendors choose, the slots grouped by section, each Open or Taken, plus "No preference" and "Your pick isn't reserved until the organizer assigns it."
+- Applying needs the vendor role (not suspended), a shop name, mobile number, and a category, and an event that is accepting applications. Each category is one the vendor sells and the event accepts. Every required document for the picked categories is uploaded: an image or PDF, up to 3 files per document, private, each file used by one application only. A preferred slot is kept only in "Vendors choose a preferred slot" mode and must be an open slot of the event.
+- The application starts as `submitted` with a copy of the policy, and the organizer gets the "New application" email. One active application per vendor per event, also refused by the database.
+- The form says why a vendor can't apply instead of showing the fields: applications closed, already applied (with a link to the application), "You can't reapply to this event" after a removal without permission, no accepted category, or an unfinished profile.
+- A `submitted` application can be withdrawn. The organizer gets an email, and the vendor can apply again. A decided application can't be withdrawn.
+- The event page and Browse events show the vendor's own status. The event page links to the application instead of Apply, and offers "Apply again" after a decline or withdrawal.
+- Only the vendor, the event's organizer, and admins can open an application document. PDFs download, named from the purpose and date.
 
 ## 5. Review applications
 

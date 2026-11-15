@@ -1,9 +1,19 @@
 import type { Metadata } from "next"
+import { Suspense } from "react"
 
-import { PlaceholderPage } from "@/components/layout/placeholder-page"
+import { ApplyPage } from "@/components/applications/apply-form"
 
 export const metadata: Metadata = { title: "Apply · Creavent" }
 
-export default function ApplyPage() {
-  return <PlaceholderPage title="Apply" slice="3.1 (apply)" />
+async function View({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  return <ApplyPage slug={slug} />
+}
+
+export default function ApplyRoute({ params }: PageProps<"/vendor/events/[slug]/apply">) {
+  return (
+    <Suspense>
+      <View params={params} />
+    </Suspense>
+  )
 }

@@ -31,7 +31,7 @@ export function daysBetween(from: string, to: string) {
   return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000);
 }
 
-const text = (max: number, label = 'text') =>
+export const text = (max: number, label = 'text') =>
   z
     .string()
     .trim()
@@ -61,7 +61,7 @@ const blankToNull = <T extends z.ZodType<string, string>>(schema: T) =>
 
 // Optional text: blank is saved as null.
 const optionalText = (max: number) => blankToNull(text(max));
-const optionalLongText = (max: number) => blankToNull(longText(max));
+export const optionalLongText = (max: number) => blankToNull(longText(max));
 
 // A real calendar date: "2027-02-31" is refused, not moved to March.
 const isRealDate = (d: string) => {
