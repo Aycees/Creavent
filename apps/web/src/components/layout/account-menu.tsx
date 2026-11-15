@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { authClient } from "@/lib/auth-client"
+import { meQueryKey } from "@/lib/queries"
 import type { ShellUser } from "@/lib/shell-user"
 
 // Account menu (sitemap §5): a dashboard link for each role (and Admin for
@@ -24,7 +25,10 @@ export function AccountMenu({ user }: { user: ShellUser }) {
 
   async function logOut() {
     await authClient.signOut()
-    queryClient.clear()
+    // Not clear(): that detaches mounted observers (the header), which then
+    // never learn the user is gone. Mark the session signed out, drop the rest.
+    queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== meQueryKey[0] })
+    queryClient.setQueryData(meQueryKey, null)
     router.replace("/")
   }
 
