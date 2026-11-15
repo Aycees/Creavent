@@ -1,5 +1,15 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { groupSlots, manilaParts, type ApplyBlock, type ApplyForm, type applySchema } from '@creavent/shared';
+import {
+  groupSlots,
+  manilaParts,
+  vendorStatus,
+  type ApplyBlock,
+  type ApplyForm,
+  type applySchema,
+  type PaymentInstruction,
+  type VendorApplication,
+  type VendorApplicationRow,
+} from '@creavent/shared';
 import type { z } from 'zod';
 import { writeAuditLog } from '../audit/audit-log.js';
 import { appConfig } from '../config.js';
@@ -9,7 +19,7 @@ import { OutboxService } from '../notifications/outbox.service.js';
 import { PrismaService, type Tx } from '../prisma/prisma.service.js';
 import { changeApplicationStatus } from './application-status.js';
 import { approvedPerCategory, spotsLeft } from './category-counts.js';
-import { takenSlotIds } from './slot-status.js';
+import { ACTIVE, takenSlotIds } from './slot-status.js';
 
 type Db = Tx | PrismaService;
 
@@ -167,6 +177,96 @@ export class VendorApplicationsService {
     });
   }
 
+  // /vendor/applications: every application, newest first (spec §4.6).
+  async list(userId: string): Promise<{ applications: VendorApplicationRow[] }> {
+    const vendor = await vendorProfile(this.prisma, userId);
+    const applications = await this.prisma.application.findMany({
+      where: { vendorProfileId: vendor.id },
+      orderBy: { submittedAt: 'desc' },
+      include: { event: true, assignments: { where: { status: { in: [...ACTIVE] } }, include: { slot: true, payment: true } } },
+    });
+    return {
+      applications: applications.map((a) => {
+        const active = a.assignments[0] ?? null;
+        return {
+          id: a.id,
+          event: eventSummary(a.event),
+          status: vendorStatus(a.status, active?.status === 'assigned' || active?.status === 'reserved' ? active.status : null),
+          slotLabel: active?.slot.label ?? null,
+          amountDue: active ? Number(active.priceLocked) : null,
+          paymentStatus: active?.payment?.status ?? null,
+          deadlineAt: active ? active.deadlineAt.toISOString() : null,
+          decisionNote: a.decisionNote,
+        };
+      }),
+    };
+  }
+
+  // /vendor/applications/[id]: only the vendor who applied (spec §4.6).
+  async detail(userId: string, applicationId: string): Promise<VendorApplication> {
+    const vendor = await vendorProfile(this.prisma, userId);
+    const a = await this.prisma.application.findFirst({
+      where: { id: applicationId, vendorProfileId: vendor.id },
+      include: {
+        categories: { include: { category: true } },
+        _count: { select: { documents: true } },
+        preferredSlot: true,
+        event: { include: { vendorFloorPlanFile: true, organizerProfile: { include: { user: { include: { roles: { where: { role: 'organizer' } } } } } } } },
+        assignments: { orderBy: { assignedAt: 'desc' }, take: 1, include: { slot: true, payment: true } },
+      },
+    });
+    if (!a) throw new NotFoundException('Application not found');
+    const latest = a.assignments[0] ?? null;
+    const active = latest && (latest.status === 'assigned' || latest.status === 'reserved') ? latest : null;
+    const organizer = a.event.organizerProfile.user;
+    const role = organizer.roles[0];
+    const taken = a.preferredSlot ? await takenSlotIds(this.prisma, a.eventId) : new Set<string>();
+    const instructions = (latest?.paymentInstructionsSnapshot ?? []) as PaymentInstruction[];
+    return {
+      id: a.id,
+      status: vendorStatus(a.status, active ? (active.status as 'assigned' | 'reserved') : null),
+      submittedAt: a.submittedAt.toISOString(),
+      decidedAt: a.decidedAt?.toISOString() ?? null,
+      decisionNote: a.decisionNote,
+      removalNote: a.removalNote,
+      categories: a.categories.map((c) => c.category.name),
+      documentCount: a._count.documents,
+      event: {
+        ...eventSummary(a.event),
+        addressLine: a.event.addressLine,
+        city: a.event.city,
+        ingressInfo: active ? a.event.ingressInfo : null,
+        vendorFloorPlanUrl: a.event.vendorFloorPlanFile ? this.files.url(a.event.vendorFloorPlanFile.storageKey) : null,
+      },
+      organizer: {
+        displayName: a.event.organizerProfile.displayName,
+        fullName: organizer.fullName,
+        phone: organizer.phone,
+        contactEmail: role?.contactEmail ?? organizer.email,
+        approved: role?.approvalStatus === 'approved' && role.suspendedAt === null,
+      },
+      preferredSlot:
+        a.preferredSlot && !latest
+          ? { label: a.preferredSlot.label, state: a.preferredSlot.deletedAt ? 'removed' : taken.has(a.preferredSlot.id) ? 'taken' : 'open' }
+          : null,
+      assignment: latest
+        ? {
+            id: latest.id,
+            status: latest.status,
+            slotLabel: latest.slot.label,
+            sizeLabel: latest.slot.sizeLabel,
+            note: latest.slot.note,
+            amountDue: Number(latest.priceLocked),
+            assignedAt: latest.assignedAt.toISOString(),
+            deadlineAt: latest.deadlineAt.toISOString(),
+            reservedAt: latest.reservedAt?.toISOString() ?? null,
+            paymentStatus: latest.payment?.status ?? 'pending',
+            instructions: instructions.map((i) => ({ ...i, qrUrl: i.qrFileId ? `/api/files/${i.qrFileId}` : null })),
+          }
+        : null,
+    };
+  }
+
   // The vendor's active application here, and whether a removal blocks them.
   private async standing(db: Db, eventId: string, vendorProfileId: string) {
     const active = await db.application.findFirst({ where: { eventId, vendorProfileId, status: { in: ['submitted', 'approved'] } } });
@@ -238,6 +338,20 @@ export class VendorApplicationsService {
       relatedEntityId: applicationId,
     });
   }
+}
+
+function eventSummary(e: { slug: string; name: string; startsAt: Date | null; endsAt: Date | null; venueName: string | null }) {
+  const start = e.startsAt ? manilaParts(e.startsAt) : null;
+  const end = e.endsAt ? manilaParts(e.endsAt) : null;
+  return {
+    slug: e.slug,
+    name: e.name,
+    startDate: start?.date ?? null,
+    endDate: end?.date ?? null,
+    opensAt: start?.time ?? null,
+    closesAt: end?.time ?? null,
+    venueName: e.venueName,
+  };
 }
 
 // The vendor role, not suspended, with a shop profile.

@@ -1,4 +1,4 @@
-import type { ApplyForm } from "@creavent/shared"
+import type { ApplyForm, VendorApplication } from "@creavent/shared"
 
 export const PRELOVED = "c1c1c1c1-0000-4000-8000-000000000001"
 export const FOOD = "c1c1c1c1-0000-4000-8000-000000000004"
@@ -38,6 +38,53 @@ export function applyFormFixture(overrides: Partial<ApplyForm> = {}): ApplyForm 
       },
       { name: "Entrance", slots: [slot("5a000000-0000-4000-8000-000000000003", "B-01", 1500)] },
     ],
+    ...overrides,
+  }
+}
+
+export const APPLICATION_ID = "a0000000-0000-4000-8000-000000000001"
+
+export function vendorApplicationFixture(overrides: Partial<VendorApplication> = {}): VendorApplication {
+  return {
+    id: APPLICATION_ID,
+    status: "slot_assigned",
+    submittedAt: "2026-11-03T02:00:00.000Z",
+    decidedAt: "2026-11-06T02:00:00.000Z",
+    decisionNote: null,
+    removalNote: null,
+    categories: ["Preloved clothing"],
+    documentCount: 2,
+    event: {
+      slug: "bajada-christmas-flea",
+      name: "Bajada Christmas Flea",
+      startDate: "2026-12-12",
+      endDate: "2026-12-12",
+      opensAt: "16:00",
+      closesAt: "23:00",
+      venueName: "Bajada Covered Court",
+      addressLine: "J.P. Laurel Avenue",
+      city: "Davao City",
+      ingressInfo: "From 3 PM, Gate 2",
+      vendorFloorPlanUrl: null,
+    },
+    organizer: { displayName: "Sari-Sari Collective", fullName: "Joanna Lim", phone: "0928 115 7720", contactEmail: "hello@sarisaricollective.ph", approved: true },
+    preferredSlot: null,
+    assignment: {
+      id: "as000000-0000-4000-8000-000000000001",
+      status: "assigned",
+      slotLabel: "B-04",
+      sizeLabel: "3 × 3 m",
+      note: "Near the entrance",
+      amountDue: 1500,
+      assignedAt: "2026-11-12T01:00:00.000Z",
+      deadlineAt: "2026-11-13T01:00:00.000Z",
+      reservedAt: null,
+      paymentStatus: "pending",
+      instructions: [
+        { id: "m0000000-0000-4000-8000-000000000001", channel: "gcash", label: "GCash", accountName: "Joanna L.", accountNumber: "0928 115 7720", qrFileId: "q0000000-0000-4000-8000-000000000001", notes: null, qrUrl: "/api/files/q1" },
+        { id: "m0000000-0000-4000-8000-000000000002", channel: "bank", label: "BPI bank transfer", accountName: "Sari-Sari Collective Trading", accountNumber: "4419 0582 31", qrFileId: null, notes: null, qrUrl: null },
+      ],
+    },
     ...overrides,
   }
 }

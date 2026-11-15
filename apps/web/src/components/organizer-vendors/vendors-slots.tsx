@@ -11,7 +11,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { api } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { EventTabs } from "./event-tabs"
-import { formatDeadline, useEventVendors, vendorsKey } from "./queries"
+import { formatDeadline } from "@/lib/event-format"
+import { useEventVendors, vendorsKey } from "./queries"
 
 type ErrorBody = { message?: string } | undefined
 type Slot = EventVendors["slots"][number]

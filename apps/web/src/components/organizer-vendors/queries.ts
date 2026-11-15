@@ -34,11 +34,3 @@ export function useEventVendors(id: string) {
     },
   })
 }
-
-// "Fri, Nov 13 · 9 AM" in Manila time, for deadlines.
-const deadlineDay = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Manila", weekday: "short", month: "short", day: "numeric" })
-const deadlineTime = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Manila", hour: "numeric", minute: "2-digit" })
-export function formatDeadline(iso: string) {
-  const d = new Date(iso)
-  return `${deadlineDay.format(d)} · ${deadlineTime.format(d).replace(":00", "")}`
-}

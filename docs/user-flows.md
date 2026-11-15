@@ -241,6 +241,10 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - Vendors then see the slot as Taken on the apply form, the event page counts it, and a taken slot can't be chosen as a preference. An assigned or reserved slot can't be deleted or renamed, but its price can change for later assignments. Vendors with an active slot can open the event's payment QR.
 - An assigned slot whose payment is still pending or rejected after the deadline shows as Overdue, both on its tile and in the vendor list.
 
+**Acceptance criteria (Phase 3: the vendor's application pages)**
+- `/vendor/applications` lists every application, newest first, with the event's date, the combined status (Submitted, Approved, Slot assigned, Reserved, Declined, Withdrawn, Removed), the slot and amount once assigned, and "Pay by" while payment is due. Each opens its application page. With none, it links to Browse events.
+- `/vendor/applications/[id]` opens only for the vendor who applied (anyone else gets Not found). It shows the event, the status with the organizer's note, the preferred slot until a slot is assigned, the assigned slot with its size, note, and locked amount, "Pay by" with the time left, the payment options copied at assignment with copy buttons and the QR code, the notice that Creavent doesn't hold or guarantee payments, the 5-step timeline, the organizer's name, mobile number, and contact email, and the ingress details once the vendor has a slot. A declined or withdrawn application offers "Apply again".
+
 ## 7. Pay and confirm payment
 
 *Payment happens outside Creavent. The app only tracks proof.*
