@@ -756,6 +756,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/organizer/events/{id}/vendors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OrganizerVendorsController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organizer/events/{id}/assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OrganizerVendorsController_assign"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -5989,6 +6021,270 @@ export interface operations {
                                 /** @enum {string} */
                                 state: "open" | "taken" | "removed";
                             } | null;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OrganizerVendorsController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            status: string;
+                            applicationsOpen: boolean;
+                            preferredSlots: boolean;
+                            deadlineHours: number;
+                            waitingApplications: number;
+                        };
+                        glance: {
+                            open: number;
+                            assigned: number;
+                            reserved: number;
+                            overdue: number;
+                        };
+                        slots: {
+                            /** Format: uuid */
+                            id: string;
+                            label: string;
+                            section: string | null;
+                            sizeLabel: string | null;
+                            price: number | null;
+                            /** @enum {string} */
+                            state: "open" | "assigned" | "reserved";
+                            overdue: boolean;
+                            preferredBy: number;
+                        }[];
+                        unassigned: {
+                            /** Format: uuid */
+                            applicationId: string;
+                            shopName: string;
+                            categories: string[];
+                            preferredSlot: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                /** @enum {string} */
+                                state: "open" | "taken" | "removed";
+                            } | null;
+                        }[];
+                        assignments: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            slotLabel: string;
+                            shopName: string;
+                            phone: string | null;
+                            amountDue: number;
+                            /** @enum {string} */
+                            paymentStatus: "pending" | "submitted" | "approved" | "rejected";
+                            deadlineAt: string;
+                            overdue: boolean;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OrganizerVendorsController_assign: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    applicationId: string;
+                    /** Format: uuid */
+                    slotId: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            status: string;
+                            applicationsOpen: boolean;
+                            preferredSlots: boolean;
+                            deadlineHours: number;
+                            waitingApplications: number;
+                        };
+                        glance: {
+                            open: number;
+                            assigned: number;
+                            reserved: number;
+                            overdue: number;
+                        };
+                        slots: {
+                            /** Format: uuid */
+                            id: string;
+                            label: string;
+                            section: string | null;
+                            sizeLabel: string | null;
+                            price: number | null;
+                            /** @enum {string} */
+                            state: "open" | "assigned" | "reserved";
+                            overdue: boolean;
+                            preferredBy: number;
+                        }[];
+                        unassigned: {
+                            /** Format: uuid */
+                            applicationId: string;
+                            shopName: string;
+                            categories: string[];
+                            preferredSlot: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                /** @enum {string} */
+                                state: "open" | "taken" | "removed";
+                            } | null;
+                        }[];
+                        assignments: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            slotLabel: string;
+                            shopName: string;
+                            phone: string | null;
+                            amountDue: number;
+                            /** @enum {string} */
+                            paymentStatus: "pending" | "submitted" | "approved" | "rejected";
+                            deadlineAt: string;
+                            overdue: boolean;
+                        }[];
+                    };
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            status: string;
+                            applicationsOpen: boolean;
+                            preferredSlots: boolean;
+                            deadlineHours: number;
+                            waitingApplications: number;
+                        };
+                        glance: {
+                            open: number;
+                            assigned: number;
+                            reserved: number;
+                            overdue: number;
+                        };
+                        slots: {
+                            /** Format: uuid */
+                            id: string;
+                            label: string;
+                            section: string | null;
+                            sizeLabel: string | null;
+                            price: number | null;
+                            /** @enum {string} */
+                            state: "open" | "assigned" | "reserved";
+                            overdue: boolean;
+                            preferredBy: number;
+                        }[];
+                        unassigned: {
+                            /** Format: uuid */
+                            applicationId: string;
+                            shopName: string;
+                            categories: string[];
+                            preferredSlot: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                /** @enum {string} */
+                                state: "open" | "taken" | "removed";
+                            } | null;
+                        }[];
+                        assignments: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            slotLabel: string;
+                            shopName: string;
+                            phone: string | null;
+                            amountDue: number;
+                            /** @enum {string} */
+                            paymentStatus: "pending" | "submitted" | "approved" | "rejected";
+                            deadlineAt: string;
+                            overdue: boolean;
                         }[];
                     };
                 };

@@ -177,6 +177,34 @@ const templates = {
       </>
     ),
   },
+  slot_assigned: {
+    payload: z.object({
+      name: z.string(),
+      eventName: z.string(),
+      slotLabel: z.string(),
+      amount: z.string(),
+      deadlineAt: z.string(),
+      instructions: z.array(z.string()),
+      url: z.string(),
+      supportEmail: z.string(),
+    }),
+    subject: (p: { slotLabel: string; eventName: string }) => `Slot ${p.slotLabel} at ${p.eventName}: pay to confirm`,
+    body: (p: { name: string; eventName: string; slotLabel: string; amount: string; deadlineAt: string; instructions: string[]; url: string }) => (
+      <>
+        <Heading>{`You got slot ${p.slotLabel}`}</Heading>
+        <Paragraph>Hi {firstName(p.name)},</Paragraph>
+        <Paragraph>
+          The organizer of {p.eventName} assigned you slot {p.slotLabel}. Pay {p.amount} by {manila.format(new Date(p.deadlineAt))}{' '}
+          (Philippine time), then upload a screenshot of your payment. Your slot is reserved once the organizer approves it.
+        </Paragraph>
+        {p.instructions.length > 0 && <InfoBox label="Pay the organizer with" lines={p.instructions} />}
+        <ActionButton href={p.url}>Pay and upload proof</ActionButton>
+        <Note last>
+          Creavent doesn&apos;t hold or guarantee payments. Check that the organizer is &quot;Approved by Creavent&quot; before you pay.
+        </Note>
+      </>
+    ),
+  },
 } satisfies Record<NotificationType, unknown>;
 
 export async function renderEmail(type: NotificationType, payload: unknown) {

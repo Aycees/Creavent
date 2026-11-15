@@ -13,6 +13,7 @@ import type { z } from 'zod';
 import type { Prisma } from '../generated/prisma/client.js';
 import type { SessionUser } from '../auth/auth.guard.js';
 import { approvedPerCategory, spotsLeft } from '../applications/category-counts.js';
+import { takenSlotIds } from '../applications/slot-status.js';
 import { FilesService } from '../files/files.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
@@ -116,6 +117,7 @@ export class VendorEventsService {
     const mine = await this.prisma.vendorProfileCategory.findMany({ where: { vendorProfile: { userId: viewerId } }, select: { categoryId: true } });
     const profile = await this.prisma.vendorProfile.findUnique({ where: { userId: viewerId }, select: { id: true } });
     const latest = profile ? (await this.latestApplications(profile.id, [e.id])).get(e.id) : undefined;
+    const taken = await takenSlotIds(this.prisma, e.id);
     const defaultPrice = e.defaultSlotPrice === null ? null : Number(e.defaultSlotPrice);
     const channels = [...new Set(e.paymentMethods.map((m) => paymentChannelLabels[m.channel]))];
     return {
@@ -145,8 +147,7 @@ export class VendorEventsService {
           sizes: sizes.length ? sizes.join(', ') : null,
           notes: notes.length ? notes.join(', ') : null,
           feeRange: formatPriceRange(groupPrices),
-          // Every slot is open until slot assignment exists (Phase 3).
-          open: g.slots.length,
+          open: g.slots.filter((s) => !taken.has(s.id)).length,
           total: g.slots.length,
         };
       }),

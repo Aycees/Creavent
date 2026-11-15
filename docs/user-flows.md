@@ -232,6 +232,15 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - **The preferred slot was given to someone else:** the Assign slot dialog says "Preferred slot taken: E-11", and the organizer picks another. Spec §5. **(screen)**
 - **Two vendors prefer the same slot:** the slot shows "Preferred by 2". The organizer assigns one, and the other's preferred slot then shows as taken. Spec §5. **(screen)**
 
+**Acceptance criteria (Phase 3)**
+- `/organizer/events/[id]/vendors` starts with slots at a glance: counts of reserved, assigned, overdue, and open slots, and every slot by section as a tile showing its state and how many waiting vendors prefer it.
+- "Approved, no slot yet" lists approved vendors without an active slot, with their preferred slot ("prefers A-05", "Preferred A-01 is taken", or "no longer available"). The button reads "Assign A-05" when the preference is open, otherwise "Assign slot".
+- The Assign slot dialog shows only open slots by section, selects the preferred slot when it's open (or says "Preferred slot taken: A-01"), and shows the amount due and the pay-within hours.
+- Assigning needs an approved application of this event, an open, not deleted slot of this event, and a vendor with no active slot there. The database refuses a second active assignment for a slot or for a vendor at an event.
+- The slot's price (or the event's default) and the active payment options are copied onto the assignment. The deadline is the assignment time plus the event's pay-within hours, never after the event starts. A `pending` payment is created, the change is audit logged, and the vendor gets the slot-assigned email with the slot, amount, deadline, and payment options.
+- Vendors then see the slot as Taken on the apply form, the event page counts it, and a taken slot can't be chosen as a preference. An assigned or reserved slot can't be deleted or renamed, but its price can change for later assignments. Vendors with an active slot can open the event's payment QR.
+- An assigned slot whose payment is still pending or rejected after the deadline shows as Overdue, both on its tile and in the vendor list.
+
 ## 7. Pay and confirm payment
 
 *Payment happens outside Creavent. The app only tracks proof.*

@@ -49,3 +49,41 @@ export async function submittedApplication(
     },
   });
 }
+
+// An approved application with an assigned slot and a pending payment,
+// straight in the database, for tests of later steps.
+export async function assignedSlot(
+  prisma: PrismaClient,
+  input: { eventId: string; vendorProfileId: string; categoryId: string; slotId: string; organizerUserId: string; deadlineAt?: Date; price?: number },
+) {
+  const application = await submittedApplication(prisma, input);
+  await prisma.application.update({ where: { id: application.id }, data: { status: 'approved' } });
+  const vendor = await prisma.vendorProfile.findUniqueOrThrow({ where: { id: input.vendorProfileId } });
+  const methods = await prisma.eventPaymentMethod.findMany({ where: { eventId: input.eventId, isActive: true } });
+  const assignment = await prisma.slotAssignment.create({
+    data: {
+      slotId: input.slotId,
+      eventId: input.eventId,
+      applicationId: application.id,
+      vendorProfileId: input.vendorProfileId,
+      priceLocked: input.price ?? 800,
+      paymentInstructionsSnapshot: methods.map((m) => ({
+        id: m.id,
+        channel: m.channel,
+        label: m.label,
+        accountName: m.accountName,
+        accountNumber: m.accountNumber,
+        qrFileId: m.qrFileId,
+        notes: m.notes,
+      })),
+      assignedAt: new Date(),
+      assignedById: input.organizerUserId,
+      deadlineAt: input.deadlineAt ?? new Date(Date.now() + 24 * 3_600_000),
+      payment: {
+        create: { eventId: input.eventId, payerUserId: vendor.userId, payeeUserId: input.organizerUserId, amountDue: input.price ?? 800 },
+      },
+    },
+    include: { payment: true },
+  });
+  return { application, assignment, payment: assignment.payment! };
+}

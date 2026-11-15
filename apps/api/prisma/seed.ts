@@ -19,6 +19,9 @@
 //   vendor3@ Thrift Kingdom  withdrawn
 //   vendor4@ Paper Bayani    approved, prefers A-05, no slot
 //   vendor5@ Tanim Plant Co. declined with a note
+//   vendor6@ Habi Mindanao   slot A-02, payment waiting
+//   vendor7@ Kalye Kicks     slot B-04, reserved (payment approved)
+//   vendor8@ Bulak Studio    slot A-03, payment overdue
 //
 // All use SEED_PASSWORD from apps/api/.env. Run with `pnpm db:seed` from the
 // repo root. Safe to run again: existing accounts are left as they are.
@@ -280,6 +283,50 @@ const paper = await seedVendor('vendor4@creavent.test', 'Mia Santos', 'Paper Bay
 const tanim = await seedVendor('vendor5@creavent.test', 'Rafa Lim', 'Tanim Plant Co.', 'tanim-plant-co', [plants]);
 await application(paper.id, 'lanang-holiday-flea', crafts, { status: 'approved', preferredLabel: 'A-05', daysAgo: 6, ...decided });
 await application(tanim.id, 'lanang-holiday-flea', plants, { status: 'declined', decisionNote: 'We have enough plant stalls this time.', daysAgo: 5, ...decided });
+
+// An approved vendor with a slot, the payment in a given state.
+async function seedAssignment(vendorProfileId: string, categoryId: string, label: string, state: 'waiting' | 'overdue' | 'reserved') {
+  const app = await application(vendorProfileId, 'lanang-holiday-flea', categoryId, { status: 'approved', daysAgo: 8, ...decided });
+  if (!app) return;
+  const slot = await prisma.slot.findFirstOrThrow({ where: { eventId: app.eventId, label } });
+  const ev = await prisma.event.findUniqueOrThrow({ where: { id: app.eventId }, include: { paymentMethods: true } });
+  const price = Number(slot.price ?? ev.defaultSlotPrice ?? 0);
+  const hours = state === 'overdue' ? -6 : 20;
+  const vendorUser = await prisma.vendorProfile.findUniqueOrThrow({ where: { id: vendorProfileId } });
+  await prisma.slotAssignment.create({
+    data: {
+      slotId: slot.id,
+      eventId: app.eventId,
+      applicationId: app.id,
+      vendorProfileId,
+      status: state === 'reserved' ? 'reserved' : 'assigned',
+      priceLocked: price,
+      paymentInstructionsSnapshot: ev.paymentMethods.map((m) => ({
+        id: m.id, channel: m.channel, label: m.label, accountName: m.accountName, accountNumber: m.accountNumber, qrFileId: m.qrFileId, notes: m.notes,
+      })),
+      assignedAt: new Date(Date.now() - 2 * 86_400_000),
+      assignedById: organizerUser.id,
+      deadlineAt: new Date(Date.now() + hours * 3_600_000),
+      reservedAt: state === 'reserved' ? new Date() : null,
+      payment: {
+        create: {
+          eventId: app.eventId,
+          payerUserId: vendorUser.userId,
+          payeeUserId: organizerUser.id,
+          amountDue: price,
+          status: state === 'reserved' ? 'approved' : 'pending',
+          ...(state === 'reserved' ? { decidedById: organizerUser.id, decidedAt: new Date(), amountPaid: price } : {}),
+        },
+      },
+    },
+  });
+}
+const habi = await seedVendor('vendor6@creavent.test', 'June Abad', 'Habi Mindanao', 'habi-mindanao', [crafts]);
+const kalye = await seedVendor('vendor7@creavent.test', 'Paolo Cruz', 'Kalye Kicks', 'kalye-kicks', [preloved.id]);
+const bulak = await seedVendor('vendor8@creavent.test', 'Nina Go', 'Bulak Studio', 'bulak-studio', [crafts]);
+await seedAssignment(habi.id, crafts, 'A-02', 'waiting');
+await seedAssignment(bulak.id, crafts, 'A-03', 'overdue');
+await seedAssignment(kalye.id, preloved.id, 'B-04', 'reserved');
 
 await prisma.$disconnect();
 console.log(

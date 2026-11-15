@@ -251,9 +251,17 @@ export class FilesService {
   private async canOpen(user: { id: string; isAdmin: boolean }, file: File) {
     if (user.isAdmin || file.uploadedBy === user.id) return true;
     if (file.purpose === 'payment_qr') {
-      // The event's organizer. Vendors with a slot are added with slot assignment (Phase 3).
+      // The event's organizer, and vendors with an active assignment there.
       const method = await this.prisma.eventPaymentMethod.findFirst({
-        where: { qrFileId: file.id, event: { organizerProfile: { userId: user.id } } },
+        where: {
+          qrFileId: file.id,
+          event: {
+            OR: [
+              { organizerProfile: { userId: user.id } },
+              { assignments: { some: { status: { in: ['assigned', 'reserved'] }, vendorProfile: { userId: user.id } } } },
+            ],
+          },
+        },
       });
       return method !== null;
     }
