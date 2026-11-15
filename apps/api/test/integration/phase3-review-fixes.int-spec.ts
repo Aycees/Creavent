@@ -86,7 +86,7 @@ describe('Phase 3 review fixes', () => {
     await prisma.application.update({ where: { id: app2.id }, data: { status: 'approved' } });
     await prisma.event.update({ where: { id: s.eventId }, data: { status: 'canceled' } });
 
-    const res = await s.organizerBrowser.post(`/api/organizer/events/${s.eventId}/assignments`).send({ applicationId: app2.id, slotId: s.slots[1].id });
+    const res = await s.organizerBrowser.post(`/api/organizer/events/${s.eventId}/assignments`).send({ applicationId: app2.id, slotIds: [s.slots[1].id] });
 
     expect(res.status).toBe(409);
     expect(res.body.message).toBe('This event is not taking vendors anymore');
@@ -110,7 +110,7 @@ describe('Phase 3 review fixes', () => {
     const [proof] = await prisma.paymentProof.findMany({ where: { paymentId: s.payment.id } });
     await s.organizerBrowser.post(`/api/organizer/events/${s.eventId}/proofs/${proof.id}/reject`).send({ reason: 'Unreadable' });
     await s.vendorBrowser.post(`/api/vendor/applications/${s.application.id}/release`).send({});
-    await s.organizerBrowser.post(`/api/organizer/events/${s.eventId}/assignments`).send({ applicationId: s.application.id, slotId: s.slots[1].id });
+    await s.organizerBrowser.post(`/api/organizer/events/${s.eventId}/assignments`).send({ applicationId: s.application.id, slotIds: [s.slots[1].id] });
 
     const res = await s.vendorBrowser.get(`/api/vendor/applications/${s.application.id}`);
 

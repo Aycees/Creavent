@@ -100,15 +100,26 @@ function Form({ form }: { form: ApplyForm }) {
   const queryClient = useQueryClient()
   const [categoryIds, setCategoryIds] = React.useState<string[]>([])
   const [files, setFiles] = React.useState<Record<string, Uploaded[]>>({})
-  const [slotId, setSlotId] = React.useState<string | null>(null)
+  // How many slots, up to the event's limit, and the preferred ones, up to
+  // that many (decision P4).
+  const [count, setCount] = React.useState(1)
+  const [slotIds, setSlotIds] = React.useState<string[]>([])
   const [note, setNote] = React.useState("")
   const [error, setError] = React.useState<string | null>(null)
   const [sending, setSending] = React.useState(false)
 
   const documents = form.documents.filter((d) => d.categoryId === null || categoryIds.includes(d.categoryId))
   const slots = form.slotGroups.flatMap((g) => g.slots.map((s) => ({ ...s, group: g.name })))
-  const picked = slots.find((s) => s.id === slotId) ?? null
+  const picked = slots.filter((s) => slotIds.includes(s.id))
+  const many = count > 1
+  const full = slotIds.length >= count
   const prices = slots.flatMap((s) => (s.price === null ? [] : [s.price]))
+  const pickSlot = (id: string) =>
+    setSlotIds((ids) => (!many ? [id] : ids.includes(id) ? ids.filter((x) => x !== id) : ids.length < count ? [...ids, id] : ids))
+  const pickCount = (n: number) => {
+    setCount(n)
+    setSlotIds((ids) => ids.slice(0, n))
+  }
   const toggle = (id: string) => setCategoryIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]))
 
   async function submit(event: React.FormEvent) {
@@ -123,7 +134,8 @@ function Form({ form }: { form: ApplyForm }) {
       body: {
         categoryIds,
         documents: documents.filter((d) => files[d.id]?.length).map((d) => ({ requirementId: d.id, fileIds: files[d.id].map((f) => f.id) })),
-        preferredSlotId: slotId,
+        slotsRequested: count,
+        preferredSlotIds: picked.map((s) => s.id),
         note,
       },
     })
@@ -139,14 +151,35 @@ function Form({ form }: { form: ApplyForm }) {
       <dd>{form.categories.filter((c) => categoryIds.includes(c.id)).map((c) => c.name).join(", ") || "Pick a category"}</dd>
       <dt className="text-muted">Documents</dt>
       <dd>{`${documents.filter((d) => files[d.id]?.length).length} of ${documents.length} uploaded`}</dd>
+      {form.event.maxSlotsPerVendor > 1 && (
+        <>
+          <dt className="text-muted">Slots</dt>
+          <dd>{many ? `${count} slots` : "1 slot"}</dd>
+        </>
+      )}
       {form.event.preferredSlots && (
         <>
-          <dt className="text-muted">Preferred slot</dt>
-          <dd>{picked ? <><span className="font-mono">{picked.label}</span>{` · ${picked.group}`}</> : "No preference"}</dd>
+          <dt className="text-muted">{many ? "Preferred" : "Preferred slot"}</dt>
+          <dd>
+            {picked.length === 0 ? (
+              "No preference"
+            ) : many ? (
+              <span className="font-mono">{picked.map((s) => s.label).join(", ")}</span>
+            ) : (
+              <>
+                <span className="font-mono">{picked[0].label}</span>
+                {` · ${picked[0].group}`}
+              </>
+            )}
+          </dd>
         </>
       )}
       <dt className="text-muted">Fee if assigned</dt>
-      <dd className="font-semibold tabular-nums">{picked?.price != null ? formatPeso(picked.price) : feeRange(prices)}</dd>
+      <dd className="font-semibold tabular-nums">
+        {picked.length > 0 && picked.every((s) => s.price !== null)
+          ? formatPeso(picked.reduce((sum, s) => sum + (s.price ?? 0), 0))
+          : `${feeRange(prices)}${many && prices.length ? " per slot" : ""}`}
+      </dd>
       <dt className="text-muted">Pay within</dt>
       <dd>{form.event.deadlineHours} hours of assignment</dd>
     </dl>
@@ -208,15 +241,46 @@ function Form({ form }: { form: ApplyForm }) {
           </section>
         )}
 
+        {form.event.maxSlotsPerVendor > 1 && (
+          <section aria-labelledby="count-h" className="flex flex-col gap-3">
+            <div>
+              <h2 id="count-h" className="text-h2">How many slots?</h2>
+              <p className="text-sm text-muted">{`This event allows up to ${form.event.maxSlotsPerVendor} slots per vendor. You pay for them together.`}</p>
+            </div>
+            <div role="radiogroup" aria-labelledby="count-h" className="grid grid-cols-[repeat(auto-fill,minmax(64px,1fr))] gap-2 md:max-w-md">
+              {Array.from({ length: form.event.maxSlotsPerVendor }, (_, i) => i + 1).map((n) => (
+                <label
+                  key={n}
+                  className={cn(
+                    "grid h-12 cursor-pointer place-items-center rounded-lg border bg-surface text-label font-semibold has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-focus",
+                    n === count ? "border-2 border-ink" : "border-border-strong"
+                  )}
+                >
+                  <input type="radio" name="slots-requested" className="sr-only" checked={n === count} onChange={() => pickCount(n)} />
+                  {n}
+                </label>
+              ))}
+            </div>
+          </section>
+        )}
+
         {form.event.preferredSlots && (
           <section aria-labelledby="pref-h" className="flex flex-col gap-4">
             <div>
               <h2 id="pref-h" className="text-h2">
-                Preferred slot <span className="text-lg font-normal text-muted">(optional)</span>
+                {many ? "Preferred slots" : "Preferred slot"} <span className="text-lg font-normal text-muted">(optional)</span>
               </h2>
-              <p className="text-sm text-muted">The organizer lets vendors choose. Pick an open slot, or skip this.</p>
+              <p className="text-sm text-muted">
+                {many
+                  ? `Pick up to ${count} open slots, side by side if you like, or skip this.`
+                  : "The organizer lets vendors choose. Pick an open slot, or skip this."}
+              </p>
             </div>
-            <Alert tone="info">Your pick isn&apos;t reserved until the organizer assigns it. Other vendors may pick the same slot.</Alert>
+            <Alert tone="info">
+              {many
+                ? "Your picks aren't reserved until the organizer assigns them. Other vendors may pick the same slots."
+                : "Your pick isn't reserved until the organizer assigns it. Other vendors may pick the same slot."}
+            </Alert>
             {form.event.vendorFloorPlanUrl ? (
               <a href={form.event.vendorFloorPlanUrl} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-lg border border-border">
                 {/* eslint-disable-next-line @next/next/no-img-element -- R2 addresses, already sized */}
@@ -228,6 +292,11 @@ function Form({ form }: { form: ApplyForm }) {
               <li className="flex items-center gap-1.5"><span aria-hidden="true" className="size-3.5 rounded-xs bg-inverse" />Your pick</li>
               <li className="flex items-center gap-1.5"><span aria-hidden="true" className="size-3.5 rounded-xs border-[1.5px] border-border-strong bg-sunken opacity-60" />Taken</li>
             </ul>
+            {many && (
+              <p className="text-cap text-muted" aria-live="polite">
+                {`${slotIds.length} of ${count} picked.${full ? " Tap a pick to change it." : ""}`}
+              </p>
+            )}
             {form.slotGroups.map((g) => {
               const open = g.slots.filter((s) => !s.taken).length
               return (
@@ -238,7 +307,7 @@ function Form({ form }: { form: ApplyForm }) {
                   </div>
                   <div className="grid grid-cols-5 gap-2 md:grid-cols-[repeat(auto-fill,minmax(64px,1fr))]">
                     {g.slots.map((s) => {
-                      const mine = s.id === slotId
+                      const mine = slotIds.includes(s.id)
                       return (
                         <button
                           key={s.id}
@@ -247,7 +316,7 @@ function Form({ form }: { form: ApplyForm }) {
                           aria-pressed={mine}
                           aria-label={`${s.label}, ${s.taken ? "taken" : mine ? "your pick" : "open"}`}
                           title={[s.sizeLabel, s.note, s.price != null ? formatPeso(s.price) : null].filter(Boolean).join(", ")}
-                          onClick={() => setSlotId(s.id)}
+                          onClick={() => pickSlot(s.id)}
                           className={cn(
                             "grid h-12 place-items-center rounded-xs border-[1.5px] font-mono text-[12px] font-medium",
                             s.taken
@@ -267,19 +336,19 @@ function Form({ form }: { form: ApplyForm }) {
             })}
             <button
               type="button"
-              aria-pressed={slotId === null}
-              onClick={() => setSlotId(null)}
+              aria-pressed={slotIds.length === 0}
+              onClick={() => setSlotIds([])}
               className={cn(
                 "flex min-h-11 items-start gap-3.5 rounded-lg border bg-surface p-4 text-left",
-                slotId === null ? "border-2 border-ink p-[15px]" : "border-border-strong"
+                slotIds.length === 0 ? "border-2 border-ink p-[15px]" : "border-border-strong"
               )}
             >
-              <span aria-hidden="true" className={cn("grid size-5 flex-none place-items-center rounded-full border", slotId === null ? "border-ink bg-ink text-on-inverse" : "border-border-strong")}>
-                {slotId === null && <CheckIcon className="size-3.5" weight="bold" />}
+              <span aria-hidden="true" className={cn("grid size-5 flex-none place-items-center rounded-full border", slotIds.length === 0 ? "border-ink bg-ink text-on-inverse" : "border-border-strong")}>
+                {slotIds.length === 0 && <CheckIcon className="size-3.5" weight="bold" />}
               </span>
               <span className="flex flex-col">
                 <span className="text-label font-semibold">No preference</span>
-                <span className="text-cap text-muted">The organizer picks a slot for you.</span>
+                <span className="text-cap text-muted">{many ? "The organizer picks your slots." : "The organizer picks a slot for you."}</span>
               </span>
             </button>
           </section>

@@ -10,6 +10,7 @@ import { PrismaService, type Tx } from '../prisma/prisma.service.js';
 import { changeAssignmentStatus } from './assignment-status.js';
 import { changePaymentStatus, changeProofStatus } from './payment-status.js';
 import { assertVisible } from './organizer-applications.service.js';
+import { slotLabel } from './slot-status.js';
 import { vendorProfile } from './vendor-profile.js';
 
 // Proof of payment and the organizer's decision (spec §6.2 to §6.4).
@@ -31,7 +32,7 @@ export class PaymentsService {
       await tx.$queryRaw`SELECT id FROM events WHERE id = ${application.eventId}::uuid FOR UPDATE`;
       const assignment = await tx.slotAssignment.findFirst({
         where: { applicationId, status: { in: ['assigned', 'reserved'] } },
-        include: { payment: true, slot: true, event: { include: { organizerProfile: { include: { user: { include: { roles: { where: { role: 'organizer' } } } } } } } } },
+        include: { payment: true, slots: { include: { slot: true } }, event: { include: { organizerProfile: { include: { user: { include: { roles: { where: { role: 'organizer' } } } } } } } } },
       });
       if (!assignment?.payment) throw new ConflictException('You have no slot to pay for here');
       assertVisible(assignment.event);
@@ -69,7 +70,7 @@ export class PaymentsService {
           name: organizer.fullName,
           shopName: vendor.shopName,
           eventName: assignment.event.name,
-          slotLabel: assignment.slot.label,
+          slotLabel: slotLabel(assignment.slots),
           amount: formatPeso(Number(payment.amountDue)),
           url: `${config.webUrl}/organizer/events/${assignment.eventId}/vendors`,
           supportEmail: config.supportEmail,
@@ -170,7 +171,7 @@ export class PaymentsService {
       payload: {
         name: vendor.fullName,
         eventName: a.event.name,
-        slotLabel: a.slot.label,
+        slotLabel: slotLabel(a.slots),
         amount: formatPeso(Number(a.payment.amountDue)),
         ...extra,
         url: `${config.webUrl}/vendor/applications/${a.applicationId}`,
@@ -199,5 +200,5 @@ export class PaymentsService {
   }
 }
 
-const assignmentInclude = { payment: true, slot: true, event: true, vendorProfile: { include: { user: true } } } satisfies Prisma.SlotAssignmentInclude;
+const assignmentInclude = { payment: true, slots: { include: { slot: true } }, event: true, vendorProfile: { include: { user: true } } } satisfies Prisma.SlotAssignmentInclude;
 type AssignmentWithPayment = Prisma.SlotAssignmentGetPayload<{ include: typeof assignmentInclude }> & { payment: Payment };

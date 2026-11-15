@@ -2,6 +2,7 @@ import { ConflictException } from '@nestjs/common';
 import { writeAuditLog } from '../audit/audit-log.js';
 import type { AssignmentStatus, Prisma } from '../generated/prisma/client.js';
 import type { Tx } from '../prisma/prisma.service.js';
+import { ACTIVE } from './slot-status.js';
 
 // The slot assignment status changes after assigning (spec §5, §6.3, §6.6).
 export type AssignmentAction = 'reserve' | 'release' | 'remove';
@@ -25,6 +26,10 @@ export async function changeAssignmentStatus(
     data: { ...input.data, status: rule.to },
   });
   if (count === 0) throw new ConflictException(rule.refusal);
+  // An ended assignment frees all its slots together (decision P6).
+  if (!(ACTIVE as readonly AssignmentStatus[]).includes(rule.to)) {
+    await tx.slotAssignmentSlot.updateMany({ where: { slotAssignmentId: input.assignmentId }, data: { active: false } });
+  }
   await writeAuditLog(tx, {
     actorUserId: input.actorUserId,
     action: `assignment.${input.action}`,

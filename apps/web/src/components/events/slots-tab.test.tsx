@@ -42,7 +42,51 @@ describe("Slots tab (spec §3.4)", () => {
 
     expect(api.PUT).toHaveBeenCalledWith("/api/organizer/events/{id}/slot-settings", {
       params: { path: { id: EVENT_ID } },
-      body: { mode: "vendor_preference", defaultPrice: 800, vendorFloorPlanFileId: null },
+      body: { mode: "vendor_preference", defaultPrice: 800, vendorFloorPlanFileId: null, maxSlotsPerVendor: 1 },
+    })
+  })
+
+  it("sets how many slots one vendor can have", async () => {
+    renderWithQuery(<EventSetupPage id={EVENT_ID} />)
+
+    await userEvent.selectOptions(await screen.findByRole("combobox", { name: "Slots per vendor" }), "Up to 3 slots")
+
+    expect(api.PUT).toHaveBeenCalledWith("/api/organizer/events/{id}/slot-settings", {
+      params: { path: { id: EVENT_ID } },
+      body: { mode: "organizer_assigns", defaultPrice: 800, vendorFloorPlanFileId: null, maxSlotsPerVendor: 3 },
+    })
+  })
+
+  it("sets a slot aside for the organizer's own booth, with a note", async () => {
+    renderWithQuery(<EventSetupPage id={EVENT_ID} />)
+
+    await userEvent.click(await screen.findByRole("button", { name: "Edit A-01" }))
+    const dialog = await screen.findByRole("dialog", { name: "Edit slot A-01" })
+    await userEvent.click(within(dialog).getByRole("checkbox", { name: /Set aside this slot/ }))
+    await userEvent.type(within(dialog).getByLabelText(/What it's for/), "Sponsor booth")
+    await userEvent.click(within(dialog).getByRole("button", { name: "Save slot" }))
+
+    expect(api.PUT).toHaveBeenCalledWith("/api/organizer/events/{id}/slots/{slotId}/set-aside", {
+      params: { path: { id: EVENT_ID, slotId: "5a5a5a5a-0000-4000-8000-000000000001" } },
+      body: { setAside: true, note: "Sponsor booth" },
+    })
+  })
+
+  it("shows a set-aside slot with its note, and opens it again", async () => {
+    setup.slots.list[0].setAside = { note: "Sponsor booth" }
+    renderWithQuery(<EventSetupPage id={EVENT_ID} />)
+
+    const walkway = await screen.findByRole("region", { name: /Main walkway/ })
+    expect(within(walkway).getByText("Set aside")).toBeInTheDocument()
+    expect(within(walkway).getByText(/Sponsor booth/)).toBeInTheDocument()
+    await userEvent.click(within(walkway).getByRole("button", { name: "Edit A-01" }))
+    const dialog = await screen.findByRole("dialog", { name: "Edit slot A-01" })
+    await userEvent.click(within(dialog).getByRole("checkbox", { name: /Set aside this slot/ }))
+    await userEvent.click(within(dialog).getByRole("button", { name: "Save slot" }))
+
+    expect(api.PUT).toHaveBeenCalledWith("/api/organizer/events/{id}/slots/{slotId}/set-aside", {
+      params: { path: { id: EVENT_ID, slotId: "5a5a5a5a-0000-4000-8000-000000000001" } },
+      body: { setAside: false, note: null },
     })
   })
 
@@ -129,6 +173,7 @@ describe("long slot runs", () => {
       sizeLabel: null,
       note: null,
       price: null,
+      setAside: null,
     }))
     setup = setupFixture({ slots: { ...setupFixture().slots, list } })
     renderWithQuery(<EventSetupPage id={EVENT_ID} />)

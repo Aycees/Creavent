@@ -1,6 +1,6 @@
 "use client"
 
-import { formatPeso, vendorStatusLabels, type VendorDashboard } from "@creavent/shared"
+import { formatPeso, slotWords, vendorStatusLabels, type VendorDashboard } from "@creavent/shared"
 import { CheckCircleIcon } from "@phosphor-icons/react"
 import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
@@ -44,7 +44,7 @@ export function VendorDashboardPage() {
               {n.startDate && <DateStamp date={stampDate(n.startDate)} />}
               <div className="flex min-w-0 flex-[1_1_240px] flex-col gap-1">
                 <p className="text-cap font-semibold text-warning-ink">{n.rejected ? "Proof rejected: upload a new one" : `Payment due ${formatDeadline(n.deadlineAt)}`}</p>
-                <p className="text-label font-semibold">{`Pay ${formatPeso(n.amountDue)} for slot ${n.slotLabel} at ${n.eventName}`}</p>
+                <p className="text-label font-semibold">{`Pay ${formatPeso(n.amountDue)} for ${slotWords(n.slotLabel)} at ${n.eventName}`}</p>
                 <p className="text-sm">{`Send it to ${n.organizerName}${n.paidTo ? ` by ${n.paidTo}` : ""}, then upload your receipt.`}</p>
               </div>
               <Button asChild className="max-md:w-full">
@@ -73,7 +73,7 @@ export function VendorDashboardPage() {
                       {a.event.name}
                     </Link>
                     <p className="text-cap text-muted">
-                      {a.slotLabel ? `Slot ${a.slotLabel}${a.amountDue !== null ? ` · ${formatPeso(a.amountDue)}` : ""}` : a.status === "declined" && a.decisionNote ? `"${a.decisionNote}"` : "No slot yet"}
+                      {a.slotLabel ? `${slotWords(a.slotLabel, true)}${a.amountDue !== null ? ` · ${formatPeso(a.amountDue)}` : ""}` : a.status === "declined" && a.decisionNote ? `"${a.decisionNote}"` : "No slot yet"}
                     </p>
                   </div>
                   <Badge tone={a.status === "reserved" ? "success" : a.status === "slot_assigned" ? "warning" : "neutral"}>{vendorStatusLabels[a.status]}</Badge>
@@ -91,7 +91,7 @@ export function VendorDashboardPage() {
                 You&apos;re confirmed
               </h2>
               <p className="text-h3">{data.nextEvent.event.name}</p>
-              <p className="text-sm text-on-inverse-muted">{[formatSchedule(data.nextEvent.event), `Slot ${data.nextEvent.slotLabel}`].filter(Boolean).join(" · ")}</p>
+              <p className="text-sm text-on-inverse-muted">{[formatSchedule(data.nextEvent.event), slotWords(data.nextEvent.slotLabel, true)].filter(Boolean).join(" · ")}</p>
               <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
                 <dt className="text-on-inverse-muted">Organizer</dt>
                 <dd>{[data.nextEvent.organizerName, data.nextEvent.organizerPhone].filter(Boolean).join(" · ")}</dd>

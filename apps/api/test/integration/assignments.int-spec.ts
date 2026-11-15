@@ -48,7 +48,7 @@ describe('assigning slots', () => {
 
   type Setup = Awaited<ReturnType<typeof setup>>;
   const assign = (s: Setup, slotId: string, applicationId = s.application.id) =>
-    s.browser.post(`/api/organizer/events/${s.eventId}/assignments`).send({ applicationId, slotId });
+    s.browser.post(`/api/organizer/events/${s.eventId}/assignments`).send({ applicationId, slotIds: [slotId] });
 
   it('lists slots, the approved vendors with no slot, and who prefers which slot', async () => {
     const s = await setup();
@@ -58,14 +58,14 @@ describe('assigning slots', () => {
     const res = await s.browser.get(`/api/organizer/events/${s.eventId}/vendors`);
 
     expect(res.status).toBe(200);
-    expect(res.body.glance).toEqual({ open: 3, assigned: 0, reserved: 0, overdue: 0 });
+    expect(res.body.glance).toEqual({ open: 3, assigned: 0, reserved: 0, overdue: 0, setAside: 0 });
     expect(res.body.slots.map((x: { label: string; state: string; preferredBy: number; price: number }) => [x.label, x.state, x.preferredBy, x.price])).toEqual([
       ['A-01', 'open', 0, 800],
       ['A-02', 'open', 0, 800],
       ['B-01', 'open', 2, 1500],
     ]);
     expect(res.body.unassigned).toEqual([
-      { applicationId: s.application.id, shopName: "Lola's Ukay", categories: ['Preloved clothing'], preferredSlot: { id: s.slots[2].id, label: 'B-01', state: 'open' } },
+      { applicationId: s.application.id, shopName: "Lola's Ukay", categories: ['Preloved clothing'], slotsRequested: 1, preferredSlots: [{ id: s.slots[2].id, label: 'B-01', state: 'open' }] },
     ]);
     expect(res.body.event).toMatchObject({ waitingApplications: 1, deadlineHours: 24 });
   });
@@ -77,8 +77,9 @@ describe('assigning slots', () => {
     const res = await assign(s, s.slots[2].id);
 
     expect(res.status).toBe(201);
-    const assignment = await prisma.slotAssignment.findFirstOrThrow({ where: { applicationId: s.application.id }, include: { payment: true } });
-    expect(assignment).toMatchObject({ status: 'assigned', slotId: s.slots[2].id, vendorProfileId: s.vendor.profile.id, assignedById: s.organizer.user.id });
+    const assignment = await prisma.slotAssignment.findFirstOrThrow({ where: { applicationId: s.application.id }, include: { payment: true, slots: true } });
+    expect(assignment.slots).toMatchObject([{ slotId: s.slots[2].id, active: true }]);
+    expect(assignment).toMatchObject({ status: 'assigned', vendorProfileId: s.vendor.profile.id, assignedById: s.organizer.user.id });
     expect(Number(assignment.priceLocked)).toBe(1500);
     expect(assignment.paymentInstructionsSnapshot).toEqual([
       expect.objectContaining({ channel: 'gcash', label: 'GCash, Rhea M.', accountNumber: '0917 482 1093' }),
@@ -155,7 +156,7 @@ describe('assigning slots', () => {
     await expect(
       prisma.slotAssignment.create({
         data: {
-          slotId: s.slots[1].id,
+          slots: { create: [{ slotId: s.slots[1].id, priceLocked: 800 }] },
           eventId: s.eventId,
           applicationId: app2.id,
           vendorProfileId: a.profile.id,
@@ -181,7 +182,7 @@ describe('assigning slots', () => {
     const s = await setup();
     const stranger = await createOrganizer(prisma);
     const strangerBrowser = await signInAs(app, stranger.user.email);
-    expect((await strangerBrowser.post(`/api/organizer/events/${s.eventId}/assignments`).send({ applicationId: s.application.id, slotId: s.slots[0].id })).status).toBe(404);
+    expect((await strangerBrowser.post(`/api/organizer/events/${s.eventId}/assignments`).send({ applicationId: s.application.id, slotIds: [s.slots[0].id] })).status).toBe(404);
     expect((await strangerBrowser.get(`/api/organizer/events/${s.eventId}/vendors`)).status).toBe(404);
 
     const otherEvent = await readyEvent(prisma, s.organizer.profile.id, { status: 'open_to_vendors' });
@@ -222,7 +223,7 @@ describe('assigning slots', () => {
     const refused = await browser.post(`/api/vendor/events/${s.event.slug}/applications`).send({
       categoryIds: [s.preloved.id],
       documents: [{ requirementId: s.clearance.id, fileIds: [(await readyFile(prisma, other.user.id)).id] }],
-      preferredSlotId: s.slots[0].id,
+      preferredSlotIds: [s.slots[0].id],
     });
     expect(refused.status).toBe(400);
   });
@@ -253,7 +254,7 @@ describe('assigning slots', () => {
 
     const res = await s.browser.get(`/api/organizer/events/${s.eventId}/vendors`);
 
-    expect(res.body.glance).toEqual({ open: 2, assigned: 1, reserved: 0, overdue: 1 });
+    expect(res.body.glance).toEqual({ open: 2, assigned: 1, reserved: 0, overdue: 1, setAside: 0 });
     expect(res.body.assignments[0].overdue).toBe(true);
     expect(res.body.slots.find((x: { label: string }) => x.label === 'A-02')).toMatchObject({ state: 'assigned', overdue: true });
   });

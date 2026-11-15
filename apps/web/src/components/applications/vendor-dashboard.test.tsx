@@ -41,6 +41,17 @@ describe("VendorDashboardPage (/vendor)", () => {
     expect(within(action).getByRole("link", { name: "Upload proof of payment" })).toHaveAttribute("href", `/vendor/applications/${APPLICATION_ID}`)
   })
 
+  it("names several slots together", async () => {
+    vi.mocked(api.GET).mockResolvedValue({
+      data: { ...dashboard, needsAction: [{ ...dashboard.needsAction[0], slotLabel: "A-06, A-07", amountDue: 1600 }] },
+      response: { status: 200 },
+    } as never)
+    renderWithQuery(<VendorDashboardPage />)
+
+    const action = await screen.findByRole("region", { name: "Needs your action" })
+    expect(within(action).getByText("Pay ₱1,600 for slots A-06, A-07 at Bajada Christmas Flea")).toBeInTheDocument()
+  })
+
   it("shows the applications with their status and a link to all", async () => {
     renderWithQuery(<VendorDashboardPage />)
 

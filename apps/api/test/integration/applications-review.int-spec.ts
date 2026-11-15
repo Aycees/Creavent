@@ -68,7 +68,8 @@ describe('reviewing applications', () => {
       vendor: { shopName: "Lola's Ukay", phone: '+639181234567' },
       categories: [{ id: s.preloved.id, name: 'Preloved clothing' }],
       documents: [{ name: 'Barangay business clearance', url: `/api/files/${file.id}`, isPdf: false }],
-      preferredSlot: { id: s.slots[2].id, label: 'B-01', state: 'open' },
+      slotsRequested: 1,
+      preferredSlots: [{ id: s.slots[2].id, label: 'B-01', state: 'open' }],
     });
   });
 
@@ -78,7 +79,7 @@ describe('reviewing applications', () => {
 
     const res = await s.browser.get(`/api/organizer/events/${s.eventId}/applications`);
 
-    expect(res.body.applications[0].preferredSlot.state).toBe('removed');
+    expect(res.body.applications[0].preferredSlots[0].state).toBe('removed');
   });
 
   it('is Not found to another organizer and refused to a vendor', async () => {

@@ -82,7 +82,7 @@ describe("VendorApplicationPage (/vendor/applications/[id])", () => {
   })
 
   it("shows the preferred slot and the next step before a slot is assigned", async () => {
-    serve(vendorApplicationFixture({ status: "submitted", decidedAt: null, assignment: null, preferredSlot: { label: "A-05", state: "open" } }))
+    serve(vendorApplicationFixture({ status: "submitted", decidedAt: null, assignment: null, preferredSlots: [{ id: "5a000000-0000-4000-8000-000000000005", label: "A-05", state: "open" }] }))
     renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
 
     expect(await screen.findByText("Waiting for the organizer to review your application.")).toBeInTheDocument()
@@ -263,7 +263,7 @@ describe("Reapplying after removal", () => {
 
 describe("Change of plans", () => {
   const applied = () =>
-    vendorApplicationFixture({ status: "approved", assignment: null, preferredSlot: { label: "A-05", state: "open" } })
+    vendorApplicationFixture({ status: "approved", assignment: null, preferredSlots: [{ id: "5a000000-0000-4000-8000-000000000005", label: "A-05", state: "open" }] })
 
   it("lets an approved vendor change or clear the preferred slot", async () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
@@ -275,7 +275,7 @@ describe("Change of plans", () => {
     expect(within(pref).getByRole("link", { name: "Change slot" })).toHaveAttribute("href", `/vendor/applications/${APPLICATION_ID}/slot`)
     await user.click(within(pref).getByRole("button", { name: "No preference" }))
 
-    expect(api.PUT).toHaveBeenCalledWith("/api/vendor/applications/{id}/preference", { params: { path: { id: APPLICATION_ID } }, body: { preferredSlotId: null } })
+    expect(api.PUT).toHaveBeenCalledWith("/api/vendor/applications/{id}/preference", { params: { path: { id: APPLICATION_ID } }, body: { preferredSlotIds: [] } })
   })
 
   it("lets an applied or approved vendor withdraw after confirming", async () => {
@@ -304,6 +304,61 @@ describe("Change of plans", () => {
     await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Withdraw" }))
 
     expect(api.POST).toHaveBeenCalledWith("/api/vendor/applications/{id}/withdraw", { params: { path: { id: APPLICATION_ID } } })
+  })
+
+  it("treats several slots as one: shown together, released together", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    const base = vendorApplicationFixture()
+    serve(
+      vendorApplicationFixture({
+        slotsRequested: 2,
+        assignment: {
+          ...base.assignment!,
+          slotLabel: "A-06, A-07",
+          amountDue: 1600,
+          slots: [
+            { label: "A-06", sizeLabel: "2 × 2 m", note: null, price: 800 },
+            { label: "A-07", sizeLabel: "2 × 2 m", note: null, price: 800 },
+          ],
+        },
+      })
+    )
+    vi.mocked(api.POST).mockResolvedValue({ data: vendorApplicationFixture({ status: "approved", assignment: null }), response: { status: 201 } } as never)
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    const card = await screen.findByRole("region", { name: "Your slots" })
+    expect(card).toHaveTextContent("A-06, A-07")
+    expect(card).toHaveTextContent("2 slots · 2 × 2 m each")
+    expect(card).toHaveTextContent("locked when these slots were assigned to you")
+    expect(screen.getByText(/may give the slots to someone else/)).toBeInTheDocument()
+    const plans = screen.getByRole("region", { name: "Change of plans?" })
+    expect(within(plans).getByRole("link", { name: /Pick other slots/ })).toBeInTheDocument()
+    await user.click(within(plans).getByRole("button", { name: /Release slots A-06, A-07/ }))
+    const dialog = screen.getByRole("dialog", { name: "Release slots A-06, A-07?" })
+    expect(dialog).toHaveTextContent("Both slots open for other vendors")
+    await user.click(within(dialog).getByRole("button", { name: "Release slots" }))
+
+    expect(api.POST).toHaveBeenCalledWith("/api/vendor/applications/{id}/release", { params: { path: { id: APPLICATION_ID } } })
+  })
+
+  it("lists every preferred slot when the vendor asked for several", async () => {
+    serve(
+      vendorApplicationFixture({
+        status: "approved",
+        assignment: null,
+        slotsRequested: 2,
+        preferredSlots: [
+          { id: "5a000000-0000-4000-8000-000000000005", label: "A-05", state: "open" },
+          { id: "5a000000-0000-4000-8000-000000000006", label: "A-06", state: "taken" },
+        ],
+      })
+    )
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    const pref = await screen.findByRole("region", { name: "Preferred slots" })
+    expect(pref).toHaveTextContent("You asked for 2 slots.")
+    expect(pref).toHaveTextContent("A-05 · Open")
+    expect(pref).toHaveTextContent("A-06 · Taken")
   })
 
   it("doesn't offer another slot when the organizer assigns slots", async () => {

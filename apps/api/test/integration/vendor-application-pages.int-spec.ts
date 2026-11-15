@@ -74,7 +74,8 @@ describe("the vendor's application pages", () => {
     expect(res.body).toMatchObject({
       status: 'submitted',
       categories: ['Preloved clothing'],
-      preferredSlot: { label: 'A-01', state: 'open' },
+      slotsRequested: 1,
+      preferredSlots: [{ label: 'A-01', state: 'open' }],
       assignment: null,
       organizer: { displayName: 'Balik-Gamit Davao', phone: '+639171234567', contactEmail: 'rhea@balikgamit.ph', approved: true },
       event: { name: s.event.name, ingressInfo: null },
@@ -99,13 +100,12 @@ describe("the vendor's application pages", () => {
     const res = await s.browser.get(`/api/vendor/applications/${application.id}`);
 
     expect(res.body.status).toBe('slot_assigned');
-    expect(res.body.preferredSlot).toBeNull();
+    expect(res.body.preferredSlots).toEqual([]);
     expect(res.body.event.ingressInfo).toBe('From 1 PM, Gate 2');
     expect(res.body.assignment).toMatchObject({
       status: 'assigned',
       slotLabel: 'B-01',
-      sizeLabel: '3 × 3 m',
-      note: 'Near the gate',
+      slots: [{ label: 'B-01', sizeLabel: '3 × 3 m', note: 'Near the gate', price: 1500 }],
       amountDue: 1500,
       paymentStatus: 'pending',
       instructions: [{ channel: 'gcash', label: 'GCash, Rhea M.', accountNumber: '0917 482 1093', qrUrl: `/api/files/${qr.id}` }],

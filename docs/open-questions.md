@@ -2,7 +2,7 @@
 
 Questions found while checking that the docs line up. They are not blocking the current docs, but each one needs a decision before the related work starts (user flows, domain model, UI, development).
 
-Last updated: 2026-11-14
+Last updated: 2026-11-15
 
 How to use this file: discuss a question in a session, write the decision into the right doc ([Feature specification](feature-specification.md), [Project details](project-details.md), or [Revenue model](revenue-model.md)), then move the question to the "Resolved" section at the bottom with the date.
 
@@ -10,7 +10,7 @@ How to use this file: discuss a question in a session, write the decision into t
 
 ## A. Payments
 
-All questions in this section are resolved. See "Resolved" below. A8 (one payment for several slots) was dropped because a vendor can hold only one slot per event for now (B2). Bring it back if that limit is lifted.
+All questions in this section are resolved. See "Resolved" below. A8 (one payment for several slots) was dropped while a vendor could hold only one slot per event (B2), and was answered when that limit was lifted (P3).
 
 ## B. Slots, applications, and the vendor flow
 
@@ -104,7 +104,7 @@ Decisions are written into the [Feature specification](feature-specification.md)
 | D6 | *Replaced by S6.* When an organizer is suspended, their upcoming events are hidden and frozen, affected vendors are emailed with the support address, and an admin reinstates or cancels each event. | 2026-11-11 |
 | D8 | Each time an admin opens a private document (an application document or a proof of payment), the view is written to the audit log. (Updated for S1, which removed verification documents.) | 2026-11-12 |
 | D7 | One account can hold the vendor role, the organizer role, or both. (Updated for S1: only the organizer role needs approval.) | 2026-11-11 |
-| B2 | A vendor can hold or reserve only one slot per event (for now). This replaces the earlier organizer-set limit (default 1). | 2026-11-11 |
+| B2 | *Replaced by P2.* A vendor can hold or reserve only one slot per event (for now). This replaces the earlier organizer-set limit (default 1). | 2026-11-11 |
 | B3 | Slots can differ in size and price. The floor plan editor stays simple. | 2026-11-09 |
 | B4 | No slot-move feature. To change slots, the organizer removes and reassigns. (Updated for S2.) | 2026-11-09 |
 | B5 | *Replaced by S2.* Mode 2 slot categories come from the event's allowed categories. A vendor can pick any slot matching any of their categories. | 2026-11-09 |
@@ -207,6 +207,17 @@ Decisions are written into the [Feature specification](feature-specification.md)
 | # | Decision | Date |
 |---|---|---|
 | N1 | The policy stays per event. A new event copies the policy of the organizer's most recent event, and the Policy tab says where it came from. A first event shows an example policy (configuration value `example_policy_text`), which counts for the checklist only after the organizer saves it. No global policy setting, so editing one event's policy never changes another's. | 2026-11-14 |
+
+**Several slots and set-aside slots on 2026-11-15 (P1 to P6).** Organizers asked to keep slots for their own booth or sponsors, and vendors with bigger setups asked for more than one slot.
+
+| # | Decision | Date |
+|---|---|---|
+| P1 | The organizer can set aside a slot for their own booth, a sponsor, or another arrangement, with an optional private note (for example, "Sponsor booth"). It's done from the slot's Edit dialog on the Slots tab, and undone the same way. A slot with a vendor can't be set aside. A set-aside slot can't be assigned or preferred: vendors see it as Taken, the organizer sees "Set aside", and it isn't counted as open. "Set aside" is used instead of "reserved", which already means a slot whose payment is approved. | 2026-11-15 |
+| P2 | Each event has a "Slots per vendor" limit, from 1 (the default) to 10, set on the Slots tab. Replaces B2. Lowering it doesn't change applications or slots already given. | 2026-11-15 |
+| P3 | A vendor's slots at one event are one unit: one assignment, one amount (the sum of the slot prices, locked when assigned), one payment, one deadline, and one proof. Closes A8. | 2026-11-15 |
+| P4 | When applying, the vendor says how many slots they need, up to the limit. With "Vendors choose a preferred slot", they pick up to that many preferred slots, or "No preference". The number can't be changed after applying; the picks can, until a slot is assigned. | 2026-11-15 |
+| P5 | The organizer assigns all of a vendor's slots in one step, from 1 up to the number asked for, with the preferred slots that are still open selected. There's no adding, dropping, or moving one slot of the set later, as with one slot (B4). | 2026-11-15 |
+| P6 | Releasing, withdrawing, removing, or picking other slots acts on all of the vendor's slots together. The slots show as one line ("B-03, B-04") everywhere, and category limits still count vendors, not slots. | 2026-11-15 |
 
 ### D9. Editing an approved organizer's name and links (resolved 2026-11-13)
 

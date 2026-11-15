@@ -145,7 +145,7 @@ describe('releasing and removing', () => {
       expect(reapply.status).toBe(201);
       await s.organizerBrowser.post(`/api/organizer/events/${s.eventId}/applications/${reapply.body.id}/approve`).send({});
 
-      const res = await s.organizerBrowser.post(`/api/organizer/events/${s.eventId}/assignments`).send({ applicationId: reapply.body.id, slotId: s.slots[1].id });
+      const res = await s.organizerBrowser.post(`/api/organizer/events/${s.eventId}/assignments`).send({ applicationId: reapply.body.id, slotIds: [s.slots[1].id] });
 
       expect(res.status).toBe(201);
       expect(res.body.assignments.map((a: { slotLabel: string }) => a.slotLabel)).toEqual(['A-02']);

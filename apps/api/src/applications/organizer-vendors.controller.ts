@@ -25,7 +25,7 @@ export class OrganizerVendorsController {
   @ApiCreatedResponse({ standardSchema: eventVendorsSchema })
   @ResponseSchema(eventVendorsSchema)
   assign(@CurrentUser() user: SessionUser, @Param('id', ParseUUIDPipe) id: string, @Body({ schema: assignSlotSchema }) body: z.output<typeof assignSlotSchema>) {
-    return this.vendors.assign(user.id, id, body.applicationId, body.slotId);
+    return this.vendors.assign(user.id, id, body.applicationId, body.slotIds);
   }
 
   @Post('proofs/:proofId/approve')

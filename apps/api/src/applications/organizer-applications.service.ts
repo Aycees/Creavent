@@ -8,7 +8,7 @@ import { PrismaService, type Tx } from '../prisma/prisma.service.js';
 import { writeAuditLog } from '../audit/audit-log.js';
 import { changeApplicationStatus } from './application-status.js';
 import { approvedPerCategory } from './category-counts.js';
-import { takenSlotIds } from './slot-status.js';
+import { preferenceStates, takenSlotIds } from './slot-status.js';
 
 // The organizer reviews applications (spec §3.3, flow 5).
 @Injectable()
@@ -36,7 +36,7 @@ export class OrganizerApplicationsService {
           vendorProfile: { include: { user: { include: { avatarFile: true } } } },
           categories: { include: { category: true } },
           documents: { include: { file: true, requirement: true } },
-          preferredSlot: true,
+          preferredSlots: { include: { slot: true } },
         },
       }),
     ]);
@@ -76,13 +76,8 @@ export class OrganizerApplicationsService {
             isPdf: d.file.mimeType === 'application/pdf',
           })),
         canReapply: a.canReapply,
-        preferredSlot: a.preferredSlot
-          ? {
-              id: a.preferredSlot.id,
-              label: a.preferredSlot.label,
-              state: a.preferredSlot.deletedAt ? 'removed' : taken.has(a.preferredSlot.id) ? 'taken' : 'open',
-            }
-          : null,
+        slotsRequested: a.slotsRequested,
+        preferredSlots: preferenceStates(a.preferredSlots, taken),
       })),
     };
   }

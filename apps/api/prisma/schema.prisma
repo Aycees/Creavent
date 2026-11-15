@@ -406,6 +406,8 @@ model Event {
   paymentDeadlineHours  Int             @default(24) @map("payment_deadline_hours")
   defaultSlotPrice      Decimal?        @map("default_slot_price") @db.Decimal(10, 2)
   slotMode              SlotMode        @default(organizer_assigns) @map("slot_mode")
+  // How many slots one vendor can ask for and hold here, 1 to 10 (decision P2).
+  maxSlotsPerVendor     Int             @default(1) @map("max_slots_per_vendor")
   vendorFloorPlanFileId String?         @map("vendor_floor_plan_file_id") @db.Uuid
   publicFloorPlanFileId String?         @map("public_floor_plan_file_id") @db.Uuid
   currency              String          @default("PHP") @db.Char(3)
@@ -531,14 +533,18 @@ model Slot {
   sizeLabel String?   @map("size_label")
   note      String?
   sortOrder Int       @map("sort_order")
+  // Kept by the organizer for their own booth or a sponsor (decision P1):
+  // nobody can be assigned it or prefer it. The note is only for them.
+  setAsideAt   DateTime? @map("set_aside_at") @db.Timestamptz
+  setAsideNote String?   @map("set_aside_note")
   // Soft delete, because past assignments point to the slot.
   deletedAt DateTime? @map("deleted_at") @db.Timestamptz
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
   event       Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  preferredBy Application[]
-  assignments SlotAssignment[]
+  preferredBy ApplicationPreferredSlot[]
+  assignments SlotAssignmentSlot[]
 
   @@index([eventId])
   @@map("slots")
@@ -565,8 +571,8 @@ model Application {
   vendorProfileId    String            @map("vendor_profile_id") @db.Uuid
   status             ApplicationStatus @default(submitted)
   vendorNote         String?           @map("vendor_note")
-  // Holds nothing: several applications may prefer the same slot (spec §4.3).
-  preferredSlotId    String?           @map("preferred_slot_id") @db.Uuid
+  // How many slots the vendor asked for, up to the event's limit (decision P4).
+  slotsRequested     Int               @default(1) @map("slots_requested")
   policyTextSnapshot String            @map("policy_text_snapshot")
   policyAcceptedAt   DateTime          @map("policy_accepted_at") @db.Timestamptz
   submittedAt        DateTime          @default(now()) @map("submitted_at") @db.Timestamptz
@@ -584,7 +590,7 @@ model Application {
 
   event         Event                 @relation(fields: [eventId], references: [id])
   vendorProfile VendorProfile         @relation(fields: [vendorProfileId], references: [id])
-  preferredSlot Slot?                 @relation(fields: [preferredSlotId], references: [id])
+  preferredSlots ApplicationPreferredSlot[]
   decidedBy     User?                 @relation("ApplicationDecider", fields: [decidedById], references: [id])
   removedBy     User?                 @relation("ApplicationRemover", fields: [removedById], references: [id])
   categories    ApplicationCategory[]
@@ -594,6 +600,20 @@ model Application {
   @@index([eventId, status])
   @@index([vendorProfileId])
   @@map("applications")
+}
+
+// Slots the vendor would like, up to slots_requested. Holds nothing: several
+// applications may prefer the same slot (spec §4.3).
+model ApplicationPreferredSlot {
+  applicationId String @map("application_id") @db.Uuid
+  slotId        String @map("slot_id") @db.Uuid
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  slot        Slot        @relation(fields: [slotId], references: [id])
+
+  @@id([applicationId, slotId])
+  @@index([slotId])
+  @@map("application_preferred_slots")
 }
 
 // The categories the vendor sells under at this event. Each is one of the
@@ -657,12 +677,11 @@ enum PaymentMethod {
   @@map("payment_method")
 }
 
-// One vendor's claim on one slot, from assignment until it ends (spec §5).
-// At most one active assignment per slot, and one per vendor per event
-// (partial unique indexes, data model §6.3, §6.4).
+// One vendor's claim on their slots, from assignment until it ends (spec §5,
+// decision P3). At most one active assignment per vendor per event, and each
+// slot in at most one (partial unique indexes, data model §6.3, §6.4).
 model SlotAssignment {
   id                          String           @id @default(uuid()) @db.Uuid
-  slotId                      String           @map("slot_id") @db.Uuid
   eventId                     String           @map("event_id") @db.Uuid
   applicationId               String           @map("application_id") @db.Uuid
   vendorProfileId             String           @map("vendor_profile_id") @db.Uuid
@@ -682,7 +701,7 @@ model SlotAssignment {
   createdAt                   DateTime         @default(now()) @map("created_at") @db.Timestamptz
   updatedAt                   DateTime         @updatedAt @map("updated_at") @db.Timestamptz
 
-  slot          Slot          @relation(fields: [slotId], references: [id])
+  slots         SlotAssignmentSlot[]
   event         Event         @relation(fields: [eventId], references: [id])
   application   Application   @relation(fields: [applicationId], references: [id])
   vendorProfile VendorProfile @relation(fields: [vendorProfileId], references: [id])
@@ -693,6 +712,25 @@ model SlotAssignment {
   @@index([eventId, status])
   @@index([applicationId])
   @@map("slot_assignments")
+}
+
+// The slots one assignment covers (decision P3): one vendor's slots at an
+// event are assigned, paid, and released together. `active` mirrors the
+// assignment being assigned or reserved, so a partial unique index keeps each
+// slot in at most one active assignment (data model §6.3).
+model SlotAssignmentSlot {
+  slotAssignmentId String  @map("slot_assignment_id") @db.Uuid
+  slotId           String  @map("slot_id") @db.Uuid
+  // The slot's price when assigned. The assignment's price_locked is the sum.
+  priceLocked      Decimal @map("price_locked") @db.Decimal(10, 2)
+  active           Boolean @default(true)
+
+  slotAssignment SlotAssignment @relation(fields: [slotAssignmentId], references: [id], onDelete: Cascade)
+  slot           Slot           @relation(fields: [slotId], references: [id])
+
+  @@id([slotAssignmentId, slotId])
+  @@index([slotId])
+  @@map("slot_assignment_slots")
 }
 
 // What is owed for one assignment, and its status (spec §6.7).

@@ -19,9 +19,9 @@ beforeEach(() => {
   vi.mocked(useRouter).mockReturnValue({ push } as never)
 })
 
-function serve(currentSlotLabel: string | null) {
+function serve(currentSlotLabel: string | null, slotsRequested = 1) {
   vi.mocked(api.GET).mockResolvedValue({
-    data: { currentSlotLabel, preferredSlotId: null, vendorFloorPlanUrl: null, slotGroups: groups },
+    data: { currentSlotLabel, slotsRequested, preferredSlotIds: [], vendorFloorPlanUrl: null, slotGroups: groups },
     response: { status: 200 },
   } as never)
 }
@@ -38,7 +38,7 @@ describe("PickSlotPage (/vendor/applications/[id]/slot)", () => {
 
     expect(api.POST).toHaveBeenCalledWith("/api/vendor/applications/{id}/change-slot", {
       params: { path: { id: APPLICATION_ID } },
-      body: { preferredSlotId: "5a000000-0000-4000-8000-000000000003" },
+      body: { preferredSlotIds: ["5a000000-0000-4000-8000-000000000003"] },
     })
     expect(push).toHaveBeenCalledWith(`/vendor/applications/${APPLICATION_ID}`)
   })
@@ -53,7 +53,25 @@ describe("PickSlotPage (/vendor/applications/[id]/slot)", () => {
 
     expect(api.PUT).toHaveBeenCalledWith("/api/vendor/applications/{id}/preference", {
       params: { path: { id: APPLICATION_ID } },
-      body: { preferredSlotId: "5a000000-0000-4000-8000-000000000003" },
+      body: { preferredSlotIds: ["5a000000-0000-4000-8000-000000000003"] },
+    })
+  })
+
+  it("swaps several unpaid slots for up to as many new picks", async () => {
+    serve("C-01, C-02", 2)
+    vi.mocked(api.POST).mockResolvedValue({ data: {}, response: { status: 201 } } as never)
+    renderWithQuery(<PickSlotPage id={APPLICATION_ID} />)
+
+    expect(await screen.findByRole("heading", { name: "Pick other slots" })).toBeInTheDocument()
+    expect(screen.getByText(/C-01 and C-02 open for others together/)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole("button", { name: "A-01, open" }))
+    await userEvent.click(screen.getByRole("button", { name: "B-01, open" }))
+    expect(screen.getByText(/₱2,300/)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole("button", { name: "Release both and pick A-01, B-01" }))
+
+    expect(api.POST).toHaveBeenCalledWith("/api/vendor/applications/{id}/change-slot", {
+      params: { path: { id: APPLICATION_ID } },
+      body: { preferredSlotIds: ["5a000000-0000-4000-8000-000000000001", "5a000000-0000-4000-8000-000000000003"] },
     })
   })
 

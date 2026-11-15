@@ -16,7 +16,8 @@ export function cardFixture(overrides: Partial<ApplicationCard> = {}): Applicati
     categories: ["Handmade and crafts"],
     documents: { count: 2, pdfs: 1, missing: [] },
     submittedAt: "2026-11-10T02:00:00.000Z",
-    preferredSlot: { label: "B-03", state: "open" },
+    slotsRequested: 1,
+    preferredSlots: [{ id: "5b000000-0000-4000-8000-000000000003", label: "B-03", state: "open" }],
     slotLabel: null,
     ...overrides,
   }
@@ -29,7 +30,7 @@ export function listFixture(overrides: Partial<OrganizerApplications> = {}): Org
     events: [{ id: EVENT_A, name: "Lanang Holiday Flea", startDate: "2026-12-18" }],
     applications: [
       cardFixture(),
-      cardFixture({ id: NEXT_ID, shopName: "Kusina ni Bea", categories: ["Food and drinks"], documents: { count: 1, pdfs: 0, missing: ["Sanitary permit"] }, preferredSlot: null }),
+      cardFixture({ id: NEXT_ID, shopName: "Kusina ni Bea", categories: ["Food and drinks"], documents: { count: 1, pdfs: 0, missing: ["Sanitary permit"] }, preferredSlots: [] }),
     ],
     ...overrides,
   }
@@ -54,7 +55,8 @@ export function detailFixture(overrides: Partial<ApplicationDetail> = {}): Appli
       { id: "d2", name: "Mayor's permit", url: "/api/files/f2", isPdf: true, uploadedAt: "2026-11-10T02:00:00.000Z" },
     ],
     missingDocuments: [],
-    preferredSlot: { label: "B-03", section: "Entrance", sizeLabel: "3 × 3 m", price: 1500, state: "open", preferredByOthers: 1 },
+    slotsRequested: 1,
+    preferredSlots: [{ id: "5b000000-0000-4000-8000-000000000003", label: "B-03", section: "Entrance", sizeLabel: "3 × 3 m", price: 1500, state: "open", preferredByOthers: 1 }],
     assignment: null,
     history: [{ id: "a-old", status: "withdrawn", submittedAt: "2026-11-01T02:00:00.000Z" }],
     nextWaitingId: NEXT_ID,

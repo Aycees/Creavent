@@ -50,12 +50,36 @@ describe("ApplicationsReview (/organizer/events/[id]/applications)", () => {
 
   it("says when a preferred slot is no longer available", async () => {
     vi.mocked(api.GET).mockResolvedValue({
-      data: eventApplicationsFixture({ applications: [applicationFixture({ preferredSlot: { id: "s1", label: "B-03", state: "removed" } })] }),
+      data: eventApplicationsFixture({ applications: [applicationFixture({ preferredSlots: [{ id: "s1", label: "B-03", state: "removed" }] })] }),
       response: { status: 200 },
     } as never)
     renderWithQuery(<ApplicationsReview eventId={EVENT_ID} />)
 
     expect(await screen.findByText("B-03 is no longer available")).toBeInTheDocument()
+  })
+
+  it("shows how many slots a vendor asked for, and each preferred slot", async () => {
+    vi.mocked(api.GET).mockResolvedValue({
+      data: eventApplicationsFixture({
+        applications: [
+          applicationFixture({
+            slotsRequested: 2,
+            preferredSlots: [
+              { id: "s1", label: "B-03", state: "open" },
+              { id: "s2", label: "B-04", state: "taken" },
+            ],
+          }),
+        ],
+      }),
+      response: { status: 200 },
+    } as never)
+    renderWithQuery(<ApplicationsReview eventId={EVENT_ID} />)
+
+    const card = await screen.findByRole("article", { name: "Lola's Ukay" })
+    expect(within(card).getByText("2 slots")).toBeInTheDocument()
+    expect(within(card).getByText("B-03")).toBeInTheDocument()
+    expect(within(card).getByText("B-04")).toBeInTheDocument()
+    expect(within(card).getByText(/taken by another vendor/)).toBeInTheDocument()
   })
 
   it("approves with an optional note", async () => {

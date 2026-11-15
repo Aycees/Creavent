@@ -14,7 +14,8 @@ export function applicationFixture(overrides: Partial<OrganizerApplication> = {}
     vendor: { shopName: "Lola's Ukay", slug: "lolas-ukay", fullName: "Lola Reyes", phone: "+639174821093", avatarUrl: null },
     categories: [{ id: PRELOVED, name: "Preloved clothing" }],
     documents: [{ id: "d1", name: "Barangay business clearance", url: "/api/files/f1", isPdf: true }],
-    preferredSlot: { id: "s1", label: "B-03", state: "open" },
+    slotsRequested: 1,
+    preferredSlots: [{ id: "s1", label: "B-03", state: "open" }],
     canReapply: null,
     ...overrides,
   }
@@ -35,7 +36,7 @@ export function eventApplicationsFixture(overrides: Partial<EventApplications> =
   }
 }
 
-const slot = (id: string, label: string, section: string, price: number, state: "open" | "assigned" | "reserved" = "open", extra = {}) => ({
+const slot = (id: string, label: string, section: string, price: number, state: "open" | "assigned" | "reserved" | "set_aside" = "open", extra = {}) => ({
   id,
   label,
   section,
@@ -44,6 +45,7 @@ const slot = (id: string, label: string, section: string, price: number, state: 
   state,
   overdue: false,
   preferredBy: 0,
+  setAsideNote: null,
   ...extra,
 })
 
@@ -55,7 +57,7 @@ export const SLOT_A09 = "5a000000-0000-4000-8000-000000000009"
 export function eventVendorsFixture(overrides: Partial<EventVendors> = {}): EventVendors {
   return {
     event: { id: EVENT_ID, slug: "lanang-holiday-flea", name: "Lanang Holiday Flea", status: "open_to_vendors", applicationsOpen: true, preferredSlots: true, deadlineHours: 24, waitingApplications: 3 },
-    glance: { open: 3, assigned: 1, reserved: 1, overdue: 1 },
+    glance: { open: 3, assigned: 1, reserved: 1, overdue: 1, setAside: 0 },
     slots: [
       slot("5a000000-0000-4000-8000-000000000001", "A-01", "Main walkway", 800, "reserved"),
       slot("5a000000-0000-4000-8000-000000000002", "A-02", "Main walkway", 800, "assigned", { overdue: true }),
@@ -64,8 +66,8 @@ export function eventVendorsFixture(overrides: Partial<EventVendors> = {}): Even
       slot("5a000000-0000-4000-8000-000000000012", "B-06", "Entrance", 1500, "open"),
     ],
     unassigned: [
-      { applicationId: APPLICATION_PAPER, shopName: "Paper Bayani", categories: ["Handmade and crafts"], preferredSlot: { id: SLOT_A05, label: "A-05", state: "open" } },
-      { applicationId: APPLICATION_SPIN, shopName: "Second Spin Records", categories: ["Vintage"], preferredSlot: { id: "5a000000-0000-4000-8000-000000000001", label: "A-01", state: "taken" } },
+      { applicationId: APPLICATION_PAPER, shopName: "Paper Bayani", categories: ["Handmade and crafts"], slotsRequested: 1, preferredSlots: [{ id: SLOT_A05, label: "A-05", state: "open" }] },
+      { applicationId: APPLICATION_SPIN, shopName: "Second Spin Records", categories: ["Vintage"], slotsRequested: 1, preferredSlots: [{ id: "5a000000-0000-4000-8000-000000000001", label: "A-01", state: "taken" }] },
     ],
     assignments: [
       { id: "as000000-0000-4000-8000-000000000001", applicationId: "a0000000-0000-4000-8000-0000000000b1", status: "reserved", slotLabel: "A-01", shopName: "Lola's Ukay", phone: null, amountDue: 800, paymentStatus: "approved", deadlineAt: "2026-11-13T01:00:00.000Z", overdue: false, proof: null, paymentNote: null },

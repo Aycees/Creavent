@@ -14,15 +14,15 @@ import type { Prisma } from '../generated/prisma/client.js';
 import { FilesService } from '../files/files.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { approvedPerCategory } from './category-counts.js';
-import { ACTIVE, takenSlotIds } from './slot-status.js';
+import { ACTIVE, preferenceStates, slotLabel, sortedSlots, takenSlotIds } from './slot-status.js';
 
 const include = {
   event: { include: { documents: true } },
   vendorProfile: { include: { user: { include: { avatarFile: true } } } },
   categories: { include: { category: true } },
   documents: { include: { file: true } },
-  preferredSlot: true,
-  assignments: { where: { status: { in: [...ACTIVE] } }, include: { slot: true, payment: true } },
+  preferredSlots: { include: { slot: true } },
+  assignments: { where: { status: { in: [...ACTIVE] } }, include: { slots: { include: { slot: true } }, payment: true } },
 } satisfies Prisma.ApplicationInclude;
 
 type Row = Prisma.ApplicationGetPayload<{ include: typeof include }>;
@@ -56,7 +56,8 @@ export class OrganizerAllApplicationsService {
     const events = await this.prisma.event.findMany({
       where: { organizerProfileId: profile.id, status: { in: ['open_to_vendors', 'announced'] } },
       orderBy: { startsAt: 'asc' },
-      include: { _count: { select: { slots: { where: { deletedAt: null } }, assignments: { where: { status: { in: [...ACTIVE] } } } } } },
+      // Open: not removed, not set aside, and in no active assignment.
+      include: { _count: { select: { slots: { where: { deletedAt: null, setAsideAt: null, assignments: { none: { active: true } } } } } } },
     });
     const proofs = await this.prisma.paymentProof.findMany({
       where: { status: 'submitted', archivedAt: null, event: { organizerProfileId: profile.id } },
@@ -68,7 +69,7 @@ export class OrganizerAllApplicationsService {
         waiting: waiting.length,
         oldestWaitingAt: waiting[0]?.submittedAt ?? null,
         approvedNoSlot: counts.approved_no_slot,
-        openSlots: events.reduce((n, e) => n + e._count.slots - e._count.assignments, 0),
+        openSlots: events.reduce((n, e) => n + e._count.slots, 0),
         proofsToCheck: proofs.length,
         proofsTotal: proofs.reduce((n, p) => n + Number(p.payment.amountDue), 0),
       },
@@ -97,9 +98,12 @@ export class OrganizerAllApplicationsService {
     const [taken, approved, others, history, next] = await Promise.all([
       takenSlotIds(this.prisma, a.eventId),
       approvedPerCategory(this.prisma, a.eventId),
-      a.preferredSlotId
-        ? this.prisma.application.count({ where: { eventId: a.eventId, preferredSlotId: a.preferredSlotId, status: { in: ['submitted', 'approved'] }, id: { not: a.id } } })
-        : Promise.resolve(0),
+      // Other waiting or approved applications preferring each slot.
+      this.prisma.applicationPreferredSlot.groupBy({
+        by: ['slotId'],
+        where: { slotId: { in: a.preferredSlots.map((p) => p.slotId) }, application: { status: { in: ['submitted', 'approved'] }, id: { not: a.id } } },
+        _count: true,
+      }),
       this.prisma.application.findMany({ where: { eventId: a.eventId, vendorProfileId: a.vendorProfileId, id: { not: a.id } }, orderBy: { submittedAt: 'asc' } }),
       this.prisma.application.findFirst({
         where: { status: 'submitted', event: { organizerProfileId: profile.id }, id: { not: a.id }, submittedAt: { gte: a.submittedAt } },
@@ -153,20 +157,20 @@ export class OrganizerAllApplicationsService {
           uploadedAt: d.file.createdAt.toISOString(),
         })),
       missingDocuments: missing(a),
-      preferredSlot: a.preferredSlot
-        ? {
-            label: a.preferredSlot.label,
-            section: a.preferredSlot.section,
-            sizeLabel: a.preferredSlot.sizeLabel,
-            price: a.preferredSlot.price === null ? fallback : Number(a.preferredSlot.price),
-            state: a.preferredSlot.deletedAt ? 'removed' : taken.has(a.preferredSlot.id) ? 'taken' : 'open',
-            preferredByOthers: others,
-          }
-        : null,
+      slotsRequested: a.slotsRequested,
+      preferredSlots: sortedSlots(a.preferredSlots).map(({ slot }) => ({
+        id: slot.id,
+        label: slot.label,
+        section: slot.section,
+        sizeLabel: slot.sizeLabel,
+        price: slot.price === null ? fallback : Number(slot.price),
+        state: slot.deletedAt ? ('removed' as const) : taken.has(slot.id) ? ('taken' as const) : ('open' as const),
+        preferredByOthers: others.find((o) => o.slotId === slot.id)?._count ?? 0,
+      })),
       assignment: active
         ? {
             status: active.status,
-            slotLabel: active.slot.label,
+            slotLabel: slotLabel(active.slots),
             amountDue: Number(active.priceLocked),
             paymentStatus: active.payment?.status ?? 'pending',
             deadlineAt: active.deadlineAt.toISOString(),
@@ -191,10 +195,9 @@ export class OrganizerAllApplicationsService {
       categories: r.categories.map((c) => c.category.name),
       documents: { count: docs.length, pdfs: docs.filter((d) => d.file.mimeType === 'application/pdf').length, missing: missing(r) },
       submittedAt: r.submittedAt.toISOString(),
-      preferredSlot: r.preferredSlot
-        ? { label: r.preferredSlot.label, state: r.preferredSlot.deletedAt ? 'removed' : taken.has(r.preferredSlot.id) ? 'taken' : 'open' }
-        : null,
-      slotLabel: active?.slot.label ?? null,
+      slotsRequested: r.slotsRequested,
+      preferredSlots: preferenceStates(r.preferredSlots, taken),
+      slotLabel: active ? slotLabel(active.slots) : null,
     };
   }
 }

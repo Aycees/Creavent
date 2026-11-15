@@ -228,6 +228,7 @@ export class OrganizerEventsService {
       slots: {
         mode: event.slotMode,
         defaultPrice: event.defaultSlotPrice === null ? null : Number(event.defaultSlotPrice),
+        maxSlotsPerVendor: event.maxSlotsPerVendor,
         vendorFloorPlan: image(event.vendorFloorPlanFile),
         publicFloorPlan: image(event.publicFloorPlanFile),
         list: event.slots.map((slot) => ({
@@ -237,6 +238,7 @@ export class OrganizerEventsService {
           sizeLabel: slot.sizeLabel,
           note: slot.note,
           price: slot.price === null ? null : Number(slot.price),
+          setAside: slot.setAsideAt ? { note: slot.setAsideNote } : null,
         })),
       },
     };

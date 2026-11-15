@@ -35,13 +35,15 @@ export async function eventParts(prisma: PrismaClient, eventId: string) {
 // A submitted application straight in the database, for tests of later steps.
 export async function submittedApplication(
   prisma: PrismaClient,
-  input: { eventId: string; vendorProfileId: string; categoryId: string; preferredSlotId?: string | null; submittedAt?: Date },
+  input: { eventId: string; vendorProfileId: string; categoryId: string; preferredSlotId?: string | null; preferredSlotIds?: string[]; slotsRequested?: number; submittedAt?: Date },
 ) {
+  const preferred = input.preferredSlotIds ?? (input.preferredSlotId ? [input.preferredSlotId] : []);
   return prisma.application.create({
     data: {
       eventId: input.eventId,
       vendorProfileId: input.vendorProfileId,
-      preferredSlotId: input.preferredSlotId ?? null,
+      slotsRequested: input.slotsRequested ?? Math.max(1, preferred.length),
+      preferredSlots: { create: preferred.map((slotId) => ({ slotId })) },
       policyTextSnapshot: 'Pay within 24 hours.',
       policyAcceptedAt: new Date(),
       submittedAt: input.submittedAt ?? new Date(),
@@ -54,15 +56,16 @@ export async function submittedApplication(
 // straight in the database, for tests of later steps.
 export async function assignedSlot(
   prisma: PrismaClient,
-  input: { eventId: string; vendorProfileId: string; categoryId: string; slotId: string; organizerUserId: string; deadlineAt?: Date; price?: number },
+  input: { eventId: string; vendorProfileId: string; categoryId: string; slotId: string; slotIds?: string[]; organizerUserId: string; deadlineAt?: Date; price?: number },
 ) {
-  const application = await submittedApplication(prisma, input);
+  const slotIds = input.slotIds ?? [input.slotId];
+  const application = await submittedApplication(prisma, { ...input, slotsRequested: slotIds.length });
   await prisma.application.update({ where: { id: application.id }, data: { status: 'approved' } });
   const vendor = await prisma.vendorProfile.findUniqueOrThrow({ where: { id: input.vendorProfileId } });
   const methods = await prisma.eventPaymentMethod.findMany({ where: { eventId: input.eventId, isActive: true } });
   const assignment = await prisma.slotAssignment.create({
     data: {
-      slotId: input.slotId,
+      slots: { create: slotIds.map((slotId) => ({ slotId, priceLocked: (input.price ?? 800) / slotIds.length })) },
       eventId: input.eventId,
       applicationId: application.id,
       vendorProfileId: input.vendorProfileId,

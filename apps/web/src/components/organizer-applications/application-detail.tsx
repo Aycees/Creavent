@@ -102,7 +102,7 @@ export function ApplicationDetailPage({ id }: { id: string }) {
           {a.stage === "approved" && (
             <section aria-labelledby="next-h" className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4 md:p-5">
               <h2 id="next-h" className="text-h3">Next: assign a slot</h2>
-              <p className="text-sm text-muted">{a.preferredSlot?.state === "open" ? `They prefer ${a.preferredSlot.label}, which is still open.` : "Pick an open slot for them."}</p>
+              <p className="text-sm text-muted">{nextStep(a)}</p>
               <Button asChild><Link href={`/organizer/events/${a.event.id}/vendors`}>Assign a slot</Link></Button>
             </section>
           )}
@@ -203,25 +203,34 @@ export function ApplicationDetailPage({ id }: { id: string }) {
             )}
           </section>
 
-          {a.preferredSlot && (
+          {a.preferredSlots.length > 0 && (
             <section aria-labelledby="slot-h" className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4 md:p-6">
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h2 id="slot-h" className="text-h3">Preferred slot</h2>
-                <span className="text-sm">
-                  <span className="font-mono">{a.preferredSlot.label}</span>
-                  {[a.preferredSlot.section, a.preferredSlot.sizeLabel, a.preferredSlot.price != null ? formatPeso(a.preferredSlot.price) : null].filter(Boolean).map((x) => ` · ${x}`).join("")}
-                  {` · ${a.preferredSlot.state === "open" ? "open" : a.preferredSlot.state === "taken" ? "taken" : "no longer available"}`}
-                </span>
+              <div className="flex flex-col gap-1">
+                <h2 id="slot-h" className="text-h3">{a.preferredSlots.length > 1 ? "Preferred slots" : "Preferred slot"}</h2>
+                {a.slotsRequested > 1 && <p className="text-sm text-muted">{`Wants ${a.slotsRequested} slots`}</p>}
               </div>
+              <ul className="flex flex-col gap-1 text-sm">
+                {a.preferredSlots.map((p) => (
+                  <li key={p.id}>
+                    <span className="font-mono">{p.label}</span>
+                    {[p.section, p.sizeLabel, p.price != null ? formatPeso(p.price) : null].filter(Boolean).map((x) => ` · ${x}`).join("")}
+                    {` · ${p.state === "open" ? "open" : p.state === "taken" ? "taken" : "no longer available"}`}
+                  </li>
+                ))}
+              </ul>
               {a.event.vendorFloorPlanUrl && (
                 <a href={a.event.vendorFloorPlanUrl} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-md border border-border">
                   {/* eslint-disable-next-line @next/next/no-img-element -- R2 addresses, already sized */}
                   <img src={a.event.vendorFloorPlanUrl} alt="Vendor floor plan. Opens full size." className="w-full object-contain" />
                 </a>
               )}
-              {a.preferredSlot.preferredByOthers > 0 && (
-                <p className="text-cap text-muted">{`Also preferred by ${a.preferredSlot.preferredByOthers} other vendor${a.preferredSlot.preferredByOthers > 1 ? "s" : ""}. A preference holds nothing until you assign it.`}</p>
-              )}
+              {a.preferredSlots
+                .filter((p) => p.preferredByOthers > 0)
+                .map((p) => (
+                  <p key={p.id} className="text-cap text-muted">
+                    {`${a.preferredSlots.length > 1 ? `${p.label} is also` : "Also"} preferred by ${p.preferredByOthers} other vendor${p.preferredByOthers > 1 ? "s" : ""}. A preference holds nothing until you assign it.`}
+                  </p>
+                ))}
             </section>
           )}
 
@@ -289,4 +298,13 @@ function DecisionPanel({ application: a, onDone }: { application: ApplicationDet
       <p className="text-cap text-muted">We email them either way. After you approve, assign their slot on Vendors and slots.</p>
     </section>
   )
+}
+
+// "They prefer B-03, which is still open." The next step on an approved
+// application with no slot.
+function nextStep(a: ApplicationDetail) {
+  const open = a.preferredSlots.filter((p) => p.state === "open").map((p) => p.label)
+  const want = a.slotsRequested > 1 ? `They want ${a.slotsRequested} slots. ` : ""
+  if (open.length === 0) return `${want}Pick ${a.slotsRequested > 1 ? "open slots" : "an open slot"} for them.`
+  return `${want}They prefer ${open.join(", ")}, ${open.length > 1 ? "which are" : "which is"} still open.`
 }

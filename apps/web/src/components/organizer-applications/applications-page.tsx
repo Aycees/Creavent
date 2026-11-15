@@ -153,15 +153,22 @@ function Card({ card: a, now }: { card: ApplicationCard; now: number }) {
             <span className="inline-flex items-center gap-1.5 text-danger-ink"><WarningIcon aria-hidden="true" className="size-4" />{`${a.documents.missing.join(", ")} missing`}</span>
           )}
           {a.stage === "submitted" && <span className="inline-flex items-center gap-1.5 text-muted"><ClockIcon aria-hidden="true" className="size-4" />{waitingFor(a.submittedAt, now)}</span>}
-          {(a.slotLabel || a.preferredSlot) && (
+          {(a.slotLabel || a.preferredSlots.length > 0) && (
             <span className="inline-flex items-center gap-1.5">
               <GridFourIcon aria-hidden="true" className="size-4" />
-              <span className="font-mono">{a.slotLabel ?? a.preferredSlot!.label}</span>
-              {!a.slotLabel && a.preferredSlot && (
-                <span className="text-muted">{a.preferredSlot.state === "open" ? "preferred, open" : a.preferredSlot.state === "taken" ? "preferred, taken" : "no longer available"}</span>
+              <span className="font-mono">{a.slotLabel ?? a.preferredSlots.map((p) => p.label).join(", ")}</span>
+              {!a.slotLabel && (
+                <span className="text-muted">
+                  {a.preferredSlots.every((p) => p.state === "open")
+                    ? "preferred, open"
+                    : a.preferredSlots.some((p) => p.state === "taken")
+                      ? "preferred, taken"
+                      : "no longer available"}
+                </span>
               )}
             </span>
           )}
+          {a.slotsRequested > 1 && !a.slotLabel && <span className="text-muted">{`Wants ${a.slotsRequested} slots`}</span>}
         </div>
       </div>
     </article>

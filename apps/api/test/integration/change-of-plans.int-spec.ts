@@ -88,13 +88,13 @@ describe("the vendor's change of plans", () => {
       const s = await setup();
       const a = await approved(s, s.slots[0].id);
 
-      const changed = await s.browser.put(`/api/vendor/applications/${a.id}/preference`).send({ preferredSlotId: s.slots[2].id });
+      const changed = await s.browser.put(`/api/vendor/applications/${a.id}/preference`).send({ preferredSlotIds: [s.slots[2].id] });
       expect(changed.status).toBe(200);
-      expect(changed.body.preferredSlot).toMatchObject({ label: 'B-01', state: 'open' });
+      expect(changed.body.preferredSlots).toMatchObject([{ label: 'B-01', state: 'open' }]);
       expect(await prisma.auditLog.count({ where: { entityId: a.id, action: 'application.preference_change' } })).toBe(1);
 
-      const cleared = await s.browser.put(`/api/vendor/applications/${a.id}/preference`).send({ preferredSlotId: null });
-      expect(cleared.body.preferredSlot).toBeNull();
+      const cleared = await s.browser.put(`/api/vendor/applications/${a.id}/preference`).send({ preferredSlotIds: [] });
+      expect(cleared.body.preferredSlots).toEqual([]);
     });
 
     it('refuses a taken slot, a slot of another event, and events where the organizer assigns', async () => {
@@ -103,10 +103,10 @@ describe("the vendor's change of plans", () => {
       const other = await createVendor(prisma, [s.preloved.id]);
       await assignedSlot(prisma, { eventId: s.eventId, vendorProfileId: other.profile.id, categoryId: s.preloved.id, slotId: s.slots[1].id, organizerUserId: s.organizer.user.id });
 
-      expect((await s.browser.put(`/api/vendor/applications/${a.id}/preference`).send({ preferredSlotId: s.slots[1].id })).status).toBe(400);
+      expect((await s.browser.put(`/api/vendor/applications/${a.id}/preference`).send({ preferredSlotIds: [s.slots[1].id] })).status).toBe(400);
 
       await prisma.event.update({ where: { id: s.eventId }, data: { slotMode: 'organizer_assigns' } });
-      const res = await s.browser.put(`/api/vendor/applications/${a.id}/preference`).send({ preferredSlotId: s.slots[2].id });
+      const res = await s.browser.put(`/api/vendor/applications/${a.id}/preference`).send({ preferredSlotIds: [s.slots[2].id] });
       expect(res.status).toBe(409);
       expect(res.body.message).toBe('The organizer assigns slots at this event');
     });
@@ -115,7 +115,7 @@ describe("the vendor's change of plans", () => {
       const s = await setup();
       const { application } = await withSlot(s);
 
-      expect((await s.browser.put(`/api/vendor/applications/${application.id}/preference`).send({ preferredSlotId: s.slots[2].id })).status).toBe(409);
+      expect((await s.browser.put(`/api/vendor/applications/${application.id}/preference`).send({ preferredSlotIds: [s.slots[2].id] })).status).toBe(409);
     });
   });
 
@@ -124,14 +124,14 @@ describe("the vendor's change of plans", () => {
       const s = await setup();
       const { application, assignment } = await withSlot(s);
 
-      const res = await s.browser.post(`/api/vendor/applications/${application.id}/change-slot`).send({ preferredSlotId: s.slots[2].id });
+      const res = await s.browser.post(`/api/vendor/applications/${application.id}/change-slot`).send({ preferredSlotIds: [s.slots[2].id] });
 
       expect(res.status).toBe(201);
       expect((await prisma.slotAssignment.findUniqueOrThrow({ where: { id: assignment.id } })).status).toBe('released');
-      expect(await prisma.application.findUniqueOrThrow({ where: { id: application.id } })).toMatchObject({ status: 'approved', preferredSlotId: s.slots[2].id });
+      expect(await prisma.application.findUniqueOrThrow({ where: { id: application.id }, include: { preferredSlots: true } })).toMatchObject({ status: 'approved', preferredSlots: [{ slotId: s.slots[2].id }] });
       const email = await prisma.emailNotification.findFirstOrThrow({ where: { type: 'slot_released' } });
       expect(email.payload).toMatchObject({ slotLabel: 'A-01', newPreference: 'B-01' });
-      expect(res.body).toMatchObject({ status: 'approved', preferredSlot: { label: 'B-01' } });
+      expect(res.body).toMatchObject({ status: 'approved', preferredSlots: [{ label: 'B-01' }] });
     });
 
     it('refuses the same slot, a taken slot, a paid slot, and organizer-assigns events', async () => {
@@ -139,14 +139,14 @@ describe("the vendor's change of plans", () => {
       const { application, assignment } = await withSlot(s);
       const path = `/api/vendor/applications/${application.id}/change-slot`;
 
-      expect((await s.browser.post(path).send({ preferredSlotId: s.slots[0].id })).status).toBe(400);
+      expect((await s.browser.post(path).send({ preferredSlotIds: [s.slots[0].id] })).status).toBe(400);
 
       await prisma.slotAssignment.update({ where: { id: assignment.id }, data: { status: 'reserved' } });
-      expect((await s.browser.post(path).send({ preferredSlotId: s.slots[2].id })).status).toBe(409);
+      expect((await s.browser.post(path).send({ preferredSlotIds: [s.slots[2].id] })).status).toBe(409);
 
       await prisma.slotAssignment.update({ where: { id: assignment.id }, data: { status: 'assigned' } });
       await prisma.event.update({ where: { id: s.eventId }, data: { slotMode: 'organizer_assigns' } });
-      expect((await s.browser.post(path).send({ preferredSlotId: s.slots[2].id })).status).toBe(409);
+      expect((await s.browser.post(path).send({ preferredSlotIds: [s.slots[2].id] })).status).toBe(409);
     });
 
     it("is Not found for another vendor's application", async () => {
@@ -155,8 +155,8 @@ describe("the vendor's change of plans", () => {
       const other = await createVendor(prisma, [s.preloved.id]);
       const browser = await signInAs(app, other.user.email);
 
-      expect((await browser.post(`/api/vendor/applications/${application.id}/change-slot`).send({ preferredSlotId: s.slots[2].id })).status).toBe(404);
-      expect((await browser.put(`/api/vendor/applications/${application.id}/preference`).send({ preferredSlotId: null })).status).toBe(404);
+      expect((await browser.post(`/api/vendor/applications/${application.id}/change-slot`).send({ preferredSlotIds: [s.slots[2].id] })).status).toBe(404);
+      expect((await browser.put(`/api/vendor/applications/${application.id}/preference`).send({ preferredSlotIds: [] })).status).toBe(404);
     });
   });
 });

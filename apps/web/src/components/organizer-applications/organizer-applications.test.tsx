@@ -87,6 +87,25 @@ describe("ApplicationDetailPage (/organizer/applications/[id])", () => {
     expect(screen.getByRole("link", { name: /Next waiting/ })).toHaveAttribute("href", `/organizer/applications/${NEXT_ID}`)
   })
 
+  it("shows a vendor asking for 2 slots with both preferred slots", async () => {
+    serve(
+      detailFixture({
+        slotsRequested: 2,
+        preferredSlots: [
+          { id: "5b000000-0000-4000-8000-000000000003", label: "B-03", section: "Entrance", sizeLabel: "3 × 3 m", price: 1500, state: "open", preferredByOthers: 0 },
+          { id: "5b000000-0000-4000-8000-000000000004", label: "B-04", section: "Entrance", sizeLabel: "3 × 3 m", price: 1500, state: "taken", preferredByOthers: 2 },
+        ],
+      })
+    )
+    renderWithQuery(<ApplicationDetailPage id={APP_ID} />)
+
+    const region = await screen.findByRole("region", { name: "Preferred slots" })
+    expect(region).toHaveTextContent("Wants 2 slots")
+    expect(region).toHaveTextContent("B-03")
+    expect(region).toHaveTextContent("B-04 · Entrance · 3 × 3 m · ₱1,500 · taken")
+    expect(region).toHaveTextContent("B-04 is also preferred by 2 other vendors")
+  })
+
   it("approves with a note from the decision panel", async () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
     serve()

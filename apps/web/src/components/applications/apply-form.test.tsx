@@ -88,7 +88,8 @@ describe("ApplyPage (/vendor/events/[slug]/apply)", () => {
           { requirementId: CLEARANCE, fileIds: ["f1000000-0000-4000-8000-000000000001"] },
           { requirementId: SANITARY, fileIds: ["f1000000-0000-4000-8000-000000000002"] },
         ],
-        preferredSlotId: "5a000000-0000-4000-8000-000000000001",
+        slotsRequested: 1,
+        preferredSlotIds: ["5a000000-0000-4000-8000-000000000001"],
         note: "Near the clothing stalls",
       },
     })
@@ -134,6 +135,70 @@ describe("ApplyPage (/vendor/events/[slug]/apply)", () => {
 
     expect(await screen.findByText("You can't reapply to this event.")).toBeInTheDocument()
     expect(screen.getByRole("link", { name: "Back to the event" })).toHaveAttribute("href", "/events/lanang-holiday-flea")
+  })
+
+  it("asks how many slots only when the event allows more than one", async () => {
+    serve()
+    renderWithQuery(<ApplyPage slug="lanang-holiday-flea" />)
+
+    await screen.findByRole("heading", { name: "Apply to sell" })
+    expect(screen.queryByRole("radiogroup", { name: "How many slots?" })).not.toBeInTheDocument()
+  })
+
+  it("picks up to as many preferred slots as the vendor needs, with the total", async () => {
+    const form = applyFormFixture({ event: { ...applyFormFixture().event, maxSlotsPerVendor: 3 } })
+    form.slotGroups[1].slots.push({ id: "5a000000-0000-4000-8000-000000000004", label: "B-02", sizeLabel: "3 × 3 m", note: null, price: 1500, taken: false })
+    serve(form)
+    vi.mocked(api.POST).mockResolvedValue({ data: { id: "a1" }, response: { status: 201 } } as never)
+    renderWithQuery(<ApplyPage slug="lanang-holiday-flea" />)
+
+    const count = await screen.findByRole("radiogroup", { name: "How many slots?" })
+    await userEvent.click(within(count).getByRole("radio", { name: "2" }))
+    expect(screen.getByRole("heading", { name: /Preferred slots/ })).toBeInTheDocument()
+    expect(screen.getByText("Your picks aren't reserved until the organizer assigns them. Other vendors may pick the same slots.")).toBeInTheDocument()
+    await userEvent.click(screen.getByRole("button", { name: "A-01, open" }))
+    await userEvent.click(screen.getByRole("button", { name: "B-01, open" }))
+    // Full: a third pick waits until one is unpicked.
+    await userEvent.click(screen.getByRole("button", { name: "B-02, open" }))
+    expect(screen.getByRole("button", { name: "B-02, open" })).toHaveAttribute("aria-pressed", "false")
+    expect(screen.getByText("2 of 2 picked. Tap a pick to change it.")).toBeInTheDocument()
+    const summary = screen.getByRole("complementary", { name: "Your application" })
+    expect(within(summary).getByText("2 slots")).toBeInTheDocument()
+    expect(within(summary).getByText("A-01, B-01")).toBeInTheDocument()
+    expect(within(summary).getByText("₱2,300")).toBeInTheDocument()
+
+    // Fewer slots drops the extra picks.
+    await userEvent.click(within(count).getByRole("radio", { name: "1" }))
+    expect(screen.getByRole("button", { name: "B-01, open" })).toHaveAttribute("aria-pressed", "false")
+    await userEvent.click(within(count).getByRole("radio", { name: "2" }))
+    await userEvent.click(screen.getByRole("button", { name: "B-02, open" }))
+    await userEvent.click(screen.getByRole("button", { name: /Preloved clothing/ }))
+    await attach("Barangay business clearance", "f1000000-0000-4000-8000-000000000001")
+    await userEvent.click(screen.getByRole("button", { name: "Submit application" }))
+
+    expect(api.POST).toHaveBeenCalledWith("/api/vendor/events/{slug}/applications", {
+      params: { path: { slug: "lanang-holiday-flea" } },
+      body: expect.objectContaining({
+        slotsRequested: 2,
+        preferredSlotIds: ["5a000000-0000-4000-8000-000000000001", "5a000000-0000-4000-8000-000000000004"],
+      }),
+    })
+  })
+
+  it("asks how many slots even when the organizer assigns them", async () => {
+    serve(applyFormFixture({ event: { ...applyFormFixture().event, preferredSlots: false, maxSlotsPerVendor: 2 }, slotGroups: [] }))
+    vi.mocked(api.POST).mockResolvedValue({ data: { id: "a1" }, response: { status: 201 } } as never)
+    renderWithQuery(<ApplyPage slug="lanang-holiday-flea" />)
+
+    await userEvent.click(within(await screen.findByRole("radiogroup", { name: "How many slots?" })).getByRole("radio", { name: "2" }))
+    await userEvent.click(screen.getByRole("button", { name: /Preloved clothing/ }))
+    await attach("Barangay business clearance", "f1000000-0000-4000-8000-000000000001")
+    await userEvent.click(screen.getByRole("button", { name: "Submit application" }))
+
+    expect(api.POST).toHaveBeenCalledWith("/api/vendor/events/{slug}/applications", {
+      params: { path: { slug: "lanang-holiday-flea" } },
+      body: expect.objectContaining({ slotsRequested: 2, preferredSlotIds: [] }),
+    })
   })
 
   it("hides the preferred slot section when the organizer assigns slots", async () => {

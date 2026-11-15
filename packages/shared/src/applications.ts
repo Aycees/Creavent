@@ -14,10 +14,14 @@ export const applySchema = z.object({
     .array(z.object({ requirementId: z.uuid(), fileIds: z.array(z.uuid()).min(1).max(MAX_FILES_PER_DOCUMENT, `Upload at most ${MAX_FILES_PER_DOCUMENT} files`) }))
     .max(30)
     .default([]),
-  // A preference only, when the event lets vendors choose (spec §4.3).
-  preferredSlotId: z.uuid().nullable().default(null),
+  // How many slots, up to the event's limit (decision P4).
+  slotsRequested: z.number().int().min(1).max(10).default(1),
+  // Preferences only, when the event lets vendors choose (spec §4.3), at most
+  // as many as the slots asked for.
+  preferredSlotIds: z.array(z.uuid()).max(10).default([]),
   note: optionalLongText(500),
-});
+}).refine((v) => new Set(v.preferredSlotIds).size === v.preferredSlotIds.length, { path: ['preferredSlotIds'], message: 'Pick each slot once' })
+  .refine((v) => v.preferredSlotIds.length <= v.slotsRequested, { path: ['preferredSlotIds'], message: 'Pick at most as many slots as you need' });
 export type ApplyInput = z.input<typeof applySchema>;
 
 // Why a vendor can't apply right now. The page shows the reason instead of
@@ -42,6 +46,7 @@ export const applyFormSchema = z.object({
     policy: z.string().nullable(),
     deadlineHours: z.number().int(),
     preferredSlots: z.boolean(),
+    maxSlotsPerVendor: z.number().int(),
     vendorFloorPlanUrl: z.string().nullable(),
   }),
   blocked: applyBlockSchema.nullable(),
@@ -113,6 +118,7 @@ export type DecisionInput = z.input<typeof decisionSchema>;
 // A preferred slot as the organizer sees it now: still open, taken by
 // someone else, or deleted ("No longer available", spec §5).
 export const preferredSlotStateSchema = z.enum(['open', 'taken', 'removed']);
+export const preferredSlotSchema = z.object({ id: z.uuid(), label: z.string(), state: preferredSlotStateSchema });
 
 export const organizerApplicationSchema = z.object({
   id: z.uuid(),
@@ -130,7 +136,8 @@ export const organizerApplicationSchema = z.object({
   }),
   categories: z.array(z.object({ id: z.uuid(), name: z.string() })),
   documents: z.array(z.object({ id: z.uuid(), name: z.string(), url: z.string(), isPdf: z.boolean() })),
-  preferredSlot: z.object({ id: z.uuid(), label: z.string(), state: preferredSlotStateSchema }).nullable(),
+  slotsRequested: z.number().int(),
+  preferredSlots: z.array(preferredSlotSchema),
   // Set on removal: whether the vendor may apply to this event again.
   canReapply: z.boolean().nullable(),
 });
@@ -147,14 +154,16 @@ export type EventApplications = z.infer<typeof eventApplicationsSchema>;
 // Allow or block a removed vendor from applying again (spec §3.3).
 export const reapplySchema = z.object({ canReapply: z.boolean() });
 
-// The vendor's change of plans (decided 2026-11-15).
-export const preferenceSchema = z.object({ preferredSlotId: z.uuid().nullable() });
-export const changeSlotSchema = z.object({ preferredSlotId: z.uuid() });
+// The vendor's change of plans (decided 2026-11-15). Empty: No preference.
+const slotIds = z.array(z.uuid()).max(10).refine((ids) => new Set(ids).size === ids.length, 'Pick each slot once');
+export const preferenceSchema = z.object({ preferredSlotIds: slotIds });
+export const changeSlotSchema = z.object({ preferredSlotIds: slotIds.min(1, 'Pick at least one slot') });
 
 // Open and taken slots for picking a new preference.
 export const applicationSlotsSchema = z.object({
   currentSlotLabel: z.string().nullable(),
-  preferredSlotId: z.uuid().nullable(),
+  slotsRequested: z.number().int(),
+  preferredSlotIds: z.array(z.uuid()),
   vendorFloorPlanUrl: z.string().nullable(),
   slotGroups: applyFormSchema.shape.slotGroups,
 });

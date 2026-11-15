@@ -25,7 +25,7 @@ import { archivePayment, changeAssignmentStatus } from './assignment-status.js';
 import { approvedPerCategory, spotsLeft } from './category-counts.js';
 import { PaymentsService } from './payments.service.js';
 import { vendorProfile } from './vendor-profile.js';
-import { ACTIVE, takenSlotIds } from './slot-status.js';
+import { ACTIVE, preferenceStates, slotLabel, sortedSlots, takenSlotIds } from './slot-status.js';
 
 type Db = Tx | PrismaService;
 
@@ -78,6 +78,7 @@ export class VendorApplicationsService {
         policy: event.policyText,
         deadlineHours: event.paymentDeadlineHours,
         preferredSlots: preferred,
+        maxSlotsPerVendor: event.maxSlotsPerVendor,
         vendorFloorPlanUrl: event.vendorFloorPlanFile ? this.files.url(event.vendorFloorPlanFile.storageKey) : null,
       },
       blocked,
@@ -114,8 +115,11 @@ export class VendorApplicationsService {
           throw new BadRequestException('Pick categories you sell that this event accepts');
         }
 
+        if (input.slotsRequested > event.maxSlotsPerVendor) {
+          throw new BadRequestException(`This event allows up to ${event.maxSlotsPerVendor} ${event.maxSlotsPerVendor === 1 ? 'slot' : 'slots'} per vendor`);
+        }
         const documents = await this.checkDocuments(tx, userId, event, categoryIds, input.documents);
-        const preferredSlotId = await this.checkPreference(tx, event, input.preferredSlotId);
+        const preferredSlotIds = await this.checkPreference(tx, event, input.preferredSlotIds, input.slotsRequested);
 
         const now = new Date();
         const application = await tx.application.create({
@@ -123,7 +127,8 @@ export class VendorApplicationsService {
             eventId: event.id,
             vendorProfileId: vendor.id,
             vendorNote: input.note,
-            preferredSlotId,
+            slotsRequested: input.slotsRequested,
+            preferredSlots: { create: preferredSlotIds.map((slotId) => ({ slotId })) },
             // Applying means accepting the policy as it reads now (spec §3.7).
             policyTextSnapshot: event.policyText ?? '',
             policyAcceptedAt: now,
@@ -179,7 +184,7 @@ export class VendorApplicationsService {
     const applications = await this.prisma.application.findMany({
       where: { vendorProfileId: vendor.id },
       orderBy: { submittedAt: 'desc' },
-      include: { event: true, assignments: { where: { status: { in: [...ACTIVE] } }, include: { slot: true, payment: true } } },
+      include: { event: true, assignments: { where: { status: { in: [...ACTIVE] } }, include: { slots: { include: { slot: true } }, payment: true } } },
     });
     return {
       applications: applications.map((a) => {
@@ -188,7 +193,7 @@ export class VendorApplicationsService {
           id: a.id,
           event: eventSummary(a.event),
           status: vendorStatus(a.status, active?.status === 'assigned' || active?.status === 'reserved' ? active.status : null),
-          slotLabel: active?.slot.label ?? null,
+          slotLabel: active ? slotLabel(active.slots) : null,
           amountDue: active ? Number(active.priceLocked) : null,
           paymentStatus: active?.payment?.status ?? null,
           deadlineAt: active ? active.deadlineAt.toISOString() : null,
@@ -206,12 +211,12 @@ export class VendorApplicationsService {
     const [due, confirmed, { applications }] = await Promise.all([
       this.prisma.slotAssignment.findMany({
         where: { vendorProfileId: vendor.id, status: 'assigned', payment: { status: { in: ['pending', 'rejected'] } } },
-        include: { slot: true, payment: true, event: { include: { organizerProfile: true } } },
+        include: { slots: { include: { slot: true } }, payment: true, event: { include: { organizerProfile: true } } },
         orderBy: { deadlineAt: 'asc' },
       }),
       this.prisma.slotAssignment.findFirst({
         where: { vendorProfileId: vendor.id, status: 'reserved', event: { endsAt: { gte: now }, status: { in: ['open_to_vendors', 'announced'] } } },
-        include: { slot: true, event: { include: { vendorFloorPlanFile: true, organizerProfile: { include: { user: true } } } } },
+        include: { slots: { include: { slot: true } }, event: { include: { vendorFloorPlanFile: true, organizerProfile: { include: { user: true } } } } },
         orderBy: { event: { startsAt: 'asc' } },
       }),
       this.list(userId),
@@ -238,7 +243,7 @@ export class VendorApplicationsService {
           applicationId: a.applicationId,
           eventName: a.event.name,
           startDate: a.event.startsAt ? manilaParts(a.event.startsAt).date : null,
-          slotLabel: a.slot.label,
+          slotLabel: slotLabel(a.slots),
           amountDue: Number(a.priceLocked),
           deadlineAt: a.deadlineAt.toISOString(),
           organizerName: a.event.organizerProfile.displayName,
@@ -251,7 +256,7 @@ export class VendorApplicationsService {
         ? {
             applicationId: confirmed.applicationId,
             event: eventSummary(confirmed.event),
-            slotLabel: confirmed.slot.label,
+            slotLabel: slotLabel(confirmed.slots),
             organizerName: confirmed.event.organizerProfile.displayName,
             organizerPhone: confirmed.event.organizerProfile.user.phone,
             ingressInfo: confirmed.event.ingressInfo,
@@ -277,11 +282,11 @@ export class VendorApplicationsService {
       include: {
         categories: { include: { category: true } },
         _count: { select: { documents: true } },
-        preferredSlot: true,
+        preferredSlots: { include: { slot: true } },
         event: { include: { vendorFloorPlanFile: true, organizerProfile: { include: { user: { include: { roles: { where: { role: 'organizer' } } } } } } } },
         assignments: {
           orderBy: { assignedAt: 'desc' },
-          include: { slot: true, payment: { include: { proofs: { orderBy: { uploadedAt: 'desc' }, include: { paymentMethod: true, file: true } } } } },
+          include: { slots: { include: { slot: true } }, payment: { include: { proofs: { orderBy: { uploadedAt: 'desc' }, include: { paymentMethod: true, file: true } } } } },
         },
       },
     });
@@ -297,7 +302,7 @@ export class VendorApplicationsService {
     const active = latest && (latest.status === 'assigned' || latest.status === 'reserved') ? latest : null;
     const organizer = a.event.organizerProfile.user;
     const role = organizer.roles[0];
-    const taken = a.preferredSlot ? await takenSlotIds(this.prisma, a.eventId) : new Set<string>();
+    const taken = a.preferredSlots.length ? await takenSlotIds(this.prisma, a.eventId) : new Set<string>();
     const instructions = (latest?.paymentInstructionsSnapshot ?? []) as PaymentInstruction[];
     return {
       id: a.id,
@@ -325,17 +330,14 @@ export class VendorApplicationsService {
         contactEmail: role?.contactEmail ?? organizer.email,
         approved: role?.approvalStatus === 'approved' && role.suspendedAt === null,
       },
-      preferredSlot:
-        a.preferredSlot && !active
-          ? { label: a.preferredSlot.label, state: a.preferredSlot.deletedAt ? 'removed' : taken.has(a.preferredSlot.id) ? 'taken' : 'open' }
-          : null,
+      slotsRequested: a.slotsRequested,
+      preferredSlots: active ? [] : preferenceStates(a.preferredSlots, taken),
       assignment: latest
         ? {
             id: latest.id,
             status: latest.status,
-            slotLabel: latest.slot.label,
-            sizeLabel: latest.slot.sizeLabel,
-            note: latest.slot.note,
+            slotLabel: slotLabel(latest.slots),
+            slots: sortedSlots(latest.slots).map((x) => ({ label: x.slot.label, sizeLabel: x.slot.sizeLabel, note: x.slot.note, price: Number(x.priceLocked) })),
             amountDue: Number(latest.priceLocked),
             assignedAt: latest.assignedAt.toISOString(),
             deadlineAt: latest.deadlineAt.toISOString(),
@@ -357,13 +359,13 @@ export class VendorApplicationsService {
       const { application, vendor } = await this.ownApplication(tx, userId, applicationId);
       const released = await this.releaseActive(tx, userId, applicationId);
       if (!released) throw new ConflictException('You have no slot to release here');
-      await this.emailOrganizer(tx, released.event, 'slot_released', application.id, vendor.shopName, { slotLabel: released.slot.label });
+      await this.emailOrganizer(tx, released.event, 'slot_released', application.id, vendor.shopName, { slotLabel: slotLabel(released.slots) });
     });
   }
 
-  // Change or clear the preferred slot while no slot is assigned (decided
+  // Change or clear the preferred slots while no slot is assigned (decided
   // 2026-11-15). A preference still holds nothing (spec §4.3).
-  async setPreference(userId: string, applicationId: string, slotId: string | null) {
+  async setPreference(userId: string, applicationId: string, slotIds: string[]) {
     await this.prisma.$transaction(async (tx) => {
       const { application } = await this.ownApplication(tx, userId, applicationId);
       if (!['submitted', 'approved'].includes(application.status) || (await this.activeAssignment(tx, applicationId))) {
@@ -371,41 +373,42 @@ export class VendorApplicationsService {
       }
       const event = await tx.event.findUniqueOrThrow({ where: { id: application.eventId }, include: eventInclude });
       if (event.slotMode !== 'vendor_preference') throw new ConflictException('The organizer assigns slots at this event');
-      const preferredSlotId = slotId === null ? null : await this.checkPreference(tx, event, slotId);
-      await tx.application.update({ where: { id: applicationId }, data: { preferredSlotId } });
-      await writeAuditLog(tx, {
-        actorUserId: userId,
-        action: 'application.preference_change',
-        entityType: 'application',
-        entityId: applicationId,
-        changes: { preferredSlotId: { from: application.preferredSlotId, to: preferredSlotId } },
-      });
+      const preferredSlotIds = await this.checkPreference(tx, event, slotIds, application.slotsRequested);
+      await this.replacePreferences(tx, userId, applicationId, preferredSlotIds);
     });
   }
 
-  // Swap an unpaid slot for a new preferred one: the slot is released and the
-  // organizer assigns the new pick (decided 2026-11-15).
-  async changeSlot(userId: string, applicationId: string, slotId: string) {
+  // Swap unpaid slots for new preferred ones: all of them are released
+  // together and the organizer assigns the new picks (decisions P5, P6).
+  async changeSlot(userId: string, applicationId: string, slotIds: string[]) {
     await this.prisma.$transaction(async (tx) => {
       const { application, vendor } = await this.ownApplication(tx, userId, applicationId);
       const event = await tx.event.findUniqueOrThrow({ where: { id: application.eventId }, include: eventInclude });
       if (event.slotMode !== 'vendor_preference') throw new ConflictException('The organizer assigns slots at this event');
-      const active = await this.activeAssignment(tx, applicationId);
+      const active = await tx.slotAssignment.findFirst({ where: { applicationId, status: { in: [...ACTIVE] } }, include: { slots: true } });
       if (!active) throw new ConflictException('You have no slot to change here');
-      if (active.slotId === slotId) throw new BadRequestException('Pick a different slot');
+      const current = new Set(active.slots.map((x) => x.slotId));
+      if (slotIds.length === current.size && slotIds.every((id) => current.has(id))) throw new BadRequestException('Pick a different slot');
       if (active.status === 'reserved') throw new ConflictException('Your payment is approved, so contact the organizer to change slots');
-      const preferredSlotId = await this.checkPreference(tx, event, slotId);
       const released = (await this.releaseActive(tx, userId, applicationId))!;
-      await tx.application.update({ where: { id: applicationId }, data: { preferredSlotId } });
-      const newLabel = event.slots.find((x) => x.id === preferredSlotId)!.label;
-      await writeAuditLog(tx, {
-        actorUserId: userId,
-        action: 'application.preference_change',
-        entityType: 'application',
-        entityId: applicationId,
-        changes: { preferredSlotId: { from: application.preferredSlotId, to: preferredSlotId } },
-      });
-      await this.emailOrganizer(tx, event, 'slot_released', applicationId, vendor.shopName, { slotLabel: released.slot.label, newPreference: newLabel });
+      // After the release, so the vendor's own slots count as open again.
+      const preferredSlotIds = await this.checkPreference(tx, event, slotIds, application.slotsRequested);
+      await this.replacePreferences(tx, userId, applicationId, preferredSlotIds);
+      const newLabels = event.slots.filter((x) => preferredSlotIds.includes(x.id)).map((x) => x.label).join(', ');
+      await this.emailOrganizer(tx, event, 'slot_released', applicationId, vendor.shopName, { slotLabel: slotLabel(released.slots), newPreference: newLabels });
+    });
+  }
+
+  private async replacePreferences(tx: Tx, userId: string, applicationId: string, slotIds: string[]) {
+    const before = await tx.applicationPreferredSlot.findMany({ where: { applicationId } });
+    await tx.applicationPreferredSlot.deleteMany({ where: { applicationId } });
+    await tx.applicationPreferredSlot.createMany({ data: slotIds.map((slotId) => ({ applicationId, slotId })) });
+    await writeAuditLog(tx, {
+      actorUserId: userId,
+      action: 'application.preference_change',
+      entityType: 'application',
+      entityId: applicationId,
+      changes: { preferredSlotIds: { from: before.map((p) => p.slotId), to: slotIds } },
     });
   }
 
@@ -413,11 +416,15 @@ export class VendorApplicationsService {
   async slots(userId: string, applicationId: string): Promise<ApplicationSlots> {
     const { application } = await this.ownApplication(this.prisma, userId, applicationId, false);
     const event = await this.prisma.event.findUniqueOrThrow({ where: { id: application.eventId }, include: eventInclude });
-    const active = await this.activeAssignment(this.prisma, applicationId);
-    const slot = active ? event.slots.find((x) => x.id === active.slotId) : null;
+    const active = await this.prisma.slotAssignment.findFirst({
+      where: { applicationId, status: { in: [...ACTIVE] } },
+      include: { slots: { include: { slot: true } } },
+    });
+    const preferred = await this.prisma.applicationPreferredSlot.findMany({ where: { applicationId } });
     return {
-      currentSlotLabel: slot?.label ?? null,
-      preferredSlotId: application.preferredSlotId,
+      currentSlotLabel: active ? slotLabel(active.slots) : null,
+      slotsRequested: application.slotsRequested,
+      preferredSlotIds: preferred.map((p) => p.slotId),
       vendorFloorPlanUrl: event.vendorFloorPlanFile ? this.files.url(event.vendorFloorPlanFile.storageKey) : null,
       slotGroups: await this.slotGroups(this.prisma, event),
     };
@@ -442,7 +449,7 @@ export class VendorApplicationsService {
   private async releaseActive(tx: Tx, userId: string, applicationId: string) {
     const assignment = await tx.slotAssignment.findFirst({
       where: { applicationId, status: { in: [...ACTIVE] } },
-      include: { slot: true, event: { include: eventInclude } },
+      include: { slots: { include: { slot: true } }, event: { include: eventInclude } },
     });
     if (!assignment) return null;
     if (assignment.status === 'reserved') throw new ConflictException('Your payment is approved, so contact the organizer to cancel');
@@ -511,15 +518,18 @@ export class VendorApplicationsService {
     return sent.flatMap((d) => d.fileIds.map((fileId) => ({ requirementId: d.requirementId, fileId })));
   }
 
-  // A preference is kept only when the event lets vendors choose, and must be
-  // an open slot of this event (data model §6.10).
-  private async checkPreference(tx: Tx, event: ApplyEvent, slotId: string | null) {
-    if (event.slotMode !== 'vendor_preference' || slotId === null) return null;
-    const slot = event.slots.find((s) => s.id === slotId);
-    if (!slot || (await takenSlotIds(tx, event.id)).has(slot.id)) {
-      throw new BadRequestException('Pick an open slot, or No preference');
+  // Preferences are kept only when the event lets vendors choose, at most as
+  // many as the slots asked for, each an open slot of this event (data model
+  // §6.10).
+  private async checkPreference(tx: Tx, event: ApplyEvent, slotIds: string[], slotsRequested: number) {
+    if (event.slotMode !== 'vendor_preference' || slotIds.length === 0) return [];
+    if (slotIds.length > slotsRequested) throw new BadRequestException(`Pick at most ${slotsRequested} ${slotsRequested === 1 ? 'slot' : 'slots'}`);
+    const taken = await takenSlotIds(tx, event.id);
+    for (const id of slotIds) {
+      const slot = event.slots.find((x) => x.id === id);
+      if (!slot || taken.has(slot.id)) throw new BadRequestException('Pick an open slot, or No preference');
     }
-    return slot.id;
+    return slotIds;
   }
 
   private async emailOrganizer(

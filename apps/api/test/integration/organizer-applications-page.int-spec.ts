@@ -62,7 +62,8 @@ describe("the organizer's applications across events", () => {
       stage: 'submitted',
       categories: ['Food and drinks'],
       documents: { count: 1, pdfs: 0, missing: ['Sanitary permit'] },
-      preferredSlot: { label: 'B-01', state: 'open' },
+      slotsRequested: 1,
+      preferredSlots: [expect.objectContaining({ label: 'B-01', state: 'open' })],
       submittedAt: '2026-11-10T02:00:00.000Z',
     });
     expect(res.body.counts).toMatchObject({ waiting: 2, slot_assigned: 1, all: 3 });
@@ -101,7 +102,8 @@ describe("the organizer's applications across events", () => {
       vendor: { shopName: "Lola's Ukay", phone: '+639181234567' },
       categories: [{ name: 'Food and drinks', approved: 0, max: null }],
       missingDocuments: ['Sanitary permit'],
-      preferredSlot: { label: 'B-01', state: 'open' },
+      slotsRequested: 1,
+      preferredSlots: [expect.objectContaining({ label: 'B-01', state: 'open' })],
       assignment: null,
       nextWaitingId: s.later.id,
     });

@@ -63,12 +63,13 @@ export function setupFixture(overrides: Partial<EventSetup> = {}): EventSetup {
     slots: {
       mode: "organizer_assigns",
       defaultPrice: 800,
+      maxSlotsPerVendor: 1,
       vendorFloorPlan: null,
       publicFloorPlan: null,
       list: [
-        { id: "5a5a5a5a-0000-4000-8000-000000000001", label: "A-01", section: "Main walkway", sizeLabel: "2 × 2 m", note: null, price: null },
-        { id: "5a5a5a5a-0000-4000-8000-000000000002", label: "A-02", section: "Main walkway", sizeLabel: "2 × 2 m", note: "Corner", price: 1000 },
-        { id: "5a5a5a5a-0000-4000-8000-000000000003", label: "C-01", section: null, sizeLabel: "3 × 3 m", note: null, price: 1200 },
+        { id: "5a5a5a5a-0000-4000-8000-000000000001", label: "A-01", section: "Main walkway", sizeLabel: "2 × 2 m", note: null, price: null, setAside: null },
+        { id: "5a5a5a5a-0000-4000-8000-000000000002", label: "A-02", section: "Main walkway", sizeLabel: "2 × 2 m", note: "Corner", price: 1000, setAside: null },
+        { id: "5a5a5a5a-0000-4000-8000-000000000003", label: "C-01", section: null, sizeLabel: "3 × 3 m", note: null, price: 1200, setAside: null },
       ],
     },
     ...overrides,

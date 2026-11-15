@@ -1,13 +1,17 @@
 import { z } from 'zod';
 import { eventStatusSchema, optionalLongText, paymentChannelSchema, text } from './events.js';
-import { preferredSlotStateSchema, vendorStatusSchema } from './applications.js';
+import { preferredSlotSchema, preferredSlotStateSchema, vendorStatusSchema } from './applications.js';
 
 // Slot assignment and payments (spec §5, §6, data model §5.7).
 export const assignmentStatusSchema = z.enum(['assigned', 'reserved', 'released', 'removed', 'canceled']);
 export const paymentStatusSchema = z.enum(['pending', 'submitted', 'approved', 'rejected']);
 export type PaymentStatus = z.infer<typeof paymentStatusSchema>;
 
-export const assignSlotSchema = z.object({ applicationId: z.uuid(), slotId: z.uuid() });
+// All of a vendor's slots in one step (decision P5).
+export const assignSlotSchema = z.object({
+  applicationId: z.uuid(),
+  slotIds: z.array(z.uuid()).min(1, 'Pick a slot').max(10).refine((ids) => new Set(ids).size === ids.length, 'Pick each slot once'),
+});
 export type AssignSlotInput = z.input<typeof assignSlotSchema>;
 
 // One payment option as copied onto an assignment (spec §6.1).
@@ -59,8 +63,9 @@ export const proofSchema = z.object({
 });
 export type Proof = z.infer<typeof proofSchema>;
 
-// Slot status is worked out from the slot's active assignment (data model §7).
-export const slotStateSchema = z.enum(['open', 'assigned', 'reserved']);
+// Slot status is worked out from the slot's active assignment, or the
+// organizer setting it aside (data model §7, decision P1).
+export const slotStateSchema = z.enum(['open', 'assigned', 'reserved', 'set_aside']);
 
 export const eventVendorsSchema = z.object({
   event: z.object({
@@ -74,7 +79,7 @@ export const eventVendorsSchema = z.object({
     waitingApplications: z.number().int(),
   }),
   // "Slots at a glance" (spec §3.4).
-  glance: z.object({ open: z.number().int(), assigned: z.number().int(), reserved: z.number().int(), overdue: z.number().int() }),
+  glance: z.object({ open: z.number().int(), assigned: z.number().int(), reserved: z.number().int(), overdue: z.number().int(), setAside: z.number().int() }),
   slots: z.array(
     z.object({
       id: z.uuid(),
@@ -86,6 +91,8 @@ export const eventVendorsSchema = z.object({
       overdue: z.boolean(),
       // Waiting applications that prefer this open slot ("Preferred by 2").
       preferredBy: z.number().int(),
+      // The organizer's note on a set-aside slot.
+      setAsideNote: z.string().nullable(),
     }),
   ),
   // Approved vendors without a slot (spec §5).
@@ -94,7 +101,8 @@ export const eventVendorsSchema = z.object({
       applicationId: z.uuid(),
       shopName: z.string(),
       categories: z.array(z.string()),
-      preferredSlot: z.object({ id: z.uuid(), label: z.string(), state: preferredSlotStateSchema }).nullable(),
+      slotsRequested: z.number().int(),
+      preferredSlots: z.array(preferredSlotSchema),
     }),
   ),
   assignments: z.array(
@@ -185,15 +193,16 @@ export const vendorApplicationSchema = z.object({
     contactEmail: z.string().nullable(),
     approved: z.boolean(),
   }),
+  slotsRequested: z.number().int(),
   // Shown until a slot is assigned (spec §4.6).
-  preferredSlot: z.object({ label: z.string(), state: preferredSlotStateSchema }).nullable(),
+  preferredSlots: z.array(preferredSlotSchema),
   assignment: z
     .object({
       id: z.uuid(),
       status: assignmentStatusSchema,
+      // All the slots, joined ("B-03, B-04"), and each one (decision P6).
       slotLabel: z.string(),
-      sizeLabel: z.string().nullable(),
-      note: z.string().nullable(),
+      slots: z.array(z.object({ label: z.string(), sizeLabel: z.string().nullable(), note: z.string().nullable(), price: z.number() })),
       amountDue: z.number(),
       assignedAt: z.string(),
       deadlineAt: z.string(),
@@ -263,7 +272,6 @@ export const organizerApplicationsQuerySchema = z.object({
   q: z.string().trim().max(100).optional(),
 });
 
-const slotPreference = z.object({ label: z.string(), state: preferredSlotStateSchema }).nullable();
 
 export const applicationCardSchema = z.object({
   id: z.uuid(),
@@ -276,7 +284,8 @@ export const applicationCardSchema = z.object({
   categories: z.array(z.string()),
   documents: z.object({ count: z.number().int(), pdfs: z.number().int(), missing: z.array(z.string()) }),
   submittedAt: z.string(),
-  preferredSlot: slotPreference,
+  slotsRequested: z.number().int(),
+  preferredSlots: z.array(preferredSlotSchema),
   slotLabel: z.string().nullable(),
 });
 export type ApplicationCard = z.infer<typeof applicationCardSchema>;
@@ -328,9 +337,10 @@ export const applicationDetailSchema = z.object({
   categories: z.array(z.object({ name: z.string(), approved: z.number().int(), max: z.number().int().nullable() })),
   documents: z.array(z.object({ id: z.uuid(), name: z.string(), url: z.string(), isPdf: z.boolean(), uploadedAt: z.string() })),
   missingDocuments: z.array(z.string()),
-  preferredSlot: z
-    .object({ label: z.string(), section: z.string().nullable(), sizeLabel: z.string().nullable(), price: z.number().nullable(), state: preferredSlotStateSchema, preferredByOthers: z.number().int() })
-    .nullable(),
+  slotsRequested: z.number().int(),
+  preferredSlots: z.array(
+    z.object({ id: z.uuid(), label: z.string(), section: z.string().nullable(), sizeLabel: z.string().nullable(), price: z.number().nullable(), state: preferredSlotStateSchema, preferredByOthers: z.number().int() }),
+  ),
   assignment: z
     .object({ status: assignmentStatusSchema, slotLabel: z.string(), amountDue: z.number(), paymentStatus: paymentStatusSchema, deadlineAt: z.string() })
     .nullable(),

@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { formatPeso, type EventVendors, type PaymentInstruction } from '@creavent/shared';
 import { writeAuditLog } from '../audit/audit-log.js';
 import { appConfig } from '../config.js';
@@ -10,7 +10,7 @@ import { assertVisible } from './organizer-applications.service.js';
 import { PaymentsService } from './payments.service.js';
 import { changeApplicationStatus } from './application-status.js';
 import { archivePayment, changeAssignmentStatus } from './assignment-status.js';
-import { ACTIVE, isOverdue } from './slot-status.js';
+import { ACTIVE, isOverdue, slotLabel, sortedSlots } from './slot-status.js';
 
 // The organizer's Vendors and slots page (spec §3.4, §5, sitemap §4).
 @Injectable()
@@ -31,7 +31,7 @@ export class OrganizerVendorsService {
     const ended = await this.prisma.slotAssignment.findMany({
       where: { eventId, status: { in: ['released', 'removed', 'canceled'] }, payment: { proofs: { some: {} } } },
       include: {
-        slot: true,
+        slots: { include: { slot: true } },
         vendorProfile: true,
         payment: { include: { proofs: { orderBy: { uploadedAt: 'desc' }, include: { paymentMethod: true, file: true } } } },
       },
@@ -41,27 +41,32 @@ export class OrganizerVendorsService {
       this.prisma.slotAssignment.findMany({
         where: { eventId, status: { in: [...ACTIVE] } },
         include: {
-          slot: true,
+          slots: { where: { active: true }, include: { slot: true } },
           payment: { include: { proofs: { orderBy: { uploadedAt: 'desc' }, take: 1, include: { paymentMethod: true, file: true } } } },
           vendorProfile: { include: { user: true } },
         },
-        orderBy: { slot: { sortOrder: 'asc' } },
       }),
       this.prisma.application.findMany({
         where: { eventId, status: 'approved', assignments: { none: { status: { in: [...ACTIVE] } } } },
-        include: { vendorProfile: true, categories: { include: { category: true } }, preferredSlot: true },
+        include: { vendorProfile: true, categories: { include: { category: true } }, preferredSlots: { include: { slot: true } } },
         orderBy: { decidedAt: 'asc' },
       }),
-      this.prisma.application.findMany({ where: { eventId, status: { in: ['submitted', 'approved'] }, preferredSlotId: { not: null } }, select: { id: true, preferredSlotId: true } }),
+      this.prisma.applicationPreferredSlot.findMany({ where: { application: { eventId, status: { in: ['submitted', 'approved'] } } }, select: { applicationId: true, slotId: true } }),
     ]);
     const now = new Date();
-    const bySlot = new Map(assignments.map((a) => [a.slotId, a]));
+    const bySlot = new Map(assignments.flatMap((a) => a.slots.map((x) => [x.slotId, a] as const)));
     const assignedApps = new Set(assignments.map((a) => a.applicationId));
     // "Preferred by" counts waiting or approved applications without a slot.
     const preferredBy = new Map<string, number>();
-    for (const w of waiting) if (!assignedApps.has(w.id)) preferredBy.set(w.preferredSlotId!, (preferredBy.get(w.preferredSlotId!) ?? 0) + 1);
+    for (const w of waiting) if (!assignedApps.has(w.applicationId)) preferredBy.set(w.slotId, (preferredBy.get(w.slotId) ?? 0) + 1);
     const fallback = event.defaultSlotPrice === null ? null : Number(event.defaultSlotPrice);
     const overdueCount = assignments.filter((a) => isOverdue(a, now)).length;
+    const setAside = event.slots.filter((x) => x.setAsideAt !== null).length;
+    const assignedSlots = (status: string) => assignments.filter((a) => a.status === status).reduce((n, a) => n + a.slots.length, 0);
+    // In slot list order, by each assignment's first slot.
+    const order = new Map(event.slots.map((x, i) => [x.id, i]));
+    const first = (a: (typeof assignments)[number]) => Math.min(...a.slots.map((x) => order.get(x.slotId) ?? Infinity));
+    assignments.sort((a, b) => first(a) - first(b));
     return {
       event: {
         id: event.id,
@@ -74,10 +79,11 @@ export class OrganizerVendorsService {
         waitingApplications: await this.prisma.application.count({ where: { eventId, status: 'submitted' } }),
       },
       glance: {
-        open: event.slots.length - assignments.length,
-        assigned: assignments.filter((a) => a.status === 'assigned').length,
-        reserved: assignments.filter((a) => a.status === 'reserved').length,
+        open: event.slots.length - bySlot.size - setAside,
+        assigned: assignedSlots('assigned'),
+        reserved: assignedSlots('reserved'),
         overdue: overdueCount,
+        setAside,
       },
       slots: event.slots.map((s) => {
         const a = bySlot.get(s.id);
@@ -87,24 +93,28 @@ export class OrganizerVendorsService {
           section: s.section,
           sizeLabel: s.sizeLabel,
           price: s.price === null ? fallback : Number(s.price),
-          state: a ? (a.status as 'assigned' | 'reserved') : 'open',
+          state: a ? (a.status as 'assigned' | 'reserved') : s.setAsideAt ? 'set_aside' : 'open',
           overdue: a ? isOverdue(a, now) : false,
-          preferredBy: a ? 0 : (preferredBy.get(s.id) ?? 0),
+          preferredBy: a || s.setAsideAt ? 0 : (preferredBy.get(s.id) ?? 0),
+          setAsideNote: s.setAsideAt ? s.setAsideNote : null,
         };
       }),
       unassigned: approved.map((a) => ({
         applicationId: a.id,
         shopName: a.vendorProfile.shopName,
         categories: a.categories.map((c) => c.category.name),
-        preferredSlot: a.preferredSlot
-          ? { id: a.preferredSlot.id, label: a.preferredSlot.label, state: a.preferredSlot.deletedAt ? 'removed' : bySlot.has(a.preferredSlot.id) ? 'taken' : 'open' }
-          : null,
+        slotsRequested: a.slotsRequested,
+        preferredSlots: sortedSlots(a.preferredSlots).map(({ slot }) => ({
+          id: slot.id,
+          label: slot.label,
+          state: slot.deletedAt ? ('removed' as const) : bySlot.has(slot.id) || slot.setAsideAt ? ('taken' as const) : ('open' as const),
+        })),
       })),
       assignments: assignments.map((a) => ({
         id: a.id,
         applicationId: a.applicationId,
         status: a.status,
-        slotLabel: a.slot.label,
+        slotLabel: slotLabel(a.slots),
         shopName: a.vendorProfile.shopName,
         phone: a.vendorProfile.user.phone,
         amountDue: Number(a.priceLocked),
@@ -119,7 +129,7 @@ export class OrganizerVendorsService {
       archived: ended.map((a) => ({
         assignmentId: a.id,
         shopName: a.vendorProfile.shopName,
-        slotLabel: a.slot.label,
+        slotLabel: slotLabel(a.slots),
         status: a.status,
         amountDue: Number(a.priceLocked),
         endedAt: a.endedAt?.toISOString() ?? null,
@@ -128,7 +138,9 @@ export class OrganizerVendorsService {
     };
   }
 
-  async assign(userId: string, eventId: string, applicationId: string, slotId: string) {
+  // All of the vendor's slots in one step (decision P5): one assignment, one
+  // total, one payment, one email.
+  async assign(userId: string, eventId: string, applicationId: string, slotIds: string[]) {
     try {
       await this.prisma.$transaction(async (tx) => {
         const event = await ownEvent(tx, userId, eventId);
@@ -142,10 +154,16 @@ export class OrganizerVendorsService {
         });
         if (!application) throw new NotFoundException('Application not found');
         if (application.status !== 'approved') throw new ConflictException('Approve the application before assigning a slot');
-        const slot = await tx.slot.findFirst({ where: { id: slotId, eventId, deletedAt: null } });
-        if (!slot) throw new NotFoundException('Slot not found');
-        if (await tx.slotAssignment.findFirst({ where: { slotId, status: { in: [...ACTIVE] } } })) {
-          throw new ConflictException('This slot is taken. Pick another.');
+        if (slotIds.length > application.slotsRequested) {
+          const n = application.slotsRequested;
+          throw new BadRequestException(`${application.vendorProfile.shopName} asked for ${n} ${n === 1 ? 'slot' : 'slots'}`);
+        }
+        const slots = await tx.slot.findMany({ where: { id: { in: slotIds }, eventId, deletedAt: null }, orderBy: [{ sortOrder: 'asc' }, { label: 'asc' }] });
+        if (slots.length !== slotIds.length) throw new NotFoundException('Slot not found');
+        const aside = slots.find((x) => x.setAsideAt);
+        if (aside) throw new ConflictException(`${aside.label} is set aside. Open it again on the Slots tab first.`);
+        if (await tx.slotAssignmentSlot.findFirst({ where: { slotId: { in: slotIds }, active: true } })) {
+          throw new ConflictException(slotIds.length === 1 ? 'This slot is taken. Pick another.' : 'One of these slots is taken. Pick again.');
         }
         if (await tx.slotAssignment.findFirst({ where: { eventId, vendorProfileId: application.vendorProfileId, status: { in: [...ACTIVE] } } })) {
           throw new ConflictException('This vendor already has a slot. Remove them from it first.');
@@ -160,7 +178,9 @@ export class OrganizerVendorsService {
           qrFileId: m.qrFileId,
           notes: m.notes,
         }));
-        const price = Number(slot.price ?? event.defaultSlotPrice ?? 0);
+        const prices = slots.map((x) => Number(x.price ?? event.defaultSlotPrice ?? 0));
+        const price = prices.reduce((sum, p) => sum + p, 0);
+        const label = slots.map((x) => x.label).join(', ');
         const now = new Date();
         // Never past the opening of the first day (data model §6.7).
         const byHours = new Date(now.getTime() + event.paymentDeadlineHours * 3_600_000);
@@ -168,7 +188,7 @@ export class OrganizerVendorsService {
         const vendor = application.vendorProfile.user;
         const assignment = await tx.slotAssignment.create({
           data: {
-            slotId,
+            slots: { create: slots.map((x, n) => ({ slotId: x.id, priceLocked: prices[n] })) },
             eventId,
             applicationId,
             vendorProfileId: application.vendorProfileId,
@@ -185,7 +205,7 @@ export class OrganizerVendorsService {
           action: 'assignment.assign',
           entityType: 'slot_assignment',
           entityId: assignment.id,
-          changes: { status: { from: null, to: 'assigned' }, slot: slot.label, price },
+          changes: { status: { from: null, to: 'assigned' }, slot: label, price },
         });
         const config = appConfig();
         await this.outbox.queue(tx, {
@@ -195,7 +215,7 @@ export class OrganizerVendorsService {
           payload: {
             name: vendor.fullName,
             eventName: event.name,
-            slotLabel: slot.label,
+            slotLabel: label,
             amount: formatPeso(price),
             deadlineAt: deadlineAt.toISOString(),
             instructions: instructions.map((i) => [i.label, i.accountNumber].filter(Boolean).join(': ')),

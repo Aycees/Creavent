@@ -1,3 +1,4 @@
+import { slotWords } from '@creavent/shared';
 import { render } from 'react-email';
 import { z } from 'zod';
 import type { NotificationType } from '../../generated/prisma/client.js';
@@ -188,13 +189,13 @@ const templates = {
       url: z.string(),
       supportEmail: z.string(),
     }),
-    subject: (p: { slotLabel: string; eventName: string }) => `Slot ${p.slotLabel} at ${p.eventName}: pay to confirm`,
+    subject: (p: { slotLabel: string; eventName: string }) => `${slotWords(p.slotLabel, true)} at ${p.eventName}: pay to confirm`,
     body: (p: { name: string; eventName: string; slotLabel: string; amount: string; deadlineAt: string; instructions: string[]; url: string }) => (
       <>
-        <Heading>{`You got slot ${p.slotLabel}`}</Heading>
+        <Heading>{`You got ${slotWords(p.slotLabel)}`}</Heading>
         <Paragraph>Hi {firstName(p.name)},</Paragraph>
         <Paragraph>
-          The organizer of {p.eventName} assigned you slot {p.slotLabel}. Pay {p.amount} by {manila.format(new Date(p.deadlineAt))}{' '}
+          The organizer of {p.eventName} assigned you {slotWords(p.slotLabel)}. Pay {p.amount} by {manila.format(new Date(p.deadlineAt))}{' '}
           (Philippine time), then upload a screenshot of your payment. Your slot is reserved once the organizer approves it.
         </Paragraph>
         {p.instructions.length > 0 && <InfoBox label="Pay the organizer with" lines={p.instructions} />}
@@ -213,7 +214,7 @@ const templates = {
         <Heading>Proof of payment to check</Heading>
         <Paragraph>Hi {firstName(p.name)},</Paragraph>
         <Paragraph>
-          {p.shopName} uploaded proof of paying {p.amount} for slot {p.slotLabel} at {p.eventName}. Check the reference in that
+          {p.shopName} uploaded proof of paying {p.amount} for {slotWords(p.slotLabel)} at {p.eventName}. Check the reference in that
           account&apos;s history before you approve it.
         </Paragraph>
         <ActionButton href={p.url}>Review the payment</ActionButton>
@@ -222,23 +223,23 @@ const templates = {
   },
   payment_approved: {
     payload: z.object({ name: z.string(), eventName: z.string(), slotLabel: z.string(), amount: z.string(), url: z.string(), supportEmail: z.string() }),
-    subject: (p: { slotLabel: string; eventName: string }) => `You're confirmed: slot ${p.slotLabel} at ${p.eventName}`,
+    subject: (p: { slotLabel: string; eventName: string }) => `You're confirmed: ${slotWords(p.slotLabel)} at ${p.eventName}`,
     body: (p: { name: string; eventName: string; slotLabel: string; url: string }) => (
       <>
         <Heading>You&apos;re confirmed</Heading>
         <Paragraph>Hi {firstName(p.name)},</Paragraph>
-        <Paragraph>The organizer approved your payment. Slot {p.slotLabel} at {p.eventName} is reserved for you.</Paragraph>
+        <Paragraph>The organizer approved your payment. {slotWords(p.slotLabel, true)} at {p.eventName} {p.slotLabel.includes(', ') ? 'are' : 'is'} reserved for you.</Paragraph>
         <ActionButton href={p.url}>See your slot and setup details</ActionButton>
       </>
     ),
   },
   payment_rejected: {
     payload: z.object({ name: z.string(), eventName: z.string(), slotLabel: z.string(), amount: z.string(), reason: z.string(), url: z.string(), supportEmail: z.string() }),
-    subject: (p: { slotLabel: string }) => `Your proof for slot ${p.slotLabel} needs another look`,
+    subject: (p: { slotLabel: string }) => `Your proof for ${slotWords(p.slotLabel)} needs another look`,
     body: (p: { name: string; eventName: string; slotLabel: string; reason: string; url: string }) => (
       <>
         <Paragraph>Hi {firstName(p.name)},</Paragraph>
-        <Paragraph>The organizer of {p.eventName} couldn&apos;t approve your proof of payment for slot {p.slotLabel}.</Paragraph>
+        <Paragraph>The organizer of {p.eventName} couldn&apos;t approve your proof of payment for {slotWords(p.slotLabel)}.</Paragraph>
         <InfoBox label="What to fix" lines={[p.reason]} />
         <Paragraph>Fix it and upload a new screenshot. Your slot stays yours unless the organizer removes you.</Paragraph>
         <ActionButton href={p.url}>Upload new proof</ActionButton>
@@ -247,14 +248,14 @@ const templates = {
   },
   slot_released: {
     payload: z.object({ name: z.string(), shopName: z.string(), eventName: z.string(), slotLabel: z.string(), newPreference: z.string().optional(), url: z.string(), supportEmail: z.string() }),
-    subject: (p: { shopName: string; slotLabel: string }) => `${p.shopName} released slot ${p.slotLabel}`,
+    subject: (p: { shopName: string; slotLabel: string }) => `${p.shopName} released ${slotWords(p.slotLabel)}`,
     body: (p: { name: string; shopName: string; eventName: string; slotLabel: string; newPreference?: string; url: string }) => (
       <>
         <Paragraph>Hi {firstName(p.name)},</Paragraph>
         <Paragraph>
-          {p.shopName} released slot {p.slotLabel} at {p.eventName} before paying. The slot is open again, and they&apos;re back in
-          your approved list without a slot.
-          {p.newPreference ? ` They'd like slot ${p.newPreference} instead.` : ''}
+          {p.shopName} released {slotWords(p.slotLabel)} at {p.eventName} before paying.{' '}
+          {p.slotLabel.includes(', ') ? 'The slots are' : 'The slot is'} open again, and they&apos;re back in your approved list without a slot.
+          {p.newPreference ? ` They'd like ${slotWords(p.newPreference)} instead.` : ''}
         </Paragraph>
         <ActionButton href={p.url}>See vendors and slots</ActionButton>
       </>

@@ -274,11 +274,19 @@ export function groupSlots<T extends { label: string; section: string | null }>(
   return [...groups].map(([name, list]) => ({ name, slots: list }));
 }
 
+// One vendor can ask for and hold up to this many slots (decision P2).
+export const MAX_SLOTS_PER_VENDOR = 10;
+
 export const slotSettingsSchema = z.object({
   mode: slotModeSchema,
   defaultPrice: priceSchema,
   vendorFloorPlanFileId: z.uuid().nullable(),
+  maxSlotsPerVendor: z.number().int().min(1).max(MAX_SLOTS_PER_VENDOR, `Allow up to ${MAX_SLOTS_PER_VENDOR} slots per vendor`).default(1),
 });
+
+// Keep a slot for the organizer's own booth or a sponsor (decision P1).
+export const setAsideSchema = z.object({ setAside: z.boolean(), note: optionalText(120) });
+export type SetAsideInput = z.input<typeof setAsideSchema>;
 export type SlotSettingsInput = z.input<typeof slotSettingsSchema>;
 
 export const publicFloorPlanSchema = z.object({ fileId: z.uuid().nullable() });
@@ -361,6 +369,7 @@ export const eventSetupSchema = z.object({
   slots: z.object({
     mode: slotModeSchema,
     defaultPrice: z.number().nullable(),
+    maxSlotsPerVendor: z.number().int(),
     vendorFloorPlan: imageSchema.nullable(),
     publicFloorPlan: imageSchema.nullable(),
     list: z.array(
@@ -372,6 +381,8 @@ export const eventSetupSchema = z.object({
         note: z.string().nullable(),
         // The slot's own price. Null: the default price.
         price: z.number().nullable(),
+        // Kept by the organizer, with their private note (decision P1).
+        setAside: z.object({ note: z.string().nullable() }).nullable(),
       }),
     ),
   }),

@@ -14,3 +14,10 @@ export function formatPriceRange(amounts: number[]) {
   const max = Math.max(...amounts);
   return min === max ? formatPeso(min) : `${formatPeso(min)} to ${formatPeso(max)}`;
 }
+
+// "slot B-04", or "slots B-04, B-05" for a vendor's several slots, which are
+// always named together (decision P6).
+export function slotWords(label: string, capital = false) {
+  const word = label.includes(', ') ? 'slots' : 'slot';
+  return `${capital ? word[0].toUpperCase() + word.slice(1) : word} ${label}`;
+}

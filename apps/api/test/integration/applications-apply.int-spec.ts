@@ -125,15 +125,16 @@ describe('applying to an event', () => {
       expect(res.status).toBe(201);
       const application = await prisma.application.findUniqueOrThrow({
         where: { id: res.body.id },
-        include: { categories: true, documents: true },
+        include: { categories: true, documents: true, preferredSlots: true },
       });
+      expect(application.preferredSlots).toEqual([]);
       expect(application).toMatchObject({
         status: 'submitted',
         eventId: s.eventId,
         vendorProfileId: s.vendor.profile.id,
         policyTextSnapshot: 'Pay within 24 hours.',
         vendorNote: 'Near other clothing stalls, please.',
-        preferredSlotId: null,
+        slotsRequested: 1,
       });
       expect(application.categories.map((c) => c.categoryId)).toEqual([s.preloved.id]);
       expect(application.documents).toHaveLength(1);
@@ -224,14 +225,14 @@ describe('applying to an event', () => {
 
     it('keeps a preferred slot only when the event lets vendors choose', async () => {
       const assigns = await setup();
-      const ignored = await apply(assigns, { preferredSlotId: assigns.slots[0].id });
-      expect((await prisma.application.findUniqueOrThrow({ where: { id: ignored.body.id } })).preferredSlotId).toBeNull();
+      const ignored = await apply(assigns, { preferredSlotIds: [assigns.slots[0].id] });
+      expect(await prisma.applicationPreferredSlot.count({ where: { applicationId: ignored.body.id } })).toBe(0);
 
       await resetDatabase(prisma);
       const choose = await setup({ slotMode: 'vendor_preference' });
-      const kept = await apply(choose, { preferredSlotId: choose.slots[2].id });
+      const kept = await apply(choose, { preferredSlotIds: [choose.slots[2].id] });
       expect(kept.status).toBe(201);
-      expect((await prisma.application.findUniqueOrThrow({ where: { id: kept.body.id } })).preferredSlotId).toBe(choose.slots[2].id);
+      expect(await prisma.applicationPreferredSlot.findMany({ where: { applicationId: kept.body.id } })).toMatchObject([{ slotId: choose.slots[2].id }]);
     });
 
     it('refuses a preferred slot of another event or one that was removed', async () => {
@@ -240,7 +241,7 @@ describe('applying to an event', () => {
       await prisma.slot.update({ where: { id: s.slots[1].id }, data: { deletedAt: new Date() } });
 
       for (const slotId of [other.slots[0].id, s.slots[1].id]) {
-        const res = await apply(s, { preferredSlotId: slotId });
+        const res = await apply(s, { preferredSlotIds: [slotId] });
         expect(res.status).toBe(400);
         expect(res.body.message).toBe('Pick an open slot, or No preference');
       }

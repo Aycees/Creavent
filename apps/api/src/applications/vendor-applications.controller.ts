@@ -71,7 +71,7 @@ export class VendorApplicationsController {
   @Put('vendor/applications/:id/preference')
   @ResponseSchema(vendorApplicationSchema)
   async preference(@CurrentUser() user: SessionUser, @Param('id', ParseUUIDPipe) id: string, @Body({ schema: preferenceSchema }) body: z.output<typeof preferenceSchema>) {
-    await this.applications.setPreference(user.id, id, body.preferredSlotId);
+    await this.applications.setPreference(user.id, id, body.preferredSlotIds);
     return this.applications.detail(user.id, id);
   }
 
@@ -79,7 +79,7 @@ export class VendorApplicationsController {
   @ApiCreatedResponse({ standardSchema: vendorApplicationSchema })
   @ResponseSchema(vendorApplicationSchema)
   async changeSlot(@CurrentUser() user: SessionUser, @Param('id', ParseUUIDPipe) id: string, @Body({ schema: changeSlotSchema }) body: z.output<typeof changeSlotSchema>) {
-    await this.applications.changeSlot(user.id, id, body.preferredSlotId);
+    await this.applications.changeSlot(user.id, id, body.preferredSlotIds);
     return this.applications.detail(user.id, id);
   }
 

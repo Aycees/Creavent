@@ -113,7 +113,7 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 2. Set vendor requirements: allowed product categories, limits on similar vendors, required permits (each for every vendor, or for one category only).
 3. Check the cancellation and withdrawal policy. It is copied from the organizer's last event. On a first event, edit the example and save it.
 4. Optional: upload the vendor floor plan image (layout with empty, numbered slots) at the top of the Slots tab. It stays next to the slot list as a reference while adding slots.
-5. Add slots: optional section (for example, Indoor or Outdoor), number, size, optional note, and price (one price for all slots, or per slot). **Add a row of slots** creates a numbered range at once (for example, C-01 to C-06). Choose how slots are filled: **I assign slots** (the default) or **Vendors choose a preferred slot**.
+5. Add slots: optional section (for example, Indoor or Outdoor), number, size, optional note, and price (one price for all slots, or per slot). **Add a row of slots** creates a numbered range at once (for example, C-01 to C-06). Choose how slots are filled: **I assign slots** (the default) or **Vendors choose a preferred slot**, and **Slots per vendor** (1 by default, up to 10).
 6. Add one or more payment options (for example, GCash and a bank account, each with account details or a QR code) and the payment deadline (24 hours by default).
 7. Optional: **Preview as vendor** to check what vendors will see.
 8. **Open the event to vendors.** Vendors can now find it and apply. Attendees can't see it yet.
@@ -128,6 +128,7 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - **Slot numbers on the image don't match the slot list:** the system doesn't check. The organizer fixes the image or the list. **(screen: the upload step reminds them)**
 - **Vendors choose a preferred slot, but there's no floor plan image:** vendors still pick from the list, grouped by section with size and note. The Slots tab suggests uploading one. **(screen)**
 - **Organizer switches to "I assign slots" after some vendors chose a preference:** those preferences are kept and still shown when assigning. New applicants don't see the choice. Spec §3.4.
+- **Organizer keeps a slot for their own booth or a sponsor:** they tick **Set aside this slot** in the slot's Edit dialog and add a note only they see. Vendors see it as Taken, and it can't be assigned. Unticking opens it again. A slot with a vendor can't be set aside. Decision P1. **(screen)**
 
 **Acceptance criteria (Phase 2)**
 
@@ -152,6 +153,8 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - The organizer adds, edits, and removes slots (label, optional section, size, note, price). Labels are unique in the event. A slot without its own price uses the default price. Prices are 0 or more.
 - **Add a row of slots** makes labels from a prefix and a number range (for example C, 01 to 06 → C-01 to C-06), keeping the zero padding, at most 200 at once. A label that already exists stops the whole row with a message.
 - The slot mode ("I assign slots" by default, or "Vendors choose a preferred slot") can be changed at any time.
+- **Slots per vendor** (1 to 10) is a select on the Slots tab, saved with the other slot settings. Decision P2.
+- The slot's Edit dialog has **Set aside this slot** with an optional "What it's for" note. A set-aside slot shows "Set aside" and the note in the slot list, is hatched on Vendors and slots, and counts under "Set aside" instead of open. Setting aside a slot with a vendor is refused with "A-01 has a vendor. Remove the vendor from it first." Decision P1.
 - The vendor floor plan is uploaded on the Slots tab and shown next to the list (behind "Show floor plan" on phones). The public floor plan has its own tab. Both are optional images up to 10 MB.
 
 *Open to vendors*
@@ -171,7 +174,7 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 
 1. Browse upcoming events (open to vendors or already announced). Filter by date and location. Each event shows the vendor's remaining spots in their categories, when the organizer set a limit.
 2. Open an event: type, date, location, the applications close date, requirements (accepted categories with spots left, and the documents to upload), slots grouped by section with prices and how many are open, vendor floor plan, policy, organizer contact details, and the "Approved by Creavent" badge.
-3. Tap **Apply**. Pick the categories and upload the required permits. If the organizer lets vendors choose, pick a preferred slot from the floor plan and the list of open slots, or "No preference". Applying means the vendor accepts the event policy.
+3. Tap **Apply**. Pick the categories and upload the required permits. When the event allows more than one slot per vendor, say how many slots. If the organizer lets vendors choose, pick preferred slots (up to that many) from the floor plan and the list of open slots, or "No preference". Applying means the vendor accepts the event policy.
 4. Status shows **Submitted**. The vendor waits for the organizer.
 
 **Edge cases**
@@ -183,6 +186,8 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - **The slot they want is taken:** it shows as Taken and can't be picked. They pick another or "No preference". Spec §4.3.
 - **Another vendor prefers the same slot:** both can pick it, and neither sees the other's choice. The organizer decides. Spec §5.
 - **Vendor wants a different preferred slot after applying:** until a slot is assigned they change it, or pick "No preference", from the application page. With an unpaid slot they pick another slot, which releases the assigned one. Spec §4.3.
+- **Vendor needs two slots for a bigger setup:** they pick 2 under "How many slots?" (when the organizer allows it), and up to two preferred slots. When they're full, another slot can't be picked until one is unpicked. The number can't be changed after applying. Decision P4.
+- **Vendor asks for more slots than the event allows:** refused with "This event allows up to 2 slots per vendor". Decision P2.
 
 **Acceptance criteria (Phase 2: finding events)**
 - `/vendor/events` lists visible events that are open to vendors or announced and end today or later, soonest first, with search by name or venue, a date filter (Any date, This weekend, Next 30 days), and a city filter. Each shows the date, type, status, name, schedule, venue, the organizer with "Approved by Creavent", the slot fee range, the applications close date, "Choose a preferred slot" when the event allows it, and spots left in the vendor's categories when the organizer set a limit.
@@ -200,7 +205,7 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 
 **Acceptance criteria (Phase 3 review: change of plans, decided 2026-11-15)**
 - While applied or approved without a slot, the application page shows the preferred slot with **Change slot** and **No preference** (when the event lets vendors choose) and **Withdraw application**, each with a confirm step where needed.
-- With an assigned, unpaid slot, a **Change of plans?** panel offers **Pick another slot** (only when the event lets vendors choose), **Release slot**, and **Withdraw from this event**. Picking another slot releases the assigned one and sets the new open slot as the preference; the organizer gets the slot-released email naming the new pick. Withdrawing releases the slot and archives its payment. A reserved (paid) slot refuses all three: the vendor contacts the organizer.
+- With an assigned, unpaid slot, a **Change of plans?** panel offers **Pick another slot** (only when the event lets vendors choose), **Release slot**, and **Withdraw from this event**. With several slots they read **Pick other slots** and **Release slots B-03, B-04**, and each acts on all of them together (decision P6). Picking another slot releases the assigned one and sets the new open slot as the preference; the organizer gets the slot-released email naming the new pick. Withdrawing releases the slot and archives its payment. A reserved (paid) slot refuses all three: the vendor contacts the organizer.
 - `/vendor/applications/[id]/slot` shows the slots by section, open or taken, and saves the new pick as a slot change or a preference.
 - The progress timeline only counts an active slot, so after a release it goes back to "Slot assigned: waiting for the organizer". Every change refreshes the other screens (lists, dashboards, Vendors and slots) without a reload.
 - `/vendor/applications` splits Active from Past and closed, with the next step for each.
@@ -245,7 +250,9 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 **Edge cases**
 - **No slots are open:** the vendor stays in the "Approved, no slot" list. The vendor sees "No slot assigned yet". There's no waitlist. Spec §5.
 - **Vendor needs a different slot:** the organizer removes them from the slot and assigns another. There's no "move" button. Spec §5.
-- **Vendor already has a slot:** they can't be assigned a second one at the same event. Spec §5.
+- **Vendor already has a slot:** they can't be assigned more at the same event. To give them other slots, they release theirs or the organizer removes them. Spec §5, decision P5.
+- **Vendor asked for 2 slots:** the Assign dialog lets the organizer pick up to 2 open slots, with their open preferred slots selected, and shows the total. They get one email with both slots and the total. Assigning more than asked for is refused. Decisions P3, P5. **(screen)**
+- **The organizer has only one slot left for a vendor who asked for 2:** they can assign just that one. The amount is that slot's price. Decision P5.
 - **The preferred slot was given to someone else:** the Assign slot dialog says "Preferred slot taken: E-11", and the organizer picks another. Spec §5. **(screen)**
 - **Two vendors prefer the same slot:** the slot shows "Preferred by 2". The organizer assigns one, and the other's preferred slot then shows as taken. Spec §5. **(screen)**
 

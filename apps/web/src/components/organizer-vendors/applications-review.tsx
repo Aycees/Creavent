@@ -126,20 +126,28 @@ function ApplicationCard({
             </a>
           )}
         </dd>
-        {preferredSlots || a.preferredSlot ? (
+        {a.slotsRequested > 1 && (
           <>
-            <dt className="text-muted">Preferred slot</dt>
-            <dd>
-              {a.preferredSlot === null ? (
-                "No preference"
-              ) : a.preferredSlot.state === "removed" ? (
-                `${a.preferredSlot.label} is no longer available`
-              ) : (
-                <>
-                  <span className="font-mono">{a.preferredSlot.label}</span>
-                  {a.preferredSlot.state === "taken" && <span className="text-muted"> · taken by another vendor</span>}
-                </>
-              )}
+            <dt className="text-muted">Slots</dt>
+            <dd>{`${a.slotsRequested} slots`}</dd>
+          </>
+        )}
+        {preferredSlots || a.preferredSlots.length > 0 ? (
+          <>
+            <dt className="text-muted">{a.preferredSlots.length > 1 ? "Preferred slots" : "Preferred slot"}</dt>
+            <dd className="flex flex-col">
+              {a.preferredSlots.length === 0
+                ? "No preference"
+                : a.preferredSlots.map((p) =>
+                    p.state === "removed" ? (
+                      <span key={p.id}>{`${p.label} is no longer available`}</span>
+                    ) : (
+                      <span key={p.id}>
+                        <span className="font-mono">{p.label}</span>
+                        {p.state === "taken" && <span className="text-muted"> · taken by another vendor</span>}
+                      </span>
+                    )
+                  )}
             </dd>
           </>
         ) : null}

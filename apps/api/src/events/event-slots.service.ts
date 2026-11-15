@@ -2,11 +2,13 @@ import { ConflictException, Injectable, NotFoundException } from '@nestjs/common
 import {
   rowLabels,
   type publicFloorPlanSchema,
+  type setAsideSchema,
   type slotRowSchema,
   type slotSchema,
   type slotSettingsSchema,
 } from '@creavent/shared';
 import type { z } from 'zod';
+import { writeAuditLog } from '../audit/audit-log.js';
 import { assertAttachable, retireFiles } from '../files/files.service.js';
 import { PrismaService, type Tx } from '../prisma/prisma.service.js';
 import { assertStillReady } from './event-status.js';
@@ -86,7 +88,33 @@ export class EventSlotsService {
       await retireFiles(tx, [event.vendorFloorPlanFileId], [input.vendorFloorPlanFileId]);
       await tx.event.update({
         where: { id: event.id },
-        data: { slotMode: input.mode, defaultSlotPrice: input.defaultPrice, vendorFloorPlanFileId: input.vendorFloorPlanFileId },
+        data: {
+          slotMode: input.mode,
+          defaultSlotPrice: input.defaultPrice,
+          vendorFloorPlanFileId: input.vendorFloorPlanFileId,
+          maxSlotsPerVendor: input.maxSlotsPerVendor,
+        },
+      });
+    });
+    return this.events.setup(userId, eventId);
+  }
+
+  // Keep a slot for the organizer's own booth, a sponsor, or another
+  // arrangement, or open it again (decision P1). Not while it has a vendor.
+  async setAside(userId: string, eventId: string, slotId: string, input: z.output<typeof setAsideSchema>) {
+    await this.prisma.$transaction(async (tx) => {
+      const event = await ownEvent(tx, userId, eventId);
+      const slot = await ownSlot(tx, event.id, slotId);
+      if (input.setAside) await assertNoVendor(tx, slot);
+      const data = input.setAside ? { setAsideAt: slot.setAsideAt ?? new Date(), setAsideNote: input.note } : { setAsideAt: null, setAsideNote: null };
+      await tx.slot.update({ where: { id: slot.id }, data });
+      await writeAuditLog(tx, {
+        actorUserId: userId,
+        action: input.setAside ? 'slot.set_aside' : 'slot.open',
+        entityType: 'slot',
+        entityId: slot.id,
+        changes: { setAside: { from: slot.setAsideAt !== null, to: input.setAside } },
+        reason: input.setAside ? input.note : null,
       });
     });
     return this.events.setup(userId, eventId);
@@ -108,7 +136,7 @@ export class EventSlotsService {
 
 // An assigned or reserved slot can't be deleted or renamed (data model §6.5).
 async function assertNoVendor(tx: Tx, slot: { id: string; label: string }) {
-  const active = await tx.slotAssignment.findFirst({ where: { slotId: slot.id, status: { in: ['assigned', 'reserved'] } } });
+  const active = await tx.slotAssignmentSlot.findFirst({ where: { slotId: slot.id, active: true } });
   if (active) throw new ConflictException(`${slot.label} has a vendor. Remove the vendor from it first.`);
 }
 

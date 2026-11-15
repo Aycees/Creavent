@@ -177,14 +177,16 @@ Weekend markets often run several days in a row, for example Friday to Sunday.
   - **I assign slots** (the default): vendors apply without choosing a slot, and the organizer assigns one after approving them.
   - **Vendors choose a preferred slot:** when applying, the vendor can pick one open slot as their preference, or "No preference" (section 4.3). The organizer still assigns every slot (section 5) and sees the preference when assigning.
   - The mode can be changed at any time. Preferences already sent are kept and still shown to the organizer. Switching to "I assign slots" only removes the choice for new applications.
+- **Slots per vendor** (decision P2): the Slots tab sets how many slots one vendor can ask for, from 1 (the default) to 10. Lowering it doesn't change applications or slots already given.
+- **Set aside a slot** (decision P1): from a slot's Edit dialog, the organizer can keep it for their own booth, a sponsor, or another arrangement, with an optional note only they see (for example, "Sponsor booth"). A set-aside slot can't be assigned or preferred: vendors see it as Taken, the organizer sees "Set aside" with the note, and it isn't counted as open. A slot with a vendor can't be set aside. Unticking it opens the slot again. "Set aside" is used because "reserved" means a slot whose payment is approved.
 - Set slot pricing (one price for all slots, or a price per slot). A price change applies only to slots that are still open. Assigned and reserved slots keep the price they had when assigned (section 6.1).
 - A slot that is `assigned` or `reserved` cannot be deleted or renamed. The organizer removes the vendor first (section 6.6).
 - **Floor plan images.** The organizer uploads up to two images, made in any tool (Canva, a photo of a drawing, and so on):
   - **Vendor floor plan:** the layout with empty, numbered slots. It is uploaded at the top of the Slots tab and shown next to the slot list as a reference while the organizer adds slots (on phones, behind "Show floor plan", and tapping it opens it full screen). Signed-in vendors see it while the event is open to vendors or announced, so they know where each slot is, and on the apply form when they choose a preferred slot.
   - **Public floor plan:** the final layout with the vendors placed. Attendees see it once the event is announced. The organizer uploads it on the Public floor plan tab after finalizing vendors.
   - Both are optional. Slot numbers on the images should match the slot list, but the system does not check this.
-- View the vendor list and slot availability at a glance (slot: open, assigned, reserved; payment: pending, submitted, approved, rejected, overdue)
-- **Slots at a glance:** the organizer's vendors page starts with a slot overview that counts slots that are open, assigned, reserved, and overdue.
+- View the vendor list and slot availability at a glance (slot: open, assigned, reserved, set aside; payment: pending, submitted, approved, rejected, overdue)
+- **Slots at a glance:** the organizer's vendors page starts with a slot overview that counts slots that are open, assigned, reserved, overdue, and set aside.
 - Everything works on phones, including uploading floor plan images (the product is mobile-first).
 
 ### 3.5 Payments
@@ -228,7 +230,8 @@ The organizer dashboard (`/organizer`) shows:
 
 ### 4.3 Slots
 - Slots are assigned by the organizer (section 5). Vendors cannot book or hold a slot themselves.
-- **Preferred slot:** when the organizer chose "Vendors choose a preferred slot" (section 3.4), the apply form shows the vendor floor plan (if uploaded) and the slots grouped by section, each marked **Open** or **Taken** (taken means `assigned` or `reserved`). The vendor picks one open slot, or "No preference". It is optional.
+- **How many slots** (decision P4): when the event allows more than one slot per vendor, the apply form asks "How many slots?", up to the limit. The number can't be changed after applying.
+- **Preferred slot:** when the organizer chose "Vendors choose a preferred slot" (section 3.4), the apply form shows the vendor floor plan (if uploaded) and the slots grouped by section, each marked **Open** or **Taken** (taken means `assigned`, `reserved`, or set aside). The vendor picks open slots, up to the number they asked for, or "No preference". It is optional.
   - A preference holds nothing. Other vendors can prefer the same slot, and it stays open until the organizer assigns someone. The form says "Your pick isn't reserved until the organizer assigns it."
   - Until a slot is assigned, the vendor can change the preference to another open slot, or clear it ("No preference"), from the application page. With an assigned slot that isn't paid yet, the vendor can **pick another slot**: the assigned slot is released and the new pick becomes the preference for the organizer to assign. The organizer is emailed (decided 2026-11-15).
 - See the assigned slot's number, size, and price, and the vendor floor plan image if the organizer uploaded one
@@ -268,7 +271,8 @@ Rules:
 - A slot belongs to one vendor at a time.
 - Several vendors can prefer the same slot. The organizer sees "Preferred by 2" on that slot and decides who gets it. The others are assigned elsewhere or stay without a slot.
 - A preferred slot that the organizer later deletes shows as "No longer available" on the application. The organizer assigns another.
-- A vendor can have only one slot per event (for now). The slot has its own payment amount, deadline, and proof of payment.
+- A vendor can hold up to the event's slots-per-vendor limit (decision P2), and no more than they asked for. A vendor's slots are one unit (decision P3): the organizer assigns them in one step, and they have one amount (the sum of the slot prices, locked when assigned), one deadline, one payment, and one proof. They are released, removed, or swapped together (decision P6), and shown as one line ("B-03, B-04").
+- A set-aside slot can't be assigned (section 3.4).
 - There is no "move" feature. To change a vendor's slot, the organizer removes the vendor from the slot, which returns it to `open`, and then assigns another.
 - No waitlist: when no slots are open, approved vendors simply have no slot. The organizer sees them in the "approved, no slot" list and can assign them if a slot opens.
 - Assignment works the same before and after the event is announced.
@@ -308,7 +312,7 @@ Proof-of-payment images are visible to the vendor who uploaded them, the organiz
 ### 6.6 Cancellations, withdrawals, and removal
 Cancellation and withdrawal rules (refunds, notice periods) are decided by each organizer and written in their event policy. Creavent does not set or enforce them. The platform only provides a way to release a slot and a way to remove a vendor.
 
-- **Release a slot:** a vendor whose slot is assigned (payment not yet approved) can always release it. Organizers cannot turn this off. The slot returns to `open` and the organizer is notified by email.
+- **Release a slot:** a vendor whose slot is assigned (payment not yet approved) can always release it. Organizers cannot turn this off. The slot returns to `open` and the organizer is notified by email. A vendor with several slots releases all of them together (decision P6).
 - **After the slot is reserved:** the vendor contacts the organizer using the contact details on the event. The organizer decides under their own policy.
 - **Organizer removes a vendor:** the organizer can remove a vendor from an event at any time, for example when a withdrawal is agreed, a vendor cancels, or a payment is overdue. The slot returns to `open` and the vendor is notified by email.
 - **Records are kept on removal:** removing a vendor does not delete their proof-of-payment files. They are marked as archived and become read-only. The vendor, the organizer, and admins can still view and download them, so either side has evidence if a dispute comes up. See retention in section 6.7.
@@ -451,7 +455,7 @@ All notifications are sent by email through [Resend](https://resend.com). There 
 - Withdrawal and cancellation rules are set by each organizer. The platform only provides release, removal, and contact details.
 - Vendors can always release an assigned slot before payment is approved. Organizers cannot turn this off.
 - Removing a vendor does not delete their proof of payment. Records are archived, readable by both sides and admins, and deleted 90 days after the event.
-- A vendor can have only one slot per event (for now).
+- A vendor can hold several slots at an event, up to the organizer's limit (default 1). They are assigned, paid, and released together.
 - Slots can have different sizes and prices.
 - No slot-move feature. To change slots, the organizer removes and reassigns.
 - No cap on applications. When slots are full, the organizer can still approve applications.
@@ -473,7 +477,7 @@ All notifications are sent by email through [Resend](https://resend.com). There 
 - Price and payment instructions are locked onto a slot when it is assigned. Assigned and reserved slots cannot be deleted or renamed.
 - Events go `draft` → `open to vendors` → `announced`. Organizers finalize vendors before announcing to attendees.
 - No payment deadline runs past the event start.
-- Events run 1 to 7 days in a row with the same hours every day. Vendors are locked in for the whole event, with one slot, one price, and one payment (section 3.1.1).
+- Events run 1 to 7 days in a row with the same hours every day. Vendors are locked in for the whole event, with one set of slots, one price, and one payment (section 3.1.1).
 - A suspended organizer's upcoming events are hidden by an admin, who emails affected vendors.
 - One account can hold the vendor role, the organizer role, or both.
 - Files are stored in Cloudflare R2 through the S3 SDK, and the API on Render handles every upload (section 11). Event covers, organizer logos, avatars, vendor photos, and floor plan images are public. Proofs of payment, payment QR codes, and application documents are private.

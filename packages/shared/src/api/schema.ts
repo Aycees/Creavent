@@ -580,6 +580,22 @@ export interface paths {
         patch: operations["OrganizerEventsController_updateSlot"];
         trace?: never;
     };
+    "/api/organizer/events/{id}/slots/{slotId}/set-aside": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["OrganizerEventsController_setAside"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/organizer/events/{id}/slot-settings": {
         parameters: {
             query?: never;
@@ -3181,6 +3197,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -3199,6 +3216,9 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -3389,6 +3409,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -3407,6 +3428,9 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -3558,6 +3582,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -3576,6 +3601,9 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -3715,6 +3743,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -3733,6 +3762,9 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -3883,6 +3915,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -3901,6 +3934,9 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -4044,6 +4080,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -4062,6 +4099,9 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -4165,6 +4205,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -4183,6 +4224,9 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -4327,6 +4371,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -4345,6 +4390,9 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -4448,6 +4496,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -4466,6 +4515,9 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -4600,6 +4652,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -4618,6 +4671,9 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -4762,6 +4818,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -4780,6 +4837,9 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -4804,23 +4864,21 @@ export interface operations {
             };
         };
     };
-    OrganizerEventsController_slotSettings: {
+    OrganizerEventsController_setAside: {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 id: string;
+                slotId: string;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
                 "application/json": {
-                    /** @enum {string} */
-                    mode: "organizer_assigns" | "vendor_preference";
-                    defaultPrice: number | null;
-                    /** Format: uuid */
-                    vendorFloorPlanFileId: string | null;
+                    setAside: boolean;
+                    note?: string | null;
                 };
             };
         };
@@ -4923,6 +4981,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -4941,6 +5000,176 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OrganizerEventsController_slotSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    mode: "organizer_assigns" | "vendor_preference";
+                    defaultPrice: number | null;
+                    /** Format: uuid */
+                    vendorFloorPlanFileId: string | null;
+                    /** @default 1 */
+                    maxSlotsPerVendor?: number;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        slug: string;
+                        /** @enum {string} */
+                        status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                        applicationsOpen: boolean;
+                        checklist: {
+                            details: boolean;
+                            requirements: boolean;
+                            policy: boolean;
+                            slots: boolean;
+                            payments: boolean;
+                        };
+                        organizerApproved: boolean;
+                        details: {
+                            name: string;
+                            /** Format: uuid */
+                            eventTypeId: string;
+                            description: string | null;
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            venueName: string | null;
+                            addressLine: string | null;
+                            city: string | null;
+                            cover: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            vendorContactInfo: string | null;
+                            applicationsCloseAt: string | null;
+                            ingressInfo: string | null;
+                        };
+                        eventTypes: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            slug: string;
+                        }[];
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        requirements: {
+                            categories: {
+                                /** Format: uuid */
+                                categoryId: string;
+                                maxVendors: number | null;
+                            }[];
+                            documents: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                description: string | null;
+                                /** Format: uuid */
+                                categoryId: string | null;
+                            }[];
+                        };
+                        policy: {
+                            text: string | null;
+                            copiedFrom: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            } | null;
+                            example: string;
+                        };
+                        payments: {
+                            deadlineHours: number;
+                            methods: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                channel: "gcash" | "maya" | "bank" | "other";
+                                label: string;
+                                accountName: string | null;
+                                accountNumber: string | null;
+                                qr: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    url: string;
+                                } | null;
+                                notes: string | null;
+                            }[];
+                        };
+                        slots: {
+                            /** @enum {string} */
+                            mode: "organizer_assigns" | "vendor_preference";
+                            defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
+                            vendorFloorPlan: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            publicFloorPlan: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            list: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                section: string | null;
+                                sizeLabel: string | null;
+                                note: string | null;
+                                price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -5081,6 +5310,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -5099,6 +5329,9 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -5232,6 +5465,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -5250,6 +5484,9 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -5353,6 +5590,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -5371,6 +5609,9 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -5456,13 +5697,14 @@ export interface operations {
                                 url: string;
                                 isPdf: boolean;
                             }[];
-                            preferredSlot: {
+                            slotsRequested: number;
+                            preferredSlots: {
                                 /** Format: uuid */
                                 id: string;
                                 label: string;
                                 /** @enum {string} */
                                 state: "open" | "taken" | "removed";
-                            } | null;
+                            }[];
                             canReapply: boolean | null;
                         }[];
                     };
@@ -5602,6 +5844,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -5620,6 +5863,9 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -5883,11 +6129,14 @@ export interface operations {
                                 missing: string[];
                             };
                             submittedAt: string;
-                            preferredSlot: {
+                            slotsRequested: number;
+                            preferredSlots: {
+                                /** Format: uuid */
+                                id: string;
                                 label: string;
                                 /** @enum {string} */
                                 state: "open" | "taken" | "removed";
-                            } | null;
+                            }[];
                             slotLabel: string | null;
                         }[];
                     };
@@ -6012,7 +6261,10 @@ export interface operations {
                             uploadedAt: string;
                         }[];
                         missingDocuments: string[];
-                        preferredSlot: {
+                        slotsRequested: number;
+                        preferredSlots: {
+                            /** Format: uuid */
+                            id: string;
                             label: string;
                             section: string | null;
                             sizeLabel: string | null;
@@ -6020,7 +6272,7 @@ export interface operations {
                             /** @enum {string} */
                             state: "open" | "taken" | "removed";
                             preferredByOthers: number;
-                        } | null;
+                        }[];
                         assignment: {
                             /** @enum {string} */
                             status: "assigned" | "reserved" | "released" | "removed" | "canceled";
@@ -6087,6 +6339,7 @@ export interface operations {
                             policy: string | null;
                             deadlineHours: number;
                             preferredSlots: boolean;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlanUrl: string | null;
                         };
                         /** @enum {string|null} */
@@ -6163,11 +6416,10 @@ export interface operations {
                         requirementId: string;
                         fileIds: string[];
                     }[];
-                    /**
-                     * Format: uuid
-                     * @default null
-                     */
-                    preferredSlotId?: string | null;
+                    /** @default 1 */
+                    slotsRequested?: number;
+                    /** @default [] */
+                    preferredSlotIds?: string[];
                     note?: string | null;
                 };
             };
@@ -6421,19 +6673,26 @@ export interface operations {
                             contactEmail: string | null;
                             approved: boolean;
                         };
-                        preferredSlot: {
+                        slotsRequested: number;
+                        preferredSlots: {
+                            /** Format: uuid */
+                            id: string;
                             label: string;
                             /** @enum {string} */
                             state: "open" | "taken" | "removed";
-                        } | null;
+                        }[];
                         assignment: {
                             /** Format: uuid */
                             id: string;
                             /** @enum {string} */
                             status: "assigned" | "reserved" | "released" | "removed" | "canceled";
                             slotLabel: string;
-                            sizeLabel: string | null;
-                            note: string | null;
+                            slots: {
+                                label: string;
+                                sizeLabel: string | null;
+                                note: string | null;
+                                price: number;
+                            }[];
                             amountDue: number;
                             assignedAt: string;
                             deadlineAt: string;
@@ -6569,19 +6828,26 @@ export interface operations {
                             contactEmail: string | null;
                             approved: boolean;
                         };
-                        preferredSlot: {
+                        slotsRequested: number;
+                        preferredSlots: {
+                            /** Format: uuid */
+                            id: string;
                             label: string;
                             /** @enum {string} */
                             state: "open" | "taken" | "removed";
-                        } | null;
+                        }[];
                         assignment: {
                             /** Format: uuid */
                             id: string;
                             /** @enum {string} */
                             status: "assigned" | "reserved" | "released" | "removed" | "canceled";
                             slotLabel: string;
-                            sizeLabel: string | null;
-                            note: string | null;
+                            slots: {
+                                label: string;
+                                sizeLabel: string | null;
+                                note: string | null;
+                                price: number;
+                            }[];
                             amountDue: number;
                             assignedAt: string;
                             deadlineAt: string;
@@ -6675,19 +6941,26 @@ export interface operations {
                             contactEmail: string | null;
                             approved: boolean;
                         };
-                        preferredSlot: {
+                        slotsRequested: number;
+                        preferredSlots: {
+                            /** Format: uuid */
+                            id: string;
                             label: string;
                             /** @enum {string} */
                             state: "open" | "taken" | "removed";
-                        } | null;
+                        }[];
                         assignment: {
                             /** Format: uuid */
                             id: string;
                             /** @enum {string} */
                             status: "assigned" | "reserved" | "released" | "removed" | "canceled";
                             slotLabel: string;
-                            sizeLabel: string | null;
-                            note: string | null;
+                            slots: {
+                                label: string;
+                                sizeLabel: string | null;
+                                note: string | null;
+                                price: number;
+                            }[];
                             amountDue: number;
                             assignedAt: string;
                             deadlineAt: string;
@@ -6811,19 +7084,26 @@ export interface operations {
                             contactEmail: string | null;
                             approved: boolean;
                         };
-                        preferredSlot: {
+                        slotsRequested: number;
+                        preferredSlots: {
+                            /** Format: uuid */
+                            id: string;
                             label: string;
                             /** @enum {string} */
                             state: "open" | "taken" | "removed";
-                        } | null;
+                        }[];
                         assignment: {
                             /** Format: uuid */
                             id: string;
                             /** @enum {string} */
                             status: "assigned" | "reserved" | "released" | "removed" | "canceled";
                             slotLabel: string;
-                            sizeLabel: string | null;
-                            note: string | null;
+                            slots: {
+                                label: string;
+                                sizeLabel: string | null;
+                                note: string | null;
+                                price: number;
+                            }[];
                             amountDue: number;
                             assignedAt: string;
                             deadlineAt: string;
@@ -6917,19 +7197,26 @@ export interface operations {
                             contactEmail: string | null;
                             approved: boolean;
                         };
-                        preferredSlot: {
+                        slotsRequested: number;
+                        preferredSlots: {
+                            /** Format: uuid */
+                            id: string;
                             label: string;
                             /** @enum {string} */
                             state: "open" | "taken" | "removed";
-                        } | null;
+                        }[];
                         assignment: {
                             /** Format: uuid */
                             id: string;
                             /** @enum {string} */
                             status: "assigned" | "reserved" | "released" | "removed" | "canceled";
                             slotLabel: string;
-                            sizeLabel: string | null;
-                            note: string | null;
+                            slots: {
+                                label: string;
+                                sizeLabel: string | null;
+                                note: string | null;
+                                price: number;
+                            }[];
                             amountDue: number;
                             assignedAt: string;
                             deadlineAt: string;
@@ -7007,8 +7294,8 @@ export interface operations {
                 content: {
                     "application/json": {
                         currentSlotLabel: string | null;
-                        /** Format: uuid */
-                        preferredSlotId: string | null;
+                        slotsRequested: number;
+                        preferredSlotIds: string[];
                         vendorFloorPlanUrl: string | null;
                         slotGroups: {
                             name: string;
@@ -7056,8 +7343,7 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
-                    preferredSlotId: string | null;
+                    preferredSlotIds: string[];
                 };
             };
         };
@@ -7115,19 +7401,26 @@ export interface operations {
                             contactEmail: string | null;
                             approved: boolean;
                         };
-                        preferredSlot: {
+                        slotsRequested: number;
+                        preferredSlots: {
+                            /** Format: uuid */
+                            id: string;
                             label: string;
                             /** @enum {string} */
                             state: "open" | "taken" | "removed";
-                        } | null;
+                        }[];
                         assignment: {
                             /** Format: uuid */
                             id: string;
                             /** @enum {string} */
                             status: "assigned" | "reserved" | "released" | "removed" | "canceled";
                             slotLabel: string;
-                            sizeLabel: string | null;
-                            note: string | null;
+                            slots: {
+                                label: string;
+                                sizeLabel: string | null;
+                                note: string | null;
+                                price: number;
+                            }[];
                             amountDue: number;
                             assignedAt: string;
                             deadlineAt: string;
@@ -7199,8 +7492,7 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uuid */
-                    preferredSlotId: string;
+                    preferredSlotIds: string[];
                 };
             };
         };
@@ -7258,19 +7550,26 @@ export interface operations {
                             contactEmail: string | null;
                             approved: boolean;
                         };
-                        preferredSlot: {
+                        slotsRequested: number;
+                        preferredSlots: {
+                            /** Format: uuid */
+                            id: string;
                             label: string;
                             /** @enum {string} */
                             state: "open" | "taken" | "removed";
-                        } | null;
+                        }[];
                         assignment: {
                             /** Format: uuid */
                             id: string;
                             /** @enum {string} */
                             status: "assigned" | "reserved" | "released" | "removed" | "canceled";
                             slotLabel: string;
-                            sizeLabel: string | null;
-                            note: string | null;
+                            slots: {
+                                label: string;
+                                sizeLabel: string | null;
+                                note: string | null;
+                                price: number;
+                            }[];
                             amountDue: number;
                             assignedAt: string;
                             deadlineAt: string;
@@ -7364,19 +7663,26 @@ export interface operations {
                             contactEmail: string | null;
                             approved: boolean;
                         };
-                        preferredSlot: {
+                        slotsRequested: number;
+                        preferredSlots: {
+                            /** Format: uuid */
+                            id: string;
                             label: string;
                             /** @enum {string} */
                             state: "open" | "taken" | "removed";
-                        } | null;
+                        }[];
                         assignment: {
                             /** Format: uuid */
                             id: string;
                             /** @enum {string} */
                             status: "assigned" | "reserved" | "released" | "removed" | "canceled";
                             slotLabel: string;
-                            sizeLabel: string | null;
-                            note: string | null;
+                            slots: {
+                                label: string;
+                                sizeLabel: string | null;
+                                note: string | null;
+                                price: number;
+                            }[];
                             amountDue: number;
                             assignedAt: string;
                             deadlineAt: string;
@@ -7545,13 +7851,14 @@ export interface operations {
                                 url: string;
                                 isPdf: boolean;
                             }[];
-                            preferredSlot: {
+                            slotsRequested: number;
+                            preferredSlots: {
                                 /** Format: uuid */
                                 id: string;
                                 label: string;
                                 /** @enum {string} */
                                 state: "open" | "taken" | "removed";
-                            } | null;
+                            }[];
                             canReapply: boolean | null;
                         }[];
                     };
@@ -7607,13 +7914,14 @@ export interface operations {
                                 url: string;
                                 isPdf: boolean;
                             }[];
-                            preferredSlot: {
+                            slotsRequested: number;
+                            preferredSlots: {
                                 /** Format: uuid */
                                 id: string;
                                 label: string;
                                 /** @enum {string} */
                                 state: "open" | "taken" | "removed";
-                            } | null;
+                            }[];
                             canReapply: boolean | null;
                         }[];
                     };
@@ -7706,13 +8014,14 @@ export interface operations {
                                 url: string;
                                 isPdf: boolean;
                             }[];
-                            preferredSlot: {
+                            slotsRequested: number;
+                            preferredSlots: {
                                 /** Format: uuid */
                                 id: string;
                                 label: string;
                                 /** @enum {string} */
                                 state: "open" | "taken" | "removed";
-                            } | null;
+                            }[];
                             canReapply: boolean | null;
                         }[];
                     };
@@ -7768,13 +8077,14 @@ export interface operations {
                                 url: string;
                                 isPdf: boolean;
                             }[];
-                            preferredSlot: {
+                            slotsRequested: number;
+                            preferredSlots: {
                                 /** Format: uuid */
                                 id: string;
                                 label: string;
                                 /** @enum {string} */
                                 state: "open" | "taken" | "removed";
-                            } | null;
+                            }[];
                             canReapply: boolean | null;
                         }[];
                     };
@@ -7867,13 +8177,14 @@ export interface operations {
                                 url: string;
                                 isPdf: boolean;
                             }[];
-                            preferredSlot: {
+                            slotsRequested: number;
+                            preferredSlots: {
                                 /** Format: uuid */
                                 id: string;
                                 label: string;
                                 /** @enum {string} */
                                 state: "open" | "taken" | "removed";
-                            } | null;
+                            }[];
                             canReapply: boolean | null;
                         }[];
                     };
@@ -7929,13 +8240,14 @@ export interface operations {
                                 url: string;
                                 isPdf: boolean;
                             }[];
-                            preferredSlot: {
+                            slotsRequested: number;
+                            preferredSlots: {
                                 /** Format: uuid */
                                 id: string;
                                 label: string;
                                 /** @enum {string} */
                                 state: "open" | "taken" | "removed";
-                            } | null;
+                            }[];
                             canReapply: boolean | null;
                         }[];
                     };
@@ -7994,6 +8306,7 @@ export interface operations {
                             assigned: number;
                             reserved: number;
                             overdue: number;
+                            setAside: number;
                         };
                         slots: {
                             /** Format: uuid */
@@ -8003,22 +8316,24 @@ export interface operations {
                             sizeLabel: string | null;
                             price: number | null;
                             /** @enum {string} */
-                            state: "open" | "assigned" | "reserved";
+                            state: "open" | "assigned" | "reserved" | "set_aside";
                             overdue: boolean;
                             preferredBy: number;
+                            setAsideNote: string | null;
                         }[];
                         unassigned: {
                             /** Format: uuid */
                             applicationId: string;
                             shopName: string;
                             categories: string[];
-                            preferredSlot: {
+                            slotsRequested: number;
+                            preferredSlots: {
                                 /** Format: uuid */
                                 id: string;
                                 label: string;
                                 /** @enum {string} */
                                 state: "open" | "taken" | "removed";
-                            } | null;
+                            }[];
                         }[];
                         assignments: {
                             /** Format: uuid */
@@ -8113,8 +8428,7 @@ export interface operations {
                 "application/json": {
                     /** Format: uuid */
                     applicationId: string;
-                    /** Format: uuid */
-                    slotId: string;
+                    slotIds: string[];
                 };
             };
         };
@@ -8142,6 +8456,7 @@ export interface operations {
                             assigned: number;
                             reserved: number;
                             overdue: number;
+                            setAside: number;
                         };
                         slots: {
                             /** Format: uuid */
@@ -8151,22 +8466,24 @@ export interface operations {
                             sizeLabel: string | null;
                             price: number | null;
                             /** @enum {string} */
-                            state: "open" | "assigned" | "reserved";
+                            state: "open" | "assigned" | "reserved" | "set_aside";
                             overdue: boolean;
                             preferredBy: number;
+                            setAsideNote: string | null;
                         }[];
                         unassigned: {
                             /** Format: uuid */
                             applicationId: string;
                             shopName: string;
                             categories: string[];
-                            preferredSlot: {
+                            slotsRequested: number;
+                            preferredSlots: {
                                 /** Format: uuid */
                                 id: string;
                                 label: string;
                                 /** @enum {string} */
                                 state: "open" | "taken" | "removed";
-                            } | null;
+                            }[];
                         }[];
                         assignments: {
                             /** Format: uuid */
@@ -8251,6 +8568,7 @@ export interface operations {
                             assigned: number;
                             reserved: number;
                             overdue: number;
+                            setAside: number;
                         };
                         slots: {
                             /** Format: uuid */
@@ -8260,22 +8578,24 @@ export interface operations {
                             sizeLabel: string | null;
                             price: number | null;
                             /** @enum {string} */
-                            state: "open" | "assigned" | "reserved";
+                            state: "open" | "assigned" | "reserved" | "set_aside";
                             overdue: boolean;
                             preferredBy: number;
+                            setAsideNote: string | null;
                         }[];
                         unassigned: {
                             /** Format: uuid */
                             applicationId: string;
                             shopName: string;
                             categories: string[];
-                            preferredSlot: {
+                            slotsRequested: number;
+                            preferredSlots: {
                                 /** Format: uuid */
                                 id: string;
                                 label: string;
                                 /** @enum {string} */
                                 state: "open" | "taken" | "removed";
-                            } | null;
+                            }[];
                         }[];
                         assignments: {
                             /** Format: uuid */
@@ -8398,6 +8718,7 @@ export interface operations {
                             assigned: number;
                             reserved: number;
                             overdue: number;
+                            setAside: number;
                         };
                         slots: {
                             /** Format: uuid */
@@ -8407,22 +8728,24 @@ export interface operations {
                             sizeLabel: string | null;
                             price: number | null;
                             /** @enum {string} */
-                            state: "open" | "assigned" | "reserved";
+                            state: "open" | "assigned" | "reserved" | "set_aside";
                             overdue: boolean;
                             preferredBy: number;
+                            setAsideNote: string | null;
                         }[];
                         unassigned: {
                             /** Format: uuid */
                             applicationId: string;
                             shopName: string;
                             categories: string[];
-                            preferredSlot: {
+                            slotsRequested: number;
+                            preferredSlots: {
                                 /** Format: uuid */
                                 id: string;
                                 label: string;
                                 /** @enum {string} */
                                 state: "open" | "taken" | "removed";
-                            } | null;
+                            }[];
                         }[];
                         assignments: {
                             /** Format: uuid */
@@ -8507,6 +8830,7 @@ export interface operations {
                             assigned: number;
                             reserved: number;
                             overdue: number;
+                            setAside: number;
                         };
                         slots: {
                             /** Format: uuid */
@@ -8516,22 +8840,24 @@ export interface operations {
                             sizeLabel: string | null;
                             price: number | null;
                             /** @enum {string} */
-                            state: "open" | "assigned" | "reserved";
+                            state: "open" | "assigned" | "reserved" | "set_aside";
                             overdue: boolean;
                             preferredBy: number;
+                            setAsideNote: string | null;
                         }[];
                         unassigned: {
                             /** Format: uuid */
                             applicationId: string;
                             shopName: string;
                             categories: string[];
-                            preferredSlot: {
+                            slotsRequested: number;
+                            preferredSlots: {
                                 /** Format: uuid */
                                 id: string;
                                 label: string;
                                 /** @enum {string} */
                                 state: "open" | "taken" | "removed";
-                            } | null;
+                            }[];
                         }[];
                         assignments: {
                             /** Format: uuid */
@@ -8653,6 +8979,7 @@ export interface operations {
                             assigned: number;
                             reserved: number;
                             overdue: number;
+                            setAside: number;
                         };
                         slots: {
                             /** Format: uuid */
@@ -8662,22 +8989,24 @@ export interface operations {
                             sizeLabel: string | null;
                             price: number | null;
                             /** @enum {string} */
-                            state: "open" | "assigned" | "reserved";
+                            state: "open" | "assigned" | "reserved" | "set_aside";
                             overdue: boolean;
                             preferredBy: number;
+                            setAsideNote: string | null;
                         }[];
                         unassigned: {
                             /** Format: uuid */
                             applicationId: string;
                             shopName: string;
                             categories: string[];
-                            preferredSlot: {
+                            slotsRequested: number;
+                            preferredSlots: {
                                 /** Format: uuid */
                                 id: string;
                                 label: string;
                                 /** @enum {string} */
                                 state: "open" | "taken" | "removed";
-                            } | null;
+                            }[];
                         }[];
                         assignments: {
                             /** Format: uuid */
@@ -8762,6 +9091,7 @@ export interface operations {
                             assigned: number;
                             reserved: number;
                             overdue: number;
+                            setAside: number;
                         };
                         slots: {
                             /** Format: uuid */
@@ -8771,22 +9101,24 @@ export interface operations {
                             sizeLabel: string | null;
                             price: number | null;
                             /** @enum {string} */
-                            state: "open" | "assigned" | "reserved";
+                            state: "open" | "assigned" | "reserved" | "set_aside";
                             overdue: boolean;
                             preferredBy: number;
+                            setAsideNote: string | null;
                         }[];
                         unassigned: {
                             /** Format: uuid */
                             applicationId: string;
                             shopName: string;
                             categories: string[];
-                            preferredSlot: {
+                            slotsRequested: number;
+                            preferredSlots: {
                                 /** Format: uuid */
                                 id: string;
                                 label: string;
                                 /** @enum {string} */
                                 state: "open" | "taken" | "removed";
-                            } | null;
+                            }[];
                         }[];
                         assignments: {
                             /** Format: uuid */
@@ -8913,6 +9245,7 @@ export interface operations {
                             assigned: number;
                             reserved: number;
                             overdue: number;
+                            setAside: number;
                         };
                         slots: {
                             /** Format: uuid */
@@ -8922,22 +9255,24 @@ export interface operations {
                             sizeLabel: string | null;
                             price: number | null;
                             /** @enum {string} */
-                            state: "open" | "assigned" | "reserved";
+                            state: "open" | "assigned" | "reserved" | "set_aside";
                             overdue: boolean;
                             preferredBy: number;
+                            setAsideNote: string | null;
                         }[];
                         unassigned: {
                             /** Format: uuid */
                             applicationId: string;
                             shopName: string;
                             categories: string[];
-                            preferredSlot: {
+                            slotsRequested: number;
+                            preferredSlots: {
                                 /** Format: uuid */
                                 id: string;
                                 label: string;
                                 /** @enum {string} */
                                 state: "open" | "taken" | "removed";
-                            } | null;
+                            }[];
                         }[];
                         assignments: {
                             /** Format: uuid */
@@ -9022,6 +9357,7 @@ export interface operations {
                             assigned: number;
                             reserved: number;
                             overdue: number;
+                            setAside: number;
                         };
                         slots: {
                             /** Format: uuid */
@@ -9031,22 +9367,24 @@ export interface operations {
                             sizeLabel: string | null;
                             price: number | null;
                             /** @enum {string} */
-                            state: "open" | "assigned" | "reserved";
+                            state: "open" | "assigned" | "reserved" | "set_aside";
                             overdue: boolean;
                             preferredBy: number;
+                            setAsideNote: string | null;
                         }[];
                         unassigned: {
                             /** Format: uuid */
                             applicationId: string;
                             shopName: string;
                             categories: string[];
-                            preferredSlot: {
+                            slotsRequested: number;
+                            preferredSlots: {
                                 /** Format: uuid */
                                 id: string;
                                 label: string;
                                 /** @enum {string} */
                                 state: "open" | "taken" | "removed";
-                            } | null;
+                            }[];
                         }[];
                         assignments: {
                             /** Format: uuid */
@@ -9169,6 +9507,7 @@ export interface operations {
                             assigned: number;
                             reserved: number;
                             overdue: number;
+                            setAside: number;
                         };
                         slots: {
                             /** Format: uuid */
@@ -9178,22 +9517,24 @@ export interface operations {
                             sizeLabel: string | null;
                             price: number | null;
                             /** @enum {string} */
-                            state: "open" | "assigned" | "reserved";
+                            state: "open" | "assigned" | "reserved" | "set_aside";
                             overdue: boolean;
                             preferredBy: number;
+                            setAsideNote: string | null;
                         }[];
                         unassigned: {
                             /** Format: uuid */
                             applicationId: string;
                             shopName: string;
                             categories: string[];
-                            preferredSlot: {
+                            slotsRequested: number;
+                            preferredSlots: {
                                 /** Format: uuid */
                                 id: string;
                                 label: string;
                                 /** @enum {string} */
                                 state: "open" | "taken" | "removed";
-                            } | null;
+                            }[];
                         }[];
                         assignments: {
                             /** Format: uuid */
@@ -9278,6 +9619,7 @@ export interface operations {
                             assigned: number;
                             reserved: number;
                             overdue: number;
+                            setAside: number;
                         };
                         slots: {
                             /** Format: uuid */
@@ -9287,22 +9629,24 @@ export interface operations {
                             sizeLabel: string | null;
                             price: number | null;
                             /** @enum {string} */
-                            state: "open" | "assigned" | "reserved";
+                            state: "open" | "assigned" | "reserved" | "set_aside";
                             overdue: boolean;
                             preferredBy: number;
+                            setAsideNote: string | null;
                         }[];
                         unassigned: {
                             /** Format: uuid */
                             applicationId: string;
                             shopName: string;
                             categories: string[];
-                            preferredSlot: {
+                            slotsRequested: number;
+                            preferredSlots: {
                                 /** Format: uuid */
                                 id: string;
                                 label: string;
                                 /** @enum {string} */
                                 state: "open" | "taken" | "removed";
-                            } | null;
+                            }[];
                         }[];
                         assignments: {
                             /** Format: uuid */
