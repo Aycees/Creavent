@@ -79,6 +79,8 @@ If another Postgres already uses port 5432, put `POSTGRES_PORT=5435` in a `.env`
 
 The web app runs on http://localhost:3000 and forwards `/api/*` to the API on port 3001 ([Architecture §4.3](docs/architecture.md#43-sessions)).
 
+`pnpm dev` starts the web app on port 3000 (fixed, so it never drifts onto the API's port), the API on 3001, and the shared package in watch mode. Keep `WEB_URL=http://localhost:3000` in `apps/api/.env`: the API only accepts sign-ins from that address and puts it in email links. If the API fails with `EADDRINUSE`, another dev server still holds 3001 or 3000. Stop it (`lsof -i :3001` shows which), then run `pnpm dev` again.
+
 Other commands: `pnpm build`, `pnpm lint`, `pnpm typecheck`, `pnpm test`.
 
 The end-to-end test of the main path (sign up, onboard, approve, open an event, apply, assign, pay, confirm) runs locally against a running app and the R2 dev buckets, not in CI. Start `pnpm dev`, seed once, then:
