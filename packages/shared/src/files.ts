@@ -2,8 +2,20 @@ import { z } from 'zod';
 
 // Upload rules (spec §11.1). Each feature adds its purposes when it is built.
 export const imageMimeTypes = ['image/jpeg', 'image/png', 'image/webp'] as const;
+// Documents may also be PDFs, only in private purposes (spec §10, §11.1).
+export const documentMimeTypes = [...imageMimeTypes, 'application/pdf'] as const;
 
-export const uploadPurposeSchema = z.enum(['avatar', 'vendor_photo', 'organizer_logo', 'event_cover', 'payment_qr', 'vendor_floor_plan', 'public_floor_plan']);
+export const uploadPurposeSchema = z.enum([
+  'avatar',
+  'vendor_photo',
+  'organizer_logo',
+  'event_cover',
+  'payment_qr',
+  'vendor_floor_plan',
+  'public_floor_plan',
+  'application_document',
+  'payment_proof',
+]);
 export type UploadPurpose = z.infer<typeof uploadPurposeSchema>;
 
 const MB = 1024 * 1024;
@@ -12,7 +24,8 @@ export const uploadRules: Record<
   UploadPurpose,
   // Private files go to the private bucket and are opened through the API
   // with a short-lived address (spec §11.6).
-  { maxBytes: number; minWidth?: number; minHeight?: number; label: string; private?: boolean }
+  // `pdf`: PDFs are accepted too, stored as uploaded and always downloaded.
+  { maxBytes: number; minWidth?: number; minHeight?: number; label: string; private?: boolean; pdf?: boolean }
 > = {
   avatar: { maxBytes: 5 * MB, minWidth: 256, minHeight: 256, label: 'Avatar' },
   organizer_logo: { maxBytes: 5 * MB, minWidth: 256, minHeight: 256, label: 'Logo' },
@@ -21,12 +34,14 @@ export const uploadRules: Record<
   payment_qr: { maxBytes: 5 * MB, label: 'QR code', private: true },
   vendor_floor_plan: { maxBytes: 10 * MB, label: 'Vendor floor plan' },
   public_floor_plan: { maxBytes: 10 * MB, label: 'Public floor plan' },
+  application_document: { maxBytes: 10 * MB, label: 'Document', private: true, pdf: true },
+  payment_proof: { maxBytes: 10 * MB, label: 'Proof of payment', private: true },
 };
 
 // Step 1, Ask: what the browser is about to upload.
 export const askUploadSchema = z.object({
   purpose: uploadPurposeSchema,
-  mimeType: z.enum(imageMimeTypes, 'Use a JPEG, PNG, or WebP photo'),
+  mimeType: z.enum(documentMimeTypes, 'Use a JPEG, PNG, or WebP photo, or a PDF'),
   sizeBytes: z.number().int().positive(),
 });
 export type AskUploadInput = z.infer<typeof askUploadSchema>;

@@ -3,6 +3,7 @@
 import {
   formatPeso,
   groupSlots,
+  MAX_SLOTS_PER_VENDOR,
   rowLabels,
   slotRowSchema,
   type EventSetup,
@@ -14,11 +15,12 @@ import * as React from "react"
 import { toast } from "sonner"
 
 import { Alert } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ChoiceCard } from "@/components/ui/choice-card"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Field } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
+import { Input, inputClass } from "@/components/ui/input"
 import { api } from "@/lib/api"
 import { useUpload } from "@/lib/use-upload"
 import { cn } from "@/lib/utils"
@@ -54,9 +56,12 @@ export function SlotsTab({ setup }: { setup: EventSetup }) {
   const [error, setError] = React.useState<string | null>(null)
   const path = { params: { path: { id: setup.id } } }
 
-  async function saveSettings(change: Partial<{ mode: SlotMode; defaultPrice: number | null; vendorFloorPlanFileId: string | null }>, success?: string) {
+  async function saveSettings(
+    change: Partial<{ mode: SlotMode; defaultPrice: number | null; vendorFloorPlanFileId: string | null; maxSlotsPerVendor: number }>,
+    success?: string
+  ) {
     setError(null)
-    const body = { mode: s.mode, defaultPrice: s.defaultPrice, vendorFloorPlanFileId: s.vendorFloorPlan?.id ?? null, ...change }
+    const body = { mode: s.mode, defaultPrice: s.defaultPrice, vendorFloorPlanFileId: s.vendorFloorPlan?.id ?? null, maxSlotsPerVendor: s.maxSlotsPerVendor, ...change }
     setError(await run(() => api.PUT("/api/organizer/events/{id}/slot-settings", { ...path, body }), success))
   }
 
@@ -83,6 +88,21 @@ export function SlotsTab({ setup }: { setup: EventSetup }) {
           {s.mode === "vendor_preference" && !s.vendorFloorPlan && (
             <Alert tone="info">Upload your floor plan so vendors can see where each slot is when they pick one.</Alert>
           )}
+        </SetupPanel>
+
+        <SetupPanel title="Slots per vendor" intro="Vendors say how many they need when they apply, and pay for them together.">
+          <select
+            aria-label="Slots per vendor"
+            className={cn(inputClass, "h-11 md:max-w-60")}
+            value={s.maxSlotsPerVendor}
+            onChange={(e) => saveSettings({ maxSlotsPerVendor: Number(e.target.value) }, "Saved")}
+          >
+            {Array.from({ length: MAX_SLOTS_PER_VENDOR }, (_, i) => i + 1).map((n) => (
+              <option key={n} value={n}>
+                {n === 1 ? "1 slot (default)" : `Up to ${n} slots`}
+              </option>
+            ))}
+          </select>
         </SetupPanel>
 
         <AddRow setup={setup} run={run} />
@@ -273,7 +293,14 @@ function SlotGroup({ name, slots, price, onEdit }: { name: string; slots: Slot[]
           return (
             <li key={slot.id} className="flex min-h-14 items-center gap-3 px-4 py-2">
               <span className="w-16 flex-none font-mono text-sm">{slot.label}</span>
-              <span className="min-w-0 flex-1 text-sm text-muted">{[slot.sizeLabel, slot.note].filter(Boolean).join(" · ")}</span>
+              <span className="min-w-0 flex-1 text-sm text-muted">
+                {slot.setAside && (
+                  <Badge dot={false} className="mr-2">
+                    Set aside
+                  </Badge>
+                )}
+                {[slot.setAside?.note, slot.sizeLabel, slot.note].filter(Boolean).join(" · ")}
+              </span>
               <span className={cn("text-sm tabular-nums", slot.price !== null && "font-semibold")}>{p === null ? "No price" : formatPeso(p)}</span>
               <Button type="button" variant="ghost" aria-label={`Edit ${slot.label}`} onClick={() => onEdit(slot)}>
                 Edit
@@ -308,6 +335,8 @@ function SlotForm({ setup, slot, run, onClose }: { setup: EventSetup; slot: Slot
     sizeLabel: slot?.sizeLabel ?? "",
     note: slot?.note ?? "",
     price: slot?.price === null || slot?.price === undefined ? "" : String(slot.price),
+    setAside: slot?.setAside !== null && slot?.setAside !== undefined,
+    setAsideNote: slot?.setAside?.note ?? "",
   })
   const [error, setError] = React.useState<string | null>(null)
   const [saving, setSaving] = React.useState(false)
@@ -324,9 +353,16 @@ function SlotForm({ setup, slot, run, onClose }: { setup: EventSetup; slot: Slot
       price: toPrice(form.price),
     }
     setSaving(true)
-    const message = slot
+    let message = slot
       ? await run(() => api.PATCH("/api/organizer/events/{id}/slots/{slotId}", { params: { path: { ...path, slotId: slot.id } }, body }), "Slot saved")
       : await run(() => api.POST("/api/organizer/events/{id}/slots", { params: { path }, body }), "Slot added")
+    // Set aside or opened again (decision P1), only when it changed.
+    const note = form.setAside ? form.setAsideNote.trim() || null : null
+    if (!message && slot && (form.setAside !== (slot.setAside !== null) || note !== (slot.setAside?.note ?? null))) {
+      message = await run(() =>
+        api.PUT("/api/organizer/events/{id}/slots/{slotId}/set-aside", { params: { path: { ...path, slotId: slot.id } }, body: { setAside: form.setAside, note } })
+      )
+    }
     setSaving(false)
     if (message) setError(message)
     else onClose()
@@ -364,6 +400,27 @@ function SlotForm({ setup, slot, run, onClose }: { setup: EventSetup; slot: Slot
           <Input id="slot-note" placeholder="Near the entrance" value={form.note} onChange={set("note")} />
         </Field>
       </div>
+      {slot && (
+        <>
+          <ChoiceCard>
+            <input
+              type="checkbox"
+              className="mt-0.5 size-5 flex-none accent-ink"
+              checked={form.setAside}
+              onChange={(e) => setForm((f) => ({ ...f, setAside: e.target.checked }))}
+            />
+            <span className="flex flex-col gap-0.5">
+              <span className="text-label font-semibold">Set aside this slot</span>
+              <span className="text-sm text-muted">For your own booth, a sponsor, or another arrangement. Vendors see it as taken, and you can&apos;t assign it.</span>
+            </span>
+          </ChoiceCard>
+          {form.setAside && (
+            <Field label="What it's for" optional htmlFor="slot-aside-note" help="Only you see this.">
+              <Input id="slot-aside-note" placeholder="Sponsor booth" value={form.setAsideNote} onChange={set("setAsideNote")} />
+            </Field>
+          )}
+        </>
+      )}
       {error && <p className="text-help text-danger-ink">{error}</p>}
       <DialogFooter className="flex flex-col-reverse gap-2 md:flex-row md:justify-between">
         {slot ? (

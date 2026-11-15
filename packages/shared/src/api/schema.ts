@@ -580,6 +580,22 @@ export interface paths {
         patch: operations["OrganizerEventsController_updateSlot"];
         trace?: never;
     };
+    "/api/organizer/events/{id}/slots/{slotId}/set-aside": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["OrganizerEventsController_setAside"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/organizer/events/{id}/slot-settings": {
         parameters: {
             query?: never;
@@ -635,7 +651,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["OrganizerApplicationsController_list"];
         put: operations["OrganizerEventsController_applications"];
         post?: never;
         delete?: never;
@@ -670,6 +686,374 @@ export interface paths {
         get: operations["VendorEventsController_page"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organizer/applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OrganizerAllApplicationsController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organizer/applications/count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OrganizerAllApplicationsController_count"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organizer/applications/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OrganizerAllApplicationsController_detail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vendor/events/{slug}/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["VendorApplicationsController_form"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vendor/events/{slug}/applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["VendorApplicationsController_apply"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vendor/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["VendorApplicationsController_dashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vendor/applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["VendorApplicationsController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vendor/applications/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["VendorApplicationsController_detail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vendor/applications/{id}/proofs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["VendorApplicationsController_uploadProof"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vendor/applications/{id}/release": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["VendorApplicationsController_release"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vendor/applications/{id}/slots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["VendorApplicationsController_slots"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vendor/applications/{id}/preference": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["VendorApplicationsController_preference"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vendor/applications/{id}/change-slot": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["VendorApplicationsController_changeSlot"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vendor/applications/{id}/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["VendorApplicationsController_withdraw"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organizer/events/{id}/applications/{applicationId}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OrganizerApplicationsController_approve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organizer/events/{id}/applications/{applicationId}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OrganizerApplicationsController_decline"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organizer/events/{id}/applications/{applicationId}/reapply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OrganizerApplicationsController_reapply"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organizer/events/{id}/vendors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OrganizerVendorsController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organizer/events/{id}/assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OrganizerVendorsController_assign"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organizer/events/{id}/proofs/{proofId}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OrganizerVendorsController_approveProof"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organizer/events/{id}/proofs/{proofId}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OrganizerVendorsController_rejectProof"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organizer/events/{id}/assignments/{assignmentId}/mark-paid": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OrganizerVendorsController_markPaid"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organizer/events/{id}/applications/{applicationId}/remove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OrganizerVendorsController_remove"];
         delete?: never;
         options?: never;
         head?: never;
@@ -738,9 +1122,9 @@ export interface operations {
             content: {
                 "application/json": {
                     /** @enum {string} */
-                    purpose: "avatar" | "vendor_photo" | "organizer_logo" | "event_cover" | "payment_qr" | "vendor_floor_plan" | "public_floor_plan";
+                    purpose: "avatar" | "vendor_photo" | "organizer_logo" | "event_cover" | "payment_qr" | "vendor_floor_plan" | "public_floor_plan" | "application_document" | "payment_proof";
                     /** @enum {string} */
-                    mimeType: "image/jpeg" | "image/png" | "image/webp";
+                    mimeType: "image/jpeg" | "image/png" | "image/webp" | "application/pdf";
                     sizeBytes: number;
                 };
             };
@@ -811,7 +1195,7 @@ export interface operations {
                         /** Format: uuid */
                         id: string;
                         /** @enum {string} */
-                        purpose: "avatar" | "vendor_photo" | "organizer_logo" | "event_cover" | "payment_qr" | "vendor_floor_plan" | "public_floor_plan";
+                        purpose: "avatar" | "vendor_photo" | "organizer_logo" | "event_cover" | "payment_qr" | "vendor_floor_plan" | "public_floor_plan" | "application_document" | "payment_proof";
                         url: string;
                         width: number | null;
                         height: number | null;
@@ -2585,6 +2969,18 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
+                        todo: {
+                            /** Format: uuid */
+                            eventId: string;
+                            name: string;
+                            applicationsToReview: number;
+                            oldestApplicationAt: string | null;
+                            proofsToCheck: number;
+                            proofsTotal: number;
+                            overduePayments: number;
+                            approvedNoSlot: number;
+                            openSlots: number;
+                        }[];
                         upcoming: {
                             /** Format: uuid */
                             id: string;
@@ -2598,6 +2994,11 @@ export interface operations {
                             venueName: string | null;
                             slotCount: number;
                             nextStep: string;
+                            fill: {
+                                reserved: number;
+                                assigned: number;
+                                open: number;
+                            } | null;
                         }[];
                         past: {
                             /** Format: uuid */
@@ -2612,6 +3013,11 @@ export interface operations {
                             venueName: string | null;
                             slotCount: number;
                             nextStep: string;
+                            fill: {
+                                reserved: number;
+                                assigned: number;
+                                open: number;
+                            } | null;
                         }[];
                     };
                 };
@@ -2791,6 +3197,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -2809,6 +3216,9 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -2999,6 +3409,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -3017,6 +3428,9 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -3168,6 +3582,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -3186,6 +3601,9 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -3325,6 +3743,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -3343,6 +3762,9 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -3493,6 +3915,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -3511,6 +3934,9 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -3654,6 +4080,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -3672,6 +4099,9 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -3775,6 +4205,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -3793,6 +4224,9 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -3937,6 +4371,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -3955,6 +4390,9 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -4058,6 +4496,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -4076,6 +4515,9 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -4210,6 +4652,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -4228,6 +4671,9 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -4372,6 +4818,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -4390,6 +4837,9 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -4414,23 +4864,21 @@ export interface operations {
             };
         };
     };
-    OrganizerEventsController_slotSettings: {
+    OrganizerEventsController_setAside: {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 id: string;
+                slotId: string;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
                 "application/json": {
-                    /** @enum {string} */
-                    mode: "organizer_assigns" | "vendor_preference";
-                    defaultPrice: number | null;
-                    /** Format: uuid */
-                    vendorFloorPlanFileId: string | null;
+                    setAside: boolean;
+                    note?: string | null;
                 };
             };
         };
@@ -4533,6 +4981,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -4551,6 +5000,176 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OrganizerEventsController_slotSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    mode: "organizer_assigns" | "vendor_preference";
+                    defaultPrice: number | null;
+                    /** Format: uuid */
+                    vendorFloorPlanFileId: string | null;
+                    /** @default 1 */
+                    maxSlotsPerVendor?: number;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        slug: string;
+                        /** @enum {string} */
+                        status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                        applicationsOpen: boolean;
+                        checklist: {
+                            details: boolean;
+                            requirements: boolean;
+                            policy: boolean;
+                            slots: boolean;
+                            payments: boolean;
+                        };
+                        organizerApproved: boolean;
+                        details: {
+                            name: string;
+                            /** Format: uuid */
+                            eventTypeId: string;
+                            description: string | null;
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            venueName: string | null;
+                            addressLine: string | null;
+                            city: string | null;
+                            cover: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            vendorContactInfo: string | null;
+                            applicationsCloseAt: string | null;
+                            ingressInfo: string | null;
+                        };
+                        eventTypes: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            slug: string;
+                        }[];
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        requirements: {
+                            categories: {
+                                /** Format: uuid */
+                                categoryId: string;
+                                maxVendors: number | null;
+                            }[];
+                            documents: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                description: string | null;
+                                /** Format: uuid */
+                                categoryId: string | null;
+                            }[];
+                        };
+                        policy: {
+                            text: string | null;
+                            copiedFrom: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            } | null;
+                            example: string;
+                        };
+                        payments: {
+                            deadlineHours: number;
+                            methods: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                channel: "gcash" | "maya" | "bank" | "other";
+                                label: string;
+                                accountName: string | null;
+                                accountNumber: string | null;
+                                qr: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    url: string;
+                                } | null;
+                                notes: string | null;
+                            }[];
+                        };
+                        slots: {
+                            /** @enum {string} */
+                            mode: "organizer_assigns" | "vendor_preference";
+                            defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
+                            vendorFloorPlan: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            publicFloorPlan: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            list: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                section: string | null;
+                                sizeLabel: string | null;
+                                note: string | null;
+                                price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -4691,6 +5310,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -4709,6 +5329,9 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -4842,6 +5465,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -4860,6 +5484,9 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -4963,6 +5590,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -4981,8 +5609,104 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OrganizerApplicationsController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            status: string;
+                            applicationsOpen: boolean;
+                            preferredSlots: boolean;
+                        };
+                        counters: {
+                            /** Format: uuid */
+                            categoryId: string;
+                            name: string;
+                            approved: number;
+                            max: number | null;
+                        }[];
+                        applications: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "submitted" | "approved" | "declined" | "removed" | "withdrawn";
+                            submittedAt: string;
+                            decidedAt: string | null;
+                            note: string | null;
+                            decisionNote: string | null;
+                            vendor: {
+                                shopName: string;
+                                slug: string | null;
+                                fullName: string;
+                                phone: string | null;
+                                avatarUrl: string | null;
+                            };
+                            categories: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            }[];
+                            documents: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                url: string;
+                                isPdf: boolean;
+                            }[];
+                            slotsRequested: number;
+                            preferredSlots: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                /** @enum {string} */
+                                state: "open" | "taken" | "removed";
+                            }[];
+                            canReapply: boolean | null;
+                        }[];
                     };
                 };
             };
@@ -5120,6 +5844,7 @@ export interface operations {
                             /** @enum {string} */
                             mode: "organizer_assigns" | "vendor_preference";
                             defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
                             vendorFloorPlan: {
                                 /** Format: uuid */
                                 id: string;
@@ -5138,6 +5863,9 @@ export interface operations {
                                 sizeLabel: string | null;
                                 note: string | null;
                                 price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
                             }[];
                         };
                     };
@@ -5209,6 +5937,8 @@ export interface operations {
                                 left: number;
                                 max: number;
                             }[];
+                            /** @enum {string|null} */
+                            myStatus: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed" | null;
                         }[];
                     };
                 };
@@ -5308,7 +6038,3673 @@ export interface operations {
                             };
                             vendorContactInfo: string | null;
                             myCategoryIds: string[];
+                            myApplication: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed";
+                                canReapply: boolean | null;
+                            } | null;
                         };
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OrganizerAllApplicationsController_list: {
+        parameters: {
+            query?: {
+                eventId?: string;
+                status?: "waiting" | "approved_no_slot" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed" | "all";
+                q?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        summary: {
+                            waiting: number;
+                            oldestWaitingAt: string | null;
+                            approvedNoSlot: number;
+                            openSlots: number;
+                            proofsToCheck: number;
+                            proofsTotal: number;
+                        };
+                        counts: {
+                            waiting: number;
+                            approved_no_slot: number;
+                            slot_assigned: number;
+                            reserved: number;
+                            declined: number;
+                            withdrawn: number;
+                            removed: number;
+                            all: number;
+                        };
+                        events: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            startDate: string | null;
+                        }[];
+                        applications: {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            eventId: string;
+                            eventName: string;
+                            eventStartDate: string | null;
+                            /** @enum {string} */
+                            stage: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed";
+                            shopName: string;
+                            avatarUrl: string | null;
+                            categories: string[];
+                            documents: {
+                                count: number;
+                                pdfs: number;
+                                missing: string[];
+                            };
+                            submittedAt: string;
+                            slotsRequested: number;
+                            preferredSlots: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                /** @enum {string} */
+                                state: "open" | "taken" | "removed";
+                            }[];
+                            slotLabel: string | null;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OrganizerAllApplicationsController_count: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        waiting: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OrganizerAllApplicationsController_detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** @enum {string} */
+                        stage: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed";
+                        submittedAt: string;
+                        decidedAt: string | null;
+                        decisionNote: string | null;
+                        note: string | null;
+                        removalNote: string | null;
+                        canReapply: boolean | null;
+                        policyAcceptedAt: string;
+                        event: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            slug: string;
+                            startDate: string | null;
+                            endDate: string | null;
+                            preferredSlots: boolean;
+                            vendorFloorPlanUrl: string | null;
+                        };
+                        vendor: {
+                            shopName: string;
+                            slug: string | null;
+                            avatarUrl: string | null;
+                            description: string | null;
+                            products: string | null;
+                            photoUrls: string[];
+                            fullName: string;
+                            phone: string | null;
+                        };
+                        categories: {
+                            name: string;
+                            approved: number;
+                            max: number | null;
+                        }[];
+                        documents: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            url: string;
+                            isPdf: boolean;
+                            uploadedAt: string;
+                        }[];
+                        missingDocuments: string[];
+                        slotsRequested: number;
+                        preferredSlots: {
+                            /** Format: uuid */
+                            id: string;
+                            label: string;
+                            section: string | null;
+                            sizeLabel: string | null;
+                            price: number | null;
+                            /** @enum {string} */
+                            state: "open" | "taken" | "removed";
+                            preferredByOthers: number;
+                        }[];
+                        assignment: {
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            slotLabel: string;
+                            amountDue: number;
+                            /** @enum {string} */
+                            paymentStatus: "pending" | "submitted" | "approved" | "rejected";
+                            deadlineAt: string;
+                        } | null;
+                        history: {
+                            /** Format: uuid */
+                            id: string;
+                            status: string;
+                            submittedAt: string;
+                        }[];
+                        /** Format: uuid */
+                        nextWaitingId: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    VendorApplicationsController_form: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: {
+                            slug: string;
+                            name: string;
+                            startDate: string | null;
+                            endDate: string | null;
+                            venueName: string | null;
+                            applicationsCloseAt: string | null;
+                            policy: string | null;
+                            deadlineHours: number;
+                            preferredSlots: boolean;
+                            maxSlotsPerVendor: number;
+                            vendorFloorPlanUrl: string | null;
+                        };
+                        /** @enum {string|null} */
+                        blocked: "closed" | "already_applied" | "cannot_reapply" | "no_matching_category" | "profile_incomplete" | null;
+                        /** Format: uuid */
+                        activeApplicationId: string | null;
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            max: number | null;
+                            left: number | null;
+                        }[];
+                        documents: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            description: string | null;
+                            /** Format: uuid */
+                            categoryId: string | null;
+                            categoryName: string | null;
+                            required: boolean;
+                        }[];
+                        slotGroups: {
+                            name: string;
+                            slots: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                sizeLabel: string | null;
+                                note: string | null;
+                                price: number | null;
+                                taken: boolean;
+                            }[];
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    VendorApplicationsController_apply: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    categoryIds: string[];
+                    /** @default [] */
+                    documents?: {
+                        /** Format: uuid */
+                        requirementId: string;
+                        fileIds: string[];
+                    }[];
+                    /** @default 1 */
+                    slotsRequested?: number;
+                    /** @default [] */
+                    preferredSlotIds?: string[];
+                    note?: string | null;
+                };
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    VendorApplicationsController_dashboard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        needsAction: {
+                            /** Format: uuid */
+                            applicationId: string;
+                            eventName: string;
+                            startDate: string | null;
+                            slotLabel: string;
+                            amountDue: number;
+                            deadlineAt: string;
+                            organizerName: string;
+                            paidTo: string | null;
+                            rejected: boolean;
+                        }[];
+                        applications: {
+                            /** Format: uuid */
+                            id: string;
+                            event: {
+                                slug: string;
+                                name: string;
+                                startDate: string | null;
+                                endDate: string | null;
+                                opensAt: string | null;
+                                closesAt: string | null;
+                                venueName: string | null;
+                            };
+                            /** @enum {string} */
+                            status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed";
+                            slotLabel: string | null;
+                            amountDue: number | null;
+                            /** @enum {string|null} */
+                            paymentStatus: "pending" | "submitted" | "approved" | "rejected" | null;
+                            deadlineAt: string | null;
+                            decisionNote: string | null;
+                        }[];
+                        nextEvent: {
+                            /** Format: uuid */
+                            applicationId: string;
+                            event: {
+                                slug: string;
+                                name: string;
+                                startDate: string | null;
+                                endDate: string | null;
+                                opensAt: string | null;
+                                closesAt: string | null;
+                                venueName: string | null;
+                            };
+                            slotLabel: string;
+                            organizerName: string;
+                            organizerPhone: string | null;
+                            ingressInfo: string | null;
+                            vendorFloorPlanUrl: string | null;
+                        } | null;
+                        openEvents: {
+                            slug: string;
+                            name: string;
+                            startDate: string | null;
+                            endDate: string | null;
+                            applicationsCloseAt: string | null;
+                            applied: boolean;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    VendorApplicationsController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        applications: {
+                            /** Format: uuid */
+                            id: string;
+                            event: {
+                                slug: string;
+                                name: string;
+                                startDate: string | null;
+                                endDate: string | null;
+                                opensAt: string | null;
+                                closesAt: string | null;
+                                venueName: string | null;
+                            };
+                            /** @enum {string} */
+                            status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed";
+                            slotLabel: string | null;
+                            amountDue: number | null;
+                            /** @enum {string|null} */
+                            paymentStatus: "pending" | "submitted" | "approved" | "rejected" | null;
+                            deadlineAt: string | null;
+                            decisionNote: string | null;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    VendorApplicationsController_detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** @enum {string} */
+                        status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed";
+                        submittedAt: string;
+                        decidedAt: string | null;
+                        decisionNote: string | null;
+                        removalNote: string | null;
+                        canReapply: boolean | null;
+                        categories: string[];
+                        documentCount: number;
+                        pastProofs: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "submitted" | "approved" | "rejected";
+                            uploadedAt: string;
+                            fileUrl: string;
+                            methodLabel: string;
+                            methodAccount: string | null;
+                            amountClaimed: number | null;
+                            referenceNumber: string | null;
+                            note: string | null;
+                            rejectionReason: string | null;
+                            archived: boolean;
+                        }[];
+                        event: {
+                            slug: string;
+                            name: string;
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            venueName: string | null;
+                            addressLine: string | null;
+                            city: string | null;
+                            ingressInfo: string | null;
+                            preferredSlots: boolean;
+                            vendorFloorPlanUrl: string | null;
+                        };
+                        organizer: {
+                            displayName: string;
+                            fullName: string;
+                            phone: string | null;
+                            contactEmail: string | null;
+                            approved: boolean;
+                        };
+                        slotsRequested: number;
+                        preferredSlots: {
+                            /** Format: uuid */
+                            id: string;
+                            label: string;
+                            /** @enum {string} */
+                            state: "open" | "taken" | "removed";
+                        }[];
+                        assignment: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            slotLabel: string;
+                            slots: {
+                                label: string;
+                                sizeLabel: string | null;
+                                note: string | null;
+                                price: number;
+                            }[];
+                            amountDue: number;
+                            assignedAt: string;
+                            deadlineAt: string;
+                            reservedAt: string | null;
+                            /** @enum {string} */
+                            paymentStatus: "pending" | "submitted" | "approved" | "rejected";
+                            instructions: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                channel: "gcash" | "maya" | "bank" | "other";
+                                label: string;
+                                accountName: string | null;
+                                accountNumber: string | null;
+                                /** Format: uuid */
+                                qrFileId: string | null;
+                                notes: string | null;
+                                qrUrl: string | null;
+                            }[];
+                            proofs: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            }[];
+                            paymentNote: string | null;
+                            archived: boolean;
+                        } | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    VendorApplicationsController_uploadProof: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    fileId: string;
+                    /** Format: uuid */
+                    paymentMethodId: string;
+                    amountClaimed: number;
+                    referenceNumber?: string | null;
+                    note?: string | null;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** @enum {string} */
+                        status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed";
+                        submittedAt: string;
+                        decidedAt: string | null;
+                        decisionNote: string | null;
+                        removalNote: string | null;
+                        canReapply: boolean | null;
+                        categories: string[];
+                        documentCount: number;
+                        pastProofs: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "submitted" | "approved" | "rejected";
+                            uploadedAt: string;
+                            fileUrl: string;
+                            methodLabel: string;
+                            methodAccount: string | null;
+                            amountClaimed: number | null;
+                            referenceNumber: string | null;
+                            note: string | null;
+                            rejectionReason: string | null;
+                            archived: boolean;
+                        }[];
+                        event: {
+                            slug: string;
+                            name: string;
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            venueName: string | null;
+                            addressLine: string | null;
+                            city: string | null;
+                            ingressInfo: string | null;
+                            preferredSlots: boolean;
+                            vendorFloorPlanUrl: string | null;
+                        };
+                        organizer: {
+                            displayName: string;
+                            fullName: string;
+                            phone: string | null;
+                            contactEmail: string | null;
+                            approved: boolean;
+                        };
+                        slotsRequested: number;
+                        preferredSlots: {
+                            /** Format: uuid */
+                            id: string;
+                            label: string;
+                            /** @enum {string} */
+                            state: "open" | "taken" | "removed";
+                        }[];
+                        assignment: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            slotLabel: string;
+                            slots: {
+                                label: string;
+                                sizeLabel: string | null;
+                                note: string | null;
+                                price: number;
+                            }[];
+                            amountDue: number;
+                            assignedAt: string;
+                            deadlineAt: string;
+                            reservedAt: string | null;
+                            /** @enum {string} */
+                            paymentStatus: "pending" | "submitted" | "approved" | "rejected";
+                            instructions: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                channel: "gcash" | "maya" | "bank" | "other";
+                                label: string;
+                                accountName: string | null;
+                                accountNumber: string | null;
+                                /** Format: uuid */
+                                qrFileId: string | null;
+                                notes: string | null;
+                                qrUrl: string | null;
+                            }[];
+                            proofs: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            }[];
+                            paymentNote: string | null;
+                            archived: boolean;
+                        } | null;
+                    };
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** @enum {string} */
+                        status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed";
+                        submittedAt: string;
+                        decidedAt: string | null;
+                        decisionNote: string | null;
+                        removalNote: string | null;
+                        canReapply: boolean | null;
+                        categories: string[];
+                        documentCount: number;
+                        pastProofs: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "submitted" | "approved" | "rejected";
+                            uploadedAt: string;
+                            fileUrl: string;
+                            methodLabel: string;
+                            methodAccount: string | null;
+                            amountClaimed: number | null;
+                            referenceNumber: string | null;
+                            note: string | null;
+                            rejectionReason: string | null;
+                            archived: boolean;
+                        }[];
+                        event: {
+                            slug: string;
+                            name: string;
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            venueName: string | null;
+                            addressLine: string | null;
+                            city: string | null;
+                            ingressInfo: string | null;
+                            preferredSlots: boolean;
+                            vendorFloorPlanUrl: string | null;
+                        };
+                        organizer: {
+                            displayName: string;
+                            fullName: string;
+                            phone: string | null;
+                            contactEmail: string | null;
+                            approved: boolean;
+                        };
+                        slotsRequested: number;
+                        preferredSlots: {
+                            /** Format: uuid */
+                            id: string;
+                            label: string;
+                            /** @enum {string} */
+                            state: "open" | "taken" | "removed";
+                        }[];
+                        assignment: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            slotLabel: string;
+                            slots: {
+                                label: string;
+                                sizeLabel: string | null;
+                                note: string | null;
+                                price: number;
+                            }[];
+                            amountDue: number;
+                            assignedAt: string;
+                            deadlineAt: string;
+                            reservedAt: string | null;
+                            /** @enum {string} */
+                            paymentStatus: "pending" | "submitted" | "approved" | "rejected";
+                            instructions: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                channel: "gcash" | "maya" | "bank" | "other";
+                                label: string;
+                                accountName: string | null;
+                                accountNumber: string | null;
+                                /** Format: uuid */
+                                qrFileId: string | null;
+                                notes: string | null;
+                                qrUrl: string | null;
+                            }[];
+                            proofs: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            }[];
+                            paymentNote: string | null;
+                            archived: boolean;
+                        } | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    VendorApplicationsController_release: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** @enum {string} */
+                        status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed";
+                        submittedAt: string;
+                        decidedAt: string | null;
+                        decisionNote: string | null;
+                        removalNote: string | null;
+                        canReapply: boolean | null;
+                        categories: string[];
+                        documentCount: number;
+                        pastProofs: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "submitted" | "approved" | "rejected";
+                            uploadedAt: string;
+                            fileUrl: string;
+                            methodLabel: string;
+                            methodAccount: string | null;
+                            amountClaimed: number | null;
+                            referenceNumber: string | null;
+                            note: string | null;
+                            rejectionReason: string | null;
+                            archived: boolean;
+                        }[];
+                        event: {
+                            slug: string;
+                            name: string;
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            venueName: string | null;
+                            addressLine: string | null;
+                            city: string | null;
+                            ingressInfo: string | null;
+                            preferredSlots: boolean;
+                            vendorFloorPlanUrl: string | null;
+                        };
+                        organizer: {
+                            displayName: string;
+                            fullName: string;
+                            phone: string | null;
+                            contactEmail: string | null;
+                            approved: boolean;
+                        };
+                        slotsRequested: number;
+                        preferredSlots: {
+                            /** Format: uuid */
+                            id: string;
+                            label: string;
+                            /** @enum {string} */
+                            state: "open" | "taken" | "removed";
+                        }[];
+                        assignment: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            slotLabel: string;
+                            slots: {
+                                label: string;
+                                sizeLabel: string | null;
+                                note: string | null;
+                                price: number;
+                            }[];
+                            amountDue: number;
+                            assignedAt: string;
+                            deadlineAt: string;
+                            reservedAt: string | null;
+                            /** @enum {string} */
+                            paymentStatus: "pending" | "submitted" | "approved" | "rejected";
+                            instructions: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                channel: "gcash" | "maya" | "bank" | "other";
+                                label: string;
+                                accountName: string | null;
+                                accountNumber: string | null;
+                                /** Format: uuid */
+                                qrFileId: string | null;
+                                notes: string | null;
+                                qrUrl: string | null;
+                            }[];
+                            proofs: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            }[];
+                            paymentNote: string | null;
+                            archived: boolean;
+                        } | null;
+                    };
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** @enum {string} */
+                        status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed";
+                        submittedAt: string;
+                        decidedAt: string | null;
+                        decisionNote: string | null;
+                        removalNote: string | null;
+                        canReapply: boolean | null;
+                        categories: string[];
+                        documentCount: number;
+                        pastProofs: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "submitted" | "approved" | "rejected";
+                            uploadedAt: string;
+                            fileUrl: string;
+                            methodLabel: string;
+                            methodAccount: string | null;
+                            amountClaimed: number | null;
+                            referenceNumber: string | null;
+                            note: string | null;
+                            rejectionReason: string | null;
+                            archived: boolean;
+                        }[];
+                        event: {
+                            slug: string;
+                            name: string;
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            venueName: string | null;
+                            addressLine: string | null;
+                            city: string | null;
+                            ingressInfo: string | null;
+                            preferredSlots: boolean;
+                            vendorFloorPlanUrl: string | null;
+                        };
+                        organizer: {
+                            displayName: string;
+                            fullName: string;
+                            phone: string | null;
+                            contactEmail: string | null;
+                            approved: boolean;
+                        };
+                        slotsRequested: number;
+                        preferredSlots: {
+                            /** Format: uuid */
+                            id: string;
+                            label: string;
+                            /** @enum {string} */
+                            state: "open" | "taken" | "removed";
+                        }[];
+                        assignment: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            slotLabel: string;
+                            slots: {
+                                label: string;
+                                sizeLabel: string | null;
+                                note: string | null;
+                                price: number;
+                            }[];
+                            amountDue: number;
+                            assignedAt: string;
+                            deadlineAt: string;
+                            reservedAt: string | null;
+                            /** @enum {string} */
+                            paymentStatus: "pending" | "submitted" | "approved" | "rejected";
+                            instructions: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                channel: "gcash" | "maya" | "bank" | "other";
+                                label: string;
+                                accountName: string | null;
+                                accountNumber: string | null;
+                                /** Format: uuid */
+                                qrFileId: string | null;
+                                notes: string | null;
+                                qrUrl: string | null;
+                            }[];
+                            proofs: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            }[];
+                            paymentNote: string | null;
+                            archived: boolean;
+                        } | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    VendorApplicationsController_slots: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        currentSlotLabel: string | null;
+                        slotsRequested: number;
+                        preferredSlotIds: string[];
+                        vendorFloorPlanUrl: string | null;
+                        slotGroups: {
+                            name: string;
+                            slots: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                sizeLabel: string | null;
+                                note: string | null;
+                                price: number | null;
+                                taken: boolean;
+                            }[];
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    VendorApplicationsController_preference: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    preferredSlotIds: string[];
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** @enum {string} */
+                        status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed";
+                        submittedAt: string;
+                        decidedAt: string | null;
+                        decisionNote: string | null;
+                        removalNote: string | null;
+                        canReapply: boolean | null;
+                        categories: string[];
+                        documentCount: number;
+                        pastProofs: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "submitted" | "approved" | "rejected";
+                            uploadedAt: string;
+                            fileUrl: string;
+                            methodLabel: string;
+                            methodAccount: string | null;
+                            amountClaimed: number | null;
+                            referenceNumber: string | null;
+                            note: string | null;
+                            rejectionReason: string | null;
+                            archived: boolean;
+                        }[];
+                        event: {
+                            slug: string;
+                            name: string;
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            venueName: string | null;
+                            addressLine: string | null;
+                            city: string | null;
+                            ingressInfo: string | null;
+                            preferredSlots: boolean;
+                            vendorFloorPlanUrl: string | null;
+                        };
+                        organizer: {
+                            displayName: string;
+                            fullName: string;
+                            phone: string | null;
+                            contactEmail: string | null;
+                            approved: boolean;
+                        };
+                        slotsRequested: number;
+                        preferredSlots: {
+                            /** Format: uuid */
+                            id: string;
+                            label: string;
+                            /** @enum {string} */
+                            state: "open" | "taken" | "removed";
+                        }[];
+                        assignment: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            slotLabel: string;
+                            slots: {
+                                label: string;
+                                sizeLabel: string | null;
+                                note: string | null;
+                                price: number;
+                            }[];
+                            amountDue: number;
+                            assignedAt: string;
+                            deadlineAt: string;
+                            reservedAt: string | null;
+                            /** @enum {string} */
+                            paymentStatus: "pending" | "submitted" | "approved" | "rejected";
+                            instructions: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                channel: "gcash" | "maya" | "bank" | "other";
+                                label: string;
+                                accountName: string | null;
+                                accountNumber: string | null;
+                                /** Format: uuid */
+                                qrFileId: string | null;
+                                notes: string | null;
+                                qrUrl: string | null;
+                            }[];
+                            proofs: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            }[];
+                            paymentNote: string | null;
+                            archived: boolean;
+                        } | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    VendorApplicationsController_changeSlot: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    preferredSlotIds: string[];
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** @enum {string} */
+                        status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed";
+                        submittedAt: string;
+                        decidedAt: string | null;
+                        decisionNote: string | null;
+                        removalNote: string | null;
+                        canReapply: boolean | null;
+                        categories: string[];
+                        documentCount: number;
+                        pastProofs: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "submitted" | "approved" | "rejected";
+                            uploadedAt: string;
+                            fileUrl: string;
+                            methodLabel: string;
+                            methodAccount: string | null;
+                            amountClaimed: number | null;
+                            referenceNumber: string | null;
+                            note: string | null;
+                            rejectionReason: string | null;
+                            archived: boolean;
+                        }[];
+                        event: {
+                            slug: string;
+                            name: string;
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            venueName: string | null;
+                            addressLine: string | null;
+                            city: string | null;
+                            ingressInfo: string | null;
+                            preferredSlots: boolean;
+                            vendorFloorPlanUrl: string | null;
+                        };
+                        organizer: {
+                            displayName: string;
+                            fullName: string;
+                            phone: string | null;
+                            contactEmail: string | null;
+                            approved: boolean;
+                        };
+                        slotsRequested: number;
+                        preferredSlots: {
+                            /** Format: uuid */
+                            id: string;
+                            label: string;
+                            /** @enum {string} */
+                            state: "open" | "taken" | "removed";
+                        }[];
+                        assignment: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            slotLabel: string;
+                            slots: {
+                                label: string;
+                                sizeLabel: string | null;
+                                note: string | null;
+                                price: number;
+                            }[];
+                            amountDue: number;
+                            assignedAt: string;
+                            deadlineAt: string;
+                            reservedAt: string | null;
+                            /** @enum {string} */
+                            paymentStatus: "pending" | "submitted" | "approved" | "rejected";
+                            instructions: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                channel: "gcash" | "maya" | "bank" | "other";
+                                label: string;
+                                accountName: string | null;
+                                accountNumber: string | null;
+                                /** Format: uuid */
+                                qrFileId: string | null;
+                                notes: string | null;
+                                qrUrl: string | null;
+                            }[];
+                            proofs: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            }[];
+                            paymentNote: string | null;
+                            archived: boolean;
+                        } | null;
+                    };
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** @enum {string} */
+                        status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed";
+                        submittedAt: string;
+                        decidedAt: string | null;
+                        decisionNote: string | null;
+                        removalNote: string | null;
+                        canReapply: boolean | null;
+                        categories: string[];
+                        documentCount: number;
+                        pastProofs: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "submitted" | "approved" | "rejected";
+                            uploadedAt: string;
+                            fileUrl: string;
+                            methodLabel: string;
+                            methodAccount: string | null;
+                            amountClaimed: number | null;
+                            referenceNumber: string | null;
+                            note: string | null;
+                            rejectionReason: string | null;
+                            archived: boolean;
+                        }[];
+                        event: {
+                            slug: string;
+                            name: string;
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            venueName: string | null;
+                            addressLine: string | null;
+                            city: string | null;
+                            ingressInfo: string | null;
+                            preferredSlots: boolean;
+                            vendorFloorPlanUrl: string | null;
+                        };
+                        organizer: {
+                            displayName: string;
+                            fullName: string;
+                            phone: string | null;
+                            contactEmail: string | null;
+                            approved: boolean;
+                        };
+                        slotsRequested: number;
+                        preferredSlots: {
+                            /** Format: uuid */
+                            id: string;
+                            label: string;
+                            /** @enum {string} */
+                            state: "open" | "taken" | "removed";
+                        }[];
+                        assignment: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            slotLabel: string;
+                            slots: {
+                                label: string;
+                                sizeLabel: string | null;
+                                note: string | null;
+                                price: number;
+                            }[];
+                            amountDue: number;
+                            assignedAt: string;
+                            deadlineAt: string;
+                            reservedAt: string | null;
+                            /** @enum {string} */
+                            paymentStatus: "pending" | "submitted" | "approved" | "rejected";
+                            instructions: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                channel: "gcash" | "maya" | "bank" | "other";
+                                label: string;
+                                accountName: string | null;
+                                accountNumber: string | null;
+                                /** Format: uuid */
+                                qrFileId: string | null;
+                                notes: string | null;
+                                qrUrl: string | null;
+                            }[];
+                            proofs: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            }[];
+                            paymentNote: string | null;
+                            archived: boolean;
+                        } | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    VendorApplicationsController_withdraw: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OrganizerApplicationsController_approve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    note?: string | null;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            status: string;
+                            applicationsOpen: boolean;
+                            preferredSlots: boolean;
+                        };
+                        counters: {
+                            /** Format: uuid */
+                            categoryId: string;
+                            name: string;
+                            approved: number;
+                            max: number | null;
+                        }[];
+                        applications: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "submitted" | "approved" | "declined" | "removed" | "withdrawn";
+                            submittedAt: string;
+                            decidedAt: string | null;
+                            note: string | null;
+                            decisionNote: string | null;
+                            vendor: {
+                                shopName: string;
+                                slug: string | null;
+                                fullName: string;
+                                phone: string | null;
+                                avatarUrl: string | null;
+                            };
+                            categories: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            }[];
+                            documents: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                url: string;
+                                isPdf: boolean;
+                            }[];
+                            slotsRequested: number;
+                            preferredSlots: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                /** @enum {string} */
+                                state: "open" | "taken" | "removed";
+                            }[];
+                            canReapply: boolean | null;
+                        }[];
+                    };
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            status: string;
+                            applicationsOpen: boolean;
+                            preferredSlots: boolean;
+                        };
+                        counters: {
+                            /** Format: uuid */
+                            categoryId: string;
+                            name: string;
+                            approved: number;
+                            max: number | null;
+                        }[];
+                        applications: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "submitted" | "approved" | "declined" | "removed" | "withdrawn";
+                            submittedAt: string;
+                            decidedAt: string | null;
+                            note: string | null;
+                            decisionNote: string | null;
+                            vendor: {
+                                shopName: string;
+                                slug: string | null;
+                                fullName: string;
+                                phone: string | null;
+                                avatarUrl: string | null;
+                            };
+                            categories: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            }[];
+                            documents: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                url: string;
+                                isPdf: boolean;
+                            }[];
+                            slotsRequested: number;
+                            preferredSlots: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                /** @enum {string} */
+                                state: "open" | "taken" | "removed";
+                            }[];
+                            canReapply: boolean | null;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OrganizerApplicationsController_decline: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    note?: string | null;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            status: string;
+                            applicationsOpen: boolean;
+                            preferredSlots: boolean;
+                        };
+                        counters: {
+                            /** Format: uuid */
+                            categoryId: string;
+                            name: string;
+                            approved: number;
+                            max: number | null;
+                        }[];
+                        applications: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "submitted" | "approved" | "declined" | "removed" | "withdrawn";
+                            submittedAt: string;
+                            decidedAt: string | null;
+                            note: string | null;
+                            decisionNote: string | null;
+                            vendor: {
+                                shopName: string;
+                                slug: string | null;
+                                fullName: string;
+                                phone: string | null;
+                                avatarUrl: string | null;
+                            };
+                            categories: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            }[];
+                            documents: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                url: string;
+                                isPdf: boolean;
+                            }[];
+                            slotsRequested: number;
+                            preferredSlots: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                /** @enum {string} */
+                                state: "open" | "taken" | "removed";
+                            }[];
+                            canReapply: boolean | null;
+                        }[];
+                    };
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            status: string;
+                            applicationsOpen: boolean;
+                            preferredSlots: boolean;
+                        };
+                        counters: {
+                            /** Format: uuid */
+                            categoryId: string;
+                            name: string;
+                            approved: number;
+                            max: number | null;
+                        }[];
+                        applications: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "submitted" | "approved" | "declined" | "removed" | "withdrawn";
+                            submittedAt: string;
+                            decidedAt: string | null;
+                            note: string | null;
+                            decisionNote: string | null;
+                            vendor: {
+                                shopName: string;
+                                slug: string | null;
+                                fullName: string;
+                                phone: string | null;
+                                avatarUrl: string | null;
+                            };
+                            categories: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            }[];
+                            documents: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                url: string;
+                                isPdf: boolean;
+                            }[];
+                            slotsRequested: number;
+                            preferredSlots: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                /** @enum {string} */
+                                state: "open" | "taken" | "removed";
+                            }[];
+                            canReapply: boolean | null;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OrganizerApplicationsController_reapply: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    canReapply: boolean;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            status: string;
+                            applicationsOpen: boolean;
+                            preferredSlots: boolean;
+                        };
+                        counters: {
+                            /** Format: uuid */
+                            categoryId: string;
+                            name: string;
+                            approved: number;
+                            max: number | null;
+                        }[];
+                        applications: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "submitted" | "approved" | "declined" | "removed" | "withdrawn";
+                            submittedAt: string;
+                            decidedAt: string | null;
+                            note: string | null;
+                            decisionNote: string | null;
+                            vendor: {
+                                shopName: string;
+                                slug: string | null;
+                                fullName: string;
+                                phone: string | null;
+                                avatarUrl: string | null;
+                            };
+                            categories: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            }[];
+                            documents: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                url: string;
+                                isPdf: boolean;
+                            }[];
+                            slotsRequested: number;
+                            preferredSlots: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                /** @enum {string} */
+                                state: "open" | "taken" | "removed";
+                            }[];
+                            canReapply: boolean | null;
+                        }[];
+                    };
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            status: string;
+                            applicationsOpen: boolean;
+                            preferredSlots: boolean;
+                        };
+                        counters: {
+                            /** Format: uuid */
+                            categoryId: string;
+                            name: string;
+                            approved: number;
+                            max: number | null;
+                        }[];
+                        applications: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "submitted" | "approved" | "declined" | "removed" | "withdrawn";
+                            submittedAt: string;
+                            decidedAt: string | null;
+                            note: string | null;
+                            decisionNote: string | null;
+                            vendor: {
+                                shopName: string;
+                                slug: string | null;
+                                fullName: string;
+                                phone: string | null;
+                                avatarUrl: string | null;
+                            };
+                            categories: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            }[];
+                            documents: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                url: string;
+                                isPdf: boolean;
+                            }[];
+                            slotsRequested: number;
+                            preferredSlots: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                /** @enum {string} */
+                                state: "open" | "taken" | "removed";
+                            }[];
+                            canReapply: boolean | null;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OrganizerVendorsController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                            applicationsOpen: boolean;
+                            preferredSlots: boolean;
+                            deadlineHours: number;
+                            waitingApplications: number;
+                        };
+                        glance: {
+                            open: number;
+                            assigned: number;
+                            reserved: number;
+                            overdue: number;
+                            setAside: number;
+                        };
+                        slots: {
+                            /** Format: uuid */
+                            id: string;
+                            label: string;
+                            section: string | null;
+                            sizeLabel: string | null;
+                            price: number | null;
+                            /** @enum {string} */
+                            state: "open" | "assigned" | "reserved" | "set_aside";
+                            overdue: boolean;
+                            preferredBy: number;
+                            setAsideNote: string | null;
+                        }[];
+                        unassigned: {
+                            /** Format: uuid */
+                            applicationId: string;
+                            shopName: string;
+                            categories: string[];
+                            slotsRequested: number;
+                            preferredSlots: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                /** @enum {string} */
+                                state: "open" | "taken" | "removed";
+                            }[];
+                        }[];
+                        assignments: {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            applicationId: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            slotLabel: string;
+                            shopName: string;
+                            phone: string | null;
+                            amountDue: number;
+                            /** @enum {string} */
+                            paymentStatus: "pending" | "submitted" | "approved" | "rejected";
+                            deadlineAt: string;
+                            overdue: boolean;
+                            proof: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            } | null;
+                            paymentNote: string | null;
+                        }[];
+                        archived: {
+                            /** Format: uuid */
+                            assignmentId: string;
+                            shopName: string;
+                            slotLabel: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            amountDue: number;
+                            endedAt: string | null;
+                            proofs: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            }[];
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OrganizerVendorsController_assign: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    applicationId: string;
+                    slotIds: string[];
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                            applicationsOpen: boolean;
+                            preferredSlots: boolean;
+                            deadlineHours: number;
+                            waitingApplications: number;
+                        };
+                        glance: {
+                            open: number;
+                            assigned: number;
+                            reserved: number;
+                            overdue: number;
+                            setAside: number;
+                        };
+                        slots: {
+                            /** Format: uuid */
+                            id: string;
+                            label: string;
+                            section: string | null;
+                            sizeLabel: string | null;
+                            price: number | null;
+                            /** @enum {string} */
+                            state: "open" | "assigned" | "reserved" | "set_aside";
+                            overdue: boolean;
+                            preferredBy: number;
+                            setAsideNote: string | null;
+                        }[];
+                        unassigned: {
+                            /** Format: uuid */
+                            applicationId: string;
+                            shopName: string;
+                            categories: string[];
+                            slotsRequested: number;
+                            preferredSlots: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                /** @enum {string} */
+                                state: "open" | "taken" | "removed";
+                            }[];
+                        }[];
+                        assignments: {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            applicationId: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            slotLabel: string;
+                            shopName: string;
+                            phone: string | null;
+                            amountDue: number;
+                            /** @enum {string} */
+                            paymentStatus: "pending" | "submitted" | "approved" | "rejected";
+                            deadlineAt: string;
+                            overdue: boolean;
+                            proof: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            } | null;
+                            paymentNote: string | null;
+                        }[];
+                        archived: {
+                            /** Format: uuid */
+                            assignmentId: string;
+                            shopName: string;
+                            slotLabel: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            amountDue: number;
+                            endedAt: string | null;
+                            proofs: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            }[];
+                        }[];
+                    };
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                            applicationsOpen: boolean;
+                            preferredSlots: boolean;
+                            deadlineHours: number;
+                            waitingApplications: number;
+                        };
+                        glance: {
+                            open: number;
+                            assigned: number;
+                            reserved: number;
+                            overdue: number;
+                            setAside: number;
+                        };
+                        slots: {
+                            /** Format: uuid */
+                            id: string;
+                            label: string;
+                            section: string | null;
+                            sizeLabel: string | null;
+                            price: number | null;
+                            /** @enum {string} */
+                            state: "open" | "assigned" | "reserved" | "set_aside";
+                            overdue: boolean;
+                            preferredBy: number;
+                            setAsideNote: string | null;
+                        }[];
+                        unassigned: {
+                            /** Format: uuid */
+                            applicationId: string;
+                            shopName: string;
+                            categories: string[];
+                            slotsRequested: number;
+                            preferredSlots: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                /** @enum {string} */
+                                state: "open" | "taken" | "removed";
+                            }[];
+                        }[];
+                        assignments: {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            applicationId: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            slotLabel: string;
+                            shopName: string;
+                            phone: string | null;
+                            amountDue: number;
+                            /** @enum {string} */
+                            paymentStatus: "pending" | "submitted" | "approved" | "rejected";
+                            deadlineAt: string;
+                            overdue: boolean;
+                            proof: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            } | null;
+                            paymentNote: string | null;
+                        }[];
+                        archived: {
+                            /** Format: uuid */
+                            assignmentId: string;
+                            shopName: string;
+                            slotLabel: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            amountDue: number;
+                            endedAt: string | null;
+                            proofs: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            }[];
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OrganizerVendorsController_approveProof: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                proofId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @default null */
+                    amountPaid?: number | null;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                            applicationsOpen: boolean;
+                            preferredSlots: boolean;
+                            deadlineHours: number;
+                            waitingApplications: number;
+                        };
+                        glance: {
+                            open: number;
+                            assigned: number;
+                            reserved: number;
+                            overdue: number;
+                            setAside: number;
+                        };
+                        slots: {
+                            /** Format: uuid */
+                            id: string;
+                            label: string;
+                            section: string | null;
+                            sizeLabel: string | null;
+                            price: number | null;
+                            /** @enum {string} */
+                            state: "open" | "assigned" | "reserved" | "set_aside";
+                            overdue: boolean;
+                            preferredBy: number;
+                            setAsideNote: string | null;
+                        }[];
+                        unassigned: {
+                            /** Format: uuid */
+                            applicationId: string;
+                            shopName: string;
+                            categories: string[];
+                            slotsRequested: number;
+                            preferredSlots: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                /** @enum {string} */
+                                state: "open" | "taken" | "removed";
+                            }[];
+                        }[];
+                        assignments: {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            applicationId: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            slotLabel: string;
+                            shopName: string;
+                            phone: string | null;
+                            amountDue: number;
+                            /** @enum {string} */
+                            paymentStatus: "pending" | "submitted" | "approved" | "rejected";
+                            deadlineAt: string;
+                            overdue: boolean;
+                            proof: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            } | null;
+                            paymentNote: string | null;
+                        }[];
+                        archived: {
+                            /** Format: uuid */
+                            assignmentId: string;
+                            shopName: string;
+                            slotLabel: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            amountDue: number;
+                            endedAt: string | null;
+                            proofs: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            }[];
+                        }[];
+                    };
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                            applicationsOpen: boolean;
+                            preferredSlots: boolean;
+                            deadlineHours: number;
+                            waitingApplications: number;
+                        };
+                        glance: {
+                            open: number;
+                            assigned: number;
+                            reserved: number;
+                            overdue: number;
+                            setAside: number;
+                        };
+                        slots: {
+                            /** Format: uuid */
+                            id: string;
+                            label: string;
+                            section: string | null;
+                            sizeLabel: string | null;
+                            price: number | null;
+                            /** @enum {string} */
+                            state: "open" | "assigned" | "reserved" | "set_aside";
+                            overdue: boolean;
+                            preferredBy: number;
+                            setAsideNote: string | null;
+                        }[];
+                        unassigned: {
+                            /** Format: uuid */
+                            applicationId: string;
+                            shopName: string;
+                            categories: string[];
+                            slotsRequested: number;
+                            preferredSlots: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                /** @enum {string} */
+                                state: "open" | "taken" | "removed";
+                            }[];
+                        }[];
+                        assignments: {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            applicationId: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            slotLabel: string;
+                            shopName: string;
+                            phone: string | null;
+                            amountDue: number;
+                            /** @enum {string} */
+                            paymentStatus: "pending" | "submitted" | "approved" | "rejected";
+                            deadlineAt: string;
+                            overdue: boolean;
+                            proof: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            } | null;
+                            paymentNote: string | null;
+                        }[];
+                        archived: {
+                            /** Format: uuid */
+                            assignmentId: string;
+                            shopName: string;
+                            slotLabel: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            amountDue: number;
+                            endedAt: string | null;
+                            proofs: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            }[];
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OrganizerVendorsController_rejectProof: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                proofId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                            applicationsOpen: boolean;
+                            preferredSlots: boolean;
+                            deadlineHours: number;
+                            waitingApplications: number;
+                        };
+                        glance: {
+                            open: number;
+                            assigned: number;
+                            reserved: number;
+                            overdue: number;
+                            setAside: number;
+                        };
+                        slots: {
+                            /** Format: uuid */
+                            id: string;
+                            label: string;
+                            section: string | null;
+                            sizeLabel: string | null;
+                            price: number | null;
+                            /** @enum {string} */
+                            state: "open" | "assigned" | "reserved" | "set_aside";
+                            overdue: boolean;
+                            preferredBy: number;
+                            setAsideNote: string | null;
+                        }[];
+                        unassigned: {
+                            /** Format: uuid */
+                            applicationId: string;
+                            shopName: string;
+                            categories: string[];
+                            slotsRequested: number;
+                            preferredSlots: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                /** @enum {string} */
+                                state: "open" | "taken" | "removed";
+                            }[];
+                        }[];
+                        assignments: {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            applicationId: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            slotLabel: string;
+                            shopName: string;
+                            phone: string | null;
+                            amountDue: number;
+                            /** @enum {string} */
+                            paymentStatus: "pending" | "submitted" | "approved" | "rejected";
+                            deadlineAt: string;
+                            overdue: boolean;
+                            proof: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            } | null;
+                            paymentNote: string | null;
+                        }[];
+                        archived: {
+                            /** Format: uuid */
+                            assignmentId: string;
+                            shopName: string;
+                            slotLabel: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            amountDue: number;
+                            endedAt: string | null;
+                            proofs: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            }[];
+                        }[];
+                    };
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                            applicationsOpen: boolean;
+                            preferredSlots: boolean;
+                            deadlineHours: number;
+                            waitingApplications: number;
+                        };
+                        glance: {
+                            open: number;
+                            assigned: number;
+                            reserved: number;
+                            overdue: number;
+                            setAside: number;
+                        };
+                        slots: {
+                            /** Format: uuid */
+                            id: string;
+                            label: string;
+                            section: string | null;
+                            sizeLabel: string | null;
+                            price: number | null;
+                            /** @enum {string} */
+                            state: "open" | "assigned" | "reserved" | "set_aside";
+                            overdue: boolean;
+                            preferredBy: number;
+                            setAsideNote: string | null;
+                        }[];
+                        unassigned: {
+                            /** Format: uuid */
+                            applicationId: string;
+                            shopName: string;
+                            categories: string[];
+                            slotsRequested: number;
+                            preferredSlots: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                /** @enum {string} */
+                                state: "open" | "taken" | "removed";
+                            }[];
+                        }[];
+                        assignments: {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            applicationId: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            slotLabel: string;
+                            shopName: string;
+                            phone: string | null;
+                            amountDue: number;
+                            /** @enum {string} */
+                            paymentStatus: "pending" | "submitted" | "approved" | "rejected";
+                            deadlineAt: string;
+                            overdue: boolean;
+                            proof: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            } | null;
+                            paymentNote: string | null;
+                        }[];
+                        archived: {
+                            /** Format: uuid */
+                            assignmentId: string;
+                            shopName: string;
+                            slotLabel: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            amountDue: number;
+                            endedAt: string | null;
+                            proofs: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            }[];
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OrganizerVendorsController_markPaid: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                assignmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    note: string;
+                    /**
+                     * @default cash
+                     * @enum {string}
+                     */
+                    method?: "cash" | "other";
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                            applicationsOpen: boolean;
+                            preferredSlots: boolean;
+                            deadlineHours: number;
+                            waitingApplications: number;
+                        };
+                        glance: {
+                            open: number;
+                            assigned: number;
+                            reserved: number;
+                            overdue: number;
+                            setAside: number;
+                        };
+                        slots: {
+                            /** Format: uuid */
+                            id: string;
+                            label: string;
+                            section: string | null;
+                            sizeLabel: string | null;
+                            price: number | null;
+                            /** @enum {string} */
+                            state: "open" | "assigned" | "reserved" | "set_aside";
+                            overdue: boolean;
+                            preferredBy: number;
+                            setAsideNote: string | null;
+                        }[];
+                        unassigned: {
+                            /** Format: uuid */
+                            applicationId: string;
+                            shopName: string;
+                            categories: string[];
+                            slotsRequested: number;
+                            preferredSlots: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                /** @enum {string} */
+                                state: "open" | "taken" | "removed";
+                            }[];
+                        }[];
+                        assignments: {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            applicationId: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            slotLabel: string;
+                            shopName: string;
+                            phone: string | null;
+                            amountDue: number;
+                            /** @enum {string} */
+                            paymentStatus: "pending" | "submitted" | "approved" | "rejected";
+                            deadlineAt: string;
+                            overdue: boolean;
+                            proof: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            } | null;
+                            paymentNote: string | null;
+                        }[];
+                        archived: {
+                            /** Format: uuid */
+                            assignmentId: string;
+                            shopName: string;
+                            slotLabel: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            amountDue: number;
+                            endedAt: string | null;
+                            proofs: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            }[];
+                        }[];
+                    };
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                            applicationsOpen: boolean;
+                            preferredSlots: boolean;
+                            deadlineHours: number;
+                            waitingApplications: number;
+                        };
+                        glance: {
+                            open: number;
+                            assigned: number;
+                            reserved: number;
+                            overdue: number;
+                            setAside: number;
+                        };
+                        slots: {
+                            /** Format: uuid */
+                            id: string;
+                            label: string;
+                            section: string | null;
+                            sizeLabel: string | null;
+                            price: number | null;
+                            /** @enum {string} */
+                            state: "open" | "assigned" | "reserved" | "set_aside";
+                            overdue: boolean;
+                            preferredBy: number;
+                            setAsideNote: string | null;
+                        }[];
+                        unassigned: {
+                            /** Format: uuid */
+                            applicationId: string;
+                            shopName: string;
+                            categories: string[];
+                            slotsRequested: number;
+                            preferredSlots: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                /** @enum {string} */
+                                state: "open" | "taken" | "removed";
+                            }[];
+                        }[];
+                        assignments: {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            applicationId: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            slotLabel: string;
+                            shopName: string;
+                            phone: string | null;
+                            amountDue: number;
+                            /** @enum {string} */
+                            paymentStatus: "pending" | "submitted" | "approved" | "rejected";
+                            deadlineAt: string;
+                            overdue: boolean;
+                            proof: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            } | null;
+                            paymentNote: string | null;
+                        }[];
+                        archived: {
+                            /** Format: uuid */
+                            assignmentId: string;
+                            shopName: string;
+                            slotLabel: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            amountDue: number;
+                            endedAt: string | null;
+                            proofs: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            }[];
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OrganizerVendorsController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                applicationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    canReapply: boolean;
+                    note?: string | null;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                            applicationsOpen: boolean;
+                            preferredSlots: boolean;
+                            deadlineHours: number;
+                            waitingApplications: number;
+                        };
+                        glance: {
+                            open: number;
+                            assigned: number;
+                            reserved: number;
+                            overdue: number;
+                            setAside: number;
+                        };
+                        slots: {
+                            /** Format: uuid */
+                            id: string;
+                            label: string;
+                            section: string | null;
+                            sizeLabel: string | null;
+                            price: number | null;
+                            /** @enum {string} */
+                            state: "open" | "assigned" | "reserved" | "set_aside";
+                            overdue: boolean;
+                            preferredBy: number;
+                            setAsideNote: string | null;
+                        }[];
+                        unassigned: {
+                            /** Format: uuid */
+                            applicationId: string;
+                            shopName: string;
+                            categories: string[];
+                            slotsRequested: number;
+                            preferredSlots: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                /** @enum {string} */
+                                state: "open" | "taken" | "removed";
+                            }[];
+                        }[];
+                        assignments: {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            applicationId: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            slotLabel: string;
+                            shopName: string;
+                            phone: string | null;
+                            amountDue: number;
+                            /** @enum {string} */
+                            paymentStatus: "pending" | "submitted" | "approved" | "rejected";
+                            deadlineAt: string;
+                            overdue: boolean;
+                            proof: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            } | null;
+                            paymentNote: string | null;
+                        }[];
+                        archived: {
+                            /** Format: uuid */
+                            assignmentId: string;
+                            shopName: string;
+                            slotLabel: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            amountDue: number;
+                            endedAt: string | null;
+                            proofs: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            }[];
+                        }[];
+                    };
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        event: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                            applicationsOpen: boolean;
+                            preferredSlots: boolean;
+                            deadlineHours: number;
+                            waitingApplications: number;
+                        };
+                        glance: {
+                            open: number;
+                            assigned: number;
+                            reserved: number;
+                            overdue: number;
+                            setAside: number;
+                        };
+                        slots: {
+                            /** Format: uuid */
+                            id: string;
+                            label: string;
+                            section: string | null;
+                            sizeLabel: string | null;
+                            price: number | null;
+                            /** @enum {string} */
+                            state: "open" | "assigned" | "reserved" | "set_aside";
+                            overdue: boolean;
+                            preferredBy: number;
+                            setAsideNote: string | null;
+                        }[];
+                        unassigned: {
+                            /** Format: uuid */
+                            applicationId: string;
+                            shopName: string;
+                            categories: string[];
+                            slotsRequested: number;
+                            preferredSlots: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                /** @enum {string} */
+                                state: "open" | "taken" | "removed";
+                            }[];
+                        }[];
+                        assignments: {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            applicationId: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            slotLabel: string;
+                            shopName: string;
+                            phone: string | null;
+                            amountDue: number;
+                            /** @enum {string} */
+                            paymentStatus: "pending" | "submitted" | "approved" | "rejected";
+                            deadlineAt: string;
+                            overdue: boolean;
+                            proof: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            } | null;
+                            paymentNote: string | null;
+                        }[];
+                        archived: {
+                            /** Format: uuid */
+                            assignmentId: string;
+                            shopName: string;
+                            slotLabel: string;
+                            /** @enum {string} */
+                            status: "assigned" | "reserved" | "released" | "removed" | "canceled";
+                            amountDue: number;
+                            endedAt: string | null;
+                            proofs: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "submitted" | "approved" | "rejected";
+                                uploadedAt: string;
+                                fileUrl: string;
+                                methodLabel: string;
+                                methodAccount: string | null;
+                                amountClaimed: number | null;
+                                referenceNumber: string | null;
+                                note: string | null;
+                                rejectionReason: string | null;
+                                archived: boolean;
+                            }[];
+                        }[];
                     };
                 };
             };

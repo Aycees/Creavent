@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { vendorStatusSchema } from './applications.js';
 import { eventStatusSchema } from './events.js';
 
 // What vendors see (spec §4.2, sitemap §3): Browse events and the vendor view
@@ -35,6 +36,8 @@ export const vendorEventCardSchema = z.object({
   preferredSlots: z.boolean(),
   // Spots left in the vendor's own categories, where the organizer set a limit.
   mySpots: z.array(z.object({ categoryName: z.string(), left: z.number().int(), max: z.number().int() })),
+  // The vendor's latest application here, if any.
+  myStatus: vendorStatusSchema.nullable(),
 });
 export type VendorEventCard = z.infer<typeof vendorEventCardSchema>;
 
@@ -80,6 +83,9 @@ export const vendorEventSchema = z.object({
   vendorContactInfo: z.string().nullable(),
   // The viewer's vendor categories, for "Your category is accepted".
   myCategoryIds: z.array(z.uuid()),
+  // The viewer's latest application here: the page shows its status and a
+  // link instead of Apply (sitemap §3).
+  myApplication: z.object({ id: z.uuid(), status: vendorStatusSchema, canReapply: z.boolean().nullable() }).nullable(),
 });
 export type VendorEvent = z.infer<typeof vendorEventSchema>;
 

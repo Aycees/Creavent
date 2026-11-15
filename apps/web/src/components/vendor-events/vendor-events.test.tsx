@@ -32,6 +32,14 @@ describe("BrowseEvents (/vendor/events)", () => {
     expect(screen.getByText("1 event, soonest first")).toBeInTheDocument()
   })
 
+  it("shows the vendor's own status at the event", async () => {
+    vi.mocked(api.GET).mockResolvedValue({ data: { events: [cardFixture({ myStatus: "slot_assigned" })] }, response: { status: 200 } } as never)
+    renderWithQuery(<BrowseEvents />)
+
+    const card = await screen.findByRole("article", { name: "Lanang Holiday Flea" })
+    expect(within(card).getByText("You: Slot assigned")).toBeInTheDocument()
+  })
+
   it("makes the whole card one link to the event page", async () => {
     renderWithQuery(<BrowseEvents />)
 
@@ -89,6 +97,36 @@ describe("EventPageView (/events/[slug])", () => {
 
     expect(await screen.findByText("Applications closed")).toBeInTheDocument()
     expect(screen.queryByRole("link", { name: "Apply as vendor" })).not.toBeInTheDocument()
+  })
+
+  it("shows the vendor's status and a link to their application instead of Apply", async () => {
+    show({ view: "vendor", preview: false, event: eventFixture({ myApplication: { id: "a1", status: "submitted", canReapply: null } }) })
+    renderWithQuery(<EventPageView slug="lanang-holiday-flea" />)
+
+    expect(await screen.findByText("Your application: Submitted")).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "View your application" })).toHaveAttribute("href", "/vendor/applications/a1")
+    expect(screen.queryByRole("link", { name: "Apply as vendor" })).not.toBeInTheDocument()
+  })
+
+  it("offers Apply again after a decline or withdrawal", async () => {
+    show({ view: "vendor", preview: false, event: eventFixture({ myApplication: { id: "a1", status: "declined", canReapply: null } }) })
+    renderWithQuery(<EventPageView slug="lanang-holiday-flea" />)
+
+    expect(await screen.findByText("Your application: Declined")).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "Apply again" })).toHaveAttribute("href", "/vendor/events/lanang-holiday-flea/apply")
+  })
+
+  it("tells a removed vendor whether they can apply again", async () => {
+    show({ view: "vendor", preview: false, event: eventFixture({ myApplication: { id: "a1", status: "removed", canReapply: false } }) })
+    const { unmount } = renderWithQuery(<EventPageView slug="lanang-holiday-flea" />)
+
+    expect(await screen.findByText("You can't reapply to this event.")).toBeInTheDocument()
+    expect(screen.queryByRole("link", { name: /Apply/ })).not.toBeInTheDocument()
+    unmount()
+
+    show({ view: "vendor", preview: false, event: eventFixture({ myApplication: { id: "a1", status: "removed", canReapply: true } }) })
+    renderWithQuery(<EventPageView slug="lanang-holiday-flea" />)
+    expect(await screen.findByRole("link", { name: "Apply again" })).toHaveAttribute("href", "/vendor/events/lanang-holiday-flea/apply")
   })
 
   it("says when the vendor's category isn't accepted", async () => {

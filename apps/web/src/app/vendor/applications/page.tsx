@@ -1,9 +1,9 @@
 import type { Metadata } from "next"
 
-import { PlaceholderPage } from "@/components/layout/placeholder-page"
+import { VendorApplicationsList } from "@/components/applications/vendor-application"
 
 export const metadata: Metadata = { title: "Applications · Creavent" }
 
 export default function ApplicationsPage() {
-  return <PlaceholderPage title="Applications" slice="3.4 (vendor application page)" />
+  return <VendorApplicationsList />
 }

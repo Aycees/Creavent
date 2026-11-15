@@ -60,7 +60,7 @@ describe('event slots and floor plans', () => {
 
     const res = await browser.get(`/api/organizer/events/${id}`);
 
-    expect(res.body.slots).toEqual({ mode: 'organizer_assigns', defaultPrice: null, vendorFloorPlan: null, publicFloorPlan: null, list: [] });
+    expect(res.body.slots).toEqual({ mode: 'organizer_assigns', defaultPrice: null, maxSlotsPerVendor: 1, vendorFloorPlan: null, publicFloorPlan: null, list: [] });
   });
 
   it('adds a slot with a section, size, note, and price', async () => {

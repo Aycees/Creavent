@@ -1,4 +1,4 @@
-import { formatPeso, formatPriceRange, groupSlots, rowLabels } from "@creavent/shared"
+import { formatPeso, formatPriceRange, groupSlots, rowLabels, slotWords } from "@creavent/shared"
 import { describe, expect, it } from "vitest"
 
 describe("formatPeso (design brief §4)", () => {
@@ -33,5 +33,13 @@ describe("groupSlots (spec §3.4)", () => {
       ["C", ["C-01", "C-02"]],
       ["Other slots", ["12"]],
     ])
+  })
+})
+
+describe("slotWords (decision P6)", () => {
+  it("says slot for one and slots for a vendor's several", () => {
+    expect(slotWords("B-04")).toBe("slot B-04")
+    expect(slotWords("B-04, B-05")).toBe("slots B-04, B-05")
+    expect(slotWords("B-04, B-05", true)).toBe("Slots B-04, B-05")
   })
 })

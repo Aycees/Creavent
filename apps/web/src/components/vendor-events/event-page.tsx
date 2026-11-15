@@ -1,6 +1,6 @@
 "use client"
 
-import type { EventPage, VendorEvent } from "@creavent/shared"
+import { vendorStatusLabels, type EventPage, type VendorEvent } from "@creavent/shared"
 import { ArrowSquareOutIcon, FileTextIcon, ImageIcon, InfoIcon, MapPinIcon } from "@phosphor-icons/react"
 import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
@@ -137,10 +137,19 @@ function VendorView({ event: e, preview }: { event: VendorEvent; preview: boolea
                 <dd className="text-right">{e.summary.paidTo ? `Organizer. ${e.summary.paidTo}` : "Organizer"}</dd>
               </div>
             </dl>
-            {e.acceptingApplications ? (
+            {e.myApplication && !preview && (
+              <p className="rounded-md bg-sunken px-4 py-3 text-label">{`Your application: ${vendorStatusLabels[e.myApplication.status]}`}</p>
+            )}
+            {e.myApplication?.status === "removed" && !e.myApplication.canReapply && !preview ? (
+              <p className="text-sm">You can&apos;t reapply to this event.</p>
+            ) : e.myApplication && !preview && !["declined", "withdrawn", "removed"].includes(e.myApplication.status) ? (
+              <Button asChild variant="secondary" block>
+                <Link href={`/vendor/applications/${e.myApplication.id}`}>View your application</Link>
+              </Button>
+            ) : e.acceptingApplications ? (
               <>
                 <Button asChild variant="brand" block>
-                  <Link href={`/vendor/events/${e.slug}/apply`}>Apply as vendor</Link>
+                  <Link href={`/vendor/events/${e.slug}/apply`}>{e.myApplication && !preview ? "Apply again" : "Apply as vendor"}</Link>
                 </Button>
                 <p className="text-cap text-muted">By applying you accept the event&apos;s policy.</p>
               </>

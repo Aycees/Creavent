@@ -54,19 +54,28 @@ model User {
   createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
-  avatarFile       File?               @relation("UserAvatar", fields: [avatarFileId], references: [id])
-  sessions         Session[]
-  accounts         Account[]
-  legalAcceptances LegalAcceptance[]
-  roles            UserRole[]          @relation("UserRoles")
-  reviewedRoles    UserRole[]          @relation("RoleReviewer")
-  suspendedRoles   UserRole[]          @relation("RoleSuspender")
-  uploadedFiles    File[]              @relation("FileUploader")
-  vendorProfile    VendorProfile?
-  organizerProfile OrganizerProfile?
-  emails           EmailNotification[]
-  auditLogs        AuditLog[]
-  moderatedEvents  Event[]             @relation("EventModerator")
+  avatarFile          File?               @relation("UserAvatar", fields: [avatarFileId], references: [id])
+  sessions            Session[]
+  accounts            Account[]
+  legalAcceptances    LegalAcceptance[]
+  roles               UserRole[]          @relation("UserRoles")
+  reviewedRoles       UserRole[]          @relation("RoleReviewer")
+  suspendedRoles      UserRole[]          @relation("RoleSuspender")
+  uploadedFiles       File[]              @relation("FileUploader")
+  vendorProfile       VendorProfile?
+  organizerProfile    OrganizerProfile?
+  emails              EmailNotification[]
+  auditLogs           AuditLog[]
+  moderatedEvents     Event[]             @relation("EventModerator")
+  decidedApplications Application[]       @relation("ApplicationDecider")
+  removedApplications Application[]       @relation("ApplicationRemover")
+  assignedSlots       SlotAssignment[]    @relation("SlotAssigner")
+  endedAssignments    SlotAssignment[]    @relation("AssignmentEnder")
+  paymentsMade        Payment[]           @relation("PaymentPayer")
+  paymentsReceived    Payment[]           @relation("PaymentPayee")
+  paymentsDecided     Payment[]           @relation("PaymentDecider")
+  proofsUploaded      PaymentProof[]      @relation("ProofUploader")
+  proofsDecided       PaymentProof[]      @relation("ProofDecider")
 
   @@map("users")
 }
@@ -225,14 +234,16 @@ model File {
   createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz
   updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz
 
-  uploader          User                 @relation("FileUploader", fields: [uploadedBy], references: [id])
-  avatarOf          User[]               @relation("UserAvatar")
-  logoOf            OrganizerProfile[]
-  vendorPhotos      VendorProfilePhoto[]
-  coverOf           Event[]              @relation("EventCover")
-  qrOf              EventPaymentMethod[]
-  vendorFloorPlanOf Event[]              @relation("VendorFloorPlan")
-  publicFloorPlanOf Event[]              @relation("PublicFloorPlan")
+  uploader             User                  @relation("FileUploader", fields: [uploadedBy], references: [id])
+  avatarOf             User[]                @relation("UserAvatar")
+  logoOf               OrganizerProfile[]
+  vendorPhotos         VendorProfilePhoto[]
+  coverOf              Event[]               @relation("EventCover")
+  qrOf                 EventPaymentMethod[]
+  vendorFloorPlanOf    Event[]               @relation("VendorFloorPlan")
+  applicationDocuments ApplicationDocument[]
+  paymentProofs        PaymentProof[]
+  publicFloorPlanOf    Event[]               @relation("PublicFloorPlan")
 
   @@index([uploadedBy, status])
   @@map("files")
@@ -252,6 +263,7 @@ model Category {
   vendors              VendorProfileCategory[]
   events               EventCategory[]
   documentRequirements EventDocumentRequirement[]
+  applications         ApplicationCategory[]
 
   @@map("categories")
 }
@@ -287,9 +299,12 @@ model VendorProfile {
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
-  user       User                    @relation(fields: [userId], references: [id])
-  categories VendorProfileCategory[]
-  photos     VendorProfilePhoto[]
+  user         User                    @relation(fields: [userId], references: [id])
+  categories   VendorProfileCategory[]
+  photos       VendorProfilePhoto[]
+  applications Application[]
+  assignments  SlotAssignment[]
+  proofs       PaymentProof[]
 
   @@map("vendor_profiles")
 }
@@ -391,6 +406,8 @@ model Event {
   paymentDeadlineHours  Int             @default(24) @map("payment_deadline_hours")
   defaultSlotPrice      Decimal?        @map("default_slot_price") @db.Decimal(10, 2)
   slotMode              SlotMode        @default(organizer_assigns) @map("slot_mode")
+  // How many slots one vendor can ask for and hold here, 1 to 10 (decision P2).
+  maxSlotsPerVendor     Int             @default(1) @map("max_slots_per_vendor")
   vendorFloorPlanFileId String?         @map("vendor_floor_plan_file_id") @db.Uuid
   publicFloorPlanFileId String?         @map("public_floor_plan_file_id") @db.Uuid
   currency              String          @default("PHP") @db.Char(3)
@@ -413,6 +430,10 @@ model Event {
   documents           EventDocumentRequirement[]
   paymentMethods      EventPaymentMethod[]
   slots               Slot[]
+  applications        Application[]
+  assignments         SlotAssignment[]
+  payments            Payment[]
+  proofs              PaymentProof[]
   vendorFloorPlanFile File?                      @relation("VendorFloorPlan", fields: [vendorFloorPlanFileId], references: [id])
   publicFloorPlanFile File?                      @relation("PublicFloorPlan", fields: [publicFloorPlanFileId], references: [id])
 
@@ -449,8 +470,9 @@ model EventDocumentRequirement {
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
-  event    Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  category Category? @relation(fields: [categoryId], references: [id])
+  event     Event                 @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  category  Category?             @relation(fields: [categoryId], references: [id])
+  documents ApplicationDocument[]
 
   @@index([eventId])
   @@map("event_document_requirements")
@@ -481,8 +503,9 @@ model EventPaymentMethod {
   createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz
   updatedAt     DateTime       @updatedAt @map("updated_at") @db.Timestamptz
 
-  event  Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  qrFile File? @relation(fields: [qrFileId], references: [id])
+  event  Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  qrFile File?          @relation(fields: [qrFileId], references: [id])
+  proofs PaymentProof[]
 
   @@index([eventId])
   @@map("event_payment_methods")
@@ -510,15 +533,285 @@ model Slot {
   sizeLabel String?   @map("size_label")
   note      String?
   sortOrder Int       @map("sort_order")
+  // Kept by the organizer for their own booth or a sponsor (decision P1):
+  // nobody can be assigned it or prefer it. The note is only for them.
+  setAsideAt   DateTime? @map("set_aside_at") @db.Timestamptz
+  setAsideNote String?   @map("set_aside_note")
   // Soft delete, because past assignments point to the slot.
   deletedAt DateTime? @map("deleted_at") @db.Timestamptz
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
-  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  event       Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  preferredBy ApplicationPreferredSlot[]
+  assignments SlotAssignmentSlot[]
 
   @@index([eventId])
   @@map("slots")
+}
+
+// ─── Applications (data model §5.6) ────────────────────────────────────────
+
+enum ApplicationStatus {
+  submitted
+  approved
+  declined
+  removed
+  withdrawn
+
+  @@map("application_status")
+}
+
+// A vendor's request to join an event (spec §3.3, §4.2). Reapplying creates a
+// new row, so history is kept. Only one is active (submitted or approved) per
+// vendor per event, enforced by a partial unique index (data model §6.2).
+model Application {
+  id                 String            @id @default(uuid()) @db.Uuid
+  eventId            String            @map("event_id") @db.Uuid
+  vendorProfileId    String            @map("vendor_profile_id") @db.Uuid
+  status             ApplicationStatus @default(submitted)
+  vendorNote         String?           @map("vendor_note")
+  // How many slots the vendor asked for, up to the event's limit (decision P4).
+  slotsRequested     Int               @default(1) @map("slots_requested")
+  policyTextSnapshot String            @map("policy_text_snapshot")
+  policyAcceptedAt   DateTime          @map("policy_accepted_at") @db.Timestamptz
+  submittedAt        DateTime          @default(now()) @map("submitted_at") @db.Timestamptz
+  decidedById        String?           @map("decided_by") @db.Uuid
+  decidedAt          DateTime?         @map("decided_at") @db.Timestamptz
+  decisionNote       String?           @map("decision_note")
+  withdrawnAt        DateTime?         @map("withdrawn_at") @db.Timestamptz
+  removedAt          DateTime?         @map("removed_at") @db.Timestamptz
+  removedById        String?           @map("removed_by") @db.Uuid
+  removalNote        String?           @map("removal_note")
+  // Set on removal. False blocks new applications to this event.
+  canReapply         Boolean?          @map("can_reapply")
+  createdAt          DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime          @updatedAt @map("updated_at") @db.Timestamptz
+
+  event         Event                 @relation(fields: [eventId], references: [id])
+  vendorProfile VendorProfile         @relation(fields: [vendorProfileId], references: [id])
+  preferredSlots ApplicationPreferredSlot[]
+  decidedBy     User?                 @relation("ApplicationDecider", fields: [decidedById], references: [id])
+  removedBy     User?                 @relation("ApplicationRemover", fields: [removedById], references: [id])
+  categories    ApplicationCategory[]
+  documents     ApplicationDocument[]
+  assignments   SlotAssignment[]
+
+  @@index([eventId, status])
+  @@index([vendorProfileId])
+  @@map("applications")
+}
+
+// Slots the vendor would like, up to slots_requested. Holds nothing: several
+// applications may prefer the same slot (spec §4.3).
+model ApplicationPreferredSlot {
+  applicationId String @map("application_id") @db.Uuid
+  slotId        String @map("slot_id") @db.Uuid
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  slot        Slot        @relation(fields: [slotId], references: [id])
+
+  @@id([applicationId, slotId])
+  @@index([slotId])
+  @@map("application_preferred_slots")
+}
+
+// The categories the vendor sells under at this event. Each is one of the
+// vendor's and one the event accepts.
+model ApplicationCategory {
+  applicationId String @map("application_id") @db.Uuid
+  categoryId    String @map("category_id") @db.Uuid
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  category    Category    @relation(fields: [categoryId], references: [id])
+
+  @@id([applicationId, categoryId])
+  @@map("application_categories")
+}
+
+// Permits and documents uploaded with the application (private files).
+model ApplicationDocument {
+  id            String  @id @default(uuid()) @db.Uuid
+  applicationId String  @map("application_id") @db.Uuid
+  // Null for extra documents.
+  requirementId String? @map("requirement_id") @db.Uuid
+  fileId        String  @map("file_id") @db.Uuid
+
+  application Application               @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  requirement EventDocumentRequirement? @relation(fields: [requirementId], references: [id], onDelete: SetNull)
+  file        File                      @relation(fields: [fileId], references: [id])
+
+  @@index([applicationId])
+  @@index([fileId])
+  @@map("application_documents")
+}
+
+// ─── Slot assignments and payments (data model §5.7) ───────────────────────
+
+// assigned: payment not yet approved. reserved: payment approved. The rest
+// are end states. Only assigned and reserved are active.
+enum AssignmentStatus {
+  assigned
+  reserved
+  released
+  removed
+  canceled
+
+  @@map("assignment_status")
+}
+
+enum PaymentStatus {
+  pending
+  submitted
+  approved
+  rejected
+
+  @@map("payment_status")
+}
+
+enum PaymentMethod {
+  proof_upload
+  cash
+  other
+
+  @@map("payment_method")
+}
+
+// One vendor's claim on their slots, from assignment until it ends (spec §5,
+// decision P3). At most one active assignment per vendor per event, and each
+// slot in at most one (partial unique indexes, data model §6.3, §6.4).
+model SlotAssignment {
+  id                          String           @id @default(uuid()) @db.Uuid
+  eventId                     String           @map("event_id") @db.Uuid
+  applicationId               String           @map("application_id") @db.Uuid
+  vendorProfileId             String           @map("vendor_profile_id") @db.Uuid
+  status                      AssignmentStatus @default(assigned)
+  // Copied at assignment, so later price or payment changes don't move what
+  // this vendor was told (spec §6.1).
+  priceLocked                 Decimal          @map("price_locked") @db.Decimal(10, 2)
+  paymentInstructionsSnapshot Json?            @map("payment_instructions_snapshot")
+  assignedAt                  DateTime         @map("assigned_at") @db.Timestamptz
+  assignedById                String           @map("assigned_by") @db.Uuid
+  // Shown, not enforced (spec §6.4). Never after the event start (§6.7).
+  deadlineAt                  DateTime         @map("deadline_at") @db.Timestamptz
+  reservedAt                  DateTime?        @map("reserved_at") @db.Timestamptz
+  endedAt                     DateTime?        @map("ended_at") @db.Timestamptz
+  endedById                   String?          @map("ended_by") @db.Uuid
+  endedReason                 String?          @map("ended_reason")
+  createdAt                   DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                   DateTime         @updatedAt @map("updated_at") @db.Timestamptz
+
+  slots         SlotAssignmentSlot[]
+  event         Event         @relation(fields: [eventId], references: [id])
+  application   Application   @relation(fields: [applicationId], references: [id])
+  vendorProfile VendorProfile @relation(fields: [vendorProfileId], references: [id])
+  assignedBy    User          @relation("SlotAssigner", fields: [assignedById], references: [id])
+  endedBy       User?         @relation("AssignmentEnder", fields: [endedById], references: [id])
+  payment       Payment?
+
+  @@index([eventId, status])
+  @@index([applicationId])
+  @@map("slot_assignments")
+}
+
+// The slots one assignment covers (decision P3): one vendor's slots at an
+// event are assigned, paid, and released together. `active` mirrors the
+// assignment being assigned or reserved, so a partial unique index keeps each
+// slot in at most one active assignment (data model §6.3).
+model SlotAssignmentSlot {
+  slotAssignmentId String  @map("slot_assignment_id") @db.Uuid
+  slotId           String  @map("slot_id") @db.Uuid
+  // The slot's price when assigned. The assignment's price_locked is the sum.
+  priceLocked      Decimal @map("price_locked") @db.Decimal(10, 2)
+  active           Boolean @default(true)
+
+  slotAssignment SlotAssignment @relation(fields: [slotAssignmentId], references: [id], onDelete: Cascade)
+  slot           Slot           @relation(fields: [slotId], references: [id])
+
+  @@id([slotAssignmentId, slotId])
+  @@index([slotId])
+  @@map("slot_assignment_slots")
+}
+
+// What is owed for one assignment, and its status (spec §6.7).
+model Payment {
+  id                  String        @id @default(uuid()) @db.Uuid
+  slotAssignmentId    String        @unique @map("slot_assignment_id") @db.Uuid
+  eventId             String        @map("event_id") @db.Uuid
+  payerUserId         String        @map("payer_user_id") @db.Uuid
+  payeeUserId         String        @map("payee_user_id") @db.Uuid
+  amountDue           Decimal       @map("amount_due") @db.Decimal(10, 2)
+  amountPaid          Decimal?      @map("amount_paid") @db.Decimal(10, 2)
+  currency            String        @default("PHP") @db.Char(3)
+  status              PaymentStatus @default(pending)
+  method              PaymentMethod @default(proof_upload)
+  decidedById         String?       @map("decided_by") @db.Uuid
+  decidedAt           DateTime?     @map("decided_at") @db.Timestamptz
+  decisionNote        String?       @map("decision_note")
+  // Set when the vendor is removed or the event is canceled: read-only.
+  archivedAt          DateTime?     @map("archived_at") @db.Timestamptz
+  // Designed but unused in the MVP (revenue model §7).
+  platformFeeAmount   Decimal?      @map("platform_fee_amount") @db.Decimal(10, 2)
+  platformFeePayer    String?       @map("platform_fee_payer")
+  processingFeeAmount Decimal?      @map("processing_fee_amount") @db.Decimal(10, 2)
+  netPayoutAmount     Decimal?      @map("net_payout_amount") @db.Decimal(10, 2)
+  createdAt           DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+
+  slotAssignment SlotAssignment @relation(fields: [slotAssignmentId], references: [id])
+  event          Event          @relation(fields: [eventId], references: [id])
+  payer          User           @relation("PaymentPayer", fields: [payerUserId], references: [id])
+  payee          User           @relation("PaymentPayee", fields: [payeeUserId], references: [id])
+  decidedBy      User?          @relation("PaymentDecider", fields: [decidedById], references: [id])
+  proofs         PaymentProof[]
+
+  @@index([eventId, status])
+  @@map("payments")
+}
+
+enum ProofStatus {
+  submitted
+  approved
+  rejected
+
+  @@map("proof_status")
+}
+
+// One uploaded screenshot for one payment (spec §6.2). A payment can have
+// several over time: a rejected one, then a new one.
+model PaymentProof {
+  id              String      @id @default(uuid()) @db.Uuid
+  paymentId       String      @map("payment_id") @db.Uuid
+  eventId         String      @map("event_id") @db.Uuid
+  vendorProfileId String      @map("vendor_profile_id") @db.Uuid
+  uploadedById    String      @map("uploaded_by") @db.Uuid
+  fileId          String      @map("file_id") @db.Uuid
+  // The option the vendor says they paid with: one in the assignment's copy.
+  paymentMethodId String      @map("payment_method_id") @db.Uuid
+  amountClaimed   Decimal?    @map("amount_claimed") @db.Decimal(10, 2)
+  referenceNumber String?     @map("reference_number")
+  note            String?
+  status          ProofStatus @default(submitted)
+  uploadedAt      DateTime    @default(now()) @map("uploaded_at") @db.Timestamptz
+  decidedById     String?     @map("decided_by") @db.Uuid
+  decidedAt       DateTime?   @map("decided_at") @db.Timestamptz
+  rejectionReason String?     @map("rejection_reason")
+  archivedAt      DateTime?   @map("archived_at") @db.Timestamptz
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime    @updatedAt @map("updated_at") @db.Timestamptz
+
+  payment       Payment            @relation(fields: [paymentId], references: [id])
+  event         Event              @relation(fields: [eventId], references: [id])
+  vendorProfile VendorProfile      @relation(fields: [vendorProfileId], references: [id])
+  uploadedBy    User               @relation("ProofUploader", fields: [uploadedById], references: [id])
+  decidedBy     User?              @relation("ProofDecider", fields: [decidedById], references: [id])
+  file          File               @relation(fields: [fileId], references: [id])
+  paymentMethod EventPaymentMethod @relation(fields: [paymentMethodId], references: [id])
+
+  @@index([paymentId])
+  @@index([eventId, status])
+  @@index([fileId])
+  @@map("payment_proofs")
 }
 
 // ─── Email notifications (data model §5.9) ─────────────────────────────────
@@ -538,6 +831,16 @@ enum NotificationType {
   password_reset
   organizer_approved
   organizer_rejected
+  application_submitted
+  application_withdrawn
+  application_approved
+  application_declined
+  slot_assigned
+  proof_uploaded
+  payment_approved
+  payment_rejected
+  slot_released
+  vendor_removed
 
   @@map("notification_type")
 }

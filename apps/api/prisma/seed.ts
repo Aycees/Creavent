@@ -10,9 +10,20 @@
 // Events (Phase 2), for organizer@ unless noted. Seeded events have no cover
 // image, so an open one asks for a cover before its details can be saved.
 //   Matina Night Flea, January  draft, payment details missing (4 of 5 steps)
-//   Lanang Holiday Flea         open to vendors, vendors choose a preferred slot
+//   Lanang Holiday Flea         open to vendors, vendors choose a preferred slot,
+//                               up to 2 slots per vendor, A-16 set aside
 //   Bajada Christmas Flea       open to vendors, applications closed
 //   Mintal Weekend Bazaar       pending@'s ready draft, waiting for approval
+//
+// Applications (Phase 3), at Lanang Holiday Flea:
+//   vendor2@ Tahi-Tahi PH    submitted, prefers B-03
+//   vendor3@ Thrift Kingdom  withdrawn
+//   vendor4@ Paper Bayani    approved, wants 2 slots, prefers A-05 and A-06
+//   vendor5@ Tanim Plant Co. declined with a note
+//   vendor6@ Habi Mindanao   slots A-01 and A-02, payment waiting
+//   vendor7@ Kalye Kicks     slot B-04, reserved (payment approved)
+//   vendor8@ Bulak Studio    slot A-03, payment overdue
+//   vendor9@ Retro Laruan    removed, can't apply again
 //
 // All use SEED_PASSWORD from apps/api/.env. Run with `pnpm db:seed` from the
 // repo root. Safe to run again: existing accounts are left as they are.
@@ -164,6 +175,7 @@ await event('organizer@creavent.test', 'lanang-holiday-flea', {
   openedToVendorsAt: new Date(),
   applicationsOpen: true,
   slotMode: 'vendor_preference',
+  maxSlotsPerVendor: 2,
   defaultSlotPrice: 800,
   categories: {
     create: [
@@ -183,7 +195,7 @@ await event('organizer@creavent.test', 'lanang-holiday-flea', {
   },
   slots: {
     create: [
-      ...row('A', 16, 'Main walkway', '2 × 2 m', 0),
+      ...row('A', 16, 'Main walkway', '2 × 2 m', 0).map((s) => (s.label === 'A-16' ? { ...s, setAsideAt: new Date(), setAsideNote: 'Organizer booth' } : s)),
       ...row('B', 12, 'Entrance', '3 × 3 m', 16, 1500),
       ...row('F', 6, 'Food row', '3 × 3 m', 28, 1200).map((s) => ({ ...s, note: 'With power' })),
     ],
@@ -219,6 +231,115 @@ await event('pending@creavent.test', 'mintal-weekend-bazaar', {
   categories: { create: [{ categoryId: preloved.id, maxVendors: null }] },
   paymentMethods: { create: [{ channel: 'maya', label: 'Maya, Bazaar ng Mintal', accountName: 'Bazaar ng Mintal', accountNumber: '0917 000 1111', sortOrder: 0 }] },
   slots: { create: row('M', 10, 'Grounds', '2 × 2 m', 0) },
+});
+
+// Phase 3: more vendors, and applications to Lanang Holiday Flea in each
+// state. vendor@ has none there, so the Apply page can be tried by hand.
+// Seeded applications have no document files.
+async function seedVendor(email: string, fullName: string, shopName: string, slug: string, categoryIds: string[]) {
+  const u = await user(email, fullName, { phone: '+639181234567' });
+  const p = await prisma.vendorProfile.upsert({
+    where: { userId: u.id },
+    update: {},
+    create: { userId: u.id, shopName, slug, socialLinks: [], categories: { create: categoryIds.map((categoryId) => ({ categoryId })) } },
+  });
+  await prisma.userRole.upsert({
+    where: { userId_role: { userId: u.id, role: 'vendor' } },
+    update: {},
+    create: { userId: u.id, role: 'vendor', onboardingStep: 4 },
+  });
+  return p;
+}
+
+async function application(
+  vendorProfileId: string,
+  eventSlug: string,
+  categoryId: string,
+  data: Partial<Prisma.ApplicationUncheckedCreateInput> & { preferredLabels?: string[]; daysAgo?: number } = {},
+) {
+  const target = await prisma.event.findUniqueOrThrow({ where: { slug: eventSlug } });
+  if (await prisma.application.findFirst({ where: { eventId: target.id, vendorProfileId } })) return null;
+  const { preferredLabels = [], daysAgo = 1, ...rest } = data;
+  const preferred = await prisma.slot.findMany({ where: { eventId: target.id, label: { in: preferredLabels } } });
+  const submittedAt = new Date(Date.now() - daysAgo * 86_400_000);
+  return prisma.application.create({
+    data: {
+      eventId: target.id,
+      vendorProfileId,
+      preferredSlots: { create: preferred.map((x) => ({ slotId: x.id })) },
+      policyTextSnapshot: target.policyText ?? '',
+      policyAcceptedAt: submittedAt,
+      submittedAt,
+      categories: { create: [{ categoryId }] },
+      ...rest,
+    },
+  });
+}
+
+const tahi = await seedVendor('vendor2@creavent.test', 'Carla Dizon', 'Tahi-Tahi PH', 'tahi-tahi-ph', [crafts]);
+const thrift = await seedVendor('vendor3@creavent.test', 'Ben Uy', 'Thrift Kingdom', 'thrift-kingdom', [preloved.id, vintage]);
+await application(tahi.id, 'lanang-holiday-flea', crafts, { preferredLabels: ['B-03'], vendorNote: 'Near the entrance if possible.', daysAgo: 3 });
+await application(thrift.id, 'lanang-holiday-flea', vintage, { status: 'withdrawn', withdrawnAt: new Date(), daysAgo: 4 });
+const organizerUser = await prisma.user.findUniqueOrThrow({ where: { email: 'organizer@creavent.test' } });
+const decided = { decidedById: organizerUser.id, decidedAt: new Date() };
+const paper = await seedVendor('vendor4@creavent.test', 'Mia Santos', 'Paper Bayani', 'paper-bayani', [crafts]);
+const tanim = await seedVendor('vendor5@creavent.test', 'Rafa Lim', 'Tanim Plant Co.', 'tanim-plant-co', [plants]);
+await application(paper.id, 'lanang-holiday-flea', crafts, { status: 'approved', slotsRequested: 2, preferredLabels: ['A-05', 'A-06'], daysAgo: 6, ...decided });
+await application(tanim.id, 'lanang-holiday-flea', plants, { status: 'declined', decisionNote: 'We have enough plant stalls this time.', daysAgo: 5, ...decided });
+
+// An approved vendor with a slot, the payment in a given state.
+async function seedAssignment(vendorProfileId: string, categoryId: string, labels: string[], state: 'waiting' | 'overdue' | 'reserved') {
+  const app = await application(vendorProfileId, 'lanang-holiday-flea', categoryId, { status: 'approved', slotsRequested: labels.length, daysAgo: 8, ...decided });
+  if (!app) return;
+  const slots = await prisma.slot.findMany({ where: { eventId: app.eventId, label: { in: labels } } });
+  const ev = await prisma.event.findUniqueOrThrow({ where: { id: app.eventId }, include: { paymentMethods: true } });
+  const prices = slots.map((x) => Number(x.price ?? ev.defaultSlotPrice ?? 0));
+  const price = prices.reduce((sum, p) => sum + p, 0);
+  const hours = state === 'overdue' ? -6 : 20;
+  const vendorUser = await prisma.vendorProfile.findUniqueOrThrow({ where: { id: vendorProfileId } });
+  await prisma.slotAssignment.create({
+    data: {
+      slots: { create: slots.map((x, n) => ({ slotId: x.id, priceLocked: prices[n], active: true })) },
+      eventId: app.eventId,
+      applicationId: app.id,
+      vendorProfileId,
+      status: state === 'reserved' ? 'reserved' : 'assigned',
+      priceLocked: price,
+      paymentInstructionsSnapshot: ev.paymentMethods.map((m) => ({
+        id: m.id, channel: m.channel, label: m.label, accountName: m.accountName, accountNumber: m.accountNumber, qrFileId: m.qrFileId, notes: m.notes,
+      })),
+      assignedAt: new Date(Date.now() - 2 * 86_400_000),
+      assignedById: organizerUser.id,
+      deadlineAt: new Date(Date.now() + hours * 3_600_000),
+      reservedAt: state === 'reserved' ? new Date() : null,
+      payment: {
+        create: {
+          eventId: app.eventId,
+          payerUserId: vendorUser.userId,
+          payeeUserId: organizerUser.id,
+          amountDue: price,
+          status: state === 'reserved' ? 'approved' : 'pending',
+          ...(state === 'reserved' ? { decidedById: organizerUser.id, decidedAt: new Date(), amountPaid: price } : {}),
+        },
+      },
+    },
+  });
+}
+const habi = await seedVendor('vendor6@creavent.test', 'June Abad', 'Habi Mindanao', 'habi-mindanao', [crafts]);
+const kalye = await seedVendor('vendor7@creavent.test', 'Paolo Cruz', 'Kalye Kicks', 'kalye-kicks', [preloved.id]);
+const bulak = await seedVendor('vendor8@creavent.test', 'Nina Go', 'Bulak Studio', 'bulak-studio', [crafts]);
+await seedAssignment(habi.id, crafts, ['A-01', 'A-02'], 'waiting');
+await seedAssignment(bulak.id, crafts, ['A-03'], 'overdue');
+await seedAssignment(kalye.id, preloved.id, ['B-04'], 'reserved');
+const retro = await seedVendor('vendor9@creavent.test', 'Lito Ramos', 'Retro Laruan', 'retro-laruan', [crafts]);
+await application(retro.id, 'lanang-holiday-flea', crafts, {
+  status: 'removed',
+  removedAt: new Date(),
+  removedById: organizerUser.id,
+  removalNote: 'No payment by the deadline',
+  canReapply: false,
+  daysAgo: 9,
+  ...decided,
 });
 
 await prisma.$disconnect();

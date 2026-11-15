@@ -4,7 +4,7 @@
 
 Last updated: 2026-11-14
 
-Acceptance criteria are written per flow as each phase is built. Flows 1, 2, and the approval part of 11 have them (Phase 1), and flow 3 and the finding part of flow 4 (Phase 2). Each criterion has a test in `apps/api/test/integration` or next to the screen in `apps/web/src`.
+Acceptance criteria are written per flow as each phase is built. Flows 1, 2, and the approval part of 11 have them (Phase 1), flow 3 and the finding part of flow 4 (Phase 2), and flows 4 to 9 as Phase 3 is built. Each criterion has a test in `apps/api/test/integration` or next to the screen in `apps/web/src`.
 
 ## How to read this
 
@@ -113,7 +113,7 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 2. Set vendor requirements: allowed product categories, limits on similar vendors, required permits (each for every vendor, or for one category only).
 3. Check the cancellation and withdrawal policy. It is copied from the organizer's last event. On a first event, edit the example and save it.
 4. Optional: upload the vendor floor plan image (layout with empty, numbered slots) at the top of the Slots tab. It stays next to the slot list as a reference while adding slots.
-5. Add slots: optional section (for example, Indoor or Outdoor), number, size, optional note, and price (one price for all slots, or per slot). **Add a row of slots** creates a numbered range at once (for example, C-01 to C-06). Choose how slots are filled: **I assign slots** (the default) or **Vendors choose a preferred slot**.
+5. Add slots: optional section (for example, Indoor or Outdoor), number, size, optional note, and price (one price for all slots, or per slot). **Add a row of slots** creates a numbered range at once (for example, C-01 to C-06). Choose how slots are filled: **I assign slots** (the default) or **Vendors choose a preferred slot**, and **Slots per vendor** (1 by default, up to 10).
 6. Add one or more payment options (for example, GCash and a bank account, each with account details or a QR code) and the payment deadline (24 hours by default).
 7. Optional: **Preview as vendor** to check what vendors will see.
 8. **Open the event to vendors.** Vendors can now find it and apply. Attendees can't see it yet.
@@ -128,6 +128,7 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - **Slot numbers on the image don't match the slot list:** the system doesn't check. The organizer fixes the image or the list. **(screen: the upload step reminds them)**
 - **Vendors choose a preferred slot, but there's no floor plan image:** vendors still pick from the list, grouped by section with size and note. The Slots tab suggests uploading one. **(screen)**
 - **Organizer switches to "I assign slots" after some vendors chose a preference:** those preferences are kept and still shown when assigning. New applicants don't see the choice. Spec §3.4.
+- **Organizer keeps a slot for their own booth or a sponsor:** they tick **Set aside this slot** in the slot's Edit dialog and add a note only they see. Vendors see it as Taken, and it can't be assigned. Unticking opens it again. A slot with a vendor can't be set aside. Decision P1. **(screen)**
 
 **Acceptance criteria (Phase 2)**
 
@@ -152,6 +153,8 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - The organizer adds, edits, and removes slots (label, optional section, size, note, price). Labels are unique in the event. A slot without its own price uses the default price. Prices are 0 or more.
 - **Add a row of slots** makes labels from a prefix and a number range (for example C, 01 to 06 → C-01 to C-06), keeping the zero padding, at most 200 at once. A label that already exists stops the whole row with a message.
 - The slot mode ("I assign slots" by default, or "Vendors choose a preferred slot") can be changed at any time.
+- **Slots per vendor** (1 to 10) is a select on the Slots tab, saved with the other slot settings. Decision P2.
+- The slot's Edit dialog has **Set aside this slot** with an optional "What it's for" note. A set-aside slot shows "Set aside" and the note in the slot list, is hatched on Vendors and slots, and counts under "Set aside" instead of open. Setting aside a slot with a vendor is refused with "A-01 has a vendor. Remove the vendor from it first." Decision P1.
 - The vendor floor plan is uploaded on the Slots tab and shown next to the list (behind "Show floor plan" on phones). The public floor plan has its own tab. Both are optional images up to 10 MB.
 
 *Open to vendors*
@@ -171,7 +174,7 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 
 1. Browse upcoming events (open to vendors or already announced). Filter by date and location. Each event shows the vendor's remaining spots in their categories, when the organizer set a limit.
 2. Open an event: type, date, location, the applications close date, requirements (accepted categories with spots left, and the documents to upload), slots grouped by section with prices and how many are open, vendor floor plan, policy, organizer contact details, and the "Approved by Creavent" badge.
-3. Tap **Apply**. Pick the categories and upload the required permits. If the organizer lets vendors choose, pick a preferred slot from the floor plan and the list of open slots, or "No preference". Applying means the vendor accepts the event policy.
+3. Tap **Apply**. Pick the categories and upload the required permits. When the event allows more than one slot per vendor, say how many slots. If the organizer lets vendors choose, pick preferred slots (up to that many) from the floor plan and the list of open slots, or "No preference". Applying means the vendor accepts the event policy.
 4. Status shows **Submitted**. The vendor waits for the organizer.
 
 **Edge cases**
@@ -182,12 +185,40 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - **Vendor was removed before:** they can apply again only if the organizer allowed it. Otherwise they see "You can't reapply to this event". Spec §3.3.
 - **The slot they want is taken:** it shows as Taken and can't be picked. They pick another or "No preference". Spec §4.3.
 - **Another vendor prefers the same slot:** both can pick it, and neither sees the other's choice. The organizer decides. Spec §5.
-- **Vendor wants a different preferred slot after applying:** it can't be edited. They contact the organizer, or withdraw and apply again while the application is still submitted. Spec §4.3.
+- **Vendor wants a different preferred slot after applying:** until a slot is assigned they change it, or pick "No preference", from the application page. With an unpaid slot they pick another slot, which releases the assigned one. Spec §4.3.
+- **Vendor needs two slots for a bigger setup:** they pick 2 under "How many slots?" (when the organizer allows it), and up to two preferred slots. When they're full, another slot can't be picked until one is unpicked. The number can't be changed after applying. Decision P4.
+- **Vendor asks for more slots than the event allows:** refused with "This event allows up to 2 slots per vendor". Decision P2.
 
 **Acceptance criteria (Phase 2: finding events)**
 - `/vendor/events` lists visible events that are open to vendors or announced and end today or later, soonest first, with search by name or venue, a date filter (Any date, This weekend, Next 30 days), and a city filter. Each shows the date, type, status, name, schedule, venue, the organizer with "Approved by Creavent", the slot fee range, the applications close date, "Choose a preferred slot" when the event allows it, and spots left in the vendor's categories when the organizer set a limit.
 - The vendor view of `/events/[slug]` shows the applications close date, accepted categories with limit and spots left, the documents to upload (marking those for one category), slots grouped by section (or by label prefix) with size, note, price, and open count, the vendor floor plan, the policy, the summary (fee range, applications close, pay within, paid to), and the contact details for vendors. Apply is shown, or "Applications closed" when applications are closed or the close date passed. The Apply page itself comes in Phase 3.
 - A draft event is "Not found" to vendors. A signed-out visitor sees "This event isn't public yet" for an event that is open to vendors. The event's organizer sees the vendor view through Preview as vendor at any status.
+
+**Acceptance criteria (Phase 3: applying)**
+- `/vendor/events/[slug]/apply` lists the vendor's categories that the event accepts, with spots left (the limit minus approved vendors), the documents for the picked categories (a category's own document appears once it is picked), the policy, and, when the event lets vendors choose, the slots grouped by section, each Open or Taken, plus "No preference" and "Your pick isn't reserved until the organizer assigns it."
+- Applying needs the vendor role (not suspended), a shop name, mobile number, and a category, and an event that is accepting applications. Each category is one the vendor sells and the event accepts. Every required document for the picked categories is uploaded: an image or PDF, up to 3 files per document, private, each file used by one application only. A preferred slot is kept only in "Vendors choose a preferred slot" mode and must be an open slot of the event.
+- The application starts as `submitted` with a copy of the policy, and the organizer gets the "New application" email. One active application per vendor per event, also refused by the database.
+- The form says why a vendor can't apply instead of showing the fields: applications closed, already applied (with a link to the application), "You can't reapply to this event" after a removal without permission, no accepted category, or an unfinished profile.
+- A `submitted` application can be withdrawn. The organizer gets an email, and the vendor can apply again. A decided application can't be withdrawn.
+- The event page and Browse events show the vendor's own status. The event page links to the application instead of Apply, and offers "Apply again" after a decline or withdrawal.
+- Only the vendor, the event's organizer, and admins can open an application document. PDFs download, named from the purpose and date.
+
+**Acceptance criteria (Phase 3 review: change of plans, decided 2026-11-15)**
+- While applied or approved without a slot, the application page shows the preferred slot with **Change slot** and **No preference** (when the event lets vendors choose) and **Withdraw application**, each with a confirm step where needed.
+- With an assigned, unpaid slot, a **Change of plans?** panel offers **Pick another slot** (only when the event lets vendors choose), **Release slot**, and **Withdraw from this event**. With several slots they read **Pick other slots** and **Release slots B-03, B-04**, and each acts on all of them together (decision P6). Picking another slot releases the assigned one and sets the new open slot as the preference; the organizer gets the slot-released email naming the new pick. Withdrawing releases the slot and archives its payment. A reserved (paid) slot refuses all three: the vendor contacts the organizer.
+- `/vendor/applications/[id]/slot` shows the slots by section, open or taken, and saves the new pick as a slot change or a preference.
+- The progress timeline only counts an active slot, so after a release it goes back to "Slot assigned: waiting for the organizer". Every change refreshes the other screens (lists, dashboards, Vendors and slots) without a reload.
+- `/vendor/applications` splits Active from Past and closed, with the next step for each.
+
+**Acceptance criteria (Phase 3 review: the organizer's Applications page, decided 2026-11-15)**
+- The organizer menu has **Applications** with the number of applications waiting for review. `/organizer/applications` lists applications across every event, waiting ones first and oldest at the top, with a summary (waiting with the oldest date, approved without a slot with the open slots, proofs to check with their total), status chips with counts, an event filter, and a shop search.
+- Each card shows the vendor's logo or initials, the event, category chips, the documents ("2 documents, 1 PDF", or a required one missing), how long it has waited, and the preferred or assigned slot. The whole card opens `/organizer/applications/[id]`, as do the cards on an event's Applications tab.
+- The detail page shows the shop (about, photos, products, link to the shop page), the documents with the missing ones, the preferred slot with the floor plan and who else prefers it, the vendor's note and policy acceptance date, contact (call and text), the history at the event, and "Next waiting". Its actions follow the stage: approve or decline with a note and the category counter; Assign a slot; the slot and payment status with a link to Vendors and slots; Remove from this event; and allow or block reapplying after a removal.
+
+**Acceptance criteria (Phase 3: reapplying after removal)**
+- When removing a vendor, the organizer chooses whether they can apply again. Later, on Applications under Removed, each removed application shows "Can apply again" or "Can't apply again" with a button to change it. The change is audit logged. Only removed applications can change, and only by the event's organizer.
+- A blocked vendor sees "You can't reapply to this event." on their application page, on the event page (instead of Apply), and on the apply page, and the API refuses a new application. An allowed vendor sees "The organizer lets you apply to this event again." with Apply again.
+- Applying again creates a new application. The removed one stays, with its note and payment records. Only the latest removal decides whether the vendor can apply.
 
 ## 5. Review applications
 
@@ -203,6 +234,12 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - **Organizer closes applications with some still waiting:** the waiting ones can still be reviewed. **(screen)**
 - **A permit looks wrong or is missing:** the organizer declines with a note, or contacts the vendor first. **(screen)**
 
+**Acceptance criteria (Phase 3)**
+- `/organizer/events/[id]/applications` shares a header with Vendors and slots and Event setup (tabs), shows "Applications: N new", and a counter per accepted category ("Food and drinks: 5 of 5 accepted"). Event setup links to both pages once the event is open.
+- Applications are listed oldest first, filtered by Waiting (the default), Approved, Declined, Withdrawn, Removed, and All. Each shows the shop (linked to its vendor page), categories, the date applied, the vendor's name and mobile number (tap to call), the preferred slot ("No preference", "taken by another vendor", or "B-03 is no longer available"), the documents (opened through the private file route), and the vendor's note.
+- Approve or Decline opens a confirm step with an optional note. Only a `submitted` application can be decided. Going over a category limit, full slots, and closed applications never block a decision. The vendor gets the approved or declined email, with the note.
+- Only the event's organizer (role not suspended) can see or decide them. Another organizer gets Not found. A hidden event refuses decisions.
+
 ## 6. Assign a slot
 
 *The vendor's application must be approved first.*
@@ -213,9 +250,24 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 **Edge cases**
 - **No slots are open:** the vendor stays in the "Approved, no slot" list. The vendor sees "No slot assigned yet". There's no waitlist. Spec §5.
 - **Vendor needs a different slot:** the organizer removes them from the slot and assigns another. There's no "move" button. Spec §5.
-- **Vendor already has a slot:** they can't be assigned a second one at the same event. Spec §5.
+- **Vendor already has a slot:** they can't be assigned more at the same event. To give them other slots, they release theirs or the organizer removes them. Spec §5, decision P5.
+- **Vendor asked for 2 slots:** the Assign dialog lets the organizer pick up to 2 open slots, with their open preferred slots selected, and shows the total. They get one email with both slots and the total. Assigning more than asked for is refused. Decisions P3, P5. **(screen)**
+- **The organizer has only one slot left for a vendor who asked for 2:** they can assign just that one. The amount is that slot's price. Decision P5.
 - **The preferred slot was given to someone else:** the Assign slot dialog says "Preferred slot taken: E-11", and the organizer picks another. Spec §5. **(screen)**
 - **Two vendors prefer the same slot:** the slot shows "Preferred by 2". The organizer assigns one, and the other's preferred slot then shows as taken. Spec §5. **(screen)**
+
+**Acceptance criteria (Phase 3)**
+- `/organizer/events/[id]/vendors` starts with slots at a glance: counts of reserved, assigned, overdue, and open slots, and every slot by section as a tile showing its state and how many waiting vendors prefer it.
+- "Approved, no slot yet" lists approved vendors without an active slot, with their preferred slot ("prefers A-05", "Preferred A-01 is taken", or "no longer available"). The button reads "Assign A-05" when the preference is open, otherwise "Assign slot".
+- The Assign slot dialog shows only open slots by section, selects the preferred slot when it's open (or says "Preferred slot taken: A-01"), and shows the amount due and the pay-within hours.
+- Assigning needs an approved application of this event, an open, not deleted slot of this event, and a vendor with no active slot there. The database refuses a second active assignment for a slot or for a vendor at an event.
+- The slot's price (or the event's default) and the active payment options are copied onto the assignment. The deadline is the assignment time plus the event's pay-within hours, never after the event starts. A `pending` payment is created, the change is audit logged, and the vendor gets the slot-assigned email with the slot, amount, deadline, and payment options.
+- Vendors then see the slot as Taken on the apply form, the event page counts it, and a taken slot can't be chosen as a preference. An assigned or reserved slot can't be deleted or renamed, but its price can change for later assignments. Vendors with an active slot can open the event's payment QR.
+- An assigned slot whose payment is still pending or rejected after the deadline shows as Overdue, both on its tile and in the vendor list.
+
+**Acceptance criteria (Phase 3: the vendor's application pages)**
+- `/vendor/applications` lists every application, newest first, with the event's date, the combined status (Submitted, Approved, Slot assigned, Reserved, Declined, Withdrawn, Removed), the slot and amount once assigned, and "Pay by" while payment is due. Each opens its application page. With none, it links to Browse events.
+- `/vendor/applications/[id]` opens only for the vendor who applied (anyone else gets Not found). It shows the event, the status with the organizer's note, the preferred slot until a slot is assigned, the assigned slot with its size, note, and locked amount, "Pay by" with the time left, the payment options copied at assignment with copy buttons and the QR code, the notice that Creavent doesn't hold or guarantee payments, the 5-step timeline, the organizer's name, mobile number, and contact email, and the ingress details once the vendor has a slot. A declined or withdrawn application offers "Apply again".
 
 ## 7. Pay and confirm payment
 
@@ -239,6 +291,17 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - **Vendor needs more time:** they contact the organizer, who simply doesn't remove them. Spec §6.4.
 - **Vendor paid in cash, or someone else paid for them:** the organizer taps **Mark paid** (approve without a proof image) and adds a required note, for example "Paid cash at the office". Spec §6.3.
 - **The organizer's payment details looked suspicious:** the vendor can report the organizer with the report button. Spec §6.6.
+
+**Acceptance criteria (Phase 3)**
+- While the slot is assigned and the payment is pending or rejected, the vendor's application page has "2. Upload your proof of payment": a screenshot (JPEG, PNG, or WebP, private), the option paid with (one of the options copied at assignment, required), the amount sent (filled in with the amount due), and an optional reference number. Sending it makes the payment `submitted`, and the organizer gets the "Proof of payment" email. A second proof can't be sent while one waits for review. After a rejection the page shows the reason and the form again.
+- On Vendors and slots, the vendor list filters by All, Needs attention (overdue, proof submitted, or proof rejected), and Reserved. Each row shows the slot, shop, amount, deadline ("was due" when overdue), payment status (Waiting, Proof submitted, Proof rejected with the reason, Overdue, Reserved), and the next action.
+- Review proof opens the receipt, the amount due and the amount sent, the option paid with, the reference, and a reminder to check that account's history. Approve payment makes the proof and payment approved (amount paid taken from the amount sent) and the slot `reserved`, and emails the vendor. Reject needs a reason, makes the payment `rejected`, and emails the vendor the reason.
+- Mark paid approves a payment without a proof, with a required note (for example, "Paid cash at the office"). The slot becomes `reserved` and the vendor is emailed.
+- A proof can be decided once. Nothing can be approved or sent after the slot is reserved. Only the event's organizer can review, and a hidden event refuses it. A proof image opens only for the vendor who sent it, the event's organizer, and admins.
+
+**Acceptance criteria (Phase 3: dashboards)**
+- `/organizer` shows "To do for <event>" for each upcoming event open to vendors or announced that has something waiting: applications to review (with the date of the oldest, linking to Applications), payment proofs to check (with their total, linking to Vendors and slots), payments overdue, and approved vendors with no slot (with the number of open slots). Each event row shows how its slots are filled ("18 reserved · 7 assigned · 5 open") and "Review N applications" as the next step when applications wait.
+- `/vendor` shows Needs your action (each payment due, or a rejected proof, with the amount, slot, event, deadline, who to pay and how, and "Upload proof of payment"), the latest applications with their status and "See all", "You're confirmed" for the next event with a reserved slot (slot, organizer contact, ingress details, vendor floor plan), and up to 5 events open to vendors in the vendor's categories, marking those already applied to, with the applications close date.
 
 ## 8. Announce the event
 
@@ -275,6 +338,12 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - **Vendor released by mistake:** the slot is open again. They contact the organizer, who can assign it to them again. **(screen: the confirm step says this)**
 - **Vendor and organizer disagree about a refund:** Creavent doesn't decide. Both sides can still download the payment records as evidence. Spec §6.6.
 - **Vendor is removed and wants their screenshots:** they can still view and download them until 90 days after the event. Spec §6.7.
+
+**Acceptance criteria (Phase 3: release, remove, change)**
+- A vendor whose slot is assigned (payment not yet approved) sees "Release slot B-04" on the application page. A confirm step says the slot opens for others and that the organizer can assign it again if it was a mistake. Releasing ends the assignment as `released`, archives the payment and proofs, keeps the application approved (so the vendor is back in "Approved, no slot yet"), and emails the organizer. A reserved slot can't be released: the page says to contact the organizer.
+- The organizer can remove any approved vendor, with or without a slot, from Vendors and slots. The confirm step asks whether they can apply again (required) and takes an optional note. Removing makes the application `removed` with that choice, ends an active assignment as `removed`, opens the slot, archives the payment and proofs, and emails the vendor. It works on a hidden event too, so an organizer can still let vendors go.
+- Archived screenshots stay readable for the vendor (under "Payment records" on the application page), the organizer, and admins.
+- There is no move: to change a slot, the organizer removes the vendor and assigns another slot once they're approved again.
 
 ## 10. Discover events and vendors
 

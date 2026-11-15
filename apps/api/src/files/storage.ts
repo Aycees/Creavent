@@ -11,7 +11,8 @@ export interface ObjectStorage {
   delete(bucket: Bucket, key: string): Promise<void>;
   publicUrl(key: string): string;
   // A signed address that reads one private object for 5 minutes (spec §11.6).
-  presignGet(key: string): Promise<string>;
+  // With a download name, the browser saves it instead of opening it.
+  presignGet(key: string, downloadName?: string): Promise<string>;
 }
 
 export const STORAGE = Symbol('STORAGE');
@@ -87,8 +88,13 @@ export class R2Storage implements ObjectStorage {
     await this.s3().send(new DeleteObjectCommand({ Bucket: this.name(bucket), Key: key }));
   }
 
-  async presignGet(key: string) {
-    return getSignedUrl(this.s3(), new GetObjectCommand({ Bucket: this.name('private'), Key: key }), { expiresIn: 5 * 60 });
+  async presignGet(key: string, downloadName?: string) {
+    const command = new GetObjectCommand({
+      Bucket: this.name('private'),
+      Key: key,
+      ...(downloadName ? { ResponseContentDisposition: `attachment; filename="${downloadName}"` } : {}),
+    });
+    return getSignedUrl(this.s3(), command, { expiresIn: 5 * 60 });
   }
 
   // The bucket's own address when R2_PUBLIC_URL is set (a custom domain),

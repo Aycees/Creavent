@@ -11,9 +11,11 @@ import {
   type EventSetup,
   type OrganizerEventRow,
   type OrganizerEvents,
+  type OrganizerTodo,
 } from '@creavent/shared';
 import type { z } from 'zod';
 import { writeAuditLog } from '../audit/audit-log.js';
+import { isOverdue } from '../applications/slot-status.js';
 import { appConfig } from '../config.js';
 import { assertStillReady, changeEventStatus, checklist, missingSteps, stepActions } from './event-status.js';
 import { assertAttachable, FilesService, retireFiles } from '../files/files.service.js';
@@ -73,6 +75,7 @@ export class OrganizerEventsService {
       include: { eventType: true, _count: { select: { slots: { where: { deletedAt: null } } } } },
       orderBy: [{ startsAt: { sort: 'asc', nulls: 'last' } }, { createdAt: 'asc' }],
     });
+    const counts = await this.todoCounts(events.filter((e) => e.status === 'open_to_vendors' || e.status === 'announced'));
     // "Upcoming" runs until the end of the event's last day (flow 3).
     const startOfToday = new Date(`${manilaParts(new Date()).date}T00:00:00+08:00`);
     const rows = await Promise.all(
@@ -82,6 +85,9 @@ export class OrganizerEventsService {
           const list = await this.prisma.$transaction((tx) => checklist(tx, e.id));
           const missing = (Object.keys(stepActions) as (keyof typeof stepActions)[]).find((k) => !list[k]);
           nextStep = missing ? stepActions[missing] : isApproved(role) ? 'Open to vendors' : 'Get approved to open';
+        } else if (e.status === 'open_to_vendors' && counts.get(e.id)?.todo.applicationsToReview) {
+          const n = counts.get(e.id)!.todo.applicationsToReview;
+          nextStep = `Review ${n} application${n === 1 ? '' : 's'}`;
         } else if (e.status === 'open_to_vendors') {
           nextStep = e.applicationsOpen ? 'Applications open' : 'Applications closed';
         } else {
@@ -98,12 +104,48 @@ export class OrganizerEventsService {
           venueName: e.venueName,
           slotCount: e._count.slots,
           nextStep,
+          fill: counts.get(e.id)?.fill ?? null,
           ended: e.endsAt !== null && e.endsAt < startOfToday,
         };
       }),
     );
     const strip = ({ ended: _ended, ...row }: OrganizerEventRow & { ended: boolean }) => row;
-    return { upcoming: rows.filter((r) => !r.ended).map(strip), past: rows.filter((r) => r.ended).reverse().map(strip) };
+    const todo = rows
+      .filter((r) => !r.ended && counts.has(r.id))
+      .map((r) => ({ eventId: r.id, name: r.name, ...counts.get(r.id)!.todo }))
+      .filter((t) => t.applicationsToReview + t.proofsToCheck + t.overduePayments + t.approvedNoSlot > 0);
+    return { todo, upcoming: rows.filter((r) => !r.ended).map(strip), past: rows.filter((r) => r.ended).reverse().map(strip) };
+  }
+
+  // The dashboard's to-do counts and slot fill for open or announced events
+  // (spec §3.8, data model §7).
+  private async todoCounts(events: { id: string }[]) {
+    const now = new Date();
+    const result = new Map<string, { todo: Omit<OrganizerTodo, 'eventId' | 'name'>; fill: NonNullable<OrganizerEventRow['fill']> }>();
+    for (const { id } of events) {
+      const [waiting, oldest, proofs, assignments, approvedNoSlot, slots] = await Promise.all([
+        this.prisma.application.count({ where: { eventId: id, status: 'submitted' } }),
+        this.prisma.application.findFirst({ where: { eventId: id, status: 'submitted' }, orderBy: { submittedAt: 'asc' }, select: { submittedAt: true } }),
+        this.prisma.paymentProof.findMany({ where: { eventId: id, status: 'submitted', archivedAt: null }, select: { payment: { select: { amountDue: true } } } }),
+        this.prisma.slotAssignment.findMany({ where: { eventId: id, status: { in: ['assigned', 'reserved'] } }, include: { payment: true } }),
+        this.prisma.application.count({ where: { eventId: id, status: 'approved', assignments: { none: { status: { in: ['assigned', 'reserved'] } } } } }),
+        this.prisma.slot.count({ where: { eventId: id, deletedAt: null } }),
+      ]);
+      const reserved = assignments.filter((a) => a.status === 'reserved').length;
+      result.set(id, {
+        todo: {
+          applicationsToReview: waiting,
+          oldestApplicationAt: oldest?.submittedAt.toISOString() ?? null,
+          proofsToCheck: proofs.length,
+          proofsTotal: proofs.reduce((sum, p) => sum + Number(p.payment.amountDue), 0),
+          overduePayments: assignments.filter((a) => isOverdue(a, now)).length,
+          approvedNoSlot,
+          openSlots: slots - assignments.length,
+        },
+        fill: { reserved, assigned: assignments.length - reserved, open: slots - assignments.length },
+      });
+    }
+    return result;
   }
 
   async setup(userId: string, eventId: string): Promise<EventSetup> {
@@ -186,6 +228,7 @@ export class OrganizerEventsService {
       slots: {
         mode: event.slotMode,
         defaultPrice: event.defaultSlotPrice === null ? null : Number(event.defaultSlotPrice),
+        maxSlotsPerVendor: event.maxSlotsPerVendor,
         vendorFloorPlan: image(event.vendorFloorPlanFile),
         publicFloorPlan: image(event.publicFloorPlanFile),
         list: event.slots.map((slot) => ({
@@ -195,6 +238,7 @@ export class OrganizerEventsService {
           sizeLabel: slot.sizeLabel,
           note: slot.note,
           price: slot.price === null ? null : Number(slot.price),
+          setAside: slot.setAsideAt ? { note: slot.setAsideNote } : null,
         })),
       },
     };

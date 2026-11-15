@@ -5,6 +5,7 @@ import { agent, createTestApp, signInAs } from './app.js';
 import { createTestPrisma, resetDatabase } from './db.js';
 import { readyEvent } from './events.js';
 import { createOrganizer, createUser, createVendor } from './factories.js';
+import { submittedApplication } from './applications.js';
 
 // Feature 2.6: vendor browsing and the vendor view of the event page
 // (spec §4.2, sitemap §3, flow 4).
@@ -99,6 +100,27 @@ describe('vendor browsing and the event page', () => {
       expect(byVenue).toHaveLength(2);
       expect(soon.map((e: { name: string }) => e.name)).toEqual(['Matina Night Flea']);
       expect(elsewhere).toHaveLength(0);
+    });
+
+    it("subtracts approved vendors from spots left, and shows the vendor's own status", async () => {
+      const { profile } = await createOrganizer(prisma);
+      const id = await readyEvent(prisma, profile.id, { status: 'open_to_vendors', ...future(5) });
+      const others = await Promise.all([createVendor(prisma, [preloved]), createVendor(prisma, [preloved])]);
+      for (const other of others) {
+        const app = await submittedApplication(prisma, { eventId: id, vendorProfileId: other.profile.id, categoryId: preloved });
+        await prisma.application.update({ where: { id: app.id }, data: { status: 'approved' } });
+      }
+      const me = await createVendor(prisma, [preloved, plants]);
+      const mine = await submittedApplication(prisma, { eventId: id, vendorProfileId: me.profile.id, categoryId: preloved });
+      const browser = await signInAs(app, me.user.email);
+
+      const [card] = (await browser.get('/api/vendor/events')).body.events;
+      const page = (await browser.get(`/api/events/${await slugOf(id)}`)).body.event;
+
+      expect(card.mySpots).toEqual([{ categoryName: 'Preloved clothing', left: 10, max: 12 }]);
+      expect(card.myStatus).toBe('submitted');
+      expect(page.categories[0]).toMatchObject({ name: 'Preloved clothing', left: 10 });
+      expect(page.myApplication).toEqual({ id: mine.id, status: 'submitted', canReapply: null });
     });
 
     it('needs the vendor role', async () => {

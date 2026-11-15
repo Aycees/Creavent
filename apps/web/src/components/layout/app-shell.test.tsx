@@ -88,7 +88,7 @@ describe("AppShell, organizer area", () => {
   it("shows the organizer menu items with their counts and approval status", () => {
     onPath("/organizer/events/new")
     render(
-      <AppShell area="organizer" user={bothRoles} counts={{ "/organizer/events": 4, "/organizer/approval": "Approved" }}>
+      <AppShell area="organizer" user={bothRoles} counts={{ "/organizer/events": 4, "/organizer/applications": 7, "/organizer/approval": "Approved" }}>
         Page
       </AppShell>
     )
@@ -96,6 +96,7 @@ describe("AppShell, organizer area", () => {
 
     expect(within(menu).getByRole("link", { name: "Dashboard" })).toHaveAttribute("href", "/organizer")
     expect(within(menu).getByRole("link", { name: "Events 4" })).toHaveAttribute("aria-current", "page")
+    expect(within(menu).getByRole("link", { name: "Applications 7" })).toHaveAttribute("href", "/organizer/applications")
     expect(within(menu).getByRole("link", { name: "Profile" })).toHaveAttribute("href", "/organizer/profile")
     expect(within(menu).getByRole("link", { name: "Approval Approved" })).toHaveAttribute("href", "/organizer/approval")
   })

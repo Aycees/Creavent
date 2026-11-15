@@ -40,6 +40,7 @@ export const appNav: Record<Area, NavItem[]> = {
   organizer: [
     { label: "Dashboard", href: "/organizer", exact: true, icon: SquaresFourIcon },
     { label: "Events", href: "/organizer/events", icon: CalendarBlankIcon },
+    { label: "Applications", href: "/organizer/applications", icon: FileTextIcon },
     { label: "Profile", href: "/organizer/profile", icon: UserCircleIcon },
     { label: "Approval", href: "/organizer/approval", icon: ShieldCheckIcon },
   ],

@@ -14,6 +14,7 @@ import {
   publicFloorPlanSchema,
   slotRowSchema,
   slotSchema,
+  setAsideSchema,
   slotSettingsSchema,
 } from '@creavent/shared';
 import { z } from 'zod';
@@ -129,6 +130,17 @@ export class OrganizerEventsController {
   @ResponseSchema(eventSetupSchema)
   removeSlot(@CurrentUser() user: SessionUser, @Param('id', ParseUUIDPipe) id: string, @Param('slotId', ParseUUIDPipe) slotId: string) {
     return this.slots.remove(user.id, id, slotId);
+  }
+
+  @Put('organizer/events/:id/slots/:slotId/set-aside')
+  @ResponseSchema(eventSetupSchema)
+  setAside(
+    @CurrentUser() user: SessionUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('slotId', ParseUUIDPipe) slotId: string,
+    @Body({ schema: setAsideSchema }) body: z.output<typeof setAsideSchema>,
+  ) {
+    return this.slots.setAside(user.id, id, slotId, body);
   }
 
   @Put('organizer/events/:id/slot-settings')

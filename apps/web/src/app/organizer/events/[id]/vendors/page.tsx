@@ -1,9 +1,19 @@
 import type { Metadata } from "next"
+import { Suspense } from "react"
 
-import { PlaceholderPage } from "@/components/layout/placeholder-page"
+import { VendorsAndSlots } from "@/components/organizer-vendors/vendors-slots"
 
 export const metadata: Metadata = { title: "Vendors and slots · Creavent" }
 
-export default function VendorsAndSlotsPage() {
-  return <PlaceholderPage title="Vendors and slots" slice="3.3 (assign a slot)" />
+async function View({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  return <VendorsAndSlots eventId={id} />
+}
+
+export default function VendorsPage({ params }: PageProps<"/organizer/events/[id]/vendors">) {
+  return (
+    <Suspense>
+      <View params={params} />
+    </Suspense>
+  )
 }

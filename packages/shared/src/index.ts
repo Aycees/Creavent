@@ -2,6 +2,8 @@
 // Schemas are added here as each feature is built.
 export * from './accounts.js';
 export * from './api/client.js';
+export * from './applications.js';
+export * from './assignments.js';
 export * from './approvals.js';
 export * from './errors.js';
 export * from './event-page.js';

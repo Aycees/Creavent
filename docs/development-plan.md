@@ -110,6 +110,7 @@ The heart of the product. Most of the integration tests are written here ([Archi
 | 3.6 Release, remove, change | Vendor releases a slot, organizer removes a vendor or changes the slot, archiving of payment records, emails. | Spec §6.6, flow 9 |
 | 3.7 Dashboards | Organizer to-do counts and slots at a glance, vendor dashboard with what needs action. | Spec §3.8, §4.6, Data model §7 |
 | 3.8 End-to-end test | Playwright test of the main path: sign up, onboard, get approved, create and open an event, apply, approve, assign, upload proof, approve payment. | Architecture §11 |
+| 3.9 Reapply after removal | Let an organizer allow or block a removed vendor from applying again, show the blocked state to the vendor, and create a new application while preserving application history. | Spec §3.3, §4.2, flow 4, Data model §6 |
 
 **M3 is reached when:** the end-to-end test passes in CI, and the same path works by hand on staging on a phone.
 
@@ -282,14 +283,17 @@ Check a feature when its commit is on the phase branch with its tests passing. C
 - [ ] **M2** An approved organizer opens an event to vendors
 
 **Phase 3: The core loop**
-- [ ] 3.1 Apply
-- [ ] 3.2 Review applications
-- [ ] 3.3 Assign a slot
-- [ ] 3.4 Vendor application page
-- [ ] 3.5 Pay and confirm
-- [ ] 3.6 Release, remove, change
-- [ ] 3.7 Dashboards
-- [ ] 3.8 End-to-end test
+- [x] 3.1 Apply (branch `feat/phase-3-core-loop`)
+- [x] 3.2 Review applications (branch `feat/phase-3-core-loop`)
+- [x] 3.3 Assign a slot (branch `feat/phase-3-core-loop`)
+- [x] 3.4 Vendor application page (branch `feat/phase-3-core-loop`)
+- [x] 3.5 Pay and confirm (branch `feat/phase-3-core-loop`)
+- [x] 3.6 Release, remove, change (branch `feat/phase-3-core-loop`)
+- [x] 3.7 Dashboards (branch `feat/phase-3-core-loop`)
+- [x] 3.8 End-to-end test (branch `feat/phase-3-core-loop`; runs locally against the R2 dev buckets, not in CI, decided 2026-11-15)
+- [x] 3.9 Reapply after removal (branch `feat/phase-3-core-loop`)
+- [x] Phase 3 review: the organizer's Applications page and detail, and the vendor's change of plans (decided 2026-11-15, branch `feat/phase-3-core-loop`)
+- [x] Set-aside slots and several slots per vendor (decisions P1 to P6, 2026-11-15, branch `feat/phase-3-core-loop`)
 - [ ] **M3** A vendor gets a confirmed spot
 
 **Phase 4: Public discovery**

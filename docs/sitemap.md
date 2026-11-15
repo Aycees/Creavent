@@ -34,9 +34,10 @@ Account (any signed-in user)
 Vendor (vendor role)
 ├── /vendor                        Dashboard
 ├── /vendor/events                 Browse events open to vendors or announced
-├── /vendor/events/[slug]/apply    Apply: categories, documents, preferred slot, policy
+├── /vendor/events/[slug]/apply    Apply: categories, documents, slots, policy
 ├── /vendor/applications           Application list
 ├── /vendor/applications/[id]      Application detail, assigned slot, and payment
+├── /vendor/applications/[id]/slot Pick another or a first preferred slot
 └── /vendor/profile                Vendor profile
 
 Organizer (organizer role)
@@ -45,6 +46,8 @@ Organizer (organizer role)
 ├── /organizer/events/[id]         Event setup (tabs, section 4)
 ├── /organizer/events/[id]/applications
 ├── /organizer/events/[id]/vendors Vendors, slot assignment, and payments
+├── /organizer/applications        Applications across every event, with filters
+├── /organizer/applications/[id]   One application: shop, documents, slot, history, actions
 ├── /organizer/profile             Organizer profile (feeds the organizer page)
 └── /organizer/approval            Get approved
 
@@ -130,14 +133,14 @@ Opens after the email is confirmed (spec §1.1). Both flows share step 1, "How w
 
 Header actions, depending on status: **Preview as vendor**, **Delete draft** (drafts only), **Open to vendors** (an "Open to vendors" checklist shows the five required steps: details with cover, requirements, policy, at least one slot, payment instructions. It needs organizer approval), **Open or close applications**, **Announce** (warns about unpaid slots), **Cancel event**.
 
-`/organizer/events/[id]/vendors` has tabs for Applications, Vendors and slots, and Event setup, and header actions **Close applications** and **Announce event**. It starts with **slots at a glance** (how many slots are reserved, assigned, overdue, and open). It then shows approved vendors without a slot (with their preferred slot, if any, and **Assign slot**, which selects the preferred slot when it's still open), and every slot with its vendor, amount, payment status (Waiting, Proof submitted, Proof rejected with the reason, **Overdue**), and deadline, filtered by All, Needs attention, Reserved, or Open. The proof review panel shows the receipt, amount due, the option the vendor paid with, the amount and reference they entered, and **Approve payment** or **Reject**. Approving a payment without a proof image is the **Mark paid** action, which needs a note (spec §6.3). **Remove** frees the slot.
+`/organizer/events/[id]/vendors` has tabs for Applications, Vendors and slots, and Event setup, and header actions **Close applications** and **Announce event**. It starts with **slots at a glance** (how many slots are reserved, assigned, overdue, open, and set aside). It then shows approved vendors without a slot (with how many slots they asked for, their preferred slots, if any, and **Assign slot**, which selects the preferred slots that are still open, up to the number asked for), and every slot with its vendor, amount, payment status (Waiting, Proof submitted, Proof rejected with the reason, **Overdue**), and deadline, filtered by All, Needs attention, Reserved, or Open. The proof review panel shows the receipt, amount due, the option the vendor paid with, the amount and reference they entered, and **Approve payment** or **Reject**. Approving a payment without a proof image is the **Mark paid** action, which needs a note (spec §6.3). **Remove** frees the slot.
 
 ### Dashboards and lists
 - `/organizer` shows to-do counts per event (applications to review, proofs to check, overdue payments, approved vendors with no slot), and Upcoming and Past event tabs with status, slot fill, and next step (spec §3.8).
 - `/vendor` shows what needs action, the applications table, the next confirmed event with ingress details, and events open to vendors (spec §4.6).
 - `/vendor/applications/[id]` shows the slot, amount due, payment methods with copy buttons, the proof upload (option paid with, amount sent, reference number), the deadline, a progress timeline, the organizer's contact, and **Release slot** (spec §4.6, §6.2).
 - `/vendor/events` lists events open to vendors or announced, soonest first, with search and date and city filters. Each shows the vendor's remaining spots in their categories when the organizer set a limit, the fee range, the applications close date, a "Choose a preferred slot" tag when the event allows it, and the vendor's own status there (applied, slot assigned, declined) (spec §4.2).
-- `/vendor/events/[slug]/apply` asks for the categories, the required documents, and, when the event lets vendors choose, a preferred slot from the vendor floor plan and the slots grouped by section, each marked Open or Taken (or "No preference"). It ends with the policy and **Submit application** (spec §4.2, §4.3).
+- `/vendor/events/[slug]/apply` asks for the categories, the required documents, how many slots (when the event allows more than one), and, when the event lets vendors choose, preferred slots from the vendor floor plan and the slots grouped by section, each marked Open or Taken (or "No preference"). It ends with the policy and **Submit application** (spec §4.2, §4.3).
 
 ## 5. Navigation
 

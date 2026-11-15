@@ -1,0 +1,408 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { render, screen, within } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
+import { beforeEach, describe, expect, it, vi } from "vitest"
+
+import { api } from "@/lib/api"
+import { useUpload } from "@/lib/use-upload"
+import { renderWithQuery } from "@/test-utils"
+import { APPLICATION_ID, proofFixture, vendorApplicationFixture } from "./fixtures"
+import { VendorApplicationPage, VendorApplicationsList } from "./vendor-application"
+
+vi.mock("@/lib/api", () => ({ api: { GET: vi.fn(), POST: vi.fn(), PUT: vi.fn() } }))
+vi.mock("@/lib/use-upload", () => ({ useUpload: vi.fn() }))
+
+const upload = vi.fn()
+
+function serve(data: unknown) {
+  vi.mocked(api.GET).mockResolvedValue({ data, response: { status: 200 } } as never)
+}
+
+beforeEach(() => {
+  vi.clearAllMocks()
+  vi.mocked(useUpload).mockReturnValue({ upload, pending: false, error: null })
+  vi.useFakeTimers({ shouldAdvanceTime: true, now: new Date("2026-11-12T04:00:00.000Z") })
+})
+
+describe("VendorApplicationPage (/vendor/applications/[id])", () => {
+  it("shows the slot, the locked amount, and when to pay", async () => {
+    serve(vendorApplicationFixture())
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    expect(await screen.findByRole("heading", { name: "Bajada Christmas Flea" })).toBeInTheDocument()
+    const slot = screen.getByRole("region", { name: "Your slot" })
+    expect(within(slot).getByText("B-04")).toBeInTheDocument()
+    expect(within(slot).getByText("₱1,500")).toBeInTheDocument()
+    expect(within(slot).getByText("3 × 3 m, near the entrance")).toBeInTheDocument()
+    expect(screen.getByText("Pay by Fri, Nov 13 · 9 AM")).toBeInTheDocument()
+    expect(screen.getByText(/About 21 hours left/)).toBeInTheDocument()
+  })
+
+  it("lists the payment options with copy buttons, and the fraud notice", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    serve(vendorApplicationFixture())
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    const pay = await screen.findByRole("region", { name: "1. Send your payment" })
+    expect(within(pay).getByText("0928 115 7720")).toBeInTheDocument()
+    expect(within(pay).getByRole("link", { name: "Show GCash QR code" })).toHaveAttribute("href", "/api/files/q1")
+    await user.click(within(pay).getByRole("button", { name: "Copy GCash number" }))
+    expect(await navigator.clipboard.readText()).toBe("0928 115 7720")
+    expect(screen.getByText(/Creavent doesn't hold or guarantee payments/)).toBeInTheDocument()
+  })
+
+  it("shows the progress timeline and the organizer's contact", async () => {
+    serve(vendorApplicationFixture())
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    const steps = await screen.findByRole("list", { name: "Progress" })
+    const items = within(steps).getAllByRole("listitem")
+    expect(items.map((i) => i.textContent)).toEqual([
+      expect.stringContaining("Applied"),
+      expect.stringContaining("Approved"),
+      expect.stringContaining("Slot B-04 assigned"),
+      expect.stringContaining("Pay and upload proof"),
+      expect.stringContaining("Slot reserved"),
+    ])
+    expect(items[3]).toHaveAttribute("aria-current", "step")
+    const contact = screen.getByRole("region", { name: "Organizer" })
+    expect(within(contact).getByText("Joanna Lim · 0928 115 7720")).toBeInTheDocument()
+    expect(within(contact).getByText("hello@sarisaricollective.ph")).toBeInTheDocument()
+  })
+
+  it("moves the timeline back to 'Slot assigned' after the vendor releases their slot", async () => {
+    serve(vendorApplicationFixture({ status: "approved", assignment: { ...vendorApplicationFixture().assignment!, status: "released", archived: true } }))
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    const steps = within(await screen.findByRole("list", { name: "Progress" })).getAllByRole("listitem")
+    expect(steps[2]).toHaveTextContent("Slot assigned")
+    expect(steps[2]).not.toHaveTextContent("B-04")
+    expect(steps[2]).toHaveAttribute("aria-current", "step")
+    expect(steps[3]).not.toHaveAttribute("aria-current")
+  })
+
+  it("shows the preferred slot and the next step before a slot is assigned", async () => {
+    serve(vendorApplicationFixture({ status: "submitted", decidedAt: null, assignment: null, preferredSlots: [{ id: "5a000000-0000-4000-8000-000000000005", label: "A-05", state: "open" }] }))
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    expect(await screen.findByText("Waiting for the organizer to review your application.")).toBeInTheDocument()
+    expect(within(screen.getByRole("region", { name: "Preferred slot" })).getByText("A-05")).toBeInTheDocument()
+    expect(screen.queryByRole("region", { name: "1. Send your payment" })).not.toBeInTheDocument()
+  })
+
+  it("shows the organizer's note on a declined application, with Apply again", async () => {
+    serve(vendorApplicationFixture({ status: "declined", decisionNote: "Full this time", assignment: null }))
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    expect(await screen.findByText("The organizer declined your application.")).toBeInTheDocument()
+    expect(screen.getByText("Full this time")).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "Apply again" })).toHaveAttribute("href", "/vendor/events/bajada-christmas-flea/apply")
+  })
+
+  it("says the vendor is confirmed once the slot is reserved, with the ingress details", async () => {
+    serve(vendorApplicationFixture({ status: "reserved", assignment: { ...vendorApplicationFixture().assignment!, status: "reserved", paymentStatus: "approved", reservedAt: "2026-11-12T03:00:00.000Z" } }))
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    expect(await screen.findByText("You're confirmed. Slot B-04 is yours.")).toBeInTheDocument()
+    expect(screen.getByText("From 3 PM, Gate 2")).toBeInTheDocument()
+  })
+
+  it("says when the application isn't found", async () => {
+    vi.mocked(api.GET).mockResolvedValue({ data: undefined, response: { status: 404 } } as never)
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    expect(await screen.findByText("Application not found")).toBeInTheDocument()
+  })
+})
+
+describe("Proof of payment", () => {
+  it("uploads the screenshot with the option paid with, the amount sent, and a reference", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    serve(vendorApplicationFixture())
+    vi.mocked(api.POST).mockResolvedValue({ data: vendorApplicationFixture(), response: { status: 201 } } as never)
+    upload.mockResolvedValue({ id: "f2000000-0000-4000-8000-000000000001", purpose: "payment_proof", url: "/api/files/f2", width: 800, height: 1600 })
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    const section = await screen.findByRole("region", { name: "2. Upload your proof of payment" })
+    expect(within(section).getByLabelText("Amount sent")).toHaveValue("1500")
+    await user.upload(within(section).getByLabelText(/choose a file/i), new File(["x"], "receipt.png", { type: "image/png" }))
+    await user.click(within(section).getByRole("radio", { name: /BPI bank transfer/ }))
+    await user.type(within(section).getByLabelText(/Reference number/), "BPI-123")
+    await user.click(within(section).getByRole("button", { name: "Submit proof" }))
+
+    expect(api.POST).toHaveBeenCalledWith("/api/vendor/applications/{id}/proofs", {
+      params: { path: { id: APPLICATION_ID } },
+      body: { fileId: "f2000000-0000-4000-8000-000000000001", paymentMethodId: "m0000000-0000-4000-8000-000000000002", amountClaimed: 1500, referenceNumber: "BPI-123" },
+    })
+  })
+
+  it("asks for the screenshot and the option paid with", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    serve(vendorApplicationFixture())
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    await user.click(await screen.findByRole("button", { name: "Submit proof" }))
+
+    expect(await screen.findByText("Add a screenshot of your payment")).toBeInTheDocument()
+    expect(api.POST).not.toHaveBeenCalled()
+  })
+
+  it("says the proof is with the organizer while it waits", async () => {
+    serve(vendorApplicationFixture({ assignment: { ...vendorApplicationFixture().assignment!, paymentStatus: "submitted", proofs: [proofFixture()] } }))
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    expect(await screen.findByText("Your proof is with the organizer. We'll email you when they review it.")).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Submit proof" })).not.toBeInTheDocument()
+  })
+
+  it("shows why a proof was rejected and asks for a new one", async () => {
+    serve(
+      vendorApplicationFixture({
+        assignment: { ...vendorApplicationFixture().assignment!, paymentStatus: "rejected", proofs: [proofFixture({ status: "rejected", rejectionReason: "Short by ₱100" })] },
+      })
+    )
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    expect(await screen.findByText("The organizer couldn't approve your last proof: Short by ₱100")).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Submit proof" })).toBeInTheDocument()
+  })
+})
+
+describe("Release and removal", () => {
+  it("releases an assigned slot after a confirm step", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    serve(vendorApplicationFixture())
+    vi.mocked(api.POST).mockResolvedValue({ data: vendorApplicationFixture({ status: "approved", assignment: null }), response: { status: 201 } } as never)
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    await user.click(await screen.findByRole("button", { name: /Release slot B-04/ }))
+    const dialog = screen.getByRole("dialog", { name: "Release slot B-04?" })
+    expect(within(dialog).getByText(/contact the organizer, who can assign it to you again/)).toBeInTheDocument()
+    await user.click(within(dialog).getByRole("button", { name: "Release slot" }))
+
+    expect(api.POST).toHaveBeenCalledWith("/api/vendor/applications/{id}/release", { params: { path: { id: APPLICATION_ID } } })
+  })
+
+  it("refreshes the dashboard and applications list after a release", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 30_000 } } })
+    client.setQueryData(["vendor-dashboard"], { cached: true })
+    client.setQueryData(["vendor-applications"], { cached: true })
+    serve(vendorApplicationFixture())
+    const released = { data: vendorApplicationFixture({ status: "approved", assignment: null }), response: { status: 201 } }
+    vi.mocked(api.POST).mockImplementation(async () => {
+      serve(released.data)
+      return released as never
+    })
+    render(
+      <QueryClientProvider client={client}>
+        <VendorApplicationPage id={APPLICATION_ID} />
+      </QueryClientProvider>
+    )
+
+    await user.click(await screen.findByRole("button", { name: /Release slot B-04/ }))
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Release slot" }))
+    await screen.findByText(/You're approved/)
+
+    expect(client.getQueryState(["vendor-dashboard"])?.isInvalidated).toBe(true)
+    expect(client.getQueryState(["vendor-applications"])?.isInvalidated).toBe(true)
+  })
+
+  it("tells a vendor with a reserved slot to contact the organizer instead", async () => {
+    serve(vendorApplicationFixture({ status: "reserved", assignment: { ...vendorApplicationFixture().assignment!, status: "reserved", paymentStatus: "approved" } }))
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    expect(await screen.findByText("Can't make it? Contact the organizer. They decide under their policy.")).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: /Release slot/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole("region", { name: "Change of plans?" })).not.toBeInTheDocument()
+  })
+
+  it("keeps the payment records readable after removal", async () => {
+    serve(
+      vendorApplicationFixture({
+        status: "removed",
+        removalNote: "Agreed cancellation",
+        assignment: { ...vendorApplicationFixture().assignment!, status: "removed", archived: true, proofs: [proofFixture({ status: "approved", archived: true })] },
+      })
+    )
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    expect(await screen.findByText("Agreed cancellation")).toBeInTheDocument()
+    const records = screen.getByRole("region", { name: "Payment records" })
+    expect(within(records).getByRole("link", { name: /Screenshot sent/ })).toHaveAttribute("href", "/api/files/proof1")
+  })
+})
+
+describe("Payment records from an earlier slot", () => {
+  it("keeps proofs from a released slot readable next to the new slot", async () => {
+    serve(vendorApplicationFixture({ pastProofs: [proofFixture({ id: "p-old", status: "rejected", archived: true, fileUrl: "/api/files/old" })] }))
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    const records = await screen.findByRole("region", { name: "Payment records" })
+    expect(within(records).getByRole("link", { name: /Screenshot sent/ })).toHaveAttribute("href", "/api/files/old")
+  })
+})
+
+describe("Reapplying after removal", () => {
+  it("says the vendor can't reapply when the organizer blocked it", async () => {
+    serve(vendorApplicationFixture({ status: "removed", canReapply: false, removalNote: "No payment", assignment: null }))
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    expect(await screen.findByText("You can't reapply to this event.")).toBeInTheDocument()
+    expect(screen.queryByRole("link", { name: "Apply again" })).not.toBeInTheDocument()
+  })
+
+  it("offers Apply again when the organizer allows it", async () => {
+    serve(vendorApplicationFixture({ status: "removed", canReapply: true, assignment: null }))
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    expect(await screen.findByText("The organizer lets you apply to this event again.")).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "Apply again" })).toHaveAttribute("href", "/vendor/events/bajada-christmas-flea/apply")
+  })
+})
+
+describe("Change of plans", () => {
+  const applied = () =>
+    vendorApplicationFixture({ status: "approved", assignment: null, preferredSlots: [{ id: "5a000000-0000-4000-8000-000000000005", label: "A-05", state: "open" }] })
+
+  it("lets an approved vendor change or clear the preferred slot", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    serve(applied())
+    vi.mocked(api.PUT).mockResolvedValue({ data: vendorApplicationFixture({ status: "approved", assignment: null }), response: { status: 200 } } as never)
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    const pref = await screen.findByRole("region", { name: "Preferred slot" })
+    expect(within(pref).getByRole("link", { name: "Change slot" })).toHaveAttribute("href", `/vendor/applications/${APPLICATION_ID}/slot`)
+    await user.click(within(pref).getByRole("button", { name: "No preference" }))
+
+    expect(api.PUT).toHaveBeenCalledWith("/api/vendor/applications/{id}/preference", { params: { path: { id: APPLICATION_ID } }, body: { preferredSlotIds: [] } })
+  })
+
+  it("lets an applied or approved vendor withdraw after confirming", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    serve(applied())
+    vi.mocked(api.POST).mockResolvedValue({ data: { id: APPLICATION_ID }, response: { status: 201 } } as never)
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    await user.click(await screen.findByRole("button", { name: "Withdraw application" }))
+    const dialog = screen.getByRole("dialog", { name: "Withdraw from Bajada Christmas Flea?" })
+    await user.click(within(dialog).getByRole("button", { name: "Withdraw" }))
+
+    expect(api.POST).toHaveBeenCalledWith("/api/vendor/applications/{id}/withdraw", { params: { path: { id: APPLICATION_ID } } })
+  })
+
+  it("offers pick another slot, release, or withdraw while a slot is unpaid", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    serve(vendorApplicationFixture())
+    vi.mocked(api.POST).mockResolvedValue({ data: { id: APPLICATION_ID }, response: { status: 201 } } as never)
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    const plans = await screen.findByRole("region", { name: "Change of plans?" })
+    expect(within(plans).getByRole("link", { name: /Pick another slot/ })).toHaveAttribute("href", `/vendor/applications/${APPLICATION_ID}/slot`)
+    expect(within(plans).getByRole("button", { name: /Release slot B-04/ })).toBeInTheDocument()
+    await user.click(within(plans).getByRole("button", { name: /Withdraw from this event/ }))
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Withdraw" }))
+
+    expect(api.POST).toHaveBeenCalledWith("/api/vendor/applications/{id}/withdraw", { params: { path: { id: APPLICATION_ID } } })
+  })
+
+  it("treats several slots as one: shown together, released together", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    const base = vendorApplicationFixture()
+    serve(
+      vendorApplicationFixture({
+        slotsRequested: 2,
+        assignment: {
+          ...base.assignment!,
+          slotLabel: "A-06, A-07",
+          amountDue: 1600,
+          slots: [
+            { label: "A-06", sizeLabel: "2 × 2 m", note: null, price: 800 },
+            { label: "A-07", sizeLabel: "2 × 2 m", note: null, price: 800 },
+          ],
+        },
+      })
+    )
+    vi.mocked(api.POST).mockResolvedValue({ data: vendorApplicationFixture({ status: "approved", assignment: null }), response: { status: 201 } } as never)
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    const card = await screen.findByRole("region", { name: "Your slots" })
+    expect(card).toHaveTextContent("A-06, A-07")
+    expect(card).toHaveTextContent("2 slots · 2 × 2 m each")
+    expect(card).toHaveTextContent("locked when these slots were assigned to you")
+    expect(screen.getByText(/may give the slots to someone else/)).toBeInTheDocument()
+    const plans = screen.getByRole("region", { name: "Change of plans?" })
+    expect(within(plans).getByRole("link", { name: /Pick other slots/ })).toBeInTheDocument()
+    await user.click(within(plans).getByRole("button", { name: /Release slots A-06, A-07/ }))
+    const dialog = screen.getByRole("dialog", { name: "Release slots A-06, A-07?" })
+    expect(dialog).toHaveTextContent("Both slots open for other vendors")
+    await user.click(within(dialog).getByRole("button", { name: "Release slots" }))
+
+    expect(api.POST).toHaveBeenCalledWith("/api/vendor/applications/{id}/release", { params: { path: { id: APPLICATION_ID } } })
+  })
+
+  it("lists every preferred slot when the vendor asked for several", async () => {
+    serve(
+      vendorApplicationFixture({
+        status: "approved",
+        assignment: null,
+        slotsRequested: 2,
+        preferredSlots: [
+          { id: "5a000000-0000-4000-8000-000000000005", label: "A-05", state: "open" },
+          { id: "5a000000-0000-4000-8000-000000000006", label: "A-06", state: "taken" },
+        ],
+      })
+    )
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    const pref = await screen.findByRole("region", { name: "Preferred slots" })
+    expect(pref).toHaveTextContent("You asked for 2 slots.")
+    expect(pref).toHaveTextContent("A-05 · Open")
+    expect(pref).toHaveTextContent("A-06 · Taken")
+  })
+
+  it("doesn't offer another slot when the organizer assigns slots", async () => {
+    serve(vendorApplicationFixture({ event: { ...vendorApplicationFixture().event, preferredSlots: false } }))
+    renderWithQuery(<VendorApplicationPage id={APPLICATION_ID} />)
+
+    await screen.findByRole("region", { name: "Change of plans?" })
+    expect(screen.queryByRole("link", { name: /Pick another slot/ })).not.toBeInTheDocument()
+  })
+})
+
+describe("VendorApplicationsList (/vendor/applications)", () => {
+  it("lists each event with its status, slot, payment, and a link", async () => {
+    serve({
+      applications: [
+        { id: APPLICATION_ID, event: vendorApplicationFixture().event, status: "slot_assigned", slotLabel: "B-04", amountDue: 1500, paymentStatus: "pending", deadlineAt: "2026-11-13T01:00:00.000Z", decisionNote: null },
+      ],
+    })
+    renderWithQuery(<VendorApplicationsList />)
+
+    const row = await screen.findByRole("article", { name: "Bajada Christmas Flea" })
+    expect(within(row).getByText("Pay by Fri, Nov 13 · 9 AM")).toBeInTheDocument()
+    expect(within(row).getByText("Slot B-04 · ₱1,500")).toBeInTheDocument()
+    expect(within(row).getByText("Upload proof of payment")).toBeInTheDocument()
+    expect(within(row).getByRole("link", { name: "Bajada Christmas Flea" })).toHaveAttribute("href", `/vendor/applications/${APPLICATION_ID}`)
+  })
+
+  it("keeps closed applications under Past and closed", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    serve({
+      applications: [{ id: APPLICATION_ID, event: vendorApplicationFixture().event, status: "declined", slotLabel: null, amountDue: null, paymentStatus: null, deadlineAt: null, decisionNote: "Full" }],
+    })
+    renderWithQuery(<VendorApplicationsList />)
+
+    expect(await screen.findByText("Nothing active right now.")).toBeInTheDocument()
+    await user.click(screen.getByRole("button", { name: /Past and closed/ }))
+    expect(screen.getByRole("article", { name: "Bajada Christmas Flea" })).toHaveTextContent("Declined")
+  })
+
+  it("invites the vendor to browse when there are none", async () => {
+    serve({ applications: [] })
+    renderWithQuery(<VendorApplicationsList />)
+
+    expect(await screen.findByText("No applications yet.")).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "Browse events" })).toHaveAttribute("href", "/vendor/events")
+  })
+})

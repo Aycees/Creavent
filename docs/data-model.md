@@ -36,7 +36,7 @@ Agreed on 2026-11-11, and simplified for the MVP on 2026-11-12 (spec §9).
 | Product categories | One platform-wide list, set in seed data. Vendors, events, and applications pick from it. | `categories` |
 | Event types | One platform-wide list, set in seed data (Flea market, Bazaar, Pop-up). Each event has one. A table rather than an enum, because the list is managed in seed data like `categories`, can be marked inactive, and adding a type needs no enum migration. | `event_types`, `events.event_type_id` |
 | Public vendor page | Every vendor has a public page at `/vendors/<slug>`. It shows profile content and two lists worked out from slot assignments. Phone, email, applications, documents, and payments are never shown. | `vendor_profiles.slug`, `vendor_profiles.social_links`, section 7 |
-| One slot per vendor | A vendor can have only one slot per event (for now), so each proof belongs to exactly one payment. | partial UK on `slot_assignments`, `payment_proofs.payment_id` |
+| One assignment per vendor | A vendor has at most one active assignment per event. It can cover several slots, up to the event's limit (decisions P2, P3), with one payment, so each proof belongs to exactly one payment. | partial UK on `slot_assignments`, `slot_assignment_slots`, `payment_proofs.payment_id` |
 | Cash or payment without proof | The organizer can approve a payment without a proof image, with a note (for example, cash on site). | `payments.method`, `payments.decision_note` |
 | Event policy | Free text, one per event, so it is a column on `events` rather than its own table. The text the vendor accepted is copied onto their application. | `events.policy_text`, `applications.policy_text_snapshot` |
 | Roles | No attendee accounts. Only vendor and organizer are stored as roles. Admins are a flag on the user. | `user_roles`, `users.is_admin` |
@@ -475,6 +475,7 @@ erDiagram
 | ingress_info | text null | Optional setup details for vendors, for example "From 3 PM, Gate 2". Shown to vendors with an active assignment. |
 | default_slot_price | numeric(10,2) null | "One price for all slots". A slot's own `price` overrides it. |
 | slot_mode | slot_mode | Default `organizer_assigns` ("I assign slots"). `vendor_preference` = vendors may pick a preferred slot when applying (spec §3.4). Can change at any time. Preferences already sent are kept. |
+| max_slots_per_vendor | int | Default 1, check 1 to 10. How many slots one vendor can ask for and hold (decision P2). |
 | payment_deadline_hours | int | Default 24. |
 | currency | char(3) | Default `PHP`. |
 | timezone | text | Default `Asia/Manila`. |
@@ -529,9 +530,11 @@ erDiagram
 | size_label | text null | Human-readable size, for example "2m x 2m". |
 | note | text null | For example, "Near the entrance" or "Food row, with power". Shown to vendors and on the assignment. |
 | sort_order | int | |
+| set_aside_at | timestamptz null | Set when the organizer keeps the slot for their own booth or a sponsor (decision P1). Nobody can be assigned or prefer it. Not allowed while the slot has an active assignment. |
+| set_aside_note | text null | The organizer's private note, for example "Sponsor booth". Null when not set aside. |
 | deleted_at | timestamptz null | Soft delete, because past assignments point to the slot. Not allowed while the slot has an active assignment. |
 
-Slot status (`open`, `assigned`, `reserved`) is not stored here. See section 7.
+Slot status (`open`, `assigned`, `reserved`, `set_aside`) is not stored here. See section 7.
 
 ### 5.6 Applications
 
@@ -543,7 +546,7 @@ erDiagram
         uuid vendor_profile_id FK
         application_status status
         text vendor_note "null"
-        uuid preferred_slot_id FK "null"
+        int slots_requested
         text policy_text_snapshot
         timestamptz policy_accepted_at
         timestamptz submitted_at
@@ -579,12 +582,14 @@ erDiagram
 | vendor_profile_id | uuid FK → vendor_profiles | |
 | status | application_status | |
 | vendor_note | text null | Optional message from the vendor. |
-| preferred_slot_id | uuid FK → slots null | The vendor's preferred slot (spec §4.3). Only set when the event's `slot_mode` is `vendor_preference` at the time of applying. Must be a slot of the same event with no active assignment when the application is submitted (app check). Holds nothing: several applications can point to the same slot. Not changed after submitting. |
+| slots_requested | int | Default 1, check 1 to 10. How many slots the vendor asked for, at most the event's `max_slots_per_vendor` when applying (decision P4). |
+
+**application_preferred_slots**: the vendor's preferred slots (spec §4.3), at most `slots_requested`. PK (`application_id`, `slot_id`), `slot_id` FK → slots. Only kept when the event's `slot_mode` is `vendor_preference`. Each must be a slot of the same event that is open (no active assignment, not set aside) when saved (app check). Holds nothing: several applications can prefer the same slot. The vendor can change them until a slot is assigned (decided 2026-11-15).
 | policy_text_snapshot | text | The event policy at the time of applying. Applying means the vendor accepted it. |
 | policy_accepted_at | timestamptz | |
 | submitted_at | timestamptz | |
 | decided_by, decided_at, decision_note | uuid FK → users / timestamptz / text, all null | Approve or decline, with an optional note. |
-| withdrawn_at | timestamptz null | The vendor withdrew the application. Allowed only while the status is `submitted` (not yet approved or declined). After approval, the vendor contacts the organizer instead. A withdrawn vendor can apply again, like a declined one. The organizer gets an `application_withdrawn` email. |
+| withdrawn_at | timestamptz null | The vendor withdrew the application. Allowed while the status is `submitted` or `approved`. An active assignment that is still `assigned` is released with it; a `reserved` one blocks it, and the vendor contacts the organizer instead (decided 2026-11-15). A withdrawn vendor can apply again, like a declined one. The organizer gets an `application_withdrawn` email. |
 | removed_at, removed_by, removal_note | timestamptz / uuid FK → users / text, all null | Set when the organizer removes the vendor. |
 | can_reapply | boolean null | Set on removal. False blocks new applications from this vendor to this event. |
 
@@ -605,7 +610,6 @@ erDiagram
 erDiagram
     slot_assignments {
         uuid id PK
-        uuid slot_id FK
         uuid event_id FK
         uuid application_id FK
         uuid vendor_profile_id FK
@@ -658,27 +662,35 @@ erDiagram
         text rejection_reason "null"
         timestamptz archived_at "null"
     }
+    slot_assignment_slots {
+        uuid slot_assignment_id PK,FK
+        uuid slot_id PK,FK
+        numeric price_locked
+        boolean active
+    }
+    slot_assignments ||--|{ slot_assignment_slots : ""
     slot_assignments ||--|| payments : ""
     payments ||--o{ payment_proofs : ""
 ```
 
-**slot_assignments**: one vendor's claim on one slot, from assignment until it ends (spec §5, §6). A slot keeps every past assignment as history. At most one assignment per slot is active (`assigned` or `reserved`).
+**slot_assignments**: one vendor's claim on their slots at an event, from assignment until it ends (spec §5, §6, decision P3). A slot keeps every past assignment as history. Each slot is in at most one active assignment (`assigned` or `reserved`).
 
 | Attribute | Type | Notes |
 |---|---|---|
 | id | uuid PK | |
-| slot_id | uuid FK → slots | |
-| event_id | uuid FK → events | For per-event queries and the one-slot-per-vendor rule. |
+| event_id | uuid FK → events | For per-event queries and the one-assignment-per-vendor rule. |
 | application_id | uuid FK → applications | Must be `approved`. |
 | vendor_profile_id | uuid FK → vendor_profiles | |
 | status | assignment_status | See section 4. |
-| price_locked | numeric(10,2) | Slot price copied at assignment (spec §6.1). |
+| price_locked | numeric(10,2) | The sum of the slot prices copied at assignment (spec §6.1). |
 | payment_instructions_snapshot | jsonb null | The active `event_payment_methods` copied at assignment: channel, label, account name and number, QR file id, notes. Set to null by the retention job (section 8). |
 | assigned_at | timestamptz | |
 | assigned_by | uuid FK → users | The organizer. |
 | deadline_at | timestamptz | When payment is due: `least(assigned_at + payment_deadline_hours, event starts_at)`. Shown to both sides. Not enforced: nothing expires (spec §6.4). |
 | reserved_at | timestamptz null | When payment was approved. |
 | ended_at, ended_by, ended_reason | timestamptz / uuid FK → users / text, null | Set when the assignment moves to an end state. |
+
+**slot_assignment_slots**: the slots one assignment covers (decision P3). `price_locked` is the slot's price copied at assignment. `active` is true while the assignment is `assigned` or `reserved`, and set to false in the same transaction that ends it, so all of a vendor's slots open together (decision P6) and a partial unique index can keep each slot in one active assignment (§6.3).
 
 **payments**: what is owed for one assignment, and its status. One per assignment (spec §6.7, Revenue model §7).
 
@@ -813,14 +825,14 @@ Rules the database itself should guarantee. Other rules (for example, "an organi
 |---|---|---|---|
 | 6.1 | A user has each role at most once. | UK `user_roles(user_id, role)` | §1 |
 | 6.2 | Only one active application per vendor per event. | Partial UK `applications(event_id, vendor_profile_id) WHERE status IN ('submitted','approved')` | §3.3 |
-| 6.3 | A slot belongs to one vendor at a time. | Partial UK `slot_assignments(slot_id) WHERE status IN ('assigned','reserved')` | §5 |
-| 6.4 | A vendor can have only one slot per event. | Partial UK `slot_assignments(event_id, vendor_profile_id) WHERE status IN ('assigned','reserved')` | §5 |
+| 6.3 | A slot belongs to one vendor at a time. | Partial UK `slot_assignment_slots(slot_id) WHERE active` | §5 |
+| 6.4 | A vendor has one active assignment per event, covering at most `slots_requested` slots (app check). | Partial UK `slot_assignments(event_id, vendor_profile_id) WHERE status IN ('assigned','reserved')` | §5 |
 | 6.5 | Assigned and reserved slots can't be deleted or renamed. | App check before editing `slots.label` or setting `deleted_at` while an active assignment exists. | §3.4 |
 | 6.6 | Private files are private. | Files in the private bucket are readable only by these people. `payment_proof`: the uploader, the event's organizer, and admins. `payment_qr`: the event's organizer, vendors with an active assignment at that event, and admins. `application_document`: the applying vendor, the event's organizer, and admins. The API checks this on every read and serves the file through a signed URL that expires in 5 minutes. Public purposes are in the public bucket and open to anyone with the address. | §6.5, §11.1 |
 | 6.7 | No payment deadline runs past the event start. | `deadline_at` is always set with `least(…, events.starts_at)`. | §6.1 |
 | 6.8 | A hidden event takes no new applications, assignments, proofs, or approvals, and is not shown to the public. | App check on `events.moderation_state`. | §2 |
 | 6.9 | Money amounts are never negative. | Check `amount_due >= 0`, `price >= 0`, and so on. | |
-| 6.10 | A preferred slot belongs to the application's event and is open when the application is submitted. | App check on insert. Not rechecked later, because a preference holds nothing. | §4.3 |
+| 6.10 | Preferred slots belong to the application's event, are open (not assigned and not set aside) when saved, and are at most `slots_requested`. | App check on insert or change. Not rechecked later, because a preference holds nothing. | §4.3 |
 | 6.10 | A file is attached only when it is ready, matches the place, and belongs to the person attaching it. | App check before setting any `*_file_id` or inserting into `vendor_profile_photos` or `application_documents`: `status = 'ready'`, the `purpose` fits (for example, `events.cover_file_id` takes only `event_cover`), and `uploaded_by` is the current user. | §11.3 |
 | 6.11 | Upload limits per place hold (for example, 8 photos per vendor profile). | App check against the limits in the spec table, at the Ask step and again when attaching. | §11.1 |
 | 6.12 | The applications close date is not after the event start. | Check `applications_close_at IS NULL OR applications_close_at <= starts_at`. | §3.3 |
@@ -841,8 +853,8 @@ Values worked out from other tables instead of being stored.
 
 | Value | How it's worked out |
 |---|---|
-| **Slot status** | No active assignment → `open`. Active assignment with status `assigned` → `assigned`. Status `reserved` → `reserved`. Best kept as a view, `slot_availability`, joining `slots` to their active assignment. |
-| **Preferred by** (per slot) | Applications with `preferred_slot_id` = the slot, `status` `submitted` or `approved`, and no active assignment. Shown to the organizer as "Preferred by 2". |
+| **Slot status** | Active assignment with status `assigned` → `assigned`. Status `reserved` → `reserved`. No active assignment and `set_aside_at` set → `set_aside`. Otherwise `open`. Vendors see `set_aside` as taken. |
+| **Preferred by** (per slot) | Applications with the slot in `application_preferred_slots`, `status` `submitted` or `approved`, and no active assignment. Shown to the organizer as "Preferred by 2". |
 | **Overdue payment** | Active assignment with status `assigned`, payment `pending` or `rejected`, and `deadline_at` in the past. Shown to the organizer only. |
 | **Accepted-vendor list** | Vendors with a `reserved` assignment at the event. Each name links to the vendor page. |
 | **Vendor page: "Where they've sold"** | Events where the vendor has a `reserved` assignment, and the event `status` is `announced` or `completed` and `moderation_state` is `visible`. Never `draft` or `open_to_vendors`, and never an event canceled before it was announced. An assignment ends as `canceled` when its event is canceled, so events canceled after announcement are left out too. |
