@@ -6,9 +6,12 @@ import { api } from "@/lib/api"
 import { renderWithQuery } from "@/test-utils"
 import { BrowseEvents } from "./browse-events"
 import { EventPageView } from "./event-page"
+import { publicEventFixture } from "../public/fixtures"
 import { cardFixture, eventFixture } from "./fixtures"
 
 vi.mock("@/lib/api", () => ({ api: { GET: vi.fn() } }))
+vi.mock("next/navigation", () => ({ useSearchParams: () => new URLSearchParams() }))
+vi.mock("sonner", () => ({ toast: { success: vi.fn() } }))
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -72,11 +75,15 @@ describe("BrowseEvents (/vendor/events)", () => {
 })
 
 describe("EventPageView (/events/[slug])", () => {
-  const show = (data: unknown, status = 200) => vi.mocked(api.GET).mockResolvedValue({ data, response: { status } } as never)
+  // Signed in: /api/me answers, then the viewer's own page.
+  const show = (data: unknown, status = 200) =>
+    vi.mocked(api.GET).mockImplementation((async (path: string) =>
+      path === "/api/me" ? { data: { id: "u1" }, response: { status: 200 } } : { data, response: { status } }) as never)
+  const server = <p>Server-rendered public page</p>
 
   it("shows a vendor the requirements, slots, policy, summary, and contact", async () => {
     show({ view: "vendor", preview: false, event: eventFixture() })
-    renderWithQuery(<EventPageView slug="lanang-holiday-flea" />)
+    renderWithQuery(<EventPageView slug="lanang-holiday-flea" supportEmail="support@creavent.example">{server}</EventPageView>)
 
     expect(await screen.findByRole("heading", { level: 1, name: "Lanang Holiday Flea" })).toBeInTheDocument()
     expect(screen.getByText(/Vendor view. This event is open to vendors/)).toBeInTheDocument()
@@ -93,7 +100,7 @@ describe("EventPageView (/events/[slug])", () => {
 
   it("replaces Apply with Applications closed", async () => {
     show({ view: "vendor", preview: false, event: eventFixture({ acceptingApplications: false }) })
-    renderWithQuery(<EventPageView slug="lanang-holiday-flea" />)
+    renderWithQuery(<EventPageView slug="lanang-holiday-flea" supportEmail="support@creavent.example">{server}</EventPageView>)
 
     expect(await screen.findByText("Applications closed")).toBeInTheDocument()
     expect(screen.queryByRole("link", { name: "Apply as vendor" })).not.toBeInTheDocument()
@@ -101,7 +108,7 @@ describe("EventPageView (/events/[slug])", () => {
 
   it("shows the vendor's status and a link to their application instead of Apply", async () => {
     show({ view: "vendor", preview: false, event: eventFixture({ myApplication: { id: "a1", status: "submitted", canReapply: null } }) })
-    renderWithQuery(<EventPageView slug="lanang-holiday-flea" />)
+    renderWithQuery(<EventPageView slug="lanang-holiday-flea" supportEmail="support@creavent.example">{server}</EventPageView>)
 
     expect(await screen.findByText("Your application: Submitted")).toBeInTheDocument()
     expect(screen.getByRole("link", { name: "View your application" })).toHaveAttribute("href", "/vendor/applications/a1")
@@ -110,7 +117,7 @@ describe("EventPageView (/events/[slug])", () => {
 
   it("offers Apply again after a decline or withdrawal", async () => {
     show({ view: "vendor", preview: false, event: eventFixture({ myApplication: { id: "a1", status: "declined", canReapply: null } }) })
-    renderWithQuery(<EventPageView slug="lanang-holiday-flea" />)
+    renderWithQuery(<EventPageView slug="lanang-holiday-flea" supportEmail="support@creavent.example">{server}</EventPageView>)
 
     expect(await screen.findByText("Your application: Declined")).toBeInTheDocument()
     expect(screen.getByRole("link", { name: "Apply again" })).toHaveAttribute("href", "/vendor/events/lanang-holiday-flea/apply")
@@ -118,42 +125,64 @@ describe("EventPageView (/events/[slug])", () => {
 
   it("tells a removed vendor whether they can apply again", async () => {
     show({ view: "vendor", preview: false, event: eventFixture({ myApplication: { id: "a1", status: "removed", canReapply: false } }) })
-    const { unmount } = renderWithQuery(<EventPageView slug="lanang-holiday-flea" />)
+    const { unmount } = renderWithQuery(<EventPageView slug="lanang-holiday-flea" supportEmail="support@creavent.example">{server}</EventPageView>)
 
     expect(await screen.findByText("You can't reapply to this event.")).toBeInTheDocument()
     expect(screen.queryByRole("link", { name: /Apply/ })).not.toBeInTheDocument()
     unmount()
 
     show({ view: "vendor", preview: false, event: eventFixture({ myApplication: { id: "a1", status: "removed", canReapply: true } }) })
-    renderWithQuery(<EventPageView slug="lanang-holiday-flea" />)
+    renderWithQuery(<EventPageView slug="lanang-holiday-flea" supportEmail="support@creavent.example">{server}</EventPageView>)
     expect(await screen.findByRole("link", { name: "Apply again" })).toHaveAttribute("href", "/vendor/events/lanang-holiday-flea/apply")
   })
 
   it("says when the vendor's category isn't accepted", async () => {
     show({ view: "vendor", preview: false, event: eventFixture({ myCategoryIds: ["c1c1c1c1-0000-4000-8000-000000000009"] }) })
-    renderWithQuery(<EventPageView slug="lanang-holiday-flea" />)
+    renderWithQuery(<EventPageView slug="lanang-holiday-flea" supportEmail="support@creavent.example">{server}</EventPageView>)
 
     expect(await screen.findByText("Your categories aren't accepted at this event. Check the list below before you apply.")).toBeInTheDocument()
   })
 
   it("marks the organizer's preview", async () => {
     show({ view: "vendor", preview: true, event: eventFixture({ status: "draft" }) })
-    renderWithQuery(<EventPageView slug="lanang-holiday-flea" />)
+    renderWithQuery(<EventPageView slug="lanang-holiday-flea" supportEmail="support@creavent.example">{server}</EventPageView>)
 
     expect(await screen.findByText("Preview: this is what vendors see. This event is a draft, so only you can see it.")).toBeInTheDocument()
   })
 
-  it("tells a visitor the event isn't public yet", async () => {
-    show({ view: "not_public" })
-    renderWithQuery(<EventPageView slug="lanang-holiday-flea" />)
+  it("keeps the server-rendered page for visitors, without asking for a personal view", async () => {
+    vi.mocked(api.GET).mockResolvedValue({ data: undefined, response: { status: 401 } } as never)
+    renderWithQuery(<EventPageView slug="lanang-holiday-flea" supportEmail="support@creavent.example">{server}</EventPageView>)
 
-    expect(await screen.findByRole("heading", { name: "This event isn't public yet" })).toBeInTheDocument()
+    expect(await screen.findByText("Server-rendered public page")).toBeInTheDocument()
+    await waitFor(() => expect(api.GET).toHaveBeenCalledWith("/api/me"))
+    expect(api.GET).not.toHaveBeenCalledWith("/api/events/{slug}", expect.anything())
   })
 
-  it("says when the event isn't found", async () => {
-    show(undefined, 404)
-    renderWithQuery(<EventPageView slug="nope" />)
+  it("keeps the server-rendered page for other signed-in users", async () => {
+    show({ view: "not_public" })
+    renderWithQuery(<EventPageView slug="lanang-holiday-flea" supportEmail="support@creavent.example">{server}</EventPageView>)
 
-    expect(await screen.findByRole("heading", { name: "Event not found" })).toBeInTheDocument()
+    await waitFor(() => expect(api.GET).toHaveBeenCalledWith("/api/events/{slug}", expect.anything()))
+    expect(screen.getByText("Server-rendered public page")).toBeInTheDocument()
+  })
+
+  it("shows the event's organizer the public view with Manage event", async () => {
+    show({ view: "public", manage: { eventId: "e1" }, event: publicEventFixture({ status: "open_to_vendors" }) })
+    renderWithQuery(<EventPageView slug="matina-night-flea" supportEmail="support@creavent.example">{server}</EventPageView>)
+
+    expect(await screen.findByText("Your event, as visitors will see it")).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "Manage event" })).toHaveAttribute("href", "/organizer/events/e1")
+    expect(screen.getByRole("link", { name: "Preview as vendor" })).toHaveAttribute("href", "/events/matina-night-flea?preview=vendor")
+    expect(screen.getByRole("heading", { level: 1, name: "Matina Night Flea" })).toBeInTheDocument()
+    expect(screen.queryByText("Server-rendered public page")).not.toBeInTheDocument()
+  })
+
+  it("keeps the server page when the event isn't found for this viewer", async () => {
+    show(undefined, 404)
+    renderWithQuery(<EventPageView slug="nope" supportEmail="support@creavent.example">{server}</EventPageView>)
+
+    await waitFor(() => expect(api.GET).toHaveBeenCalledWith("/api/events/{slug}", expect.anything()))
+    expect(screen.getByText("Server-rendered public page")).toBeInTheDocument()
   })
 })

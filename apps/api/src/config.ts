@@ -5,6 +5,9 @@ export function appConfig() {
     // The web app's origin. Links in emails point here, and /api/* on it
     // reaches this API (docs/architecture.md §4.3).
     webUrl: process.env.WEB_URL ?? 'http://localhost:3100',
+    // Shared with the web app, which refreshes cached public pages when the
+    // API asks with it (decision Q1). Unset: no refresh is asked for.
+    revalidateSecret: process.env.REVALIDATE_SECRET ?? '',
     termsVersion: process.env.TERMS_VERSION ?? '2026-11-12',
     privacyVersion: process.env.PRIVACY_VERSION ?? '2026-11-12',
     // Placeholder until the support address exists (development plan §9).

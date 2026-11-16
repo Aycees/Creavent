@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { vendorStatusSchema } from './applications.js';
 import { eventStatusSchema } from './events.js';
+import { publicEventSchema } from './public.js';
 
 // What vendors see (spec §4.2, sitemap §3): Browse events and the vendor view
 // of the event page. Dates and times are Manila values, as on the setup page.
@@ -89,10 +90,26 @@ export const vendorEventSchema = z.object({
 });
 export type VendorEvent = z.infer<typeof vendorEventSchema>;
 
+// ?as=vendor: the organizer's Preview as vendor.
+export const eventPageQuerySchema = z.object({ as: z.enum(['vendor']).optional() });
+
+// The event page for the signed-in viewer (sitemap §3). Signed-out visitors
+// get the cached public page (public.ts) instead.
 export const eventPageSchema = z.discriminatedUnion('view', [
-  // Signed out, or not a vendor, while the event is only open to vendors.
-  // The public view comes with Phase 4 (sitemap §3).
+  // Not a vendor, while the event is only open to vendors.
   z.object({ view: z.literal('not_public') }),
   z.object({ view: z.literal('vendor'), preview: z.boolean(), event: vendorEventSchema }),
+  // The public view. For the event's organizer, with "Manage event".
+  z.object({ view: z.literal('public'), event: publicEventSchema, manage: z.object({ eventId: z.uuid() }).nullable() }),
+  // Canceled before it was announced (decision Q2).
+  z.object({
+    view: z.literal('canceled_notice'),
+    name: z.string(),
+    startDate: z.string().nullable(),
+    endDate: z.string().nullable(),
+    opensAt: z.string().nullable(),
+    closesAt: z.string().nullable(),
+    canceled: z.object({ at: z.string(), reason: z.string().nullable() }).nullable(),
+  }),
 ]);
 export type EventPage = z.infer<typeof eventPageSchema>;

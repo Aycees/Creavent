@@ -26,6 +26,7 @@ const stageBadge: Record<ApplicationDetail["stage"], { label: string; tone: "inf
   declined: { label: "Declined", tone: "neutral" },
   withdrawn: { label: "Withdrawn", tone: "neutral" },
   removed: { label: "Removed", tone: "neutral" },
+  event_canceled: { label: "Event canceled", tone: "neutral" },
 }
 
 const historyVerbs: Record<string, string> = { withdrawn: "withdrew", declined: "was declined on", removed: "was removed from", submitted: "applied", approved: "was approved for" }

@@ -192,7 +192,7 @@ export class VendorApplicationsService {
         return {
           id: a.id,
           event: eventSummary(a.event),
-          status: vendorStatus(a.status, active?.status === 'assigned' || active?.status === 'reserved' ? active.status : null),
+          status: vendorStatus(a.status, active?.status === 'assigned' || active?.status === 'reserved' ? active.status : null, a.event.status),
           slotLabel: active ? slotLabel(active.slots) : null,
           amountDue: active ? Number(active.priceLocked) : null,
           paymentStatus: active?.payment?.status ?? null,
@@ -306,7 +306,7 @@ export class VendorApplicationsService {
     const instructions = (latest?.paymentInstructionsSnapshot ?? []) as PaymentInstruction[];
     return {
       id: a.id,
-      status: vendorStatus(a.status, active ? (active.status as 'assigned' | 'reserved') : null),
+      status: vendorStatus(a.status, active ? (active.status as 'assigned' | 'reserved') : null, a.event.status),
       submittedAt: a.submittedAt.toISOString(),
       decidedAt: a.decidedAt?.toISOString() ?? null,
       decisionNote: a.decisionNote,

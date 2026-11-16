@@ -297,12 +297,12 @@ Check a feature when its commit is on the phase branch with its tests passing. C
 - [ ] **M3** A vendor gets a confirmed spot
 
 **Phase 4: Public discovery**
-- [ ] 4.1 Announce and cancel
-- [ ] 4.2 Public event page
-- [ ] 4.3 Event listing
-- [ ] 4.4 Organizer page
-- [ ] 4.5 Vendor page
-- [ ] 4.6 Static pages
+- [x] 4.1 Announce and cancel (branch `feat/phase-4-public-discovery`)
+- [x] 4.2 Public event page (branch `feat/phase-4-public-discovery`)
+- [x] 4.3 Event listing (branch `feat/phase-4-public-discovery`)
+- [x] 4.4 Organizer page (branch `feat/phase-4-public-discovery`)
+- [x] 4.5 Vendor page (branch `feat/phase-4-public-discovery`)
+- [x] 4.6 Static pages (branch `feat/phase-4-public-discovery`)
 - [ ] **M4** An attendee finds the event and its vendors
 
 **Phase 5: Admin and operations**

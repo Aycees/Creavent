@@ -1,9 +1,10 @@
 "use client"
 
-import { vendorStatusLabels, type EventPage, type VendorEvent } from "@creavent/shared"
+import { vendorStatusLabels, type EventPage, type EventStatus, type VendorEvent } from "@creavent/shared"
 import { ArrowSquareOutIcon, FileTextIcon, ImageIcon, InfoIcon, MapPinIcon } from "@phosphor-icons/react"
 import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import * as React from "react"
 
 import { Alert } from "@/components/ui/alert"
@@ -11,15 +12,20 @@ import { ApprovedMark } from "@/components/ui/approved-mark"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { DateStamp } from "@/components/ui/date-stamp"
+import { PublicEventView } from "@/components/public/public-event"
 import { api } from "@/lib/api"
+import { useMe } from "@/lib/queries"
 import { eventDays, formatDateTime, formatSchedule, stampDate } from "@/lib/event-format"
 
-// The event page for one viewer (sitemap §3). Null when not found.
-function useEventPage(slug: string) {
+// The signed-in viewer's own event page (sitemap §3). Null when not found.
+function useEventPage(slug: string, asVendor: boolean, enabled: boolean) {
   return useQuery({
-    queryKey: ["event-page", slug],
+    queryKey: ["event-page", slug, asVendor],
+    enabled,
     queryFn: async (): Promise<EventPage | null> => {
-      const { data, response } = await api.GET("/api/events/{slug}", { params: { path: { slug } } })
+      const { data, response } = await api.GET("/api/events/{slug}", {
+        params: { path: { slug }, query: asVendor ? { as: "vendor" } : {} },
+      })
       if (response.status === 404) return null
       if (!data) throw new Error(`GET /api/events/${slug} failed with ${response.status}`)
       return data
@@ -27,38 +33,55 @@ function useEventPage(slug: string) {
   })
 }
 
-// /events/[slug]. Phase 2 has the vendor view (mockup EventVendor); the
-// public view comes with Phase 4.
-export function EventPageView({ slug }: { slug: string }) {
-  const { data, isError } = useEventPage(slug)
-  if (isError) return <Alert tone="danger">We couldn&apos;t load this event. Refresh to try again.</Alert>
-  if (data === undefined) return <p role="status" className="text-sm text-muted">Loading…</p>
-  if (data === null) {
+// /events/[slug]. The server renders the cached public page (children) for
+// everyone (decision Q1). A signed-in vendor then gets the vendor view, and
+// the event's organizer the public view with "Manage event", or the vendor
+// view with ?preview=vendor.
+export function EventPageView({ slug, supportEmail, children }: { slug: string; supportEmail: string; children: React.ReactNode }) {
+  const me = useMe()
+  const asVendor = useSearchParams().get("preview") === "vendor"
+  const { data } = useEventPage(slug, asVendor, Boolean(me.data))
+  if (!me.data || !data) return children
+  if (data.view === "vendor") return <VendorView event={data.event} preview={data.preview} />
+  if (data.view === "public" && data.manage) {
     return (
-      <div className="flex flex-col items-start gap-3">
-        <h1 className="text-h1">Event not found</h1>
-        <p className="text-body text-muted">This event doesn&apos;t exist, or it was removed.</p>
-        <Button asChild variant="secondary">
-          <Link href="/">See events</Link>
-        </Button>
+      <div className="flex flex-col gap-6">
+        <ManageBar slug={slug} eventId={data.manage.eventId} status={data.event.status} />
+        <PublicEventView event={data.event} supportEmail={supportEmail} />
       </div>
     )
   }
-  if (data.view === "not_public") {
-    return (
-      <div className="flex flex-col items-start gap-3">
-        <h1 className="text-h1">This event isn&apos;t public yet</h1>
-        <p className="text-body text-muted">The organizer is still finalizing vendors. Vendors can log in to see it and apply.</p>
-        <Button asChild variant="secondary">
-          <Link href="/login">Log in as a vendor</Link>
-        </Button>
-      </div>
-    )
-  }
-  return <VendorView event={data.event} preview={data.preview} />
+  return children
 }
 
-function VendorView({ event: e, preview }: { event: VendorEvent; preview: boolean }) {
+const visibility: Record<EventStatus, string> = {
+  draft: "A draft: only you can see it.",
+  open_to_vendors: "Open to vendors. Visitors see it once you announce it.",
+  announced: "Announced, on the event listing.",
+  completed: "Completed.",
+  canceled: "Canceled.",
+}
+
+// The organizer's bar above their own event (mockup EventOrganizerPhone).
+function ManageBar({ slug, eventId, status }: { slug: string; eventId: string; status: EventStatus }) {
+  return (
+    // White focus rings: the default blue is too dark to see on the ink bar.
+    <div className="-mx-4 -mt-6 flex flex-wrap items-center gap-3 bg-inverse px-4 py-3 text-on-inverse md:mx-0 md:mt-0 md:rounded-lg md:px-5 [&_:focus-visible]:outline-on-inverse">
+      <div className="min-w-0 flex-[1_1_220px]">
+        <p className="text-label font-semibold">Your event, as visitors will see it</p>
+        <p className="text-cap text-on-inverse-muted">{visibility[status]}</p>
+      </div>
+      <Link href={`/events/${slug}?preview=vendor`} className="inline-flex min-h-11 items-center px-2 text-label text-on-inverse underline underline-offset-3">
+        Preview as vendor
+      </Link>
+      <Button asChild variant="secondary">
+        <Link href={`/organizer/events/${eventId}`}>Manage event</Link>
+      </Button>
+    </div>
+  )
+}
+
+export function VendorView({ event: e, preview }: { event: VendorEvent; preview: boolean }) {
   const days = eventDays(e)
   const accepted = e.categories.filter((c) => e.myCategoryIds.includes(c.id))
 

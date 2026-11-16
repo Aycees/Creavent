@@ -121,10 +121,15 @@ await organizer('later@creavent.test', 'Toril Sunday Market', 'not_submitted', 0
 // Manila time, as the organizer enters it.
 const at = (date: string, time: string) => new Date(`${date}T${time}:00+08:00`);
 
-async function event(email: string, slug: string, data: Omit<Prisma.EventUncheckedCreateInput, 'organizerProfileId' | 'eventTypeId' | 'slug'>) {
+async function event(
+  email: string,
+  slug: string,
+  data: Omit<Prisma.EventUncheckedCreateInput, 'organizerProfileId' | 'eventTypeId' | 'slug'>,
+  typeSlug = 'flea-market',
+) {
   if (await prisma.event.findUnique({ where: { slug } })) return;
   const owner = await prisma.organizerProfile.findFirstOrThrow({ where: { user: { email } } });
-  const type = await prisma.eventType.findUniqueOrThrow({ where: { slug: 'flea-market' } });
+  const type = await prisma.eventType.findUniqueOrThrow({ where: { slug: typeSlug } });
   await prisma.event.create({ data: { ...data, slug, organizerProfileId: owner.id, eventTypeId: type.id } });
 }
 
@@ -288,8 +293,14 @@ await application(paper.id, 'lanang-holiday-flea', crafts, { status: 'approved',
 await application(tanim.id, 'lanang-holiday-flea', plants, { status: 'declined', decisionNote: 'We have enough plant stalls this time.', daysAgo: 5, ...decided });
 
 // An approved vendor with a slot, the payment in a given state.
-async function seedAssignment(vendorProfileId: string, categoryId: string, labels: string[], state: 'waiting' | 'overdue' | 'reserved') {
-  const app = await application(vendorProfileId, 'lanang-holiday-flea', categoryId, { status: 'approved', slotsRequested: labels.length, daysAgo: 8, ...decided });
+async function seedAssignment(
+  vendorProfileId: string,
+  categoryId: string,
+  labels: string[],
+  state: 'waiting' | 'overdue' | 'reserved',
+  eventSlug = 'lanang-holiday-flea',
+) {
+  const app = await application(vendorProfileId, eventSlug, categoryId, { status: 'approved', slotsRequested: labels.length, daysAgo: 8, ...decided });
   if (!app) return;
   const slots = await prisma.slot.findMany({ where: { eventId: app.eventId, label: { in: labels } } });
   const ev = await prisma.event.findUniqueOrThrow({ where: { id: app.eventId }, include: { paymentMethods: true } });
@@ -340,6 +351,158 @@ await application(retro.id, 'lanang-holiday-flea', crafts, {
   canReapply: false,
   daysAgo: 9,
   ...decided,
+});
+
+// Phase 4: public discovery. Dates count from today, so the listing always
+// has events this weekend, next weekend, and later.
+//   Matina Night Flea         organizer@, announced, this Saturday, 4 vendors
+//                             confirmed and 1 still unpaid
+//   Ukay Sunday sa People's Park  organizer2@ (Tiangge Davao), announced, Sunday
+//   Pasalubong and Handmade Fair  organizer2@, announced bazaar, Fri to Sun next week
+//   Plantita Pop-up           organizer2@, announced pop-up, in 3 weeks
+//   Matina Night Flea, October  organizer@, completed, where Lola's Ukay sold
+//   Toril Night Market        organizer@, canceled before it was announced
+//   Kadayawan Rain Market     organizer2@, canceled after it was announced
+const day = 86_400_000;
+const manilaToday = new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10);
+const weekday = new Date(`${manilaToday}T00:00:00Z`).getUTCDay();
+const fromToday = (days: number) => new Date(Date.parse(`${manilaToday}T00:00:00Z`) + days * day).toISOString().slice(0, 10);
+const saturday = (weeks = 0) => fromToday(((6 - weekday + 7) % 7) + weeks * 7);
+const plus = (date: string, days: number) => new Date(Date.parse(`${date}T00:00:00Z`) + days * day).toISOString().slice(0, 10);
+const announced = { status: 'announced' as const, openedToVendorsAt: new Date(Date.now() - 20 * day), announcedAt: new Date(Date.now() - 5 * day), applicationsOpen: false };
+const gcash = { create: [{ channel: 'gcash' as const, label: 'GCash, Joanna L.', accountName: 'Joanna L.', accountNumber: '0928 115 7720', sortOrder: 0 }] };
+
+await organizer('organizer2@creavent.test', 'Tiangge Davao', 'approved', 40);
+
+await event('organizer@creavent.test', 'matina-night-flea', {
+  name: 'Matina Night Flea',
+  description: "Davao's after-work flea market is back at Matina Town Square. Stalls of ukay-ukay, vintage denim, local crafts, plants and street food, from sundown until 11.\n\nBring an eco bag and small bills. Most vendors also take GCash.",
+  startsAt: at(saturday(), '17:00'),
+  endsAt: at(saturday(), '23:00'),
+  ...venue('Matina Town Square', 'MacArthur Highway, Matina'),
+  vendorContactInfo: contact,
+  policyText: policy,
+  ...announced,
+  defaultSlotPrice: 800,
+  categories: { create: [{ categoryId: preloved.id, maxVendors: 12 }, { categoryId: crafts, maxVendors: 8 }, { categoryId: vintage, maxVendors: 6 }] },
+  paymentMethods: gcash,
+  slots: { create: [...row('A', 10, 'Main walkway', '2 × 2 m', 0), ...row('B', 6, 'Entrance', '3 × 3 m', 10, 1500)] },
+});
+await seedAssignment(profile.id, preloved.id, ['A-03'], 'reserved', 'matina-night-flea');
+await seedAssignment(kalye.id, preloved.id, ['A-05'], 'reserved', 'matina-night-flea');
+await seedAssignment(habi.id, crafts, ['B-01', 'B-02'], 'reserved', 'matina-night-flea');
+await seedAssignment(paper.id, crafts, ['B-04'], 'reserved', 'matina-night-flea');
+await seedAssignment(bulak.id, crafts, ['A-07'], 'waiting', 'matina-night-flea');
+
+await event('organizer2@creavent.test', 'ukay-sunday-peoples-park', {
+  name: "Ukay Sunday sa People's Park",
+  description: 'Sunday morning ukay-ukay under the trees at People\'s Park.',
+  startsAt: at(plus(saturday(), 1), '07:00'),
+  endsAt: at(plus(saturday(), 1), '13:00'),
+  ...venue("People's Park", 'Palma Gil Street, Poblacion'),
+  vendorContactInfo: 'Text 0917 555 0142',
+  policyText: policy,
+  ...announced,
+  defaultSlotPrice: 500,
+  categories: { create: [{ categoryId: preloved.id, maxVendors: null }] },
+  paymentMethods: gcash,
+  slots: { create: row('P', 12, 'Park lane', '2 × 2 m', 0) },
+});
+await seedAssignment(thrift.id, preloved.id, ['P-02'], 'reserved', 'ukay-sunday-peoples-park');
+
+await event(
+  'organizer2@creavent.test',
+  'pasalubong-and-handmade-fair',
+  {
+    name: 'Pasalubong and Handmade Fair',
+    description: 'Three days of pasalubong, woven goods and handmade gifts from Mindanao makers.',
+    startsAt: at(plus(saturday(1), -1), '09:00'),
+    endsAt: at(plus(saturday(1), 1), '17:00'),
+    ...venue('Rizal Park', 'San Pedro Street, Poblacion'),
+    vendorContactInfo: 'Text 0917 555 0142',
+    policyText: policy,
+    ...announced,
+    defaultSlotPrice: 1200,
+    categories: { create: [{ categoryId: crafts, maxVendors: null }, { categoryId: food, maxVendors: 8 }] },
+    paymentMethods: gcash,
+    slots: { create: row('C', 20, 'Fair grounds', '3 × 3 m', 0) },
+  },
+  'bazaar',
+);
+await seedAssignment(tahi.id, crafts, ['C-07'], 'reserved', 'pasalubong-and-handmade-fair');
+
+await event(
+  'organizer2@creavent.test',
+  'plantita-pop-up',
+  {
+    name: 'Plantita Pop-up',
+    description: 'Succulents, herbs and clay pots for one day at Abreeza.',
+    startsAt: at(saturday(3), '10:00'),
+    endsAt: at(saturday(3), '20:00'),
+    ...venue('Abreeza Mall', 'J.P. Laurel Avenue, Bajada'),
+    vendorContactInfo: 'Text 0917 555 0142',
+    policyText: policy,
+    ...announced,
+    defaultSlotPrice: 700,
+    categories: { create: [{ categoryId: plants, maxVendors: null }] },
+    paymentMethods: gcash,
+    slots: { create: row('G', 8, 'Garden court', '2 × 2 m', 0) },
+  },
+  'pop-up',
+);
+
+await event('organizer@creavent.test', 'matina-night-flea-october', {
+  name: 'Matina Night Flea, October',
+  description: 'Our October night market.',
+  startsAt: at('2026-10-17', '17:00'),
+  endsAt: at('2026-10-17', '23:00'),
+  ...venue('Matina Town Square', 'MacArthur Highway, Matina'),
+  vendorContactInfo: contact,
+  policyText: policy,
+  ...announced,
+  status: 'completed',
+  completedAt: new Date('2026-10-17T16:00:00Z'),
+  defaultSlotPrice: 800,
+  categories: { create: [{ categoryId: preloved.id, maxVendors: 12 }] },
+  paymentMethods: gcash,
+  slots: { create: row('A', 10, 'Main walkway', '2 × 2 m', 0) },
+});
+await seedAssignment(profile.id, preloved.id, ['A-03'], 'reserved', 'matina-night-flea-october');
+
+await event('organizer@creavent.test', 'toril-night-market', {
+  name: 'Toril Night Market',
+  description: 'A Friday night market in Toril.',
+  startsAt: at(plus(saturday(2), -1), '17:00'),
+  endsAt: at(plus(saturday(2), -1), '23:00'),
+  ...venue('Toril Public Market', 'Saavedra Street, Toril'),
+  vendorContactInfo: contact,
+  policyText: policy,
+  status: 'canceled',
+  openedToVendorsAt: new Date(Date.now() - 10 * day),
+  canceledAt: new Date(Date.now() - day),
+  cancelReason: 'The venue is under repair that week.',
+  defaultSlotPrice: 600,
+  categories: { create: [{ categoryId: preloved.id, maxVendors: null }] },
+  paymentMethods: gcash,
+  slots: { create: row('T', 10, 'Market lane', '2 × 2 m', 0) },
+});
+
+await event('organizer2@creavent.test', 'kadayawan-rain-market', {
+  name: 'Kadayawan Rain Market',
+  description: 'An evening market at the covered court.',
+  startsAt: at(saturday(2), '16:00'),
+  endsAt: at(saturday(2), '22:00'),
+  ...venue('Bajada Covered Court', 'J.P. Laurel Avenue, Bajada'),
+  vendorContactInfo: 'Text 0917 555 0142',
+  policyText: policy,
+  ...announced,
+  status: 'canceled',
+  canceledAt: new Date(Date.now() - day),
+  cancelReason: 'Typhoon signal 2 is expected over Davao that weekend.',
+  defaultSlotPrice: 600,
+  categories: { create: [{ categoryId: preloved.id, maxVendors: null }] },
+  paymentMethods: gcash,
+  slots: { create: row('K', 10, 'Court', '2 × 2 m', 0) },
 });
 
 await prisma.$disconnect();

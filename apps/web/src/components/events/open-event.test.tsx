@@ -63,7 +63,8 @@ describe("Open to vendors (spec §3.1, flow 3)", () => {
   it("links to the vendor preview", async () => {
     renderWithQuery(<EventSetupPage id={EVENT_ID} />)
 
-    expect(await screen.findByRole("link", { name: "Preview as vendor" })).toHaveAttribute("href", "/events/matina-night-flea-january")
+    await userEvent.click(await screen.findByRole("button", { name: "More actions" }))
+    expect(screen.getByRole("menuitem", { name: "Preview as vendor" })).toHaveAttribute("href", "/events/matina-night-flea-january?preview=vendor")
   })
 })
 
@@ -73,11 +74,12 @@ describe("applications on an open event", () => {
     vi.mocked(api.PUT).mockResolvedValue({ data: { ...setup, applicationsOpen: false }, response: { status: 200 } } as never)
     renderWithQuery(<EventSetupPage id={EVENT_ID} />)
 
-    expect(await screen.findByText("Vendors can find this event and apply. Visitors can't see it yet.")).toBeInTheDocument()
-    await userEvent.click(screen.getByRole("button", { name: "Close applications" }))
+    expect(await screen.findByText(/Applications are open/)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole("button", { name: "More actions" }))
+    await userEvent.click(screen.getByRole("menuitem", { name: "Close applications" }))
 
     expect(api.PUT).toHaveBeenCalledWith("/api/organizer/events/{id}/applications", { params: { path: { id: EVENT_ID } }, body: { open: false } })
-    expect(await screen.findByRole("button", { name: "Open applications" })).toBeInTheDocument()
+    expect(await screen.findByText(/Applications are closed/)).toBeInTheDocument()
   })
 })
 
@@ -86,7 +88,8 @@ describe("deleting a draft", () => {
     vi.mocked(api.DELETE).mockResolvedValue({ response: { status: 204 } } as never)
     renderWithQuery(<EventSetupPage id={EVENT_ID} />)
 
-    await userEvent.click(await screen.findByRole("button", { name: "Delete draft" }))
+    await userEvent.click(await screen.findByRole("button", { name: "More actions" }))
+    await userEvent.click(screen.getByRole("menuitem", { name: "Delete draft" }))
     const dialog = await screen.findByRole("dialog", { name: "Delete this draft?" })
     expect(dialog).toHaveTextContent("This can't be undone.")
     await userEvent.click(within(dialog).getByRole("button", { name: "Delete draft" }))
@@ -98,7 +101,8 @@ describe("deleting a draft", () => {
   it("keeps the draft when the organizer changes their mind", async () => {
     renderWithQuery(<EventSetupPage id={EVENT_ID} />)
 
-    await userEvent.click(await screen.findByRole("button", { name: "Delete draft" }))
+    await userEvent.click(await screen.findByRole("button", { name: "More actions" }))
+    await userEvent.click(screen.getByRole("menuitem", { name: "Delete draft" }))
     await userEvent.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Keep draft" }))
 
     expect(api.DELETE).not.toHaveBeenCalled()
@@ -108,7 +112,7 @@ describe("deleting a draft", () => {
     setup = setupFixture({ checklist: ready, status: "open_to_vendors", applicationsOpen: true })
     renderWithQuery(<EventSetupPage id={EVENT_ID} />)
 
-    await screen.findByText(/Vendors can find this event and apply/)
-    expect(screen.queryByRole("button", { name: "Delete draft" })).not.toBeInTheDocument()
+    await userEvent.click(await screen.findByRole("button", { name: "More actions" }))
+    expect(screen.queryByRole("menuitem", { name: "Delete draft" })).not.toBeInTheDocument()
   })
 })

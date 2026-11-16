@@ -315,6 +315,13 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - **Some slots are still unpaid when announcing:** a warning lists them, for example "3 slots not yet paid". The organizer can still announce. **(screen)**
 - **A reserved vendor drops out after the announcement:** the organizer removes them (flow 9), assigns the slot to another approved vendor or leaves it empty, and uploads an updated public floor plan if needed. Spec §5.
 
+**Acceptance criteria (Phase 4: announce)**
+- On an event open to vendors, the event's organizer sees **Announce event** on Vendors and slots and on event setup. It opens a confirm step that says the event goes on the listing and how many vendors with a confirmed slot will show. When slots are assigned but not paid, it says how many ("7 slots aren't paid yet"), lists the overdue ones and those with a proof waiting, and says they stay off the event page until their payment is approved. When there is no public floor plan, it says it's optional and links to upload one.
+- Announcing makes the event `announced`, sets `announced_at`, writes the audit log, and puts it on the listing at once (decision Q1). Applications stay as they were.
+- Announcing is refused for an event that isn't open to vendors, has ended, or is hidden, and for anyone but its organizer (decision Q7).
+- For 10 minutes after announcing, the organizer can undo it (Undo on the confirmation, or Undo announce in More actions). The event goes back to open to vendors and off the listing, with slots, payments, and applications unchanged and no emails. After 10 minutes the undo is refused with "You can undo an announcement for 10 minutes. Edit or cancel the event instead." (decision Q9)
+- The hourly job marks announced events whose last day has ended as `completed` and sets `completed_at`. It has no user to write in the audit log, so `completed_at` is the record. Events still only open to vendors are left as they are (decision Q3).
+
 ## 9. Release, remove, change, or cancel
 
 **Vendor releases an assigned slot (not yet paid and approved)**
@@ -345,6 +352,12 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - Archived screenshots stay readable for the vendor (under "Payment records" on the application page), the organizer, and admins.
 - There is no move: to change a slot, the organizer removes the vendor and assigns another slot once they're approved again.
 
+**Acceptance criteria (Phase 4: change and cancel)**
+- Saving a change to the dates, hours, venue, address, or city of an event open to vendors or announced emails each vendor with an active application (decision Q6) with the old and new values and their slot, if any. Other saves send nothing. Drafts send nothing (decision Q8).
+- On an event open to vendors or announced, the organizer sees **Cancel event** in event setup. The confirm step says it can't be undone, how many vendors are emailed, that the page stays up marked canceled, and that refunds are between them under the event policy. It takes an optional reason (decision Q4).
+- Canceling makes the event `canceled`, sets `canceled_at` and the reason, ends every active assignment as `canceled` (opening no slots for new vendors), archives their payments and proofs, writes the audit log, and emails each vendor with an active application, with the reason and the organizer's contact details. Applications keep their status (decision Q7).
+- A canceled event can't be edited, announced, applied to, or paid for. Archived payment records stay readable for both sides.
+
 ## 10. Discover events and vendors
 
 *Attendee. No account.*
@@ -361,6 +374,19 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - **Attendee wants to ask the organizer a question:** there's no contact option in the MVP. The page shows the public details and social links only. Spec §7.
 - **Attendee wants to report a fake event:** they email the support address shown on the page. Spec §7.
 - **An event link is shared before announcement:** attendees can't see it yet. **(screen: "This event isn't public yet")**
+
+**Acceptance criteria (Phase 4: public discovery)**
+- `/` lists visible announced events that end today or later (Manila days), soonest first, grouped as This weekend, Next weekend, and Later (spec §7.3). Each card shows the cover, type tag, date or date range with the number of days, hours, venue and city, and the organizer with the "Approved by Creavent" seal.
+- The search box matches the event name, venue, address, city, and organizer name (decision Q5). Type chips show counts, and the city and date filters (Any date, This weekend, Next 2 weeks, next month, Pick dates) combine with search. When nothing matches, the page says so with "Show any date" and "Clear all".
+- The "Next 7 days" strip marks today and every day that has an announced event (every day of a multi-day event). Calendar shows a month grid on desktop and a compact month on phones, with the selected day's events listed.
+- "Sell at these events" shows how many events accept applications. It goes to sign up, or to Browse events for a signed-in vendor.
+- `/events/[slug]` shows the public view of an announced or completed event to everyone: cover, type, schedule, venue with Get directions and Copy link, confirmed vendor count, description, organizer card, public floor plan, and the vendors with a `reserved` slot with their categories and slot numbers, filterable by category, with "Show all" past 9. A vendor whose page isn't available shows without a link, and a deleted account as "Deleted user". It has Open Graph tags with the cover.
+- A completed event says it has ended. A canceled event says so, with the organizer's note, and hides the vendor list. One canceled before it was announced shows signed-out visitors only its name, dates, and "This event was canceled" (decision Q2). Signed-in vendors keep the vendor view, marked canceled.
+- The event's organizer sees the public view with a "Manage event" bar. An event open to vendors shows visitors "This event isn't public yet". Drafts and hidden events are Not found to everyone else.
+- `/organizers/[slug]` shows the profile, the seal (when approved and not suspended), the count of completed events, upcoming announced events, and past completed events. Not found while the organizer role is suspended or the account is deleted.
+- `/vendors/[slug]` shows the profile, up to 8 photos, "Find them next at" with the slot numbers, and "Where they've sold" (data model §7). With no events, that section is left out. Phone, email, applications, documents, and payments are never shown. Not found while the vendor role is suspended or the account is deleted.
+- Changing an event, a profile, or a reserved slot refreshes the affected public pages right away (decision Q1).
+- `/approved`, `/terms`, `/privacy`, and `/support` match the mockups. Terms and privacy show their current version and date, with placeholder text until the legal review.
 
 ## 11. Approve organizers, handle reports, suspend
 

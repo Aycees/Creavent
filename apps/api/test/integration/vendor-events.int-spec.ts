@@ -206,12 +206,12 @@ describe('vendor browsing and the event page', () => {
       expect((await agent(app).get(`/api/events/${await slugOf(draft)}`)).status).toBe(404);
     });
 
-    it('shows its organizer the vendor view at any status, as a preview', async () => {
+    it('shows its organizer the vendor view at any status, when previewing as a vendor', async () => {
       const { user, profile } = await createOrganizer(prisma);
       const draft = await readyEvent(prisma, profile.id);
       const browser = await signInAs(app, user.email);
 
-      const res = await browser.get(`/api/events/${await slugOf(draft)}`);
+      const res = await browser.get(`/api/events/${await slugOf(draft)}?as=vendor`);
 
       expect(res.body).toMatchObject({ view: 'vendor', preview: true, event: { status: 'draft' } });
     });

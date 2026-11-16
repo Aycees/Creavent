@@ -32,7 +32,7 @@ describe("EventSetupPage header", () => {
     expect(await screen.findByRole("heading", { level: 1, name: "Matina Night Flea, January" })).toBeInTheDocument()
     expect(screen.getByText("Draft")).toBeInTheDocument()
     expect(screen.getAllByText("Flea market").length).toBeGreaterThan(0)
-    expect(screen.getByText("Only you can see this event.")).toBeInTheDocument()
+    expect(screen.getByText("Only you can see this draft.")).toBeInTheDocument()
     expect(screen.getByRole("tab", { name: /Details/ })).toHaveAttribute("aria-selected", "true")
   })
 

@@ -1,14 +1,24 @@
 import type { Metadata } from "next"
+import { Suspense } from "react"
 
-import { PlaceholderPage } from "@/components/layout/placeholder-page"
+import { ApprovedView } from "@/components/public/static-pages"
 import { Container } from "@/components/ui/container"
+import { getPublicConfig } from "@/lib/public-api"
 
-export const metadata: Metadata = { title: "Approved by Creavent · Creavent" }
+export const metadata: Metadata = { title: "What Approved by Creavent means · Creavent" }
 
-export default function ApprovedByCreaventPage() {
+async function View() {
+  const config = await getPublicConfig()
+  return <ApprovedView supportEmail={config.supportEmail} />
+}
+
+// /approved (sitemap §3).
+export default function Page() {
   return (
-    <Container className="py-8 md:py-12">
-      <PlaceholderPage title="Approved by Creavent" slice="4.6 (static pages)" />
+    <Container className="py-8 md:py-16">
+      <Suspense>
+        <View />
+      </Suspense>
     </Container>
   )
 }

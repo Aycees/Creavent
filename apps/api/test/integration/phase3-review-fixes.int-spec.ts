@@ -89,7 +89,7 @@ describe('Phase 3 review fixes', () => {
     const res = await s.organizerBrowser.post(`/api/organizer/events/${s.eventId}/assignments`).send({ applicationId: app2.id, slotIds: [s.slots[1].id] });
 
     expect(res.status).toBe(409);
-    expect(res.body.message).toBe('This event is not taking vendors anymore');
+    expect(res.body.message).toBe('This event is canceled');
   });
 
   it('shows the organizer archived payment records after a removal', async () => {

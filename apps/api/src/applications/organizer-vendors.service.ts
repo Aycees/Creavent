@@ -11,6 +11,8 @@ import { PaymentsService } from './payments.service.js';
 import { changeApplicationStatus } from './application-status.js';
 import { archivePayment, changeAssignmentStatus } from './assignment-status.js';
 import { ACTIVE, isOverdue, slotLabel, sortedSlots } from './slot-status.js';
+import { PublicRefreshService } from '../public/public-refresh.service.js';
+import { tags } from '../public/tags.js';
 
 // The organizer's Vendors and slots page (spec §3.4, §5, sitemap §4).
 @Injectable()
@@ -19,6 +21,7 @@ export class OrganizerVendorsService {
     private readonly prisma: PrismaService,
     private readonly outbox: OutboxService,
     private readonly payments: PaymentsService,
+    private readonly refresh: PublicRefreshService,
   ) {}
 
   async vendors(userId: string, eventId: string): Promise<EventVendors> {
@@ -239,7 +242,7 @@ export class OrganizerVendorsService {
   // Remove an approved vendor at any time: their slot opens again and the
   // payment records are archived (spec §6.6). Allowed on a hidden event too.
   async remove(userId: string, eventId: string, applicationId: string, canReapply: boolean, note: string | null) {
-    await this.prisma.$transaction(async (tx) => {
+    const vendorProfileId = await this.prisma.$transaction(async (tx) => {
       const event = await ownEvent(tx, userId, eventId);
       const application = await tx.application.findFirst({
         where: { id: applicationId, eventId },
@@ -282,7 +285,9 @@ export class OrganizerVendorsService {
         relatedEntityType: 'application',
         relatedEntityId: applicationId,
       });
+      return application.vendorProfileId;
     });
+    void this.refresh.refresh([tags.event(eventId), tags.vendor(vendorProfileId)]);
     return this.vendors(userId, eventId);
   }
 }

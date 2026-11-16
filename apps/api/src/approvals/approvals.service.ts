@@ -6,6 +6,8 @@ import { OutboxService } from '../notifications/outbox.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { assertApprovalChange, changeApprovalStatus, lockOrganizer, sameLinks, type ReviewedFields } from './approval-status.js';
 import { businessDaysSince } from './business-days.js';
+import { PublicRefreshService } from '../public/public-refresh.service.js';
+import { tags } from '../public/tags.js';
 
 // Business days a request has waited, and how many past the target.
 function waiting(since: Date | null) {
@@ -23,6 +25,7 @@ export class ApprovalsService {
     private readonly prisma: PrismaService,
     private readonly outbox: OutboxService,
     private readonly files: FilesService,
+    private readonly refresh: PublicRefreshService,
   ) {}
 
   async queue(): Promise<ApprovalQueueItem[]> {
@@ -86,7 +89,7 @@ export class ApprovalsService {
     decision: { approve: true; note?: string | null } | { approve: false; reason: string; note?: string | null },
   ) {
     const config = appConfig();
-    await this.prisma.$transaction(async (tx) => {
+    const profileId = await this.prisma.$transaction(async (tx) => {
       await lockOrganizer(tx, userId);
       const role = await tx.userRole.findUnique({
         where: { userId_role: { userId, role: 'organizer' } },
@@ -126,7 +129,10 @@ export class ApprovalsService {
           ? { name, displayName: role.user.organizerProfile?.displayName ?? name, url: `${config.webUrl}/organizer`, supportEmail: config.supportEmail }
           : { name, reason: decision.reason, url: `${config.webUrl}/organizer/approval`, supportEmail: config.supportEmail },
       });
+      return profile?.id ?? null;
     });
+    // The "Approved by Creavent" seal shows on the organizer's pages and cards.
+    if (profileId) void this.refresh.refresh([tags.organizer(profileId), tags.listing]);
     return this.detail(userId);
   }
 }

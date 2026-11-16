@@ -236,7 +236,8 @@ describe('deleting a draft', () => {
     const res = await browser.delete(`/api/organizer/events/${id}`);
 
     expect(res.status).toBe(409);
-    expect(res.body.message).toBe('Only drafts can be deleted. Cancel this event instead.');
+    // A canceled event refuses every change with its own message (decision Q7).
+    expect(res.body.message).toBe(status === 'canceled' ? 'This event is canceled' : 'Only drafts can be deleted. Cancel this event instead.');
     expect(await prisma.event.findUnique({ where: { id } })).not.toBeNull();
   });
 

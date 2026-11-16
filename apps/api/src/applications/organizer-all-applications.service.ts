@@ -117,7 +117,7 @@ export class OrganizerAllApplicationsService {
     const v = a.vendorProfile;
     return {
       id: a.id,
-      stage: vendorStatus(a.status, active ? (active.status as 'assigned' | 'reserved') : null),
+      stage: vendorStatus(a.status, active ? (active.status as 'assigned' | 'reserved') : null, a.event.status),
       submittedAt: a.submittedAt.toISOString(),
       decidedAt: a.decidedAt?.toISOString() ?? null,
       decisionNote: a.decisionNote,
@@ -189,7 +189,7 @@ export class OrganizerAllApplicationsService {
       eventId: r.eventId,
       eventName: r.event.name,
       eventStartDate: day(r.event.startsAt),
-      stage: vendorStatus(r.status, active ? (active.status as 'assigned' | 'reserved') : null),
+      stage: vendorStatus(r.status, active ? (active.status as 'assigned' | 'reserved') : null, r.event.status),
       shopName: r.vendorProfile.shopName,
       avatarUrl: r.vendorProfile.user.avatarFile ? this.files.url(r.vendorProfile.user.avatarFile.storageKey) : null,
       categories: r.categories.map((c) => c.category.name),

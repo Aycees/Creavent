@@ -12,6 +12,8 @@ import { changePaymentStatus, changeProofStatus } from './payment-status.js';
 import { assertVisible } from './organizer-applications.service.js';
 import { slotLabel } from './slot-status.js';
 import { vendorProfile } from './vendor-profile.js';
+import { PublicRefreshService } from '../public/public-refresh.service.js';
+import { tags } from '../public/tags.js';
 
 // Proof of payment and the organizer's decision (spec §6.2 to §6.4).
 // Creavent never handles the money: these only track what each side says.
@@ -21,6 +23,7 @@ export class PaymentsService {
     private readonly prisma: PrismaService,
     private readonly files: FilesService,
     private readonly outbox: OutboxService,
+    private readonly refresh: PublicRefreshService,
   ) {}
 
   async uploadProof(userId: string, applicationId: string, input: z.output<typeof uploadProofSchema>) {
@@ -82,7 +85,7 @@ export class PaymentsService {
   }
 
   async approveProof(userId: string, eventId: string, proofId: string, amountPaid: number | null) {
-    await this.prisma.$transaction(async (tx) => {
+    const vendorProfileId = await this.prisma.$transaction(async (tx) => {
       const { proof, assignment } = await this.waitingProof(tx, userId, eventId, proofId);
       await changeProofStatus(tx, { proofId: proof.id, action: 'approve', actorUserId: userId, data: { decidedById: userId, decidedAt: new Date() } });
       await this.approvePayment(tx, userId, assignment, {
@@ -90,7 +93,10 @@ export class PaymentsService {
         amountPaid: amountPaid ?? (proof.amountClaimed === null ? Number(assignment.payment.amountDue) : Number(proof.amountClaimed)),
         note: null,
       });
+      return assignment.vendorProfileId;
     });
+    // The vendor now shows on the event page and their own (data model §7).
+    void this.refresh.refresh([tags.event(eventId), tags.vendor(vendorProfileId)]);
   }
 
   async rejectProof(userId: string, eventId: string, proofId: string, reason: string) {
@@ -112,7 +118,7 @@ export class PaymentsService {
 
   // "Mark paid": approve without a proof image, with a note (spec §6.3).
   async markPaid(userId: string, eventId: string, assignmentId: string, note: string, method: 'cash' | 'other') {
-    await this.prisma.$transaction(async (tx) => {
+    const vendorProfileId = await this.prisma.$transaction(async (tx) => {
       const event = await ownEvent(tx, userId, eventId);
       assertVisible(event);
       const assignment = await tx.slotAssignment.findFirst({ where: { id: assignmentId, eventId }, include: assignmentInclude });
@@ -126,7 +132,9 @@ export class PaymentsService {
         throw new ConflictException('A proof is waiting for your review. Approve or reject it instead.');
       }
       await this.approvePayment(tx, userId, { ...assignment, payment: assignment.payment }, { method, amountPaid: Number(assignment.payment.amountDue), note });
+      return assignment.vendorProfileId;
     });
+    void this.refresh.refresh([tags.event(eventId), tags.vendor(vendorProfileId)]);
   }
 
   // The organizer's own event, and a proof of it that still waits for review.

@@ -12,6 +12,10 @@ export const eventCities = ['Davao City'] as const;
 // Events run 1 to 7 days in a row (spec §3.1.1).
 export const MAX_EVENT_DAYS = 7;
 
+// An announcement can be undone for this long, for one made by mistake or
+// too early (decision Q9). After that, edit or cancel the event.
+export const UNDO_ANNOUNCE_MINUTES = 10;
+
 // Every time is shown and entered in Asia/Manila, which is UTC+8 all year.
 const MANILA_OFFSET = '+08:00';
 
@@ -366,6 +370,23 @@ export const eventSetupSchema = z.object({
       }),
     ),
   }),
+  // For the Announce and Cancel confirm steps (flows 8 and 9).
+  lineup: z.object({
+    // Vendors with a reserved slot: shown on the event page once announced.
+    confirmedVendors: z.number().int(),
+    // Vendors with a submitted or approved application: emailed on a cancel
+    // or a change (decision Q6).
+    activeVendors: z.number().int(),
+    // Assigned slots whose payment isn't approved yet, overdue first.
+    unpaid: z.array(
+      z.object({ slotLabel: z.string(), shopName: z.string(), state: z.enum(['overdue', 'proof_submitted', 'waiting']) }),
+    ),
+  }),
+  // The last day has ended (Manila time).
+  ended: z.boolean(),
+  // While the announcement can still be undone (decision Q9).
+  undoAnnounceUntil: z.string().nullable(),
+  canceled: z.object({ at: z.string(), reason: z.string().nullable() }).nullable(),
   slots: z.object({
     mode: slotModeSchema,
     defaultPrice: z.number().nullable(),
@@ -388,6 +409,9 @@ export const eventSetupSchema = z.object({
   }),
 });
 export type EventSetup = z.infer<typeof eventSetupSchema>;
+
+// Cancel event takes an optional reason, shown to vendors (decision Q4).
+export const cancelEventSchema = z.object({ reason: optionalLongText(500).optional().transform((v) => v ?? null) });
 
 export const createdEventSchema = z.object({ id: z.uuid() });
 

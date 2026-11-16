@@ -9,9 +9,10 @@ import { HealthController } from './health/health.controller.js';
 import { OnboardingModule } from './onboarding/onboarding.module.js';
 import { NotificationsModule } from './notifications/notifications.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
+import { PublicModule } from './public/public.module.js';
 
 @Module({
-  imports: [PrismaModule, NotificationsModule, AuthModule, FilesModule, AccountsModule, OnboardingModule, ApprovalsModule, EventsModule, ApplicationsModule],
+  imports: [PrismaModule, NotificationsModule, AuthModule, FilesModule, AccountsModule, OnboardingModule, ApprovalsModule, EventsModule, ApplicationsModule, PublicModule],
   controllers: [HealthController],
 })
 export class AppModule {}
