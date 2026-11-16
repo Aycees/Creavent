@@ -32,6 +32,7 @@ const stageLabels: Record<ApplicationCard["stage"], string> = {
   declined: "Declined",
   withdrawn: "Withdrawn",
   removed: "Removed",
+  event_canceled: "Event canceled",
 }
 
 // /organizer/applications: every application across the organizer's events

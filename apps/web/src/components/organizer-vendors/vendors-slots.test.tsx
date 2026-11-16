@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { api } from "@/lib/api"
 import { renderWithQuery } from "@/test-utils"
+import { setupFixture } from "../events/fixtures"
 import { APPLICATION_PAPER, APPLICATION_SPIN, EVENT_ID, eventVendorsFixture, SLOT_A05, SLOT_A09 } from "./fixtures"
 
 const APPLICATION_TANIM = "a0000000-0000-4000-8000-0000000000a3"
@@ -11,10 +12,34 @@ const SLOT_B06 = "5a000000-0000-4000-8000-000000000012"
 import { VendorsAndSlots } from "./vendors-slots"
 
 vi.mock("@/lib/api", () => ({ api: { GET: vi.fn(), POST: vi.fn() } }))
+vi.mock("sonner", () => ({ toast: { success: vi.fn() } }))
+
+let setup = setupFixture({ id: EVENT_ID, status: "open_to_vendors" })
 
 beforeEach(() => {
   vi.clearAllMocks()
-  vi.mocked(api.GET).mockResolvedValue({ data: eventVendorsFixture(), response: { status: 200 } } as never)
+  setup = setupFixture({ id: EVENT_ID, status: "open_to_vendors" })
+  // The page reads the vendors, and the event setup for Announce (flow 8).
+  vi.mocked(api.GET).mockImplementation((async (path: string) =>
+    path === "/api/organizer/events/{id}"
+      ? { data: setup, response: { status: 200 } }
+      : { data: eventVendorsFixture(), response: { status: 200 } }) as never)
+})
+
+describe("Announce on Vendors and slots (flow 8)", () => {
+  it("offers Announce event while the event is open to vendors", async () => {
+    renderWithQuery(<VendorsAndSlots eventId={EVENT_ID} />)
+
+    expect(await screen.findByRole("button", { name: "Announce event" })).toBeInTheDocument()
+  })
+
+  it("doesn't once it is announced", async () => {
+    setup = setupFixture({ id: EVENT_ID, status: "announced" })
+    renderWithQuery(<VendorsAndSlots eventId={EVENT_ID} />)
+
+    await screen.findByRole("region", { name: "Slots at a glance" })
+    expect(screen.queryByRole("button", { name: "Announce event" })).not.toBeInTheDocument()
+  })
 })
 
 describe("VendorsAndSlots (/organizer/events/[id]/vendors)", () => {

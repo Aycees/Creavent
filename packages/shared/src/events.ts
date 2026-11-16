@@ -366,6 +366,21 @@ export const eventSetupSchema = z.object({
       }),
     ),
   }),
+  // For the Announce and Cancel confirm steps (flows 8 and 9).
+  lineup: z.object({
+    // Vendors with a reserved slot: shown on the event page once announced.
+    confirmedVendors: z.number().int(),
+    // Vendors with a submitted or approved application: emailed on a cancel
+    // or a change (decision Q6).
+    activeVendors: z.number().int(),
+    // Assigned slots whose payment isn't approved yet, overdue first.
+    unpaid: z.array(
+      z.object({ slotLabel: z.string(), shopName: z.string(), state: z.enum(['overdue', 'proof_submitted', 'waiting']) }),
+    ),
+  }),
+  // The last day has ended (Manila time).
+  ended: z.boolean(),
+  canceled: z.object({ at: z.string(), reason: z.string().nullable() }).nullable(),
   slots: z.object({
     mode: slotModeSchema,
     defaultPrice: z.number().nullable(),
@@ -388,6 +403,9 @@ export const eventSetupSchema = z.object({
   }),
 });
 export type EventSetup = z.infer<typeof eventSetupSchema>;
+
+// Cancel event takes an optional reason, shown to vendors (decision Q4).
+export const cancelEventSchema = z.object({ reason: optionalLongText(500).optional().transform((v) => v ?? null) });
 
 export const createdEventSchema = z.object({ id: z.uuid() });
 

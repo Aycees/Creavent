@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Patch, P
 import { ApiCreatedResponse } from '@nestjs/swagger';
 import {
   applicationsToggleSchema,
+  cancelEventSchema,
   createdEventSchema,
   createEventSchema,
   eventDetailsSchema,
@@ -20,6 +21,7 @@ import {
 import { z } from 'zod';
 import { AuthGuard, CurrentUser, type SessionUser } from '../auth/auth.guard.js';
 import { ResponseSchema } from '../response-schema.decorator.js';
+import { EventLifecycleService } from './event-lifecycle.service.js';
 import { EventSlotsService } from './event-slots.service.js';
 import { OrganizerEventsService } from './organizer-events.service.js';
 
@@ -29,6 +31,7 @@ export class OrganizerEventsController {
   constructor(
     private readonly events: OrganizerEventsService,
     private readonly slots: EventSlotsService,
+    private readonly lifecycle: EventLifecycleService,
   ) {}
 
   @Get('event-types')
@@ -168,6 +171,26 @@ export class OrganizerEventsController {
   @ResponseSchema(eventSetupSchema)
   open(@CurrentUser() user: SessionUser, @Param('id', ParseUUIDPipe) id: string) {
     return this.events.open(user.id, id);
+  }
+
+  @Post('organizer/events/:id/announce')
+  @ApiCreatedResponse({ standardSchema: eventSetupSchema })
+  @ResponseSchema(eventSetupSchema)
+  async announce(@CurrentUser() user: SessionUser, @Param('id', ParseUUIDPipe) id: string) {
+    await this.lifecycle.announce(user.id, id);
+    return this.events.setup(user.id, id);
+  }
+
+  @Post('organizer/events/:id/cancel')
+  @ApiCreatedResponse({ standardSchema: eventSetupSchema })
+  @ResponseSchema(eventSetupSchema)
+  async cancel(
+    @CurrentUser() user: SessionUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body({ schema: cancelEventSchema }) body: z.output<typeof cancelEventSchema>,
+  ) {
+    await this.lifecycle.cancel(user.id, id, body.reason);
+    return this.events.setup(user.id, id);
   }
 
   @Put('organizer/events/:id/applications')

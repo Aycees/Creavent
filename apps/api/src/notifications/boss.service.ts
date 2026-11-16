@@ -2,6 +2,8 @@ import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { PgBoss } from 'pg-boss';
 
 export const SEND_EMAIL_QUEUE = 'send-email';
+// Hourly: announced events that have ended become completed (architecture §6.1).
+export const COMPLETE_EVENTS_QUEUE = 'complete-events';
 
 // pg-boss keeps its jobs in Postgres (docs/architecture.md §6.1). It starts on
 // first use, so the API can boot without a database.
@@ -27,6 +29,7 @@ export class BossService implements OnModuleDestroy {
       retryDelay: 30,
       retryBackoff: true,
     });
+    await boss.createQueue(COMPLETE_EVENTS_QUEUE);
     return boss;
   }
 

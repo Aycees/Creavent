@@ -12,6 +12,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from "@/components/ui/textarea"
 import { api } from "@/lib/api"
 import { cn } from "@/lib/utils"
+import { AnnounceButton } from "@/components/events/lifecycle-controls"
+import { useEventSetup } from "@/components/events/queries"
 import { EventTabs } from "./event-tabs"
 import { formatDeadline } from "@/lib/event-format"
 import { useEventVendors, vendorsKey } from "./queries"
@@ -53,7 +55,9 @@ export function VendorsAndSlots({ eventId }: { eventId: string }) {
   const g = data.glance
   return (
     <div className="flex flex-col gap-6">
-      <EventTabs eventId={eventId} name={data.event.name} current="vendors" waiting={data.event.waitingApplications} />
+      <EventTabs eventId={eventId} name={data.event.name} current="vendors" waiting={data.event.waitingApplications}>
+        <HeaderAnnounce eventId={eventId} />
+      </EventTabs>
       {done && <Alert tone="success">{done}</Alert>}
 
       <section aria-labelledby="glance-h" className="flex flex-col gap-4 rounded-lg border border-border bg-surface p-4 md:p-5">
@@ -625,4 +629,11 @@ function PaymentRecords({ records }: { records: EventVendors["archived"] }) {
       </ul>
     </section>
   )
+}
+
+// Announce from the vendor list, where the organizer checks it is final
+// (flow 8, mockup OrgVendors header).
+function HeaderAnnounce({ eventId }: { eventId: string }) {
+  const { data } = useEventSetup(eventId)
+  return data ? <AnnounceButton setup={data} /> : null
 }

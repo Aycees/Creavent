@@ -15,11 +15,13 @@ import {
 } from '@creavent/shared';
 import type { z } from 'zod';
 import { writeAuditLog } from '../audit/audit-log.js';
-import { isOverdue } from '../applications/slot-status.js';
+import { ACTIVE, isOverdue, slotLabel } from '../applications/slot-status.js';
 import { appConfig } from '../config.js';
 import { assertStillReady, changeEventStatus, checklist, missingSteps, stepActions } from './event-status.js';
 import { assertAttachable, FilesService, retireFiles } from '../files/files.service.js';
+import { OutboxService } from '../notifications/outbox.service.js';
 import { freeSlug } from '../onboarding/slugs.js';
+import { queueChangeEmails } from './event-lifecycle.service.js';
 import { PrismaService, type Tx } from '../prisma/prisma.service.js';
 
 type Db = Tx | PrismaService;
@@ -31,6 +33,7 @@ export class OrganizerEventsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly files: FilesService,
+    private readonly outbox: OutboxService,
   ) {}
 
   eventTypes() {
@@ -170,6 +173,9 @@ export class OrganizerEventsService {
     const end = event.endsAt ? manilaParts(event.endsAt) : null;
     const close = event.applicationsCloseAt ? manilaParts(event.applicationsCloseAt) : null;
     return {
+      ...(await this.lineup(event.id)),
+      ended: event.endsAt !== null && event.endsAt <= new Date(),
+      canceled: event.canceledAt ? { at: event.canceledAt.toISOString(), reason: event.cancelReason } : null,
       id: event.id,
       slug: event.slug,
       status: event.status,
@@ -277,6 +283,27 @@ export class OrganizerEventsService {
       await assertStillReady(tx, event.id);
     });
     return this.setup(userId, eventId);
+  }
+
+  // Who announcing shows and who canceling emails (flows 8 and 9).
+  private async lineup(eventId: string): Promise<Pick<EventSetup, 'lineup'>> {
+    const [assignments, activeVendors] = await Promise.all([
+      this.prisma.slotAssignment.findMany({
+        where: { eventId, status: { in: [...ACTIVE] } },
+        include: { payment: true, vendorProfile: true, slots: { include: { slot: true } } },
+      }),
+      this.prisma.application.count({ where: { eventId, status: { in: ['submitted', 'approved'] } } }),
+    ]);
+    const order = { overdue: 0, proof_submitted: 1, waiting: 2 } as const;
+    const unpaid = assignments
+      .filter((a) => a.status === 'assigned')
+      .map((a) => ({
+        slotLabel: slotLabel(a.slots),
+        shopName: a.vendorProfile.shopName,
+        state: isOverdue(a) ? ('overdue' as const) : a.payment?.status === 'submitted' ? ('proof_submitted' as const) : ('waiting' as const),
+      }))
+      .sort((a, b) => order[a.state] - order[b.state] || a.slotLabel.localeCompare(b.slotLabel));
+    return { lineup: { confirmedVendors: assignments.filter((a) => a.status === 'reserved').length, activeVendors, unpaid } };
   }
 
   // Opens the event to vendors, and its applications with it (decided
@@ -389,7 +416,7 @@ export class OrganizerEventsService {
       await retireFiles(tx, [event.coverFileId], [input.coverFileId]);
       const scheduled = input.startDate && input.endDate && input.opensAt && input.closesAt;
       const [closeDate, closeTime] = input.applicationsCloseAt?.split('T') ?? [];
-      await tx.event.update({
+      const after = await tx.event.update({
         where: { id: event.id },
         data: {
           name: input.name,
@@ -407,6 +434,7 @@ export class OrganizerEventsService {
         },
       });
       await assertStillReady(tx, event.id);
+      await queueChangeEmails(tx, this.outbox, event, after);
     });
     return this.setup(userId, eventId);
   }
@@ -435,6 +463,8 @@ export async function ownEvent(tx: Tx, userId: string, eventId: string) {
   await tx.$queryRaw`SELECT id FROM events WHERE id = ${eventId}::uuid FOR UPDATE`;
   const event = await tx.event.findFirst({ where: { id: eventId, organizerProfile: { userId } } });
   if (!event) throw new NotFoundException('Event not found');
+  // A canceled event is a record now (decision Q7).
+  if (event.status === 'canceled') throw new ConflictException('This event is canceled');
   return event;
 }
 

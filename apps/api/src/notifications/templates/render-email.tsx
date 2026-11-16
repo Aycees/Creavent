@@ -277,6 +277,76 @@ const templates = {
       </>
     ),
   },
+  event_changed: {
+    payload: z.object({
+      name: z.string(),
+      eventName: z.string(),
+      slotLabel: z.string().nullable(),
+      changes: z.array(z.object({ label: z.string(), from: z.string().nullable(), to: z.string().nullable() })),
+      url: z.string(),
+      supportEmail: z.string(),
+    }),
+    subject: (p: { eventName: string; changes: { label: string }[] }) =>
+      `${p.eventName}: new ${p.changes.map((c) => (c.label === 'When' ? 'date or time' : 'place')).join(' and ')}`,
+    body: (p: { name: string; eventName: string; slotLabel: string | null; changes: { label: string; from: string | null; to: string | null }[]; url: string }) => (
+      <>
+        <Heading>{`${p.eventName} has changed`}</Heading>
+        <Paragraph>Hi {firstName(p.name)},</Paragraph>
+        <Paragraph>
+          The organizer changed the details of an event you applied to.
+          {p.slotLabel ? ` Your ${slotWords(p.slotLabel)} stays the same.` : ''}
+        </Paragraph>
+        {p.changes.map((c) => (
+          <InfoBox key={c.label} label={c.label} lines={[`Now: ${c.to ?? 'Not set'}`, `Was: ${c.from ?? 'Not set'}`]} />
+        ))}
+        <ActionButton href={p.url}>See your application</ActionButton>
+        <Note last>Can&apos;t make it anymore? Contact the organizer using the details on your application page.</Note>
+      </>
+    ),
+  },
+  event_canceled: {
+    payload: z.object({
+      name: z.string(),
+      eventName: z.string(),
+      schedule: z.string().nullable(),
+      place: z.string().nullable(),
+      slotLabel: z.string().nullable(),
+      reason: z.string().nullable(),
+      organizerName: z.string(),
+      organizerContact: z.string().nullable(),
+      url: z.string(),
+      supportEmail: z.string(),
+    }),
+    subject: (p: { eventName: string }) => `${p.eventName} is canceled`,
+    body: (p: {
+      name: string;
+      eventName: string;
+      schedule: string | null;
+      place: string | null;
+      slotLabel: string | null;
+      reason: string | null;
+      organizerName: string;
+      organizerContact: string | null;
+      url: string;
+    }) => (
+      <>
+        <Heading>{`${p.eventName} is canceled`}</Heading>
+        <Paragraph>Hi {firstName(p.name)},</Paragraph>
+        <Paragraph>{p.organizerName} canceled this event. It won&apos;t take place on these dates.</Paragraph>
+        <InfoBox
+          label={p.eventName}
+          lines={[p.schedule, p.place, p.slotLabel ? `Your ${slotWords(p.slotLabel)}` : null].filter((l): l is string => l !== null)}
+        />
+        {p.reason && <InfoBox label="Note from the organizer" lines={[p.reason]} />}
+        <Paragraph>
+          Already paid? Refunds are handled by the organizer under their event policy. Creavent doesn&apos;t hold payments.
+          {p.organizerContact ? ` Contact ${p.organizerName}: ${p.organizerContact}.` : ''}
+        </Paragraph>
+        <ActionButton href={p.url}>See your application</ActionButton>
+        <Note last>Your payment records stay on your application page for 90 days, so you can download them if you need them.</Note>
+      </>
+    ),
+  },
 } satisfies Record<NotificationType, unknown>;
 
 export async function renderEmail(type: NotificationType, payload: unknown) {

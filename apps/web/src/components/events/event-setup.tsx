@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { eventDays, stampDate } from "@/lib/event-format"
 import { DetailsTab } from "./details-tab"
 import { RequirementsTab } from "./requirements-tab"
+import { AnnounceButton, CancelEventButton, CanceledNotice } from "./lifecycle-controls"
 import { ApplicationsPanel, Checklist, DeleteDraftButton, OpenButton } from "./open-controls"
 import { EventStatusBadge } from "./parts"
 import { PaymentsTab } from "./payments-tab"
@@ -100,10 +101,18 @@ function Setup({ setup }: { setup: EventSetup }) {
           )}
           {setup.status === "draft" && <OpenButton setup={setup} />}
           {setup.status === "draft" && <DeleteDraftButton setup={setup} />}
+          <AnnounceButton setup={setup} />
+          <CancelEventButton setup={setup} />
         </div>
       </div>
 
-      {setup.status === "draft" ? <Checklist checklist={setup.checklist} onGo={choose} /> : <ApplicationsPanel setup={setup} />}
+      {setup.canceled ? (
+        <CanceledNotice canceled={setup.canceled} />
+      ) : setup.status === "draft" ? (
+        <Checklist checklist={setup.checklist} onGo={choose} />
+      ) : (
+        <ApplicationsPanel setup={setup} />
+      )}
 
       <Tabs value={tab} onValueChange={choose}>
         <TabsList aria-label="Event setup">

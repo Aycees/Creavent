@@ -6841,6 +6841,76 @@
                       ],
                       "additionalProperties": false
                     },
+                    "lineup": {
+                      "type": "object",
+                      "properties": {
+                        "confirmedVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "activeVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "unpaid": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "slotLabel": {
+                                "type": "string"
+                              },
+                              "shopName": {
+                                "type": "string"
+                              },
+                              "state": {
+                                "type": "string",
+                                "enum": [
+                                  "overdue",
+                                  "proof_submitted",
+                                  "waiting"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "slotLabel",
+                              "shopName",
+                              "state"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "confirmedVendors",
+                        "activeVendors",
+                        "unpaid"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "ended": {
+                      "type": "boolean"
+                    },
+                    "canceled": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "at": {
+                          "type": "string"
+                        },
+                        "reason": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "at",
+                        "reason"
+                      ],
+                      "additionalProperties": false
+                    },
                     "slots": {
                       "type": "object",
                       "properties": {
@@ -6979,6 +7049,9 @@
                     "requirements",
                     "policy",
                     "payments",
+                    "lineup",
+                    "ended",
+                    "canceled",
                     "slots"
                   ],
                   "additionalProperties": false
@@ -7654,6 +7727,76 @@
                       ],
                       "additionalProperties": false
                     },
+                    "lineup": {
+                      "type": "object",
+                      "properties": {
+                        "confirmedVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "activeVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "unpaid": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "slotLabel": {
+                                "type": "string"
+                              },
+                              "shopName": {
+                                "type": "string"
+                              },
+                              "state": {
+                                "type": "string",
+                                "enum": [
+                                  "overdue",
+                                  "proof_submitted",
+                                  "waiting"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "slotLabel",
+                              "shopName",
+                              "state"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "confirmedVendors",
+                        "activeVendors",
+                        "unpaid"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "ended": {
+                      "type": "boolean"
+                    },
+                    "canceled": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "at": {
+                          "type": "string"
+                        },
+                        "reason": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "at",
+                        "reason"
+                      ],
+                      "additionalProperties": false
+                    },
                     "slots": {
                       "type": "object",
                       "properties": {
@@ -7792,6 +7935,9 @@
                     "requirements",
                     "policy",
                     "payments",
+                    "lineup",
+                    "ended",
+                    "canceled",
                     "slots"
                   ],
                   "additionalProperties": false
@@ -8324,6 +8470,76 @@
                       ],
                       "additionalProperties": false
                     },
+                    "lineup": {
+                      "type": "object",
+                      "properties": {
+                        "confirmedVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "activeVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "unpaid": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "slotLabel": {
+                                "type": "string"
+                              },
+                              "shopName": {
+                                "type": "string"
+                              },
+                              "state": {
+                                "type": "string",
+                                "enum": [
+                                  "overdue",
+                                  "proof_submitted",
+                                  "waiting"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "slotLabel",
+                              "shopName",
+                              "state"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "confirmedVendors",
+                        "activeVendors",
+                        "unpaid"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "ended": {
+                      "type": "boolean"
+                    },
+                    "canceled": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "at": {
+                          "type": "string"
+                        },
+                        "reason": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "at",
+                        "reason"
+                      ],
+                      "additionalProperties": false
+                    },
                     "slots": {
                       "type": "object",
                       "properties": {
@@ -8462,6 +8678,9 @@
                     "requirements",
                     "policy",
                     "payments",
+                    "lineup",
+                    "ended",
+                    "canceled",
                     "slots"
                   ],
                   "additionalProperties": false
@@ -8938,6 +9157,76 @@
                       ],
                       "additionalProperties": false
                     },
+                    "lineup": {
+                      "type": "object",
+                      "properties": {
+                        "confirmedVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "activeVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "unpaid": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "slotLabel": {
+                                "type": "string"
+                              },
+                              "shopName": {
+                                "type": "string"
+                              },
+                              "state": {
+                                "type": "string",
+                                "enum": [
+                                  "overdue",
+                                  "proof_submitted",
+                                  "waiting"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "slotLabel",
+                              "shopName",
+                              "state"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "confirmedVendors",
+                        "activeVendors",
+                        "unpaid"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "ended": {
+                      "type": "boolean"
+                    },
+                    "canceled": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "at": {
+                          "type": "string"
+                        },
+                        "reason": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "at",
+                        "reason"
+                      ],
+                      "additionalProperties": false
+                    },
                     "slots": {
                       "type": "object",
                       "properties": {
@@ -9076,6 +9365,9 @@
                     "requirements",
                     "policy",
                     "payments",
+                    "lineup",
+                    "ended",
+                    "canceled",
                     "slots"
                   ],
                   "additionalProperties": false
@@ -9604,6 +9896,76 @@
                       ],
                       "additionalProperties": false
                     },
+                    "lineup": {
+                      "type": "object",
+                      "properties": {
+                        "confirmedVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "activeVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "unpaid": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "slotLabel": {
+                                "type": "string"
+                              },
+                              "shopName": {
+                                "type": "string"
+                              },
+                              "state": {
+                                "type": "string",
+                                "enum": [
+                                  "overdue",
+                                  "proof_submitted",
+                                  "waiting"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "slotLabel",
+                              "shopName",
+                              "state"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "confirmedVendors",
+                        "activeVendors",
+                        "unpaid"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "ended": {
+                      "type": "boolean"
+                    },
+                    "canceled": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "at": {
+                          "type": "string"
+                        },
+                        "reason": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "at",
+                        "reason"
+                      ],
+                      "additionalProperties": false
+                    },
                     "slots": {
                       "type": "object",
                       "properties": {
@@ -9742,6 +10104,9 @@
                     "requirements",
                     "policy",
                     "payments",
+                    "lineup",
+                    "ended",
+                    "canceled",
                     "slots"
                   ],
                   "additionalProperties": false
@@ -10242,6 +10607,76 @@
                       ],
                       "additionalProperties": false
                     },
+                    "lineup": {
+                      "type": "object",
+                      "properties": {
+                        "confirmedVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "activeVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "unpaid": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "slotLabel": {
+                                "type": "string"
+                              },
+                              "shopName": {
+                                "type": "string"
+                              },
+                              "state": {
+                                "type": "string",
+                                "enum": [
+                                  "overdue",
+                                  "proof_submitted",
+                                  "waiting"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "slotLabel",
+                              "shopName",
+                              "state"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "confirmedVendors",
+                        "activeVendors",
+                        "unpaid"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "ended": {
+                      "type": "boolean"
+                    },
+                    "canceled": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "at": {
+                          "type": "string"
+                        },
+                        "reason": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "at",
+                        "reason"
+                      ],
+                      "additionalProperties": false
+                    },
                     "slots": {
                       "type": "object",
                       "properties": {
@@ -10380,6 +10815,9 @@
                     "requirements",
                     "policy",
                     "payments",
+                    "lineup",
+                    "ended",
+                    "canceled",
                     "slots"
                   ],
                   "additionalProperties": false
@@ -10770,6 +11208,76 @@
                       ],
                       "additionalProperties": false
                     },
+                    "lineup": {
+                      "type": "object",
+                      "properties": {
+                        "confirmedVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "activeVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "unpaid": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "slotLabel": {
+                                "type": "string"
+                              },
+                              "shopName": {
+                                "type": "string"
+                              },
+                              "state": {
+                                "type": "string",
+                                "enum": [
+                                  "overdue",
+                                  "proof_submitted",
+                                  "waiting"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "slotLabel",
+                              "shopName",
+                              "state"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "confirmedVendors",
+                        "activeVendors",
+                        "unpaid"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "ended": {
+                      "type": "boolean"
+                    },
+                    "canceled": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "at": {
+                          "type": "string"
+                        },
+                        "reason": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "at",
+                        "reason"
+                      ],
+                      "additionalProperties": false
+                    },
                     "slots": {
                       "type": "object",
                       "properties": {
@@ -10908,6 +11416,9 @@
                     "requirements",
                     "policy",
                     "payments",
+                    "lineup",
+                    "ended",
+                    "canceled",
                     "slots"
                   ],
                   "additionalProperties": false
@@ -11412,6 +11923,76 @@
                       ],
                       "additionalProperties": false
                     },
+                    "lineup": {
+                      "type": "object",
+                      "properties": {
+                        "confirmedVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "activeVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "unpaid": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "slotLabel": {
+                                "type": "string"
+                              },
+                              "shopName": {
+                                "type": "string"
+                              },
+                              "state": {
+                                "type": "string",
+                                "enum": [
+                                  "overdue",
+                                  "proof_submitted",
+                                  "waiting"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "slotLabel",
+                              "shopName",
+                              "state"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "confirmedVendors",
+                        "activeVendors",
+                        "unpaid"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "ended": {
+                      "type": "boolean"
+                    },
+                    "canceled": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "at": {
+                          "type": "string"
+                        },
+                        "reason": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "at",
+                        "reason"
+                      ],
+                      "additionalProperties": false
+                    },
                     "slots": {
                       "type": "object",
                       "properties": {
@@ -11550,6 +12131,9 @@
                     "requirements",
                     "policy",
                     "payments",
+                    "lineup",
+                    "ended",
+                    "canceled",
                     "slots"
                   ],
                   "additionalProperties": false
@@ -11940,6 +12524,76 @@
                       ],
                       "additionalProperties": false
                     },
+                    "lineup": {
+                      "type": "object",
+                      "properties": {
+                        "confirmedVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "activeVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "unpaid": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "slotLabel": {
+                                "type": "string"
+                              },
+                              "shopName": {
+                                "type": "string"
+                              },
+                              "state": {
+                                "type": "string",
+                                "enum": [
+                                  "overdue",
+                                  "proof_submitted",
+                                  "waiting"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "slotLabel",
+                              "shopName",
+                              "state"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "confirmedVendors",
+                        "activeVendors",
+                        "unpaid"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "ended": {
+                      "type": "boolean"
+                    },
+                    "canceled": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "at": {
+                          "type": "string"
+                        },
+                        "reason": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "at",
+                        "reason"
+                      ],
+                      "additionalProperties": false
+                    },
                     "slots": {
                       "type": "object",
                       "properties": {
@@ -12078,6 +12732,9 @@
                     "requirements",
                     "policy",
                     "payments",
+                    "lineup",
+                    "ended",
+                    "canceled",
                     "slots"
                   ],
                   "additionalProperties": false
@@ -12586,6 +13243,76 @@
                       ],
                       "additionalProperties": false
                     },
+                    "lineup": {
+                      "type": "object",
+                      "properties": {
+                        "confirmedVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "activeVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "unpaid": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "slotLabel": {
+                                "type": "string"
+                              },
+                              "shopName": {
+                                "type": "string"
+                              },
+                              "state": {
+                                "type": "string",
+                                "enum": [
+                                  "overdue",
+                                  "proof_submitted",
+                                  "waiting"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "slotLabel",
+                              "shopName",
+                              "state"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "confirmedVendors",
+                        "activeVendors",
+                        "unpaid"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "ended": {
+                      "type": "boolean"
+                    },
+                    "canceled": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "at": {
+                          "type": "string"
+                        },
+                        "reason": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "at",
+                        "reason"
+                      ],
+                      "additionalProperties": false
+                    },
                     "slots": {
                       "type": "object",
                       "properties": {
@@ -12724,6 +13451,9 @@
                     "requirements",
                     "policy",
                     "payments",
+                    "lineup",
+                    "ended",
+                    "canceled",
                     "slots"
                   ],
                   "additionalProperties": false
@@ -13188,6 +13918,76 @@
                       ],
                       "additionalProperties": false
                     },
+                    "lineup": {
+                      "type": "object",
+                      "properties": {
+                        "confirmedVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "activeVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "unpaid": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "slotLabel": {
+                                "type": "string"
+                              },
+                              "shopName": {
+                                "type": "string"
+                              },
+                              "state": {
+                                "type": "string",
+                                "enum": [
+                                  "overdue",
+                                  "proof_submitted",
+                                  "waiting"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "slotLabel",
+                              "shopName",
+                              "state"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "confirmedVendors",
+                        "activeVendors",
+                        "unpaid"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "ended": {
+                      "type": "boolean"
+                    },
+                    "canceled": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "at": {
+                          "type": "string"
+                        },
+                        "reason": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "at",
+                        "reason"
+                      ],
+                      "additionalProperties": false
+                    },
                     "slots": {
                       "type": "object",
                       "properties": {
@@ -13326,6 +14126,9 @@
                     "requirements",
                     "policy",
                     "payments",
+                    "lineup",
+                    "ended",
+                    "canceled",
                     "slots"
                   ],
                   "additionalProperties": false
@@ -13815,6 +14618,76 @@
                       ],
                       "additionalProperties": false
                     },
+                    "lineup": {
+                      "type": "object",
+                      "properties": {
+                        "confirmedVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "activeVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "unpaid": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "slotLabel": {
+                                "type": "string"
+                              },
+                              "shopName": {
+                                "type": "string"
+                              },
+                              "state": {
+                                "type": "string",
+                                "enum": [
+                                  "overdue",
+                                  "proof_submitted",
+                                  "waiting"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "slotLabel",
+                              "shopName",
+                              "state"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "confirmedVendors",
+                        "activeVendors",
+                        "unpaid"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "ended": {
+                      "type": "boolean"
+                    },
+                    "canceled": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "at": {
+                          "type": "string"
+                        },
+                        "reason": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "at",
+                        "reason"
+                      ],
+                      "additionalProperties": false
+                    },
                     "slots": {
                       "type": "object",
                       "properties": {
@@ -13953,6 +14826,9 @@
                     "requirements",
                     "policy",
                     "payments",
+                    "lineup",
+                    "ended",
+                    "canceled",
                     "slots"
                   ],
                   "additionalProperties": false
@@ -14453,6 +15329,76 @@
                       ],
                       "additionalProperties": false
                     },
+                    "lineup": {
+                      "type": "object",
+                      "properties": {
+                        "confirmedVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "activeVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "unpaid": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "slotLabel": {
+                                "type": "string"
+                              },
+                              "shopName": {
+                                "type": "string"
+                              },
+                              "state": {
+                                "type": "string",
+                                "enum": [
+                                  "overdue",
+                                  "proof_submitted",
+                                  "waiting"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "slotLabel",
+                              "shopName",
+                              "state"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "confirmedVendors",
+                        "activeVendors",
+                        "unpaid"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "ended": {
+                      "type": "boolean"
+                    },
+                    "canceled": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "at": {
+                          "type": "string"
+                        },
+                        "reason": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "at",
+                        "reason"
+                      ],
+                      "additionalProperties": false
+                    },
                     "slots": {
                       "type": "object",
                       "properties": {
@@ -14591,6 +15537,9 @@
                     "requirements",
                     "policy",
                     "payments",
+                    "lineup",
+                    "ended",
+                    "canceled",
                     "slots"
                   ],
                   "additionalProperties": false
@@ -15070,6 +16019,76 @@
                       ],
                       "additionalProperties": false
                     },
+                    "lineup": {
+                      "type": "object",
+                      "properties": {
+                        "confirmedVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "activeVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "unpaid": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "slotLabel": {
+                                "type": "string"
+                              },
+                              "shopName": {
+                                "type": "string"
+                              },
+                              "state": {
+                                "type": "string",
+                                "enum": [
+                                  "overdue",
+                                  "proof_submitted",
+                                  "waiting"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "slotLabel",
+                              "shopName",
+                              "state"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "confirmedVendors",
+                        "activeVendors",
+                        "unpaid"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "ended": {
+                      "type": "boolean"
+                    },
+                    "canceled": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "at": {
+                          "type": "string"
+                        },
+                        "reason": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "at",
+                        "reason"
+                      ],
+                      "additionalProperties": false
+                    },
                     "slots": {
                       "type": "object",
                       "properties": {
@@ -15208,6 +16227,9 @@
                     "requirements",
                     "policy",
                     "payments",
+                    "lineup",
+                    "ended",
+                    "canceled",
                     "slots"
                   ],
                   "additionalProperties": false
@@ -15666,6 +16688,76 @@
                       ],
                       "additionalProperties": false
                     },
+                    "lineup": {
+                      "type": "object",
+                      "properties": {
+                        "confirmedVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "activeVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "unpaid": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "slotLabel": {
+                                "type": "string"
+                              },
+                              "shopName": {
+                                "type": "string"
+                              },
+                              "state": {
+                                "type": "string",
+                                "enum": [
+                                  "overdue",
+                                  "proof_submitted",
+                                  "waiting"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "slotLabel",
+                              "shopName",
+                              "state"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "confirmedVendors",
+                        "activeVendors",
+                        "unpaid"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "ended": {
+                      "type": "boolean"
+                    },
+                    "canceled": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "at": {
+                          "type": "string"
+                        },
+                        "reason": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "at",
+                        "reason"
+                      ],
+                      "additionalProperties": false
+                    },
                     "slots": {
                       "type": "object",
                       "properties": {
@@ -15804,6 +16896,9 @@
                     "requirements",
                     "policy",
                     "payments",
+                    "lineup",
+                    "ended",
+                    "canceled",
                     "slots"
                   ],
                   "additionalProperties": false
@@ -16194,6 +17289,76 @@
                       ],
                       "additionalProperties": false
                     },
+                    "lineup": {
+                      "type": "object",
+                      "properties": {
+                        "confirmedVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "activeVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "unpaid": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "slotLabel": {
+                                "type": "string"
+                              },
+                              "shopName": {
+                                "type": "string"
+                              },
+                              "state": {
+                                "type": "string",
+                                "enum": [
+                                  "overdue",
+                                  "proof_submitted",
+                                  "waiting"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "slotLabel",
+                              "shopName",
+                              "state"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "confirmedVendors",
+                        "activeVendors",
+                        "unpaid"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "ended": {
+                      "type": "boolean"
+                    },
+                    "canceled": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "at": {
+                          "type": "string"
+                        },
+                        "reason": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "at",
+                        "reason"
+                      ],
+                      "additionalProperties": false
+                    },
                     "slots": {
                       "type": "object",
                       "properties": {
@@ -16332,6 +17497,2565 @@
                     "requirements",
                     "policy",
                     "payments",
+                    "lineup",
+                    "ended",
+                    "canceled",
+                    "slots"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "OrganizerEvents"
+        ]
+      }
+    },
+    "/api/organizer/events/{id}/announce": {
+      "post": {
+        "operationId": "OrganizerEventsController_announce",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "slug": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "draft",
+                        "open_to_vendors",
+                        "announced",
+                        "completed",
+                        "canceled"
+                      ]
+                    },
+                    "applicationsOpen": {
+                      "type": "boolean"
+                    },
+                    "checklist": {
+                      "type": "object",
+                      "properties": {
+                        "details": {
+                          "type": "boolean"
+                        },
+                        "requirements": {
+                          "type": "boolean"
+                        },
+                        "policy": {
+                          "type": "boolean"
+                        },
+                        "slots": {
+                          "type": "boolean"
+                        },
+                        "payments": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "details",
+                        "requirements",
+                        "policy",
+                        "slots",
+                        "payments"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "organizerApproved": {
+                      "type": "boolean"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "eventTypeId": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "description": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "startDate": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "endDate": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "opensAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "closesAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "venueName": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "addressLine": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "city": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "cover": {
+                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "url": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "url"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "vendorContactInfo": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "applicationsCloseAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "ingressInfo": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "eventTypeId",
+                        "description",
+                        "startDate",
+                        "endDate",
+                        "opensAt",
+                        "closesAt",
+                        "venueName",
+                        "addressLine",
+                        "city",
+                        "cover",
+                        "vendorContactInfo",
+                        "applicationsCloseAt",
+                        "ingressInfo"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "eventTypes": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "slug": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "slug"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "categories": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "name": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "requirements": {
+                      "type": "object",
+                      "properties": {
+                        "categories": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "categoryId": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "maxVendors": {
+                                "nullable": true,
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              }
+                            },
+                            "required": [
+                              "categoryId",
+                              "maxVendors"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "documents": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "categoryId": {
+                                "nullable": true,
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "description",
+                              "categoryId"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "categories",
+                        "documents"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "policy": {
+                      "type": "object",
+                      "properties": {
+                        "text": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "copiedFrom": {
+                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "example": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "text",
+                        "copiedFrom",
+                        "example"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "payments": {
+                      "type": "object",
+                      "properties": {
+                        "deadlineHours": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "methods": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "channel": {
+                                "type": "string",
+                                "enum": [
+                                  "gcash",
+                                  "maya",
+                                  "bank",
+                                  "other"
+                                ]
+                              },
+                              "label": {
+                                "type": "string"
+                              },
+                              "accountName": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "accountNumber": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "qr": {
+                                "nullable": true,
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                  },
+                                  "url": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "url"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "notes": {
+                                "nullable": true,
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "channel",
+                              "label",
+                              "accountName",
+                              "accountNumber",
+                              "qr",
+                              "notes"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "deadlineHours",
+                        "methods"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "lineup": {
+                      "type": "object",
+                      "properties": {
+                        "confirmedVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "activeVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "unpaid": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "slotLabel": {
+                                "type": "string"
+                              },
+                              "shopName": {
+                                "type": "string"
+                              },
+                              "state": {
+                                "type": "string",
+                                "enum": [
+                                  "overdue",
+                                  "proof_submitted",
+                                  "waiting"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "slotLabel",
+                              "shopName",
+                              "state"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "confirmedVendors",
+                        "activeVendors",
+                        "unpaid"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "ended": {
+                      "type": "boolean"
+                    },
+                    "canceled": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "at": {
+                          "type": "string"
+                        },
+                        "reason": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "at",
+                        "reason"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "slots": {
+                      "type": "object",
+                      "properties": {
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "organizer_assigns",
+                            "vendor_preference"
+                          ]
+                        },
+                        "defaultPrice": {
+                          "nullable": true,
+                          "type": "number"
+                        },
+                        "maxSlotsPerVendor": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "vendorFloorPlan": {
+                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "url": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "url"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "publicFloorPlan": {
+                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "url": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "url"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "list": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "label": {
+                                "type": "string"
+                              },
+                              "section": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "sizeLabel": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "note": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "price": {
+                                "nullable": true,
+                                "type": "number"
+                              },
+                              "setAside": {
+                                "nullable": true,
+                                "type": "object",
+                                "properties": {
+                                  "note": {
+                                    "nullable": true,
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "note"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "label",
+                              "section",
+                              "sizeLabel",
+                              "note",
+                              "price",
+                              "setAside"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "mode",
+                        "defaultPrice",
+                        "maxSlotsPerVendor",
+                        "vendorFloorPlan",
+                        "publicFloorPlan",
+                        "list"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "slug",
+                    "status",
+                    "applicationsOpen",
+                    "checklist",
+                    "organizerApproved",
+                    "details",
+                    "eventTypes",
+                    "categories",
+                    "requirements",
+                    "policy",
+                    "payments",
+                    "lineup",
+                    "ended",
+                    "canceled",
+                    "slots"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "slug": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "draft",
+                        "open_to_vendors",
+                        "announced",
+                        "completed",
+                        "canceled"
+                      ]
+                    },
+                    "applicationsOpen": {
+                      "type": "boolean"
+                    },
+                    "checklist": {
+                      "type": "object",
+                      "properties": {
+                        "details": {
+                          "type": "boolean"
+                        },
+                        "requirements": {
+                          "type": "boolean"
+                        },
+                        "policy": {
+                          "type": "boolean"
+                        },
+                        "slots": {
+                          "type": "boolean"
+                        },
+                        "payments": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "details",
+                        "requirements",
+                        "policy",
+                        "slots",
+                        "payments"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "organizerApproved": {
+                      "type": "boolean"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "eventTypeId": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "description": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "startDate": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "endDate": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "opensAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "closesAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "venueName": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "addressLine": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "city": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "cover": {
+                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "url": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "url"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "vendorContactInfo": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "applicationsCloseAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "ingressInfo": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "eventTypeId",
+                        "description",
+                        "startDate",
+                        "endDate",
+                        "opensAt",
+                        "closesAt",
+                        "venueName",
+                        "addressLine",
+                        "city",
+                        "cover",
+                        "vendorContactInfo",
+                        "applicationsCloseAt",
+                        "ingressInfo"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "eventTypes": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "slug": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "slug"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "categories": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "name": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "requirements": {
+                      "type": "object",
+                      "properties": {
+                        "categories": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "categoryId": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "maxVendors": {
+                                "nullable": true,
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              }
+                            },
+                            "required": [
+                              "categoryId",
+                              "maxVendors"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "documents": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "categoryId": {
+                                "nullable": true,
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "description",
+                              "categoryId"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "categories",
+                        "documents"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "policy": {
+                      "type": "object",
+                      "properties": {
+                        "text": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "copiedFrom": {
+                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "example": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "text",
+                        "copiedFrom",
+                        "example"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "payments": {
+                      "type": "object",
+                      "properties": {
+                        "deadlineHours": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "methods": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "channel": {
+                                "type": "string",
+                                "enum": [
+                                  "gcash",
+                                  "maya",
+                                  "bank",
+                                  "other"
+                                ]
+                              },
+                              "label": {
+                                "type": "string"
+                              },
+                              "accountName": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "accountNumber": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "qr": {
+                                "nullable": true,
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                  },
+                                  "url": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "url"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "notes": {
+                                "nullable": true,
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "channel",
+                              "label",
+                              "accountName",
+                              "accountNumber",
+                              "qr",
+                              "notes"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "deadlineHours",
+                        "methods"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "lineup": {
+                      "type": "object",
+                      "properties": {
+                        "confirmedVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "activeVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "unpaid": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "slotLabel": {
+                                "type": "string"
+                              },
+                              "shopName": {
+                                "type": "string"
+                              },
+                              "state": {
+                                "type": "string",
+                                "enum": [
+                                  "overdue",
+                                  "proof_submitted",
+                                  "waiting"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "slotLabel",
+                              "shopName",
+                              "state"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "confirmedVendors",
+                        "activeVendors",
+                        "unpaid"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "ended": {
+                      "type": "boolean"
+                    },
+                    "canceled": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "at": {
+                          "type": "string"
+                        },
+                        "reason": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "at",
+                        "reason"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "slots": {
+                      "type": "object",
+                      "properties": {
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "organizer_assigns",
+                            "vendor_preference"
+                          ]
+                        },
+                        "defaultPrice": {
+                          "nullable": true,
+                          "type": "number"
+                        },
+                        "maxSlotsPerVendor": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "vendorFloorPlan": {
+                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "url": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "url"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "publicFloorPlan": {
+                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "url": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "url"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "list": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "label": {
+                                "type": "string"
+                              },
+                              "section": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "sizeLabel": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "note": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "price": {
+                                "nullable": true,
+                                "type": "number"
+                              },
+                              "setAside": {
+                                "nullable": true,
+                                "type": "object",
+                                "properties": {
+                                  "note": {
+                                    "nullable": true,
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "note"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "label",
+                              "section",
+                              "sizeLabel",
+                              "note",
+                              "price",
+                              "setAside"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "mode",
+                        "defaultPrice",
+                        "maxSlotsPerVendor",
+                        "vendorFloorPlan",
+                        "publicFloorPlan",
+                        "list"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "slug",
+                    "status",
+                    "applicationsOpen",
+                    "checklist",
+                    "organizerApproved",
+                    "details",
+                    "eventTypes",
+                    "categories",
+                    "requirements",
+                    "policy",
+                    "payments",
+                    "lineup",
+                    "ended",
+                    "canceled",
+                    "slots"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "OrganizerEvents"
+        ]
+      }
+    },
+    "/api/organizer/events/{id}/cancel": {
+      "post": {
+        "operationId": "OrganizerEventsController_cancel",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "nullable": true,
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "slug": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "draft",
+                        "open_to_vendors",
+                        "announced",
+                        "completed",
+                        "canceled"
+                      ]
+                    },
+                    "applicationsOpen": {
+                      "type": "boolean"
+                    },
+                    "checklist": {
+                      "type": "object",
+                      "properties": {
+                        "details": {
+                          "type": "boolean"
+                        },
+                        "requirements": {
+                          "type": "boolean"
+                        },
+                        "policy": {
+                          "type": "boolean"
+                        },
+                        "slots": {
+                          "type": "boolean"
+                        },
+                        "payments": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "details",
+                        "requirements",
+                        "policy",
+                        "slots",
+                        "payments"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "organizerApproved": {
+                      "type": "boolean"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "eventTypeId": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "description": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "startDate": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "endDate": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "opensAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "closesAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "venueName": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "addressLine": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "city": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "cover": {
+                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "url": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "url"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "vendorContactInfo": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "applicationsCloseAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "ingressInfo": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "eventTypeId",
+                        "description",
+                        "startDate",
+                        "endDate",
+                        "opensAt",
+                        "closesAt",
+                        "venueName",
+                        "addressLine",
+                        "city",
+                        "cover",
+                        "vendorContactInfo",
+                        "applicationsCloseAt",
+                        "ingressInfo"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "eventTypes": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "slug": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "slug"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "categories": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "name": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "requirements": {
+                      "type": "object",
+                      "properties": {
+                        "categories": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "categoryId": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "maxVendors": {
+                                "nullable": true,
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              }
+                            },
+                            "required": [
+                              "categoryId",
+                              "maxVendors"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "documents": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "categoryId": {
+                                "nullable": true,
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "description",
+                              "categoryId"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "categories",
+                        "documents"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "policy": {
+                      "type": "object",
+                      "properties": {
+                        "text": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "copiedFrom": {
+                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "example": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "text",
+                        "copiedFrom",
+                        "example"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "payments": {
+                      "type": "object",
+                      "properties": {
+                        "deadlineHours": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "methods": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "channel": {
+                                "type": "string",
+                                "enum": [
+                                  "gcash",
+                                  "maya",
+                                  "bank",
+                                  "other"
+                                ]
+                              },
+                              "label": {
+                                "type": "string"
+                              },
+                              "accountName": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "accountNumber": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "qr": {
+                                "nullable": true,
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                  },
+                                  "url": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "url"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "notes": {
+                                "nullable": true,
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "channel",
+                              "label",
+                              "accountName",
+                              "accountNumber",
+                              "qr",
+                              "notes"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "deadlineHours",
+                        "methods"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "lineup": {
+                      "type": "object",
+                      "properties": {
+                        "confirmedVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "activeVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "unpaid": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "slotLabel": {
+                                "type": "string"
+                              },
+                              "shopName": {
+                                "type": "string"
+                              },
+                              "state": {
+                                "type": "string",
+                                "enum": [
+                                  "overdue",
+                                  "proof_submitted",
+                                  "waiting"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "slotLabel",
+                              "shopName",
+                              "state"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "confirmedVendors",
+                        "activeVendors",
+                        "unpaid"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "ended": {
+                      "type": "boolean"
+                    },
+                    "canceled": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "at": {
+                          "type": "string"
+                        },
+                        "reason": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "at",
+                        "reason"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "slots": {
+                      "type": "object",
+                      "properties": {
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "organizer_assigns",
+                            "vendor_preference"
+                          ]
+                        },
+                        "defaultPrice": {
+                          "nullable": true,
+                          "type": "number"
+                        },
+                        "maxSlotsPerVendor": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "vendorFloorPlan": {
+                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "url": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "url"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "publicFloorPlan": {
+                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "url": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "url"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "list": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "label": {
+                                "type": "string"
+                              },
+                              "section": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "sizeLabel": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "note": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "price": {
+                                "nullable": true,
+                                "type": "number"
+                              },
+                              "setAside": {
+                                "nullable": true,
+                                "type": "object",
+                                "properties": {
+                                  "note": {
+                                    "nullable": true,
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "note"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "label",
+                              "section",
+                              "sizeLabel",
+                              "note",
+                              "price",
+                              "setAside"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "mode",
+                        "defaultPrice",
+                        "maxSlotsPerVendor",
+                        "vendorFloorPlan",
+                        "publicFloorPlan",
+                        "list"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "slug",
+                    "status",
+                    "applicationsOpen",
+                    "checklist",
+                    "organizerApproved",
+                    "details",
+                    "eventTypes",
+                    "categories",
+                    "requirements",
+                    "policy",
+                    "payments",
+                    "lineup",
+                    "ended",
+                    "canceled",
+                    "slots"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "slug": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "draft",
+                        "open_to_vendors",
+                        "announced",
+                        "completed",
+                        "canceled"
+                      ]
+                    },
+                    "applicationsOpen": {
+                      "type": "boolean"
+                    },
+                    "checklist": {
+                      "type": "object",
+                      "properties": {
+                        "details": {
+                          "type": "boolean"
+                        },
+                        "requirements": {
+                          "type": "boolean"
+                        },
+                        "policy": {
+                          "type": "boolean"
+                        },
+                        "slots": {
+                          "type": "boolean"
+                        },
+                        "payments": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "details",
+                        "requirements",
+                        "policy",
+                        "slots",
+                        "payments"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "organizerApproved": {
+                      "type": "boolean"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "eventTypeId": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "description": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "startDate": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "endDate": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "opensAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "closesAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "venueName": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "addressLine": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "city": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "cover": {
+                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "url": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "url"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "vendorContactInfo": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "applicationsCloseAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "ingressInfo": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "eventTypeId",
+                        "description",
+                        "startDate",
+                        "endDate",
+                        "opensAt",
+                        "closesAt",
+                        "venueName",
+                        "addressLine",
+                        "city",
+                        "cover",
+                        "vendorContactInfo",
+                        "applicationsCloseAt",
+                        "ingressInfo"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "eventTypes": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "slug": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "slug"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "categories": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "name": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "requirements": {
+                      "type": "object",
+                      "properties": {
+                        "categories": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "categoryId": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "maxVendors": {
+                                "nullable": true,
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              }
+                            },
+                            "required": [
+                              "categoryId",
+                              "maxVendors"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "documents": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "categoryId": {
+                                "nullable": true,
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "description",
+                              "categoryId"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "categories",
+                        "documents"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "policy": {
+                      "type": "object",
+                      "properties": {
+                        "text": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "copiedFrom": {
+                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "example": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "text",
+                        "copiedFrom",
+                        "example"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "payments": {
+                      "type": "object",
+                      "properties": {
+                        "deadlineHours": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "methods": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "channel": {
+                                "type": "string",
+                                "enum": [
+                                  "gcash",
+                                  "maya",
+                                  "bank",
+                                  "other"
+                                ]
+                              },
+                              "label": {
+                                "type": "string"
+                              },
+                              "accountName": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "accountNumber": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "qr": {
+                                "nullable": true,
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                  },
+                                  "url": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "url"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "notes": {
+                                "nullable": true,
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "channel",
+                              "label",
+                              "accountName",
+                              "accountNumber",
+                              "qr",
+                              "notes"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "deadlineHours",
+                        "methods"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "lineup": {
+                      "type": "object",
+                      "properties": {
+                        "confirmedVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "activeVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "unpaid": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "slotLabel": {
+                                "type": "string"
+                              },
+                              "shopName": {
+                                "type": "string"
+                              },
+                              "state": {
+                                "type": "string",
+                                "enum": [
+                                  "overdue",
+                                  "proof_submitted",
+                                  "waiting"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "slotLabel",
+                              "shopName",
+                              "state"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "confirmedVendors",
+                        "activeVendors",
+                        "unpaid"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "ended": {
+                      "type": "boolean"
+                    },
+                    "canceled": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "at": {
+                          "type": "string"
+                        },
+                        "reason": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "at",
+                        "reason"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "slots": {
+                      "type": "object",
+                      "properties": {
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "organizer_assigns",
+                            "vendor_preference"
+                          ]
+                        },
+                        "defaultPrice": {
+                          "nullable": true,
+                          "type": "number"
+                        },
+                        "maxSlotsPerVendor": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "vendorFloorPlan": {
+                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "url": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "url"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "publicFloorPlan": {
+                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "url": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "url"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "list": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "label": {
+                                "type": "string"
+                              },
+                              "section": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "sizeLabel": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "note": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "price": {
+                                "nullable": true,
+                                "type": "number"
+                              },
+                              "setAside": {
+                                "nullable": true,
+                                "type": "object",
+                                "properties": {
+                                  "note": {
+                                    "nullable": true,
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "note"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "label",
+                              "section",
+                              "sizeLabel",
+                              "note",
+                              "price",
+                              "setAside"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "mode",
+                        "defaultPrice",
+                        "maxSlotsPerVendor",
+                        "vendorFloorPlan",
+                        "publicFloorPlan",
+                        "list"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "slug",
+                    "status",
+                    "applicationsOpen",
+                    "checklist",
+                    "organizerApproved",
+                    "details",
+                    "eventTypes",
+                    "categories",
+                    "requirements",
+                    "policy",
+                    "payments",
+                    "lineup",
+                    "ended",
+                    "canceled",
                     "slots"
                   ],
                   "additionalProperties": false
@@ -16808,6 +20532,76 @@
                       ],
                       "additionalProperties": false
                     },
+                    "lineup": {
+                      "type": "object",
+                      "properties": {
+                        "confirmedVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "activeVendors": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "unpaid": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "slotLabel": {
+                                "type": "string"
+                              },
+                              "shopName": {
+                                "type": "string"
+                              },
+                              "state": {
+                                "type": "string",
+                                "enum": [
+                                  "overdue",
+                                  "proof_submitted",
+                                  "waiting"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "slotLabel",
+                              "shopName",
+                              "state"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "confirmedVendors",
+                        "activeVendors",
+                        "unpaid"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "ended": {
+                      "type": "boolean"
+                    },
+                    "canceled": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "at": {
+                          "type": "string"
+                        },
+                        "reason": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "at",
+                        "reason"
+                      ],
+                      "additionalProperties": false
+                    },
                     "slots": {
                       "type": "object",
                       "properties": {
@@ -16946,6 +20740,9 @@
                     "requirements",
                     "policy",
                     "payments",
+                    "lineup",
+                    "ended",
+                    "canceled",
                     "slots"
                   ],
                   "additionalProperties": false

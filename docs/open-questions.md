@@ -219,6 +219,19 @@ Decisions are written into the [Feature specification](feature-specification.md)
 | P5 | The organizer assigns all of a vendor's slots in one step, from 1 up to the number asked for, with the preferred slots that are still open selected. There's no adding, dropping, or moving one slot of the set later, as with one slot (B4). | 2026-11-15 |
 | P6 | Releasing, withdrawing, removing, or picking other slots acts on all of the vendor's slots together. The slots show as one line ("B-03, B-04") everywhere, and category limits still count vendors, not slots. | 2026-11-15 |
 
+**Public discovery on 2026-11-16 (Q1 to Q8).** Settled before building Phase 4, from the Phase 4 mockups.
+
+| # | Decision | Date |
+|---|---|---|
+| Q1 | Public pages (listing, event, organizer, vendor) are server-rendered and cached. Right after a change that affects them (edit, announce, cancel, a slot reserved or removed, a profile saved), the API asks the web app to refresh those pages through a refresh route protected by a shared secret. | 2026-11-16 |
+| Q2 | An event canceled before it was announced shows signed-out visitors a short "This event was canceled" page with the name and dates only. Vendors see the vendor view marked canceled. An event canceled after it was announced shows the public view marked canceled, without the vendor list. | 2026-11-16 |
+| Q3 | The hourly job marks only `announced` events `completed` after they end. An event that ends while only open to vendors stays `open_to_vendors` and counts as past everywhere, but never as an event held or in "Where they've sold". | 2026-11-16 |
+| Q4 | Cancel event takes an optional reason. When given, vendors see it in the email and on the canceled event page as the organizer's note. | 2026-11-16 |
+| Q5 | The event listing has a search box. It uses Postgres full-text search on the event name, venue, address, and city, with prefix matching on each word, plus a match on the organizer's name. | 2026-11-16 |
+| Q6 | The cancel and change emails go to vendors with an active application (`submitted` or `approved`, which includes those with a slot). Withdrawn, declined, and removed vendors aren't emailed. | 2026-11-16 |
+| Q7 | Canceling works from `open_to_vendors` or `announced`. Active assignments end as `canceled`, their payments and proofs are archived, and applications keep their status. Announcing works only from `open_to_vendors`, before the event ends, and not while it is hidden. Applications can stay open after announcing. | 2026-11-16 |
+| Q8 | The change email is sent when the dates, hours, venue, address, or city change on an event that is open to vendors or announced, and shows the old and new values. | 2026-11-16 |
+
 ### D9. Editing an approved organizer's name and links (resolved 2026-11-13)
 
 An approved organizer can edit everything on their organizer profile. Changing the display name, or adding a link the admin didn't review, sends them back to `pending_review`, and the "Approved by Creavent" badge hides until an admin approves again. Removing a link, and changing the page link, city, about, logo, or contact email, keep the approval. The links reviewed at each decision are kept in `user_roles.reviewed_links`. Onboarding still refuses these changes while a review is pending or after approval, because the profile page is where they are edited.

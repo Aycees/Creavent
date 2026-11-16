@@ -60,12 +60,15 @@ export async function assertStillReady(tx: Tx, eventId: string) {
   }
 }
 
-// The event status changes (spec §3.1, architecture §3.5). Announce, complete,
-// and cancel are added with Phase 4.
-export type EventAction = 'open_to_vendors';
+// The event status changes (spec §3.1, architecture §3.5, decision Q7).
+// Completing is done by the hourly job (complete-events.ts), which has no
+// user to log.
+export type EventAction = 'open_to_vendors' | 'announce' | 'cancel';
 
 const actions: Record<EventAction, { from: EventStatus[]; to: EventStatus; refusal: string }> = {
   open_to_vendors: { from: ['draft'], to: 'open_to_vendors', refusal: 'This event is already open to vendors' },
+  announce: { from: ['open_to_vendors'], to: 'announced', refusal: 'Only an event open to vendors can be announced' },
+  cancel: { from: ['open_to_vendors', 'announced'], to: 'canceled', refusal: 'Only an event open to vendors or announced can be canceled' },
 };
 
 // The one way an event status changes: checks the rule, writes the status
@@ -73,7 +76,7 @@ const actions: Record<EventAction, { from: EventStatus[]; to: EventStatus; refus
 // caller's transaction.
 export async function changeEventStatus(
   tx: Tx,
-  input: { eventId: string; from: EventStatus; action: EventAction; actorUserId: string; data?: Prisma.EventUpdateInput },
+  input: { eventId: string; from: EventStatus; action: EventAction; actorUserId: string; data?: Prisma.EventUpdateInput; reason?: string | null },
 ) {
   const rule = actions[input.action];
   if (!rule.from.includes(input.from)) throw new ConflictException(rule.refusal);
@@ -84,5 +87,6 @@ export async function changeEventStatus(
     entityType: 'event',
     entityId: input.eventId,
     changes: { status: { from: input.from, to: rule.to } },
+    reason: input.reason ?? null,
   });
 }

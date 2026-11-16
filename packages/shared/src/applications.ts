@@ -90,7 +90,7 @@ export const createdApplicationSchema = z.object({ id: z.uuid() });
 
 // What the vendor sees for one event: the application, slot, and payment
 // together (spec §4.6, data model §7).
-export const vendorStatusSchema = z.enum(['submitted', 'approved', 'slot_assigned', 'reserved', 'declined', 'withdrawn', 'removed']);
+export const vendorStatusSchema = z.enum(['submitted', 'approved', 'slot_assigned', 'reserved', 'declined', 'withdrawn', 'removed', 'event_canceled']);
 export type VendorStatus = z.infer<typeof vendorStatusSchema>;
 
 export const vendorStatusLabels: Record<VendorStatus, string> = {
@@ -101,10 +101,18 @@ export const vendorStatusLabels: Record<VendorStatus, string> = {
   declined: 'Declined',
   withdrawn: 'Withdrawn',
   removed: 'Removed',
+  event_canceled: 'Event canceled',
 };
 
-// From the application and its active assignment, if any.
-export function vendorStatus(application: ApplicationStatus, assignment: 'assigned' | 'reserved' | null = null): VendorStatus {
+// From the application and its active assignment, if any. An application
+// still under way when its event is canceled reads "Event canceled": its
+// slot ended with the event (decision Q7).
+export function vendorStatus(
+  application: ApplicationStatus,
+  assignment: 'assigned' | 'reserved' | null = null,
+  eventStatus?: string,
+): VendorStatus {
+  if (eventStatus === 'canceled' && (application === 'submitted' || application === 'approved')) return 'event_canceled';
   if (application === 'approved' && assignment === 'assigned') return 'slot_assigned';
   if (application === 'approved' && assignment === 'reserved') return 'reserved';
   return application;

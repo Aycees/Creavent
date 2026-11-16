@@ -62,7 +62,7 @@ Admin
 ## 3. Public pages
 
 ### `/` Event listing
-- Upcoming **announced** events, soonest first, with filters for event type (All, Flea markets, Bazaars, Pop-ups, each with a count), location (city), and date (Any date, This weekend, Next 2 weeks, next month, Pick dates) (spec §7.3).
+- Upcoming **announced** events, soonest first, with a search box (event name, venue, address, city, organizer) and filters for event type (All, Flea markets, Bazaars, Pop-ups, each with a count), location (city), and date (Any date, This weekend, Next 2 weeks, next month, Pick dates) (spec §7.3).
 - **List and Calendar views**, switched with a toggle.
   - List groups events as This weekend, Next weekend, and Later.
   - Calendar is a month grid with today marked, events shown in each day, and a panel that lists the selected day's events. On phones it is a compact month with dots on event days, and the selected day's events are listed below.

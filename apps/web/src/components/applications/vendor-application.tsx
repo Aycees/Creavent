@@ -42,6 +42,7 @@ const statusTone: Record<VendorStatus, "neutral" | "info" | "success" | "warning
   declined: "neutral",
   withdrawn: "neutral",
   removed: "neutral",
+  event_canceled: "danger",
 }
 
 const dayFormat = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Manila", weekday: "short", month: "short", day: "numeric" })
@@ -52,7 +53,7 @@ const ACTIVE_STATUSES: VendorStatus[] = ["submitted", "approved", "slot_assigned
 // What to do next for each status (mockup VendorApplicationsList).
 function nextStep(a: VendorApplicationRow) {
   if (a.status === "slot_assigned") return a.paymentStatus === "submitted" ? "Proof sent, waiting for review" : "Upload proof of payment"
-  return { submitted: "Waiting for review", approved: "Waiting for a slot", reserved: "You're confirmed", declined: "Apply again if you like", withdrawn: "Apply again if you like", removed: "See the organizer's note" }[a.status]
+  return { submitted: "Waiting for review", approved: "Waiting for a slot", reserved: "You're confirmed", declined: "Apply again if you like", withdrawn: "Apply again if you like", removed: "See the organizer's note", event_canceled: "See your payment records" }[a.status]
 }
 
 // /vendor/applications (spec §4.6, mockup VendorApplicationsList).
@@ -263,6 +264,7 @@ function StatusPanel({ application: a }: { application: VendorApplication }) {
     declined: "The organizer declined your application.",
     withdrawn: "You withdrew this application.",
     removed: "The organizer removed you from this event.",
+    event_canceled: "The organizer canceled this event. Your payment records stay below for 90 days.",
   }
   const text = message[a.status]
   if (!text) return null

@@ -370,7 +370,7 @@ The vendor edits the page from their vendor profile (section 4.1). There is no c
 
 ### 7.3 Event listing
 
-The home page (`/`) lists upcoming announced events, soonest first. Attendees can filter by event type (All, Flea markets, Bazaars, Pop-ups), city, and date range. The type options are All plus the active event types, each with its number of events. The date options are Any date, This weekend, Next 2 weeks, the next month (for example, December), and Pick dates. A multi-day event matches a date filter when any of its days falls in the range (section 3.1.1).
+The home page (`/`) lists upcoming announced events, soonest first. Attendees can search by event name, venue, address, city, or organizer name (decision Q5), and filter by event type (All, Flea markets, Bazaars, Pop-ups), city, and date range. The type options are All plus the active event types, each with its number of events. The date options are Any date, This weekend, Next 2 weeks, the next month (for example, December), and Pick dates. A multi-day event matches a date filter when any of its days falls in the range (section 3.1.1).
 
 - **List and Calendar views**, switched with a toggle.
   - **List** groups events as This weekend, Next weekend, and Later. The weekend is Saturday and Sunday. Events on other days of the current week go under Later. A multi-day event goes under a weekend when any of its days is that Saturday or Sunday (a Friday to Sunday market is under that weekend), and it is listed once, by its first day.

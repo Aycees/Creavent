@@ -841,6 +841,8 @@ enum NotificationType {
   payment_rejected
   slot_released
   vendor_removed
+  event_changed
+  event_canceled
 
   @@map("notification_type")
 }
