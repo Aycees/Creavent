@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { groupByWeekend, monthDays, nextMonthName } from "./listing"
+import { groupByWeekend, monthDays, nextMonthName, spanLabel } from "./listing"
 
 const ev = (name: string, startDate: string, endDate = startDate) => ({ name, startDate, endDate })
 
@@ -56,5 +56,15 @@ describe("nextMonthName", () => {
   it("names the month after today's", () => {
     expect(nextMonthName("2026-11-16")).toBe("December")
     expect(nextMonthName("2026-12-31")).toBe("January")
+  })
+})
+
+describe("spanLabel", () => {
+  it("names the first and last day events cover, across months", () => {
+    expect(spanLabel([ev("A", "2026-11-28"), ev("B", "2027-01-08", "2027-01-09"), ev("C", "2026-12-05")])).toBe("Nov 28 to Jan 9")
+  })
+
+  it("names a single day once", () => {
+    expect(spanLabel([ev("A", "2026-12-05")])).toBe("Dec 5")
   })
 })

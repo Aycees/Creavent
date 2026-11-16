@@ -64,7 +64,7 @@ Admin
 ### `/` Event listing
 - Upcoming **announced** events, soonest first, with a search box (event name, venue, address, city, organizer) and filters for event type (All, Flea markets, Bazaars, Pop-ups, each with a count), location (city), and date (Any date, This weekend, Next 2 weeks, next month, Pick dates) (spec §7.3).
 - **List and Calendar views**, switched with a toggle.
-  - List groups events as This weekend, Next weekend, and Later.
+  - List groups events as This weekend, Next weekend, and Later (a slow-scrolling row of cards and a link to the calendar). City and date are menus beside the type chips.
   - Calendar is a month grid with today marked, events shown in each day, and a panel that lists the selected day's events. On phones it is a compact month with dots on event days, and the selected day's events are listed below.
 - **"Next 7 days" strip** beside the page title: the next 7 days with today marked, a mark on days that have announced events, and a link to the calendar.
 - **"Sell at these events"** link to sign up, showing how many events are open to vendors. Signed-out visitors see the number only. For a signed-in vendor the link goes to `/vendor/events`.

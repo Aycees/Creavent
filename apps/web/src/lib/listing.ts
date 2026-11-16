@@ -69,3 +69,16 @@ export function shiftMonth(month: string, by: number) {
   const [y, m] = month.split("-").map(Number)
   return new Date(Date.UTC(y!, m! - 1 + by, 1)).toISOString().slice(0, 7)
 }
+
+const shortDay = new Intl.DateTimeFormat("en-US", { timeZone: "UTC", month: "short", day: "numeric" })
+
+// "Nov 28 to Jan 9": from the first day to the last day the events cover.
+export function spanLabel(events: Dated[]) {
+  const starts = events.flatMap((e) => (e.startDate ? [e.startDate] : [])).sort()
+  const ends = events.flatMap((e) => (e.endDate ? [e.endDate] : [])).sort()
+  const first = starts[0]
+  const last = ends.at(-1)
+  if (!first || !last) return ""
+  const label = (d: string) => shortDay.format(new Date(`${d}T00:00:00Z`))
+  return first === last ? label(first) : `${label(first)} to ${label(last)}`
+}
