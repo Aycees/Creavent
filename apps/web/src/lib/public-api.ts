@@ -1,4 +1,4 @@
-import type { PublicConfig, PublicEventResponse } from "@creavent/shared"
+import type { Listing, PublicConfig, PublicEventResponse } from "@creavent/shared"
 import { cacheLife, cacheTag } from "next/cache"
 
 // Server-side reads of the public pages (architecture §8). Each response is
@@ -27,6 +27,17 @@ export async function getPublicEvent(slug: string) {
     return null
   }
   cacheLife("max")
+  cacheTag(...data.tags)
+  return data
+}
+
+// The event listing for one set of filters. Also refreshed every 15 minutes,
+// so "today", the weekend groups, and ended events roll over by themselves.
+export async function getListing(search: string) {
+  "use cache"
+  cacheLife({ stale: 300, revalidate: 900, expire: 3600 })
+  const data = await getJson<Listing>(`/api/public/events${search ? `?${search}` : ""}`)
+  if (!data) throw new Error("GET /api/public/events failed")
   cacheTag(...data.tags)
   return data
 }

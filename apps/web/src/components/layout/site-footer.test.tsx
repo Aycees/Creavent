@@ -11,4 +11,11 @@ describe("SiteFooter", () => {
     expect(screen.getByRole("link", { name: "Privacy" })).toHaveAttribute("href", "/privacy")
     expect(screen.getByRole("link", { name: "Support" })).toHaveAttribute("href", "/support")
   })
+
+  it("says what Creavent is, and links to what Approved by Creavent means", () => {
+    render(<SiteFooter />)
+
+    expect(screen.getByText("Vendor and exhibitor management, and event discovery. Davao City, Philippines.")).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "Approved by Creavent" })).toHaveAttribute("href", "/approved")
+  })
 })

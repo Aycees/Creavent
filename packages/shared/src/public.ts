@@ -74,3 +74,49 @@ export const publicEventResponseSchema = z.object({
   ]),
 });
 export type PublicEventResponse = z.infer<typeof publicEventResponseSchema>;
+
+// ─── Event listing (spec §7.3, flow 10) ────────────────────────────────────
+
+export const listingWhenSchema = z.enum(['any', 'weekend', '2weeks', 'next_month', 'dates']);
+export type ListingWhen = z.infer<typeof listingWhenSchema>;
+
+const dateString = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+
+export const listingQuerySchema = z.object({
+  q: z.string().trim().max(100).optional(),
+  // An event type slug.
+  type: z.string().trim().max(40).optional(),
+  city: z.string().trim().max(60).optional(),
+  when: listingWhenSchema.optional(),
+  // With when=dates (Pick dates, or a calendar month).
+  from: dateString.optional(),
+  to: dateString.optional(),
+});
+export type ListingQuery = z.infer<typeof listingQuerySchema>;
+
+export const listingCardSchema = z.object({
+  slug: z.string(),
+  name: z.string(),
+  typeName: z.string(),
+  ...scheduleFields,
+  venueName: z.string().nullable(),
+  city: z.string().nullable(),
+  coverUrl: z.string().nullable(),
+  organizer: z.object({ displayName: z.string(), approved: z.boolean() }),
+});
+export type ListingCard = z.infer<typeof listingCardSchema>;
+
+export const listingSchema = z.object({
+  tags: z.array(z.string()),
+  // Today in Manila, which the weekend groups and the strip count from.
+  today: z.string(),
+  events: z.array(listingCardSchema),
+  // Each active type with its count under the other filters.
+  types: z.array(z.object({ slug: z.string(), name: z.string(), count: z.number().int() })),
+  cities: z.array(z.string()),
+  // "Next 7 days": each day with how many announced events run that day.
+  next7: z.array(z.object({ date: z.string(), count: z.number().int() })),
+  // "Sell at these events": events taking applications (spec §7.3).
+  openToVendors: z.number().int(),
+});
+export type Listing = z.infer<typeof listingSchema>;

@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { scheduleOf, type PublicEvent, type PublicEventResponse } from '@creavent/shared';
+import { manilaParts, scheduleOf, type Listing, type ListingQuery, type PublicEvent, type PublicEventResponse } from '@creavent/shared';
 import { sortedSlots } from '../applications/slot-status.js';
 import { FilesService } from '../files/files.service.js';
-import type { Prisma } from '../generated/prisma/client.js';
+import { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { tags } from './tags.js';
 
@@ -52,6 +52,78 @@ export class PublicPagesService {
   async publicEventById(id: string) {
     const event = await this.prisma.event.findUniqueOrThrow({ where: { id }, include: eventInclude });
     return this.publicEvent(event);
+  }
+
+  // The event listing (spec §7.3): visible announced events that end today or
+  // later (Manila days), soonest first, with search (decision Q5) and the
+  // type, city, and date filters. Type counts use every other filter.
+  async listing(query: ListingQuery, now = new Date()): Promise<Listing> {
+    const today = manilaParts(now).date;
+    const upcoming: Prisma.EventWhereInput = { status: 'announced', moderationState: 'visible', endsAt: { gte: manilaStart(today) } };
+    const ids = query.q ? await this.search(query.q) : null;
+    const range = dateRange(query, today);
+    const filtered = await this.prisma.event.findMany({
+      where: {
+        ...upcoming,
+        ...(query.city ? { city: query.city } : {}),
+        ...(ids ? { id: { in: ids } } : {}),
+        ...(range ? { startsAt: { lt: manilaStart(addDays(range.to, 1)) }, AND: [{ endsAt: { gte: manilaStart(range.from) } }] } : {}),
+      },
+      include: listingInclude,
+      orderBy: [{ startsAt: 'asc' }, { name: 'asc' }],
+      take: 300,
+    });
+    const events = query.type ? filtered.filter((e) => e.eventType.slug === query.type) : filtered;
+    const [types, all, openToVendors] = await Promise.all([
+      this.prisma.eventType.findMany({ where: { isActive: true }, orderBy: { sortOrder: 'asc' } }),
+      this.prisma.event.findMany({ where: upcoming, select: { city: true, startsAt: true, endsAt: true } }),
+      this.prisma.event.count({
+        where: {
+          status: { in: ['open_to_vendors', 'announced'] },
+          moderationState: 'visible',
+          applicationsOpen: true,
+          endsAt: { gt: now },
+          OR: [{ applicationsCloseAt: null }, { applicationsCloseAt: { gt: now } }],
+        },
+      }),
+    ]);
+    const next7 = Array.from({ length: 7 }, (_, i) => addDays(today, i)).map((date) => ({
+      date,
+      count: all.filter((e) => e.startsAt && e.endsAt && manilaParts(e.startsAt).date <= date && manilaParts(e.endsAt).date >= date).length,
+    }));
+    return {
+      tags: [tags.listing, ...events.map((e) => tags.event(e.id))],
+      today,
+      events: events.map((e) => ({
+        slug: e.slug,
+        name: e.name,
+        typeName: e.eventType.name,
+        ...scheduleOf(e),
+        venueName: e.venueName,
+        city: e.city,
+        coverUrl: e.coverFile ? this.files.url(e.coverFile.storageKey) : null,
+        organizer: { displayName: e.organizerProfile.displayName, approved: approved(e.organizerProfile.user.roles[0]) },
+      })),
+      types: types.map((t) => ({ slug: t.slug, name: t.name, count: filtered.filter((e) => e.eventTypeId === t.id).length })),
+      cities: [...new Set(all.flatMap((e) => e.city ?? []))].sort((a, b) => a.localeCompare(b)),
+      next7,
+      openToVendors,
+    };
+  }
+
+  // Event ids whose name, venue, address, city, or organizer matches every
+  // word of the search, each as a prefix: "vint" finds "Vintage" (decision
+  // Q5). Only letters and digits reach the query, so its syntax can't break.
+  private async search(q: string) {
+    const words = (q.toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? []).slice(0, 8);
+    if (!words.length) return [];
+    const tsquery = words.map((w) => `${w}:*`).join(' & ');
+    const rows = await this.prisma.$queryRaw<{ id: string }[]>(Prisma.sql`
+      SELECT e.id FROM events e
+      JOIN organizer_profiles o ON o.id = e.organizer_profile_id
+      WHERE to_tsvector('simple', concat_ws(' ', e.name, e.venue_name, e.address_line, e.city, o.display_name))
+        @@ to_tsquery('simple', ${tsquery})`);
+    return rows.map((r) => r.id);
   }
 
   private async publicEvent(e: FullEvent): Promise<PublicEvent> {
@@ -114,6 +186,50 @@ export class PublicPagesService {
       socialLinks: Array.isArray(o.socialLinks) ? (o.socialLinks as string[]) : [],
       eventsHeld: await this.prisma.event.count({ where: { organizerProfileId: o.id, status: 'completed', moderationState: 'visible' } }),
     };
+  }
+}
+
+const listingInclude = {
+  eventType: true,
+  coverFile: true,
+  organizerProfile: { include: { user: { include: { roles: { where: { role: 'organizer' as const } } } } } },
+} satisfies Prisma.EventInclude;
+
+// "Approved by Creavent" (data model §7).
+function approved(role: { approvalStatus: string | null; suspendedAt: Date | null } | undefined) {
+  return role?.approvalStatus === 'approved' && role.suspendedAt === null;
+}
+
+// Midnight starting a Manila date, as an instant.
+const manilaStart = (date: string) => new Date(`${date}T00:00:00+08:00`);
+
+function addDays(date: string, days: number) {
+  return new Date(Date.parse(`${date}T00:00:00Z`) + days * 86_400_000).toISOString().slice(0, 10);
+}
+
+// The Manila dates a date filter covers (spec §7.3). An event matches when
+// any of its days falls inside. This weekend is Saturday and Sunday: the
+// coming one, or the current one on a weekend.
+function dateRange(query: ListingQuery, today: string): { from: string; to: string } | null {
+  const weekday = new Date(`${today}T00:00:00Z`).getUTCDay();
+  switch (query.when) {
+    case 'weekend': {
+      const saturday = addDays(today, weekday === 0 ? -1 : 6 - weekday);
+      return { from: saturday, to: addDays(saturday, 1) };
+    }
+    case '2weeks':
+      return { from: today, to: addDays(today, 13) };
+    case 'next_month': {
+      const [y, m] = today.split('-').map(Number) as [number, number];
+      const first = new Date(Date.UTC(y, m, 1));
+      const last = new Date(Date.UTC(y, m + 1, 0));
+      return { from: first.toISOString().slice(0, 10), to: last.toISOString().slice(0, 10) };
+    }
+    case 'dates':
+      if (!query.from) return null;
+      return query.to && query.to >= query.from ? { from: query.from, to: query.to } : { from: query.from, to: query.from };
+    default:
+      return null;
   }
 }
 

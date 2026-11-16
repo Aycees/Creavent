@@ -1,5 +1,6 @@
-import { Controller, Get, Param } from '@nestjs/common';
-import { publicEventResponseSchema } from '@creavent/shared';
+import { Controller, Get, Param, Query } from '@nestjs/common';
+import { listingQuerySchema, listingSchema, publicEventResponseSchema } from '@creavent/shared';
+import type { z } from 'zod';
 import { ResponseSchema } from '../response-schema.decorator.js';
 import { PublicPagesService } from './public-pages.service.js';
 
@@ -9,6 +10,12 @@ import { PublicPagesService } from './public-pages.service.js';
 @Controller('public')
 export class PublicController {
   constructor(private readonly pages: PublicPagesService) {}
+
+  @Get('events')
+  @ResponseSchema(listingSchema)
+  listing(@Query({ schema: listingQuerySchema }) query: z.output<typeof listingQuerySchema>) {
+    return this.pages.listing(query);
+  }
 
   @Get('events/:slug')
   @ResponseSchema(publicEventResponseSchema)
