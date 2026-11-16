@@ -72,13 +72,15 @@ projects:
 
           # NestJS worker from the same codebase: pg-boss jobs (emails now,
           # scheduled jobs and backups later). Never serves HTTP (architecture §1).
+          # Docker, so pg_dump matches Postgres 17 for the nightly backup
+          # (architecture §9.3). The image builds and starts the worker.
           - type: worker
             name: creavent-worker-staging
-            runtime: node
+            runtime: docker
             region: singapore
             plan: 0.5c-512mb # Placeholder: the team chooses the plan.
-            buildCommand: pnpm install --frozen-lockfile && pnpm --filter @creavent/api exec prisma generate && pnpm --filter "@creavent/api..." run build
-            startCommand: pnpm --filter @creavent/api run start:worker
+            dockerfilePath: ./apps/api/Dockerfile.worker
+            dockerContext: .
             buildFilter:
               paths:
                 - apps/api/**
@@ -87,6 +89,7 @@ projects:
                 - pnpm-lock.yaml
                 - pnpm-workspace.yaml
                 - .nvmrc
+                - .dockerignore
               ignoredPaths:
                 - "**/*.md"
             envVars:

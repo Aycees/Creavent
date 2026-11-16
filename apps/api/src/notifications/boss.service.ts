@@ -8,6 +8,8 @@ export const COMPLETE_EVENTS_QUEUE = 'complete-events';
 export const RETENTION_QUEUE = 'retention';
 // Daily: removed files and uploads that never completed (spec §11.7).
 export const CLEANUP_FILES_QUEUE = 'cleanup-files';
+// Nightly: pg_dump to the backups bucket (architecture §9.3).
+export const BACKUP_QUEUE = 'backup-database';
 
 // pg-boss keeps its jobs in Postgres (docs/architecture.md §6.1). It starts on
 // first use, so the API can boot without a database.
@@ -36,6 +38,7 @@ export class BossService implements OnModuleDestroy {
     await boss.createQueue(COMPLETE_EVENTS_QUEUE);
     await boss.createQueue(RETENTION_QUEUE);
     await boss.createQueue(CLEANUP_FILES_QUEUE);
+    await boss.createQueue(BACKUP_QUEUE, { retryLimit: 2, retryDelay: 600 });
     return boss;
   }
 

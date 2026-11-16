@@ -3,9 +3,10 @@ import { ConsoleLogger, Logger, Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { completeEndedEvents } from './events/complete-events.js';
 import { R2Storage } from './files/storage.js';
+import { backupDatabase } from './jobs/backup.js';
 import { cleanUpFiles } from './jobs/cleanup.js';
 import { purgeExpiredPaymentRecords } from './jobs/retention.js';
-import { BossService, CLEANUP_FILES_QUEUE, COMPLETE_EVENTS_QUEUE, RETENTION_QUEUE, SEND_EMAIL_QUEUE } from './notifications/boss.service.js';
+import { BACKUP_QUEUE, BossService, CLEANUP_FILES_QUEUE, COMPLETE_EVENTS_QUEUE, RETENTION_QUEUE, SEND_EMAIL_QUEUE } from './notifications/boss.service.js';
 import { deliverEmail } from './notifications/deliver-email.js';
 import { createEmailSender } from './notifications/email-sender.js';
 import { NotificationsModule } from './notifications/notifications.module.js';
@@ -51,5 +52,18 @@ await boss.work(CLEANUP_FILES_QUEUE, async () => {
   const result = await cleanUpFiles(prisma, storage);
   new Logger('CleanUpFiles').log(`Deleted ${result.deleted} removed files and ${result.abandoned} unfinished uploads, kept ${result.kept}`);
 });
+
+// Nightly backup, where a backups bucket is set (staging and production).
+if (process.env.R2_BACKUPS_BUCKET && process.env.DATABASE_URL) {
+  const databaseUrl = process.env.DATABASE_URL;
+  await boss.schedule(BACKUP_QUEUE, '0 2 * * *', null, { tz: 'Asia/Manila' });
+  await boss.work(BACKUP_QUEUE, async () => {
+    const key = await backupDatabase(storage, { databaseUrl });
+    new Logger('Backup').log(`Saved ${key}`);
+  });
+} else {
+  await boss.unschedule(BACKUP_QUEUE);
+  new Logger('Backup').warn('R2_BACKUPS_BUCKET is not set, so the nightly backup is off');
+}
 
 new Logger('Worker').log('Worker started');

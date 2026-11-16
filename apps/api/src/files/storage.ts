@@ -1,8 +1,9 @@
 import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
-// The two buckets of spec §11.2. Uploads land in private/incoming/ first.
-export type Bucket = 'public' | 'private';
+// The two buckets of spec §11.2, plus the database backups (architecture
+// §9.3). Uploads land in private/incoming/ first.
+export type Bucket = 'public' | 'private' | 'backups';
 
 export interface ObjectStorage {
   presignPut(bucket: Bucket, key: string, contentType: string, sizeBytes: number): Promise<{ url: string; headers: Record<string, string> }>;
@@ -43,6 +44,7 @@ export class R2Storage implements ObjectStorage {
   }
 
   private name(bucket: Bucket) {
+    if (bucket === 'backups') return required('R2_BACKUPS_BUCKET');
     return bucket === 'public' ? required('R2_PUBLIC_BUCKET') : required('R2_PRIVATE_BUCKET');
   }
 
