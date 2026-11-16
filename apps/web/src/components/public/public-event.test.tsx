@@ -25,6 +25,12 @@ describe("PublicEventView", () => {
     expect(screen.getByRole("link", { name: SUPPORT })).toHaveAttribute("href", `mailto:${SUPPORT}`)
   })
 
+  it("shows the organizer's initials in an avatar when they have no logo", () => {
+    render(<PublicEventView event={publicEventFixture()} supportEmail={SUPPORT} />)
+
+    expect(within(screen.getByRole("region", { name: "Organizer" })).getByText("SC")).toBeInTheDocument()
+  })
+
   it("gets directions from the address, or from the map pin when there is one", () => {
     const { unmount } = render(<PublicEventView event={publicEventFixture()} supportEmail={SUPPORT} />)
     expect(screen.getByRole("link", { name: "Get directions" })).toHaveAttribute(
