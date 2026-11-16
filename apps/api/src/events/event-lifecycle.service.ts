@@ -1,5 +1,5 @@
 import { ConflictException, ForbiddenException, Injectable } from '@nestjs/common';
-import { formatSchedule, scheduleOf } from '@creavent/shared';
+import { formatSchedule, scheduleOf, UNDO_ANNOUNCE_MINUTES } from '@creavent/shared';
 import { archivePayment } from '../applications/assignment-status.js';
 import { ACTIVE, slotLabel } from '../applications/slot-status.js';
 import { writeAuditLog } from '../audit/audit-log.js';
@@ -39,6 +39,28 @@ export class EventLifecycleService {
         action: 'announce',
         actorUserId: userId,
         data: { announcedAt: new Date() },
+      });
+    });
+    void this.refresh.refresh([tags.listing, tags.event(eventId)]);
+  }
+
+  // Undoes an announcement made by mistake or too early, back to open to
+  // vendors, within UNDO_ANNOUNCE_MINUTES (decision Q9). Hardly anyone has
+  // seen it by then, so nothing shared breaks. Slots, payments, and
+  // applications stay as they are, so vendors aren't emailed.
+  async undoAnnounce(userId: string, eventId: string) {
+    await this.prisma.$transaction(async (tx) => {
+      const event = await ownEvent(tx, userId, eventId);
+      if (event.status === 'announced' && !undoAnnounceUntil(event)) {
+        throw new ConflictException(`You can undo an announcement for ${UNDO_ANNOUNCE_MINUTES} minutes. Edit or cancel the event instead.`);
+      }
+      await changeEventStatus(tx, {
+        eventId: event.id,
+        from: event.status,
+        action: 'undo_announce',
+        actorUserId: userId,
+        // Never public until announced again (decision Q2 reads it).
+        data: { announcedAt: null },
       });
     });
     void this.refresh.refresh([tags.listing, tags.event(eventId)]);
@@ -103,6 +125,13 @@ export class EventLifecycleService {
     });
     void this.refresh.refresh([tags.listing, tags.event(eventId)]);
   }
+}
+
+// Until when the announcement can be undone, or null once it can't.
+export function undoAnnounceUntil(e: { status: string; announcedAt: Date | null }, now = new Date()) {
+  if (e.status !== 'announced' || !e.announcedAt) return null;
+  const until = new Date(e.announcedAt.getTime() + UNDO_ANNOUNCE_MINUTES * 60_000);
+  return until > now ? until : null;
 }
 
 // The schedule and place fields vendors are told about when they change.

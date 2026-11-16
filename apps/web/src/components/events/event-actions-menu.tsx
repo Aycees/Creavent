@@ -1,7 +1,7 @@
 "use client"
 
 import type { EventSetup } from "@creavent/shared"
-import { DotsThreeIcon, EyeIcon, GlobeSimpleIcon, LockSimpleIcon, LockSimpleOpenIcon, TrashIcon, XCircleIcon } from "@phosphor-icons/react"
+import { ArrowCounterClockwiseIcon, DotsThreeIcon, EyeIcon, GlobeSimpleIcon, LockSimpleIcon, LockSimpleOpenIcon, TrashIcon, XCircleIcon } from "@phosphor-icons/react"
 import Link from "next/link"
 import * as React from "react"
 import { toast } from "sonner"
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { api } from "@/lib/api"
 
-import { CancelEventDialog } from "./lifecycle-controls"
+import { CancelEventDialog, useUndoAnnounce } from "./lifecycle-controls"
 import { DeleteDraftDialog } from "./open-controls"
 import { saveError, useSetupSaved } from "./queries"
 
@@ -22,6 +22,9 @@ export function EventActionsMenu({ setup }: { setup: EventSetup }) {
   const [dialog, setDialog] = React.useState<"cancel" | "delete" | null>(null)
   const live = setup.status === "open_to_vendors" || setup.status === "announced"
   const isPublic = setup.status === "announced" || setup.status === "completed"
+  const undo = useUndoAnnounce(setup)
+  // Checked when the menu renders; the API refuses a late undo anyway.
+  const canUndo = setup.undoAnnounceUntil !== null && Date.parse(setup.undoAnnounceUntil) > Date.now()
 
   // Close or reopen applications (spec §3.3).
   async function toggleApplications() {
@@ -53,6 +56,12 @@ export function EventActionsMenu({ setup }: { setup: EventSetup }) {
                 <GlobeSimpleIcon aria-hidden="true" />
                 See the public page
               </Link>
+            </DropdownMenuItem>
+          )}
+          {canUndo && (
+            <DropdownMenuItem onSelect={undo}>
+              <ArrowCounterClockwiseIcon aria-hidden="true" />
+              Undo announce
             </DropdownMenuItem>
           )}
           {live && (

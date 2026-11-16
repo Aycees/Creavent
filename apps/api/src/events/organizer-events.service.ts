@@ -21,7 +21,7 @@ import { assertStillReady, changeEventStatus, checklist, missingSteps, stepActio
 import { assertAttachable, FilesService, retireFiles } from '../files/files.service.js';
 import { OutboxService } from '../notifications/outbox.service.js';
 import { freeSlug } from '../onboarding/slugs.js';
-import { queueChangeEmails } from './event-lifecycle.service.js';
+import { queueChangeEmails, undoAnnounceUntil } from './event-lifecycle.service.js';
 import { PrismaService, type Tx } from '../prisma/prisma.service.js';
 import { PublicRefreshService } from '../public/public-refresh.service.js';
 import { tags } from '../public/tags.js';
@@ -178,6 +178,7 @@ export class OrganizerEventsService {
     return {
       ...(await this.lineup(event.id)),
       ended: event.endsAt !== null && event.endsAt <= new Date(),
+      undoAnnounceUntil: undoAnnounceUntil(event)?.toISOString() ?? null,
       canceled: event.canceledAt ? { at: event.canceledAt.toISOString(), reason: event.cancelReason } : null,
       id: event.id,
       slug: event.slug,

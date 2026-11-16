@@ -62,6 +62,7 @@ export function setupFixture(overrides: Partial<EventSetup> = {}): EventSetup {
     },
     lineup: { confirmedVendors: 0, activeVendors: 0, unpaid: [] },
     ended: false,
+    undoAnnounceUntil: null,
     canceled: null,
     slots: {
       mode: "organizer_assigns",

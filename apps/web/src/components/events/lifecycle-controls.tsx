@@ -26,6 +26,18 @@ const unpaidBadges: Record<Unpaid["state"], { label: string; tone: "warning" | "
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
 
+// Undo an announcement made by mistake or too early, within
+// UNDO_ANNOUNCE_MINUTES (decision Q9): back to open to vendors.
+export function useUndoAnnounce(setup: EventSetup) {
+  const saved = useSetupSaved(setup.id)
+  return async () => {
+    const res = await api.POST("/api/organizer/events/{id}/undo-announce", { params: { path: { id: setup.id } } })
+    if (!res.data) return toast.error(saveError(res.error).message)
+    saved(res.data)
+    toast.success(`${setup.details.name} is off the listing again. Visitors can't see it.`)
+  }
+}
+
 // Announce event (flow 8, decision Q7): on an event open to vendors that
 // hasn't ended. Warns about slots that aren't paid yet (mockup OrgAnnounce).
 export function AnnounceButton({ setup }: { setup: EventSetup }) {
@@ -33,6 +45,7 @@ export function AnnounceButton({ setup }: { setup: EventSetup }) {
   const [confirming, setConfirming] = React.useState(false)
   const [saving, setSaving] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
+  const undo = useUndoAnnounce(setup)
   if (setup.status !== "open_to_vendors" || setup.ended) return null
   const { confirmedVendors, unpaid } = setup.lineup
   const name = setup.details.name
@@ -45,7 +58,8 @@ export function AnnounceButton({ setup }: { setup: EventSetup }) {
     if (!res.data) return setError(saveError(res.error).message)
     saved(res.data)
     setConfirming(false)
-    toast.success(`${name} is announced. It's on the event listing now.`)
+    // Undo stays in More actions for the rest of the 10 minutes (decision Q9).
+    toast.success(`${name} is announced. It's on the event listing now.`, { action: { label: "Undo", onClick: undo }, duration: 15_000 })
   }
 
   return (

@@ -63,11 +63,12 @@ export async function assertStillReady(tx: Tx, eventId: string) {
 // The event status changes (spec §3.1, architecture §3.5, decision Q7).
 // Completing is done by the hourly job (complete-events.ts), which has no
 // user to log.
-export type EventAction = 'open_to_vendors' | 'announce' | 'cancel';
+export type EventAction = 'open_to_vendors' | 'announce' | 'undo_announce' | 'cancel';
 
 const actions: Record<EventAction, { from: EventStatus[]; to: EventStatus; refusal: string }> = {
   open_to_vendors: { from: ['draft'], to: 'open_to_vendors', refusal: 'This event is already open to vendors' },
   announce: { from: ['open_to_vendors'], to: 'announced', refusal: 'Only an event open to vendors can be announced' },
+  undo_announce: { from: ['announced'], to: 'open_to_vendors', refusal: 'Only an announced event can be taken off the listing' },
   cancel: { from: ['open_to_vendors', 'announced'], to: 'canceled', refusal: 'Only an event open to vendors or announced can be canceled' },
 };
 

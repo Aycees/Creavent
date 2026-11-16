@@ -660,6 +660,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/organizer/events/{id}/undo-announce": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OrganizerEventsController_undoAnnounce"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/organizer/events/{id}/cancel": {
         parameters: {
             query?: never;
@@ -3300,6 +3316,7 @@ export interface operations {
                             }[];
                         };
                         ended: boolean;
+                        undoAnnounceUntil: string | null;
                         canceled: {
                             at: string;
                             reason: string | null;
@@ -3527,6 +3544,7 @@ export interface operations {
                             }[];
                         };
                         ended: boolean;
+                        undoAnnounceUntil: string | null;
                         canceled: {
                             at: string;
                             reason: string | null;
@@ -3715,6 +3733,7 @@ export interface operations {
                             }[];
                         };
                         ended: boolean;
+                        undoAnnounceUntil: string | null;
                         canceled: {
                             at: string;
                             reason: string | null;
@@ -3891,6 +3910,7 @@ export interface operations {
                             }[];
                         };
                         ended: boolean;
+                        undoAnnounceUntil: string | null;
                         canceled: {
                             at: string;
                             reason: string | null;
@@ -4078,6 +4098,7 @@ export interface operations {
                             }[];
                         };
                         ended: boolean;
+                        undoAnnounceUntil: string | null;
                         canceled: {
                             at: string;
                             reason: string | null;
@@ -4258,6 +4279,7 @@ export interface operations {
                             }[];
                         };
                         ended: boolean;
+                        undoAnnounceUntil: string | null;
                         canceled: {
                             at: string;
                             reason: string | null;
@@ -4398,6 +4420,7 @@ export interface operations {
                             }[];
                         };
                         ended: boolean;
+                        undoAnnounceUntil: string | null;
                         canceled: {
                             at: string;
                             reason: string | null;
@@ -4579,6 +4602,7 @@ export interface operations {
                             }[];
                         };
                         ended: boolean;
+                        undoAnnounceUntil: string | null;
                         canceled: {
                             at: string;
                             reason: string | null;
@@ -4719,6 +4743,7 @@ export interface operations {
                             }[];
                         };
                         ended: boolean;
+                        undoAnnounceUntil: string | null;
                         canceled: {
                             at: string;
                             reason: string | null;
@@ -4890,6 +4915,7 @@ export interface operations {
                             }[];
                         };
                         ended: boolean;
+                        undoAnnounceUntil: string | null;
                         canceled: {
                             at: string;
                             reason: string | null;
@@ -5071,6 +5097,7 @@ export interface operations {
                             }[];
                         };
                         ended: boolean;
+                        undoAnnounceUntil: string | null;
                         canceled: {
                             at: string;
                             reason: string | null;
@@ -5249,6 +5276,7 @@ export interface operations {
                             }[];
                         };
                         ended: boolean;
+                        undoAnnounceUntil: string | null;
                         canceled: {
                             at: string;
                             reason: string | null;
@@ -5431,6 +5459,7 @@ export interface operations {
                             }[];
                         };
                         ended: boolean;
+                        undoAnnounceUntil: string | null;
                         canceled: {
                             at: string;
                             reason: string | null;
@@ -5608,6 +5637,7 @@ export interface operations {
                             }[];
                         };
                         ended: boolean;
+                        undoAnnounceUntil: string | null;
                         canceled: {
                             at: string;
                             reason: string | null;
@@ -5778,6 +5808,7 @@ export interface operations {
                             }[];
                         };
                         ended: boolean;
+                        undoAnnounceUntil: string | null;
                         canceled: {
                             at: string;
                             reason: string | null;
@@ -5918,6 +5949,7 @@ export interface operations {
                             }[];
                         };
                         ended: boolean;
+                        undoAnnounceUntil: string | null;
                         canceled: {
                             at: string;
                             reason: string | null;
@@ -6088,6 +6120,7 @@ export interface operations {
                             }[];
                         };
                         ended: boolean;
+                        undoAnnounceUntil: string | null;
                         canceled: {
                             at: string;
                             reason: string | null;
@@ -6228,6 +6261,319 @@ export interface operations {
                             }[];
                         };
                         ended: boolean;
+                        undoAnnounceUntil: string | null;
+                        canceled: {
+                            at: string;
+                            reason: string | null;
+                        } | null;
+                        slots: {
+                            /** @enum {string} */
+                            mode: "organizer_assigns" | "vendor_preference";
+                            defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
+                            vendorFloorPlan: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            publicFloorPlan: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            list: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                section: string | null;
+                                sizeLabel: string | null;
+                                note: string | null;
+                                price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    OrganizerEventsController_undoAnnounce: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        slug: string;
+                        /** @enum {string} */
+                        status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                        applicationsOpen: boolean;
+                        checklist: {
+                            details: boolean;
+                            requirements: boolean;
+                            policy: boolean;
+                            slots: boolean;
+                            payments: boolean;
+                        };
+                        organizerApproved: boolean;
+                        details: {
+                            name: string;
+                            /** Format: uuid */
+                            eventTypeId: string;
+                            description: string | null;
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            venueName: string | null;
+                            addressLine: string | null;
+                            city: string | null;
+                            cover: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            vendorContactInfo: string | null;
+                            applicationsCloseAt: string | null;
+                            ingressInfo: string | null;
+                        };
+                        eventTypes: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            slug: string;
+                        }[];
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        requirements: {
+                            categories: {
+                                /** Format: uuid */
+                                categoryId: string;
+                                maxVendors: number | null;
+                            }[];
+                            documents: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                description: string | null;
+                                /** Format: uuid */
+                                categoryId: string | null;
+                            }[];
+                        };
+                        policy: {
+                            text: string | null;
+                            copiedFrom: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            } | null;
+                            example: string;
+                        };
+                        payments: {
+                            deadlineHours: number;
+                            methods: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                channel: "gcash" | "maya" | "bank" | "other";
+                                label: string;
+                                accountName: string | null;
+                                accountNumber: string | null;
+                                qr: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    url: string;
+                                } | null;
+                                notes: string | null;
+                            }[];
+                        };
+                        lineup: {
+                            confirmedVendors: number;
+                            activeVendors: number;
+                            unpaid: {
+                                slotLabel: string;
+                                shopName: string;
+                                /** @enum {string} */
+                                state: "overdue" | "proof_submitted" | "waiting";
+                            }[];
+                        };
+                        ended: boolean;
+                        undoAnnounceUntil: string | null;
+                        canceled: {
+                            at: string;
+                            reason: string | null;
+                        } | null;
+                        slots: {
+                            /** @enum {string} */
+                            mode: "organizer_assigns" | "vendor_preference";
+                            defaultPrice: number | null;
+                            maxSlotsPerVendor: number;
+                            vendorFloorPlan: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            publicFloorPlan: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            list: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                section: string | null;
+                                sizeLabel: string | null;
+                                note: string | null;
+                                price: number | null;
+                                setAside: {
+                                    note: string | null;
+                                } | null;
+                            }[];
+                        };
+                    };
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        slug: string;
+                        /** @enum {string} */
+                        status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                        applicationsOpen: boolean;
+                        checklist: {
+                            details: boolean;
+                            requirements: boolean;
+                            policy: boolean;
+                            slots: boolean;
+                            payments: boolean;
+                        };
+                        organizerApproved: boolean;
+                        details: {
+                            name: string;
+                            /** Format: uuid */
+                            eventTypeId: string;
+                            description: string | null;
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            venueName: string | null;
+                            addressLine: string | null;
+                            city: string | null;
+                            cover: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                            vendorContactInfo: string | null;
+                            applicationsCloseAt: string | null;
+                            ingressInfo: string | null;
+                        };
+                        eventTypes: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            slug: string;
+                        }[];
+                        categories: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        requirements: {
+                            categories: {
+                                /** Format: uuid */
+                                categoryId: string;
+                                maxVendors: number | null;
+                            }[];
+                            documents: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                description: string | null;
+                                /** Format: uuid */
+                                categoryId: string | null;
+                            }[];
+                        };
+                        policy: {
+                            text: string | null;
+                            copiedFrom: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            } | null;
+                            example: string;
+                        };
+                        payments: {
+                            deadlineHours: number;
+                            methods: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                channel: "gcash" | "maya" | "bank" | "other";
+                                label: string;
+                                accountName: string | null;
+                                accountNumber: string | null;
+                                qr: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    url: string;
+                                } | null;
+                                notes: string | null;
+                            }[];
+                        };
+                        lineup: {
+                            confirmedVendors: number;
+                            activeVendors: number;
+                            unpaid: {
+                                slotLabel: string;
+                                shopName: string;
+                                /** @enum {string} */
+                                state: "overdue" | "proof_submitted" | "waiting";
+                            }[];
+                        };
+                        ended: boolean;
+                        undoAnnounceUntil: string | null;
                         canceled: {
                             at: string;
                             reason: string | null;
@@ -6404,6 +6750,7 @@ export interface operations {
                             }[];
                         };
                         ended: boolean;
+                        undoAnnounceUntil: string | null;
                         canceled: {
                             at: string;
                             reason: string | null;
@@ -6544,6 +6891,7 @@ export interface operations {
                             }[];
                         };
                         ended: boolean;
+                        undoAnnounceUntil: string | null;
                         canceled: {
                             at: string;
                             reason: string | null;
@@ -6813,6 +7161,7 @@ export interface operations {
                             }[];
                         };
                         ended: boolean;
+                        undoAnnounceUntil: string | null;
                         canceled: {
                             at: string;
                             reason: string | null;

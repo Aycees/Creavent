@@ -12,6 +12,10 @@ export const eventCities = ['Davao City'] as const;
 // Events run 1 to 7 days in a row (spec §3.1.1).
 export const MAX_EVENT_DAYS = 7;
 
+// An announcement can be undone for this long, for one made by mistake or
+// too early (decision Q9). After that, edit or cancel the event.
+export const UNDO_ANNOUNCE_MINUTES = 10;
+
 // Every time is shown and entered in Asia/Manila, which is UTC+8 all year.
 const MANILA_OFFSET = '+08:00';
 
@@ -380,6 +384,8 @@ export const eventSetupSchema = z.object({
   }),
   // The last day has ended (Manila time).
   ended: z.boolean(),
+  // While the announcement can still be undone (decision Q9).
+  undoAnnounceUntil: z.string().nullable(),
   canceled: z.object({ at: z.string(), reason: z.string().nullable() }).nullable(),
   slots: z.object({
     mode: slotModeSchema,

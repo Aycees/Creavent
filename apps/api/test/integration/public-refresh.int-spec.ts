@@ -39,10 +39,13 @@ describe('refreshing public pages', () => {
     return { organizer, eventId, browser: await signInAs(app, organizer.user.email) };
   }
 
-  it('refreshes the listing and the event when it is announced or canceled', async () => {
+  it('refreshes the listing and the event when it is announced, the announcement is undone, or it is canceled', async () => {
     const { eventId, browser } = await setup();
 
     await browser.post(`/api/organizer/events/${eventId}/announce`).send({});
+    expect(refresh).toHaveBeenLastCalledWith(['listing', `event:${eventId}`]);
+
+    await browser.post(`/api/organizer/events/${eventId}/undo-announce`).send({});
     expect(refresh).toHaveBeenLastCalledWith(['listing', `event:${eventId}`]);
 
     await browser.post(`/api/organizer/events/${eventId}/cancel`).send({});

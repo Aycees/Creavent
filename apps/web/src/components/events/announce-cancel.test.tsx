@@ -2,6 +2,8 @@ import { screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
+import { toast } from "sonner"
+
 import { api } from "@/lib/api"
 import { renderWithQuery } from "@/test-utils"
 import { EventSetupPage } from "./event-setup"
@@ -75,6 +77,47 @@ describe("Announce event", () => {
     renderWithQuery(<EventSetupPage id={EVENT_ID} />)
     await screen.findByRole("heading", { name: "Matina Night Flea, January" })
     expect(screen.queryByRole("button", { name: "Announce event" })).not.toBeInTheDocument()
+  })
+})
+
+// Decision Q9: an announcement made by mistake can be undone for 10 minutes.
+describe("Undo announce", () => {
+  it("offers Undo on the confirmation, which takes the event off the listing", async () => {
+    setup = open()
+    const announced = { ...setup, status: "announced", undoAnnounceUntil: new Date(Date.now() + 600_000).toISOString() }
+    vi.mocked(api.POST)
+      .mockResolvedValueOnce({ data: announced, response: { status: 201 } } as never)
+      .mockResolvedValueOnce({ data: { ...setup, status: "open_to_vendors" }, response: { status: 201 } } as never)
+    renderWithQuery(<EventSetupPage id={EVENT_ID} />)
+
+    await userEvent.click(await screen.findByRole("button", { name: "Announce event" }))
+    await userEvent.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Announce event" }))
+    const options = vi.mocked(toast.success).mock.calls.at(-1)![1] as { action: { label: string; onClick: () => void } }
+    expect(options.action.label).toBe("Undo")
+    options.action.onClick()
+
+    await vi.waitFor(() => expect(api.POST).toHaveBeenLastCalledWith("/api/organizer/events/{id}/undo-announce", { params: { path: { id: EVENT_ID } } }))
+    expect(await screen.findByRole("button", { name: "Announce event" })).toBeInTheDocument()
+  })
+
+  it("offers Undo announce in More actions while the 10 minutes last", async () => {
+    setup = open({ status: "announced", undoAnnounceUntil: new Date(Date.now() + 300_000).toISOString() })
+    vi.mocked(api.POST).mockResolvedValue({ data: { ...setup, status: "open_to_vendors", undoAnnounceUntil: null }, response: { status: 201 } } as never)
+    renderWithQuery(<EventSetupPage id={EVENT_ID} />)
+
+    await userEvent.click(await screen.findByRole("button", { name: "More actions" }))
+    await userEvent.click(screen.getByRole("menuitem", { name: "Undo announce" }))
+
+    expect(api.POST).toHaveBeenCalledWith("/api/organizer/events/{id}/undo-announce", { params: { path: { id: EVENT_ID } } })
+    expect(await screen.findByRole("button", { name: "Announce event" })).toBeInTheDocument()
+  })
+
+  it("doesn't offer it once the 10 minutes are over", async () => {
+    setup = open({ status: "announced", undoAnnounceUntil: null })
+    renderWithQuery(<EventSetupPage id={EVENT_ID} />)
+
+    await userEvent.click(await screen.findByRole("button", { name: "More actions" }))
+    expect(screen.queryByRole("menuitem", { name: "Undo announce" })).not.toBeInTheDocument()
   })
 })
 

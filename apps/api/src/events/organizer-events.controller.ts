@@ -181,6 +181,14 @@ export class OrganizerEventsController {
     return this.events.setup(user.id, id);
   }
 
+  @Post('organizer/events/:id/undo-announce')
+  @ApiCreatedResponse({ standardSchema: eventSetupSchema })
+  @ResponseSchema(eventSetupSchema)
+  async undoAnnounce(@CurrentUser() user: SessionUser, @Param('id', ParseUUIDPipe) id: string) {
+    await this.lifecycle.undoAnnounce(user.id, id);
+    return this.events.setup(user.id, id);
+  }
+
   @Post('organizer/events/:id/cancel')
   @ApiCreatedResponse({ standardSchema: eventSetupSchema })
   @ResponseSchema(eventSetupSchema)

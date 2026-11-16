@@ -1,4 +1,5 @@
 import type { INestApplication } from '@nestjs/common';
+import request from 'supertest';
 import type { App } from 'supertest/types.js';
 import type { PrismaClient } from '../../src/generated/prisma/client.js';
 import { completeEndedEvents } from '../../src/events/complete-events.js';
@@ -116,6 +117,70 @@ describe('announcing, changing, and canceling an event', () => {
       const res = await browser.post(`/api/organizer/events/${eventId}/announce`).send({});
 
       expect(res.status).toBe(404);
+    });
+  });
+
+  describe('undo announce', () => {
+    const announceNow = async (browser: Awaited<ReturnType<typeof setup>>['browser'], eventId: string) =>
+      browser.post(`/api/organizer/events/${eventId}/announce`).send({});
+
+    it('offers the undo for 10 minutes after announcing', async () => {
+      const { eventId, browser } = await setup();
+
+      const res = await announceNow(browser, eventId);
+
+      const until = new Date(res.body.undoAnnounceUntil).getTime();
+      expect(until - Date.now()).toBeGreaterThan(9 * 60_000);
+      expect(until - Date.now()).toBeLessThanOrEqual(10 * 60_000);
+    });
+
+    it('takes the event back to open to vendors, keeping slots and applications, and logs it', async () => {
+      const { organizer, eventId, parts, browser } = await setup();
+      const reserved = await vendorWithSlot(eventId, parts.slots[0]!.id, organizer.user.id, true);
+      await announceNow(browser, eventId);
+
+      const res = await browser.post(`/api/organizer/events/${eventId}/undo-announce`).send({});
+
+      expect(res.status).toBe(201);
+      expect(res.body).toMatchObject({ status: 'open_to_vendors', applicationsOpen: true, undoAnnounceUntil: null });
+      expect((await prisma.event.findUniqueOrThrow({ where: { id: eventId } })).announcedAt).toBeNull();
+      expect((await prisma.slotAssignment.findUniqueOrThrow({ where: { id: reserved.assignment.id } })).status).toBe('reserved');
+      const log = await prisma.auditLog.findFirstOrThrow({ where: { entityId: eventId, action: 'event.undo_announce' } });
+      expect(log).toMatchObject({ actorUserId: organizer.user.id, changes: { status: { from: 'announced', to: 'open_to_vendors' } } });
+      expect(await prisma.emailNotification.count()).toBe(0);
+    });
+
+    it('hides it from visitors again, and it can be announced again', async () => {
+      const { eventId, browser } = await setup();
+      const { slug } = await prisma.event.findUniqueOrThrow({ where: { id: eventId } });
+      await announceNow(browser, eventId);
+
+      await browser.post(`/api/organizer/events/${eventId}/undo-announce`).send({});
+      expect((await request(app.getHttpServer()).get(`/api/public/events/${slug}`)).body.page).toEqual({ view: 'not_public' });
+
+      expect((await announceNow(browser, eventId)).body.status).toBe('announced');
+    });
+
+    it('refuses once the 10 minutes have passed, and for an event that is not announced', async () => {
+      const { eventId, browser } = await setup();
+      await announceNow(browser, eventId);
+      await prisma.event.update({ where: { id: eventId }, data: { announcedAt: new Date(Date.now() - 11 * 60_000) } });
+
+      const late = await browser.post(`/api/organizer/events/${eventId}/undo-announce`).send({});
+
+      expect(late.status).toBe(409);
+      expect(late.body.message).toBe('You can undo an announcement for 10 minutes. Edit or cancel the event instead.');
+      expect((await browser.get(`/api/organizer/events/${eventId}`)).body.undoAnnounceUntil).toBeNull();
+      const open = await setup();
+      expect((await open.browser.post(`/api/organizer/events/${open.eventId}/undo-announce`).send({})).status).toBe(409);
+    });
+
+    it("refuses another organizer's event", async () => {
+      const { eventId, browser } = await setup();
+      await announceNow(browser, eventId);
+      const other = await createOrganizer(prisma);
+
+      expect((await (await signInAs(app, other.user.email)).post(`/api/organizer/events/${eventId}/undo-announce`).send({})).status).toBe(404);
     });
   });
 
