@@ -5,6 +5,7 @@ import Link from "next/link"
 import { ApprovedMark } from "@/components/ui/approved-mark"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Container } from "@/components/ui/container"
 import { DateStamp } from "@/components/ui/date-stamp"
 import { PhotoPlaceholder } from "@/components/ui/photo-placeholder"
 import { eventDays, formatDay, formatTime, stampDate } from "@/lib/event-format"
@@ -179,6 +180,13 @@ function FilterLink({ href, current, count, children }: { href: string; current:
     </Link>
   )
 }
+
+// A chip row that scrolls sideways on phones. The 4px of padding keeps focus rings
+// from being clipped by the scroll box.
+const scrollRow = "-my-1 flex items-center gap-2 overflow-x-auto py-1 pr-1 [scrollbar-width:none] md:-mx-1 md:px-1"
+// List or Calendar: 44px tall on phones, 40px (with the pill's inset) to match the chips on wider screens.
+const viewItem = "inline-flex h-11 items-center rounded-pill px-3.5 text-label text-muted no-underline md:h-9 md:px-4"
+const viewOn = "bg-surface text-ink shadow-sm"
 
 const stripDay = new Intl.DateTimeFormat("en-US", {
   timeZone: "UTC",
@@ -393,123 +401,123 @@ export function ListingView({ listing, query: params }: { listing: Listing; quer
 
   return (
     <div className="flex flex-col">
-      <section className="flex flex-col gap-8 pt-6 pb-5 md:flex-row md:items-end md:gap-16 md:pt-14 md:pb-8">
-        <div className="flex min-w-0 flex-col gap-3 md:flex-[999_1_520px] md:gap-4">
-          <h1 className="max-w-[680px] text-[30px] leading-9 font-bold tracking-[-0.03em] text-balance md:text-display">
-            Markets, bazaars and pop-ups in Davao
-          </h1>
-          <p className="max-w-[560px] text-muted md:text-body-lg">See what&apos;s on and who&apos;s selling. Every organizer here is approved by Creavent.</p>
-          <form
-            role="search"
-            action="/"
-            className="mt-1 flex h-12 max-w-[600px] items-center gap-2.5 rounded-pill border border-border-strong bg-surface pr-1.5 pl-4.5 text-muted shadow-sm md:mt-2 md:h-13"
-          >
-            <MagnifyingGlassIcon aria-hidden="true" className="size-5 flex-none" />
-            <label htmlFor="listing-q" className="sr-only">
-              Search events
-            </label>
-            <input
-              id="listing-q"
-              type="search"
-              name="q"
-              defaultValue={params.q}
-              placeholder="Events, venues, organizers"
-              className="h-full min-w-0 flex-1 bg-transparent text-body text-ink outline-none"
-            />
-            {(["type", "city", "when", "from", "to"] as const).map((k) => (params[k] ? <input key={k} type="hidden" name={k} value={params[k]} /> : null))}
-            <Button type="submit" className="h-10 rounded-pill max-md:hidden">
-              Search
-            </Button>
-          </form>
-        </div>
-        <div className="flex flex-col gap-2.5 md:flex-[1_1_420px]">
-          <div className="flex items-center justify-between">
-            <h2 className="text-label">Next 7 days</h2>
-            <Link href={listingHref({ ...listParams, view: "calendar" })} className="inline-flex min-h-11 items-center text-sm">
-              Open calendar
-            </Link>
+      <Container>
+        <section className="flex flex-col gap-6 pt-6 pb-5 md:flex-row md:flex-wrap md:items-end md:gap-x-16 md:gap-y-8 md:pt-14 md:pb-8">
+          <div className="flex min-w-0 flex-col gap-3 md:flex-[999_1_520px] md:gap-4">
+            <h1 className="max-w-[680px] text-display text-balance">Markets, bazaars and pop-ups in Davao</h1>
+            <p className="max-w-[560px] text-muted md:text-body-lg">See what&apos;s on and who&apos;s selling. Every organizer here is approved by Creavent.</p>
+            <form
+              role="search"
+              action="/"
+              className="mt-1 flex h-12 max-w-[600px] items-center gap-2.5 rounded-pill border border-border-strong bg-surface pr-1.5 pl-4.5 text-muted shadow-sm md:mt-2 md:h-13"
+            >
+              <MagnifyingGlassIcon aria-hidden="true" className="size-5 flex-none" />
+              <label htmlFor="listing-q" className="sr-only">
+                Search events
+              </label>
+              <input
+                id="listing-q"
+                type="search"
+                name="q"
+                defaultValue={params.q}
+                placeholder="Events, venues, organizers"
+                className="h-full min-w-0 flex-1 bg-transparent text-body text-ink outline-none"
+              />
+              {(["type", "city", "when", "from", "to"] as const).map((k) => (params[k] ? <input key={k} type="hidden" name={k} value={params[k]} /> : null))}
+              <Button type="submit" className="h-10 rounded-pill max-md:hidden">
+                Search
+              </Button>
+            </form>
           </div>
-          <Next7 listing={listing} />
-        </div>
-      </section>
+          <div className="flex flex-col gap-2.5 md:flex-[1_1_420px]">
+            <div className="flex items-center justify-between">
+              <h2 className="text-label">Next 7 days</h2>
+              <Link href={listingHref({ ...listParams, view: "calendar" })} className="inline-flex min-h-11 items-center text-sm">
+                Open calendar
+              </Link>
+            </div>
+            <Next7 listing={listing} />
+          </div>
+        </section>
+      </Container>
 
-      <div className="-mx-4 flex flex-col gap-2 border-y border-border bg-surface px-4 py-2.5 md:-mx-8 md:flex-row md:flex-wrap md:items-center md:gap-x-4 md:px-8 md:py-3">
-        <nav aria-label="Event type" className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:px-0">
-          <FilterLink href={listingHref(without(params, "type"))} current={!params.type} count={total}>
-            All
-          </FilterLink>
-          {listing.types.map((t) => (
-            <FilterLink key={t.slug} href={listingHref({ ...params, type: t.slug })} current={params.type === t.slug} count={t.count}>
-              {typeLabel(t.name)}
+      {/* One toolbar, each control rendered once. Phones: type chips on the first row, then
+          dates and city scrolling beside the List or Calendar switch. Wider screens: type chips
+          and the switch share the first row, dates and city sit on the second. */}
+      <div className="border-y border-border bg-surface">
+        <Container className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 py-2.5 md:gap-x-6 md:gap-y-3 md:py-3">
+          <nav aria-label="Event type" className={cn(scrollRow, "col-span-2 -mx-4 px-4 md:col-span-1 md:row-start-1")}>
+            <FilterLink href={listingHref(without(params, "type"))} current={!params.type} count={total}>
+              All
             </FilterLink>
-          ))}
-        </nav>
-        <span aria-hidden="true" className="hidden h-7 w-px bg-border md:block" />
-        {/* Phones: dates, city, and List or Calendar share one scrolling row. */}
-        <div className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 [scrollbar-width:none] md:contents">
-          <nav aria-label="Date" className="flex gap-2 md:mx-0">
-            {(
-              [
-                ["any", "Any date"],
-                ["weekend", "This weekend"],
-                ["2weeks", "Next 2 weeks"],
-                ["next_month", nextMonthName(listing.today)],
-              ] as const
-            ).map(([when, label]) => (
-              <FilterLink
-                key={when}
-                href={listingHref({
-                  ...without(params, "when", "from", "to"),
-                  when: when === "any" ? undefined : when,
-                })}
-                current={(params.when ?? "any") === when}
-              >
-                {label}
+            {listing.types.map((t) => (
+              <FilterLink key={t.slug} href={listingHref({ ...params, type: t.slug })} current={params.type === t.slug} count={t.count}>
+                {typeLabel(t.name)}
               </FilterLink>
             ))}
           </nav>
-          {listing.cities.length > 0 && (
-            <nav aria-label="City" className="flex flex-none gap-2">
-              {listing.cities.map((c) => (
-                <FilterLink key={c} href={listingHref(params.city === c ? without(params, "city") : { ...params, city: c })} current={params.city === c}>
-                  <MapPinIcon aria-hidden="true" className="size-4" />
-                  {c}
+          {/* On phones the row fades out before the switch, so it reads as one that scrolls. */}
+          <div
+            className={cn(
+              scrollRow,
+              "col-start-1 row-start-2 -ml-4 pl-4 max-md:[mask-image:linear-gradient(to_right,black_calc(100%-24px),transparent)] md:col-span-2",
+            )}
+          >
+            <nav aria-label="Date" className="flex flex-none gap-2">
+              {(
+                [
+                  ["any", "Any date"],
+                  ["weekend", "This weekend"],
+                  ["2weeks", "Next 2 weeks"],
+                  ["next_month", nextMonthName(listing.today)],
+                ] as const
+              ).map(([when, label]) => (
+                <FilterLink
+                  key={when}
+                  href={listingHref({
+                    ...without(params, "when", "from", "to"),
+                    when: when === "any" ? undefined : when,
+                  })}
+                  current={(params.when ?? "any") === when}
+                >
+                  {label}
                 </FilterLink>
               ))}
             </nav>
-          )}
-          <div className="flex flex-none md:ml-auto">
-            <nav aria-label="View" className="inline-flex gap-0.5 rounded-pill bg-sunken p-1">
-              <Link
-                href={listingHref(listParams)}
-                aria-current={!calendar ? "page" : undefined}
-                className={cn(
-                  "inline-flex h-9 items-center rounded-pill px-4 text-label no-underline",
-                  !calendar ? "bg-surface text-ink shadow-sm" : "text-muted",
-                )}
-              >
-                List
-              </Link>
-              <Link
-                href={listingHref({
-                  ...listParams,
-                  view: "calendar",
-                  month: params.month,
-                })}
-                aria-current={calendar ? "page" : undefined}
-                className={cn(
-                  "inline-flex h-9 items-center rounded-pill px-4 text-label no-underline",
-                  calendar ? "bg-surface text-ink shadow-sm" : "text-muted",
-                )}
-              >
-                Calendar
-              </Link>
-            </nav>
+            {listing.cities.length > 0 && (
+              <>
+                <span aria-hidden="true" className="h-7 w-px flex-none bg-border" />
+                <nav aria-label="City" className="flex flex-none gap-2">
+                  {listing.cities.map((c) => (
+                    <FilterLink key={c} href={listingHref(params.city === c ? without(params, "city") : { ...params, city: c })} current={params.city === c}>
+                      <MapPinIcon aria-hidden="true" className="size-4" />
+                      {c}
+                    </FilterLink>
+                  ))}
+                </nav>
+              </>
+            )}
           </div>
-        </div>
+          <nav aria-label="View" className="col-start-2 row-start-2 inline-flex gap-0.5 justify-self-end rounded-pill bg-sunken md:row-start-1 md:p-0.5">
+            <Link href={listingHref(listParams)} aria-current={!calendar ? "page" : undefined} className={cn(viewItem, !calendar && viewOn)}>
+              List
+            </Link>
+            <Link
+              href={listingHref({
+                ...listParams,
+                view: "calendar",
+                month: params.month,
+              })}
+              aria-current={calendar ? "page" : undefined}
+              className={cn(viewItem, calendar && viewOn)}
+            >
+              Calendar
+            </Link>
+          </nav>
+        </Container>
       </div>
 
-      <div className="flex flex-col gap-12 pt-8 pb-12 md:gap-14 md:pt-10 md:pb-18">
+      <Container className="flex flex-col gap-12 pt-8 pb-12 md:gap-14 md:pt-10 md:pb-18">
         {calendar ? (
           <Calendar listing={listing} params={params} />
         ) : listing.events.length === 0 ? (
@@ -530,7 +538,13 @@ export function ListingView({ listing, query: params }: { listing: Listing; quer
                   ))}
                 </ul>
               ) : (
-                <ul className="grid grid-cols-1 gap-4 md:grid-cols-[repeat(auto-fill,minmax(360px,1fr))] md:gap-6">
+                // Fewer than three cards share the row in halves rather than leaving an empty column.
+                <ul
+                  className={cn(
+                    "grid grid-cols-1 gap-4 md:gap-6",
+                    g.events.length < 3 ? "md:grid-cols-2" : "md:grid-cols-[repeat(auto-fill,minmax(320px,1fr))]",
+                  )}
+                >
                   {g.events.map((e) => (
                     <EventCard key={e.slug} e={e} />
                   ))}
@@ -540,7 +554,7 @@ export function ListingView({ listing, query: params }: { listing: Listing; quer
           ))
         )}
         <SellBand count={listing.openToVendors} />
-      </div>
+      </Container>
     </div>
   )
 }

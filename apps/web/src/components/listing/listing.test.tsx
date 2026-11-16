@@ -46,6 +46,20 @@ describe("ListingView, list", () => {
     expect(within(dates).getByRole("link", { name: "December" })).toHaveAttribute("href", "/?type=bazaar&when=next_month")
   })
 
+  it("marks a city as current only when the address filters by it", () => {
+    const { unmount } = renderWithQuery(<ListingView listing={listingFixture()} query={{}} />)
+
+    const city = within(screen.getByRole("navigation", { name: "City" })).getByRole("link", { name: "Davao City" })
+    expect(city).not.toHaveAttribute("aria-current")
+    expect(city).toHaveAttribute("href", "/?city=Davao+City")
+    unmount()
+
+    renderWithQuery(<ListingView listing={listingFixture()} query={{ city: "Davao City" }} />)
+    const on = within(screen.getByRole("navigation", { name: "City" })).getByRole("link", { name: "Davao City" })
+    expect(on).toHaveAttribute("aria-current", "page")
+    expect(on).toHaveAttribute("href", "/")
+  })
+
   it("marks today and the days with events in the Next 7 days strip", () => {
     renderWithQuery(<ListingView listing={listingFixture()} query={{}} />)
 

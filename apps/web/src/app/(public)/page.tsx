@@ -3,7 +3,6 @@ import type { Metadata } from "next"
 import { Suspense } from "react"
 
 import { listingHref, ListingView, type ListingParams } from "@/components/listing/listing-view"
-import { Container } from "@/components/ui/container"
 import { getListing } from "@/lib/public-api"
 import { monthDays } from "@/lib/listing"
 
@@ -57,10 +56,8 @@ async function View({ searchParams }: { searchParams: Promise<Record<string, str
 // / (spec §7.3, flow 10).
 export default function EventsPage({ searchParams }: PageProps<"/">) {
   return (
-    <Container>
-      <Suspense>
-        <View searchParams={searchParams} />
-      </Suspense>
-    </Container>
+    <Suspense>
+      <View searchParams={searchParams} />
+    </Suspense>
   )
 }
