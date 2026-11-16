@@ -23,8 +23,10 @@ export function EventActionsMenu({ setup }: { setup: EventSetup }) {
   const live = setup.status === "open_to_vendors" || setup.status === "announced"
   const isPublic = setup.status === "announced" || setup.status === "completed"
   const undo = useUndoAnnounce(setup)
-  // Checked when the menu renders; the API refuses a late undo anyway.
-  const canUndo = setup.undoAnnounceUntil !== null && Date.parse(setup.undoAnnounceUntil) > Date.now()
+  // The time is read when the menu opens, not while rendering; the API
+  // refuses a late undo anyway.
+  const [openedAt, setOpenedAt] = React.useState(0)
+  const canUndo = setup.undoAnnounceUntil !== null && Date.parse(setup.undoAnnounceUntil) > openedAt
 
   // Close or reopen applications (spec §3.3).
   async function toggleApplications() {
@@ -37,7 +39,7 @@ export function EventActionsMenu({ setup }: { setup: EventSetup }) {
 
   return (
     <>
-      <DropdownMenu>
+      <DropdownMenu onOpenChange={(open) => open && setOpenedAt(Date.now())}>
         <DropdownMenuTrigger asChild>
           <Button type="button" variant="secondary" size="icon" aria-label="More actions">
             <DotsThreeIcon aria-hidden="true" weight="bold" />
