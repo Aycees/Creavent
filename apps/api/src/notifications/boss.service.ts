@@ -4,6 +4,10 @@ import { PgBoss } from 'pg-boss';
 export const SEND_EMAIL_QUEUE = 'send-email';
 // Hourly: announced events that have ended become completed (architecture §6.1).
 export const COMPLETE_EVENTS_QUEUE = 'complete-events';
+// Daily: payment records and documents past retention (spec §6.7).
+export const RETENTION_QUEUE = 'retention';
+// Daily: removed files and uploads that never completed (spec §11.7).
+export const CLEANUP_FILES_QUEUE = 'cleanup-files';
 
 // pg-boss keeps its jobs in Postgres (docs/architecture.md §6.1). It starts on
 // first use, so the API can boot without a database.
@@ -30,6 +34,8 @@ export class BossService implements OnModuleDestroy {
       retryBackoff: true,
     });
     await boss.createQueue(COMPLETE_EVENTS_QUEUE);
+    await boss.createQueue(RETENTION_QUEUE);
+    await boss.createQueue(CLEANUP_FILES_QUEUE);
     return boss;
   }
 
