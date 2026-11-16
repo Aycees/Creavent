@@ -233,6 +233,19 @@ Decisions are written into the [Feature specification](feature-specification.md)
 | Q9 | There is no general "unannounce": once announced, an event stays public until it ends or is canceled, so shared links and vendors' "Find them next at" don't vanish without a word. For an announcement made by mistake or too early, the organizer can undo it for 10 minutes (`UNDO_ANNOUNCE_MINUTES`), from Undo on the confirmation or Undo announce in More actions. Undoing goes back to open to vendors, keeps slots, payments, and applications, and emails nobody. After that, they edit or cancel the event. | 2026-11-16 |
 | Q8 | The change email is sent when the dates, hours, venue, address, or city change on an event that is open to vendors or announced, and shows the old and new values. | 2026-11-16 |
 
+**Admin and operations on 2026-11-17 (R1 to R8).** Settled before building Phase 5, from the Phase 5 mockups (R8 while building).
+
+| # | Decision | Date |
+|---|---|---|
+| R1 | Suspending an organizer offers "Also hide their N upcoming events", ticked by default. Each hidden event gets the same reason and its own "event hidden" email. Vendors are still emailed by hand from the support inbox. | 2026-11-17 |
+| R2 | While an event is hidden, a vendor's application page stays open with a notice. The vendor can't release, pay for, change, or withdraw from it until the event is shown again. The organizer's event page shows the reason. | 2026-11-17 |
+| R3 | A person has at most one open report about the same event or user. A second try answers "You already reported this" with the reference. After a decision they can report it again, which starts a new group. You can't report yourself or your own event. | 2026-11-17 |
+| R4 | Reinstating a role and showing an event again send no email. The in-app notice goes away. The only new email is "event hidden" to the organizer. | 2026-11-17 |
+| R5 | The report link sits at the bottom of the event, organizer and vendor pages, for signed-in users. Signed-out visitors see the support email there. Reasons: fake event or account, scam, inappropriate content, something else. | 2026-11-17 |
+| R6 | The 90 days for payment records count from the event's last day, or from the day it was canceled. | 2026-11-17 |
+| R7 | The worker runs on Render's Docker runtime with `postgresql-client-17`, so the nightly `pg_dump` matches the database. The 30-day lifecycle rule on the backups bucket is set by hand in R2. | 2026-11-17 |
+| R8 | A suspended role keeps read access to its own pages (dashboard, applications, events) behind a notice with the reason. Every change is refused. Found while building: the API refused reads too. | 2026-11-17 |
+
 ### D9. Editing an approved organizer's name and links (resolved 2026-11-13)
 
 An approved organizer can edit everything on their organizer profile. Changing the display name, or adding a link the admin didn't review, sends them back to `pending_review`, and the "Approved by Creavent" badge hides until an admin approves again. Removing a link, and changing the page link, city, about, logo, or contact email, keep the approval. The links reviewed at each decision are kept in `user_roles.reviewed_links`. Onboarding still refuses these changes while a review is pending or after approval, because the profile page is where they are edited.

@@ -25,7 +25,9 @@
 //   vendor8@ Bulak Studio    slot A-03, payment overdue
 //   vendor9@ Retro Laruan    removed, can't apply again
 //
-// The last section ("A populated platform") adds 4 more organizers, 3 in other
+// Reports and moderation (Phase 5) are listed in their section at the end.
+//
+// The section "A populated platform" adds 4 more organizers, 3 in other
 // states, 23 more vendors, and about 20 more events with their bookings and
 // applications. It lists them.
 //
@@ -1173,6 +1175,46 @@ await event('suspended@creavent.test', 'marfori-mega-sale', {
   slots: { create: row('Z', 8, 'Annex', '2 × 2 m', 0) },
 }, 'pop-up');
 await book('marfori-mega-sale', 'Z', 1, 9, [[v.replika, preloved.id, 2, 'reserved']]);
+
+// ─── Phase 5: reports and moderation ───────────────────────────────────────
+// Open, grouped by target, oldest first:
+//   Ukay Sunday sa People's Park  2 reports: the report button (vendor@) and a
+//                                 support email added by the admin
+//   Kalye Kicks (vendor7@)        1 user report from organizer2@
+//   Kadayawan Rain Market         1 report from the support inbox
+// Resolved: a dismissed report about Matina Night Flea, and the 2 reports that
+// hid Mega Sale: Branded Everything and suspended suspended@ (with their audit
+// log rows). vendor32@'s vendor role is suspended.
+if ((await prisma.report.count()) === 0) {
+  const eventId = async (slug: string) => (await prisma.event.findUniqueOrThrow({ where: { slug } })).id;
+  const userId = async (email: string) => (await prisma.user.findUniqueOrThrow({ where: { email } })).id;
+  const ago = (days: number, hours = 0) => new Date(Date.now() - days * day - hours * 3_600_000);
+  const ukay = await eventId('ukay-sunday-peoples-park');
+  const rain = await eventId('kadayawan-rain-market');
+  const matina = await eventId('matina-night-flea');
+  const mega = await eventId('marfori-mega-sale');
+  const reports: Prisma.ReportCreateManyInput[] = [
+    { source: 'report_button', reporterUserId: vendor.id, targetType: 'event', targetEventId: ukay, reason: 'scam', details: 'They asked for a ₱500 reservation through a personal GCash before I could apply.', createdAt: ago(3, 4) },
+    { source: 'support_email', reporterEmail: 'buyer.toril@example.com', createdById: adminUser.id, targetType: 'event', targetEventId: ukay, reason: 'fake_account', details: 'The photos on this page are from a different market last year.', createdAt: ago(2, 6) },
+    { source: 'report_button', reporterUserId: await userId('organizer2@creavent.test'), targetType: 'user', targetUserId: await userId('vendor7@creavent.test'), reason: 'scam', details: 'Took a ₱500 deposit for shoes at our last market and never showed up.', createdAt: ago(2) },
+    { source: 'support_email', reporterEmail: 'visitor.dvo@example.com', createdById: adminUser.id, targetType: 'event', targetEventId: rain, reason: 'other', details: 'Is this event still on? The page says canceled but the organizer posted it again.', createdAt: ago(0, 5) },
+    { source: 'report_button', reporterUserId: await userId('vendor2@creavent.test'), targetType: 'event', targetEventId: matina, reason: 'inappropriate_content', details: 'One of the photos looks edited.', createdAt: ago(9), status: 'dismissed', actionTaken: 'none', resolvedById: adminUser.id, resolvedAt: ago(8), resolutionNote: 'Checked the photos against the organizer page. Same venue, nothing wrong.' },
+    { source: 'report_button', reporterUserId: await userId('vendor3@creavent.test'), targetType: 'event', targetEventId: mega, reason: 'scam', details: 'Branded bags at 90% off: these are counterfeits.', createdAt: ago(6), status: 'actioned', actionTaken: 'event_hidden', resolvedById: adminUser.id, resolvedAt: ago(4), resolutionNote: 'The organizer page shows no stock from the brands listed.' },
+    { source: 'support_email', reporterEmail: 'shopper@example.com', createdById: adminUser.id, targetType: 'event', targetEventId: mega, reason: 'fake_account', details: 'This seller was banned from another market group.', createdAt: ago(5), status: 'actioned', actionTaken: 'event_hidden', resolvedById: adminUser.id, resolvedAt: ago(4), resolutionNote: 'The organizer page shows no stock from the brands listed.' },
+  ];
+  await prisma.report.createMany({ data: reports });
+  const resolved = await prisma.report.findMany({ where: { status: { not: 'open' } } });
+  const suspendedRole = await prisma.userRole.findFirstOrThrow({ where: { user: { email: 'suspended@creavent.test' }, role: 'organizer' } });
+  const vendorRole = await prisma.userRole.findFirstOrThrow({ where: { user: { email: 'vendor32@creavent.test' }, role: 'vendor' } });
+  await prisma.auditLog.createMany({
+    data: [
+      ...resolved.map((r) => ({ actorUserId: adminUser.id, action: 'report.resolve', entityType: 'report', entityId: r.id, changes: { status: { from: 'open', to: r.status }, actionTaken: r.actionTaken }, reason: r.resolutionNote, createdAt: r.resolvedAt! })),
+      { actorUserId: adminUser.id, action: 'event.hide', entityType: 'event', entityId: mega, changes: { moderationState: { from: 'visible', to: 'hidden' } }, reason: 'Listing promises branded goods at prices that suggest counterfeits', createdAt: ago(4) },
+      { actorUserId: adminUser.id, action: 'user_role.suspend', entityType: 'user_role', entityId: suspendedRole.id, changes: { role: 'organizer', suspended: { from: false, to: true } }, reason: suspendedRole.suspensionReason, createdAt: ago(4) },
+      { actorUserId: adminUser.id, action: 'user_role.suspend', entityType: 'user_role', entityId: vendorRole.id, changes: { role: 'vendor', suspended: { from: false, to: true } }, reason: vendorRole.suspensionReason, createdAt: ago(6) },
+    ],
+  });
+}
 
 await prisma.$disconnect();
 console.log(

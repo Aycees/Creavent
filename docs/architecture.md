@@ -226,7 +226,7 @@ The upload rules are in [Feature specification §11](feature-specification.md#11
 
 ### 9.3 Backups
 
-- **Database:** the worker runs `pg_dump` every night and uploads the file to the backups bucket in R2. Dumps are kept for **30 days** through an R2 lifecycle rule, so there is always a dated copy from before any bad data.
+- **Database:** the worker runs `pg_dump` every night (2 AM Manila, custom format) and uploads the file to the backups bucket in R2 as `db/creavent-YYYY-MM-DD.dump`. The worker runs on Render's Docker runtime so its `pg_dump` matches Postgres 17 (decision R7). Dumps are kept for **30 days** through an R2 lifecycle rule, so there is always a dated copy from before any bad data.
 - **Restore drill:** restore a dump into a fresh database at least once before launch, and write down the steps.
 - **Files:** permits and proofs live in R2, not in the database, so database dumps do not cover them. File paths are never reused (section 7), so a file cannot be overwritten by mistake.
 - **Deleted data in backups:** data that is deleted (payment records after 90 days, wiped accounts) stays in the dumps for up to 30 more days. The privacy notice should say so (open question G3).

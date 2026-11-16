@@ -406,13 +406,23 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 2. Open the report (reports on the same event or user are grouped) → look at the user or event → add an internal note → dismiss, hide the event, or suspend the user's role.
 3. Hiding an event needs a reason, which is emailed to the organizer.
 
+**Acceptance criteria for reports (Phase 5)**
+- Signed-in users see "Report this event" (or organizer, or vendor) at the bottom of the public page, choose a reason, and get a reference number. Signed-out visitors, and the page's owner, see the support email instead. One open report per person and target.
+- Only admins can open the queue, add a report from a support email, or decide. Open reports are grouped by target, oldest first. A decision resolves every open report in the group, writes `report.resolve` audit rows, and saves the internal note.
+- Hiding the event needs a reason, which is emailed to the organizer. Suspending needs a reason, shown in the app: an event report suspends the organizer role, a user report one of the user's roles. A resolved group can't be decided again, and shows who decided and when.
+
 **Suspending a role**
 1. Choose the role to suspend (vendor or organizer) and write a reason. The user sees the reason in the app. The other role keeps working.
 
 **Suspending an organizer with live events**
-1. Suspend the organizer role.
-2. Hide each of their upcoming events.
-3. Email the vendors who applied or have a slot, from the support address.
+1. Suspend the organizer role, with "Also hide their N upcoming events" ticked (decision R1).
+2. Email the vendors who applied or have a slot, from the support address.
+
+**Acceptance criteria for users and events (Phase 5)**
+- Admins list and search users (name, email, shop, organizer name) filtered by All, Vendors, Organizers, Suspended, and events filtered by status, Reported, Hidden, and Drafts. The header search finds both.
+- Suspending or reinstating one role writes an audit row. The suspended role sees a notice with the reason on its pages and can't change anything. The other role keeps working.
+- Hiding an event emails the organizer and takes it off every public page. While hidden, the organizer sees the reason, and vendors can't release, pay, change, or withdraw. Showing it again sends no email.
+- Each admin view of an application document or proof of payment writes an audit row, shown in the event's history.
 
 **Edge cases**
 - **A user needs a data fix the admin pages can't do:** the team fixes it directly in the database. Spec §2.
