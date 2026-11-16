@@ -1,14 +1,24 @@
 import type { Metadata } from "next"
+import { Suspense } from "react"
 
-import { PlaceholderPage } from "@/components/layout/placeholder-page"
+import { LegalView } from "@/components/public/static-pages"
 import { Container } from "@/components/ui/container"
+import { getPublicConfig } from "@/lib/public-api"
 
-export const metadata: Metadata = { title: "Terms · Creavent" }
+export const metadata: Metadata = { title: "Terms of use · Creavent" }
 
-export default function TermsPage() {
+async function View() {
+  const config = await getPublicConfig()
+  return <LegalView kind="terms" version={config.termsVersion} minimumAge={config.minimumAge} supportEmail={config.supportEmail} />
+}
+
+// /terms (sitemap §3).
+export default function Page() {
   return (
-    <Container className="py-8 md:py-12">
-      <PlaceholderPage title="Terms" slice="4.6 (static pages)" />
+    <Container className="py-8 md:py-16">
+      <Suspense>
+        <View />
+      </Suspense>
     </Container>
   )
 }

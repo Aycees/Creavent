@@ -201,7 +201,7 @@ The upload rules are in [Feature specification §11](feature-specification.md#11
 - **Data:** server components for public pages. TanStack Query on signed-in screens.
 - **Forms:** react-hook-form with the shared Zod schemas.
 - **Floor plan:** two uploaded images per event (spec §3.4), shown as plain images. Slots are a list in the database, with no positions.
-- **Public pages and SEO:** event, organizer, and vendor pages are cached by Next.js (ISR) and refreshed when the organizer or vendor publishes or edits. A vendor page also changes when the vendor's slot is reserved or removed, or when an event is announced or canceled. They include Open Graph tags so links share well on Facebook.
+- **Public pages and SEO:** the listing and the event, organizer, and vendor pages are cached by Next.js (`use cache` with tags) and refreshed when the organizer or vendor publishes or edits. Each public API response lists its cache tags (`listing`, `event:<id>`, `organizer:<id>`, `vendor:<id>`); after a change, the API posts the affected tags to the web app's `/internal/revalidate` route with `REVALIDATE_SECRET`, which expires them at once (decision Q1). The listing also refreshes every 15 minutes, so "today" rolls over. A vendor page also changes when the vendor's slot is reserved or removed, or when an event is announced or canceled. They include Open Graph tags so links share well on Facebook.
 - **Search:** Postgres full-text search with filters for event type, location (city), and date, as in spec §7. The listing's List and Calendar views use the same filtered data. No separate search service and no map search in the MVP. There is no vendor search (spec §7.2).
 - **Language:** English only. No translation setup.
 
