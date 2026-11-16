@@ -4,10 +4,12 @@ import Link from "next/link"
 
 import { Alert } from "@/components/ui/alert"
 import { ApprovedMark } from "@/components/ui/approved-mark"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { DateStamp } from "@/components/ui/date-stamp"
 import { PhotoPlaceholder } from "@/components/ui/photo-placeholder"
+import { initialsOf } from "@/lib/shell-user"
 import { eventDays, formatDay, formatSchedule, formatTime, stampDate } from "@/lib/event-format"
 
 import { CopyLinkButton } from "./copy-link-button"
@@ -123,8 +125,8 @@ export function PublicEventView({ event: e, supportEmail }: { event: PublicEvent
       </header>
 
       <div className="flex flex-col gap-8 md:grid md:grid-cols-[minmax(0,1fr)_340px] md:items-start md:gap-x-12">
-        {/* Phones: the summary card follows the title, so dates and directions
-            are one scroll away. Desktop: it stays beside the content. */}
+        {/* Phones: the cover, then the summary card, so dates and directions
+            are one scroll away, then the rest. Desktop: the summary stays beside the content. */}
         <aside className="flex flex-col gap-4 md:sticky md:top-6 md:col-start-2 md:row-span-2 md:row-start-1">
           <section aria-label="When and where" className="flex flex-col gap-5 rounded-lg border border-border bg-surface p-4 md:p-6 md:shadow-md">
             <div className="flex items-center gap-4">
@@ -170,8 +172,10 @@ export function PublicEventView({ event: e, supportEmail }: { event: PublicEvent
 
           <section aria-label="Organizer" className="flex flex-col gap-3.5 rounded-lg border border-border bg-surface p-5">
             <div className="flex items-center gap-3">
-              {/* eslint-disable-next-line @next/next/no-img-element -- R2 addresses, already sized */}
-              {e.organizer.logoUrl ? <img src={e.organizer.logoUrl} alt="" className="size-12 rounded-pill object-cover" /> : null}
+              <Avatar size="lg">
+                {e.organizer.logoUrl && <AvatarImage src={e.organizer.logoUrl} alt="" />}
+                <AvatarFallback>{initialsOf(e.organizer.displayName)}</AvatarFallback>
+              </Avatar>
               <div className="flex flex-col">
                 <OrganizerName organizer={e.organizer} />
                 {e.organizer.approved && <ApprovedMark />}
@@ -187,18 +191,11 @@ export function PublicEventView({ event: e, supportEmail }: { event: PublicEvent
               </Button>
             )}
           </section>
-
-          <p className="px-1 text-sm text-muted">
-            Something wrong with this event? Email us at{" "}
-            <a href={`mailto:${supportEmail}`} className="text-ink underline underline-offset-2">
-              {supportEmail}
-            </a>{" "}
-            and we&apos;ll look into it.
-          </p>
         </aside>
 
-        <div className="flex min-w-0 flex-col gap-10 md:col-start-1 md:row-start-1">
-          <div className="overflow-hidden rounded-xl">
+        {/* On phones this column dissolves into the page's single column so the cover can lead. */}
+        <div className="flex min-w-0 flex-col gap-10 max-md:contents md:col-start-1 md:row-start-1">
+          <div className="overflow-hidden rounded-xl max-md:order-first">
             {/* eslint-disable-next-line @next/next/no-img-element -- R2 addresses, already sized */}
             {e.coverUrl ? <img src={e.coverUrl} alt="" className="aspect-[3/2] w-full object-cover" /> : <PhotoPlaceholder ratio="3/2" />}
           </div>
@@ -233,6 +230,14 @@ export function PublicEventView({ event: e, supportEmail }: { event: PublicEvent
               <img src={e.publicFloorPlanUrl} alt="Floor plan with each vendor's slot" className="w-full rounded-lg border border-border" />
             </section>
           )}
+
+          <p className="text-sm text-muted">
+            Something wrong with this event? Email us at{" "}
+            <a href={`mailto:${supportEmail}`} className="text-ink underline underline-offset-2">
+              {supportEmail}
+            </a>{" "}
+            and we&apos;ll look into it.
+          </p>
         </div>
       </div>
     </article>

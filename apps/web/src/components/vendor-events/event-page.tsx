@@ -65,7 +65,8 @@ const visibility: Record<EventStatus, string> = {
 // The organizer's bar above their own event (mockup EventOrganizerPhone).
 function ManageBar({ slug, eventId, status }: { slug: string; eventId: string; status: EventStatus }) {
   return (
-    <div className="-mx-4 -mt-6 flex flex-wrap items-center gap-3 bg-inverse px-4 py-3 text-on-inverse md:mx-0 md:mt-0 md:rounded-lg md:px-5">
+    // White focus rings: the default blue is too dark to see on the ink bar.
+    <div className="-mx-4 -mt-6 flex flex-wrap items-center gap-3 bg-inverse px-4 py-3 text-on-inverse md:mx-0 md:mt-0 md:rounded-lg md:px-5 [&_:focus-visible]:outline-on-inverse">
       <div className="min-w-0 flex-[1_1_220px]">
         <p className="text-label font-semibold">Your event, as visitors will see it</p>
         <p className="text-cap text-on-inverse-muted">{visibility[status]}</p>

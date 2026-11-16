@@ -37,7 +37,7 @@ export function VendorList({ vendors, title }: { vendors: PublicVendorRow[]; tit
         <div
           role="group"
           aria-label="Filter by category"
-          className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:flex-wrap md:px-0 [&::-webkit-scrollbar]:hidden"
+          className="-mx-4 -my-1 flex gap-2 overflow-x-auto px-4 py-1 [scrollbar-width:none] md:mx-0 md:flex-wrap md:px-0 [&::-webkit-scrollbar]:hidden"
         >
           <Chip pressed={category === null} count={vendors.length} onClick={() => setCategory(null)}>
             All
@@ -50,7 +50,7 @@ export function VendorList({ vendors, title }: { vendors: PublicVendorRow[]; tit
         </div>
       )}
       {visible.length > 0 && (
-        <ul className="flex flex-col overflow-hidden rounded-lg border border-border bg-surface md:grid md:grid-cols-[repeat(auto-fill,minmax(260px,1fr))] md:gap-2.5 md:overflow-visible md:border-0 md:bg-transparent">
+        <ul className="flex flex-col overflow-hidden rounded-lg border border-border bg-surface md:grid md:grid-cols-[repeat(auto-fill,minmax(min(280px,100%),1fr))] md:gap-2.5 md:overflow-visible md:border-0 md:bg-transparent">
           {visible.map((v) => {
             const body = (
               <>
