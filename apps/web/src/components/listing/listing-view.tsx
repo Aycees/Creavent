@@ -9,9 +9,11 @@ import { Container } from "@/components/ui/container"
 import { DateStamp } from "@/components/ui/date-stamp"
 import { PhotoPlaceholder } from "@/components/ui/photo-placeholder"
 import { eventDays, formatDay, formatTime, stampDate } from "@/lib/event-format"
-import { groupByWeekend, monthDays, monthLabel, nextMonthName, runsOn, shiftMonth } from "@/lib/listing"
+import { groupByWeekend, monthDays, monthLabel, nextMonthName, runsOn, shiftMonth, spanLabel } from "@/lib/listing"
 import { cn } from "@/lib/utils"
 
+import { FilterMenu } from "./filter-menu"
+import { LaterCarousel } from "./later-carousel"
 import { SellLink } from "./sell-link"
 
 export type ListingParams = {
@@ -75,29 +77,46 @@ function Tags({ e }: { e: ListingCard }) {
 }
 
 // A big card for this and next weekend (mockup ListingP4): the date stamp
-// sits on the cover's edge.
-export function EventCard({ e }: { e: ListingCard }) {
+// sits on the cover's edge. With `rowOnPhone` the same markup lays out as a
+// compact row on phones (cover and organizer dropped), for Next weekend.
+export function EventCard({ e, rowOnPhone, className }: { e: ListingCard; rowOnPhone?: boolean; className?: string }) {
   return (
-    <li>
+    <li className={cn(rowOnPhone && "max-md:border-b max-md:border-border max-md:last:border-b-0", className)}>
       <Link
         href={`/events/${e.slug}`}
-        className="flex h-full flex-col overflow-hidden rounded-lg border border-border bg-surface text-ink no-underline shadow-sm transition-shadow hover:shadow-md"
+        className={cn(
+          "flex h-full flex-col overflow-hidden rounded-lg border border-border bg-surface text-ink no-underline shadow-sm transition-shadow hover:shadow-md",
+          rowOnPhone && "max-md:flex-row max-md:items-center max-md:gap-4 max-md:rounded-none max-md:border-0 max-md:px-4 max-md:py-3.5 max-md:shadow-none",
+        )}
       >
         {e.coverUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- R2 addresses, already sized
-          <img src={e.coverUrl} alt="" className="aspect-video w-full object-cover" />
+          <img src={e.coverUrl} alt="" className={cn("aspect-video w-full object-cover", rowOnPhone && "max-md:hidden")} />
         ) : (
-          <PhotoPlaceholder />
+          <PhotoPlaceholder className={cn(rowOnPhone && "max-md:hidden")} />
         )}
-        <span className="relative flex flex-1 flex-col gap-1.5 px-4 pt-10 pb-4 md:px-5 md:pb-5">
-          <Stamp e={e} className="absolute -top-7.5 left-4 shadow-sm md:left-5" />
-          <Tags e={e} />
-          <span className="text-h3 md:text-[20px] md:leading-[26px]">{e.name}</span>
-          <span className="text-sm text-muted">{cardWhen(e)}</span>
-          <span className="text-sm text-muted">{[e.venueName, e.city].filter(Boolean).join(", ")}</span>
-          <span className="mt-1.5 flex flex-wrap items-center gap-2 text-sm">
-            {e.organizer.displayName}
-            {e.organizer.approved && <ApprovedMark compact link={false} />}
+        <span
+          className={cn(
+            "relative flex flex-1 flex-col gap-1.5 px-4 pt-10 pb-4 md:px-5 md:pb-5",
+            rowOnPhone && "max-md:flex-row max-md:items-center max-md:gap-4 max-md:p-0",
+          )}
+        >
+          <Stamp
+            e={e}
+            className={cn(
+              "absolute -top-7.5 left-4 shadow-sm md:left-5",
+              rowOnPhone && "max-md:static max-md:h-12 max-md:w-11 max-md:shadow-none max-md:[&_[data-day]]:text-[19px] max-md:[&_[data-sub]]:hidden",
+            )}
+          />
+          <span className={cn("flex min-w-0 flex-col gap-1.5", rowOnPhone && "max-md:gap-0.5")}>
+            <Tags e={e} />
+            <span className="text-h3 md:text-[20px] md:leading-[26px]">{e.name}</span>
+            <span className="text-sm text-muted">{cardWhen(e)}</span>
+            <span className="text-sm text-muted">{[e.venueName, e.city].filter(Boolean).join(", ")}</span>
+            <span className={cn("mt-1.5 flex flex-wrap items-center gap-2 text-sm", rowOnPhone && "max-md:hidden")}>
+              {e.organizer.displayName}
+              {e.organizer.approved && <ApprovedMark compact link={false} />}
+            </span>
           </span>
         </span>
       </Link>
@@ -114,15 +133,16 @@ export const cardGrid = (count: number) =>
 export function EventRow({ e, note }: { e: ListingCard; note?: string }) {
   return (
     <li className="border-b border-border last:border-b-0">
-      <Link href={`/events/${e.slug}`} className="flex min-h-19 items-center gap-4 px-4 py-3.5 text-ink no-underline md:px-5">
-        <Stamp e={e} className="h-12 w-11 [&_[data-day]]:text-[19px] [&_[data-sub]]:hidden" />
-        <span className="flex min-w-0 flex-1 flex-col">
+      <Link href={`/events/${e.slug}`} className="flex min-h-19 items-center gap-3 px-4 py-3.5 text-ink no-underline">
+        <Stamp e={e} className="h-12 w-11 self-start [&_[data-day]]:text-[19px] [&_[data-sub]]:hidden" />
+        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="text-[16px] leading-[22px] font-semibold">{e.name}</span>
-          <span className="text-sm text-muted">{[e.typeName, note ?? cardWhen(e), e.venueName].filter(Boolean).join(" · ")}</span>
-        </span>
-        <span className="hidden items-center gap-2 text-sm text-muted md:flex">
-          {e.organizer.displayName}
-          {e.organizer.approved && <ApprovedMark sealOnly link={false} />}
+          <span className="text-sm text-muted">{[e.typeName, note ?? cardWhen(e)].join(" · ")}</span>
+          <span className="text-sm text-muted">{[e.venueName, e.city].filter(Boolean).join(", ")}</span>
+          <span className="flex items-center gap-1.5 text-sm text-muted">
+            {e.organizer.displayName}
+            {e.organizer.approved && <ApprovedMark sealOnly link={false} />}
+          </span>
         </span>
         <CaretRightIcon aria-hidden="true" className="size-5 flex-none text-muted" />
       </Link>
@@ -403,6 +423,12 @@ export function ListingView({ listing, query: params }: { listing: Listing; quer
   const listParams = without(params, "view", "month", "day")
   const total = listing.types.reduce((sum, t) => sum + t.count, 0)
   const groups = groupByWeekend(listing.events, listing.today)
+  const dates = [
+    { when: "any", label: "Any date" },
+    { when: "weekend", label: "This weekend" },
+    { when: "2weeks", label: "Next 2 weeks" },
+    { when: "next_month", label: nextMonthName(listing.today) },
+  ] as const
 
   return (
     <div className="flex flex-col">
@@ -425,7 +451,7 @@ export function ListingView({ listing, query: params }: { listing: Listing; quer
                 type="search"
                 name="q"
                 defaultValue={params.q}
-                placeholder="Events, venues, organizers"
+                placeholder="Search events, venues, or organizers"
                 className="h-full min-w-0 flex-1 bg-transparent text-body text-ink outline-none"
               />
               {(["type", "city", "when", "from", "to"] as const).map((k) => (params[k] ? <input key={k} type="hidden" name={k} value={params[k]} /> : null))}
@@ -447,11 +473,10 @@ export function ListingView({ listing, query: params }: { listing: Listing; quer
       </Container>
 
       {/* One toolbar, each control rendered once. Phones: type chips on the first row, then
-          dates and city scrolling beside the List or Calendar switch. Wider screens: type chips
-          and the switch share the first row, dates and city sit on the second. */}
+          the city and date menus beside the List or Calendar switch. Wider screens: all on one row. */}
       <div className="border-y border-border bg-surface">
-        <Container className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 py-2.5 md:gap-x-6 md:gap-y-3 md:py-3">
-          <nav aria-label="Event type" className={cn(scrollRow, "col-span-2 -mx-4 px-4 md:col-span-1 md:row-start-1")}>
+        <Container className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 py-2.5 md:flex md:gap-x-4 md:py-3">
+          <nav aria-label="Event type" className={cn(scrollRow, "col-span-2 -mx-4 px-4 md:min-w-0")}>
             <FilterLink href={listingHref(without(params, "type"))} current={!params.type} count={total}>
               All
             </FilterLink>
@@ -461,49 +486,32 @@ export function ListingView({ listing, query: params }: { listing: Listing; quer
               </FilterLink>
             ))}
           </nav>
-          {/* On phones the row fades out before the switch, so it reads as one that scrolls. */}
           <div
             className={cn(
               scrollRow,
-              "col-start-1 row-start-2 -ml-4 pl-4 max-md:[mask-image:linear-gradient(to_right,black_calc(100%-24px),transparent)] md:col-span-2",
+              "col-start-1 row-start-2 -ml-4 pl-4 max-md:[mask-image:linear-gradient(to_right,black_calc(100%-24px),transparent)] md:ml-0 md:pl-1",
             )}
           >
-            <nav aria-label="Date" className="flex flex-none gap-2">
-              {(
-                [
-                  ["any", "Any date"],
-                  ["weekend", "This weekend"],
-                  ["2weeks", "Next 2 weeks"],
-                  ["next_month", nextMonthName(listing.today)],
-                ] as const
-              ).map(([when, label]) => (
-                <FilterLink
-                  key={when}
-                  href={listingHref({
-                    ...without(params, "when", "from", "to"),
-                    when: when === "any" ? undefined : when,
-                  })}
-                  current={(params.when ?? "any") === when}
-                >
-                  {label}
-                </FilterLink>
-              ))}
-            </nav>
             {listing.cities.length > 0 && (
-              <>
-                <span aria-hidden="true" className="h-7 w-px flex-none bg-border" />
-                <nav aria-label="City" className="flex flex-none gap-2">
-                  {listing.cities.map((c) => (
-                    <FilterLink key={c} href={listingHref(params.city === c ? without(params, "city") : { ...params, city: c })} current={params.city === c}>
-                      <MapPinIcon aria-hidden="true" className="size-4" />
-                      {c}
-                    </FilterLink>
-                  ))}
-                </nav>
-              </>
+              <FilterMenu
+                label={params.city ?? "Any city"}
+                icon={<MapPinIcon aria-hidden="true" className="size-4" />}
+                items={[
+                  { label: "Any city", href: listingHref(without(params, "city")), current: !params.city },
+                  ...listing.cities.map((c) => ({ label: c, href: listingHref({ ...params, city: c }), current: params.city === c })),
+                ]}
+              />
             )}
+            <FilterMenu
+              label={dates.find((d) => d.when === (params.when ?? "any"))?.label ?? "Chosen dates"}
+              items={dates.map((d) => ({
+                label: d.label,
+                href: listingHref({ ...without(params, "when", "from", "to"), when: d.when === "any" ? undefined : d.when }),
+                current: (params.when ?? "any") === d.when,
+              }))}
+            />
           </div>
-          <nav aria-label="View" className="col-start-2 row-start-2 inline-flex gap-0.5 justify-self-end rounded-pill bg-sunken md:row-start-1 md:p-0.5">
+          <nav aria-label="View" className="col-start-2 row-start-2 inline-flex gap-0.5 justify-self-end rounded-pill bg-sunken md:ml-auto md:p-0.5">
             <Link href={listingHref(listParams)} aria-current={!calendar ? "page" : undefined} className={cn(viewItem, !calendar && viewOn)}>
               List
             </Link>
@@ -528,29 +536,39 @@ export function ListingView({ listing, query: params }: { listing: Listing; quer
         ) : listing.events.length === 0 ? (
           <Empty params={params} today={listing.today} />
         ) : (
-          groups.map((g) => (
-            <section key={g.key} aria-labelledby={`g-${g.key}`} className="flex flex-col gap-4 md:gap-5">
-              <div className="flex items-baseline gap-3">
-                <h2 id={`g-${g.key}`} className="text-h3 md:text-h2">
-                  {g.title}
-                </h2>
-                {g.from && g.to && <span className="text-sm text-muted">{`${formatDay(g.from)} and ${formatDay(g.to)}`}</span>}
-              </div>
-              {g.key === "later" ? (
-                <ul className="overflow-hidden rounded-lg border border-border bg-surface">
+          groups.map((g) =>
+            g.key === "later" ? (
+              <LaterCarousel
+                key={g.key}
+                title={g.title}
+                meta={`${spanLabel(g.events)} · ${plural(g.events.length, "event")}`}
+                calendarHref={listingHref({ ...listParams, view: "calendar", month: g.events[0]!.startDate?.slice(0, 7) })}
+              >
+                {g.events.map((e) => (
+                  <EventCard key={e.slug} e={e} className="w-[260px] flex-none md:w-[300px]" />
+                ))}
+              </LaterCarousel>
+            ) : (
+              <section key={g.key} aria-labelledby={`g-${g.key}`} className="flex flex-col gap-4 md:gap-5">
+                <div className="flex items-baseline gap-3">
+                  <h2 id={`g-${g.key}`} className="text-h3 md:text-h2">
+                    {g.title}
+                  </h2>
+                  {g.from && g.to && <span className="text-sm text-muted">{`${formatDay(g.from)} and ${formatDay(g.to)}`}</span>}
+                </div>
+                <ul
+                  className={cn(
+                    cardGrid(g.events.length),
+                    g.key === "next" && "max-md:gap-0 max-md:overflow-hidden max-md:rounded-lg max-md:border max-md:border-border max-md:bg-surface",
+                  )}
+                >
                   {g.events.map((e) => (
-                    <EventRow key={e.slug} e={e} />
+                    <EventCard key={e.slug} e={e} rowOnPhone={g.key === "next"} />
                   ))}
                 </ul>
-              ) : (
-                <ul className={cardGrid(g.events.length)}>
-                  {g.events.map((e) => (
-                    <EventCard key={e.slug} e={e} />
-                  ))}
-                </ul>
-              )}
-            </section>
-          ))
+              </section>
+            ),
+          )
         )}
         <SellBand count={listing.openToVendors} />
       </Container>

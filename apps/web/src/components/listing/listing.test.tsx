@@ -1,4 +1,5 @@
 import { screen, waitFor, within } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { api } from "@/lib/api"
@@ -34,30 +35,38 @@ describe("ListingView, list", () => {
     expect(screen.getByRole("searchbox", { name: "Search events" })).toHaveValue("vintage")
   })
 
-  it("filters by type and date with links, marking the current ones", () => {
+  it("filters by type with links, marking the current one", () => {
     renderWithQuery(<ListingView listing={listingFixture()} query={{ type: "bazaar", when: "weekend" }} />)
 
     const types = screen.getByRole("navigation", { name: "Event type" })
     expect(within(types).getByRole("link", { name: /All 3/ })).toHaveAttribute("href", "/?when=weekend")
     expect(within(types).getByRole("link", { name: /Bazaars 1/ })).toHaveAttribute("aria-current", "page")
     expect(within(types).getByRole("link", { name: /Flea markets 2/ })).toHaveAttribute("href", "/?type=flea-market&when=weekend")
-    const dates = screen.getByRole("navigation", { name: "Date" })
-    expect(within(dates).getByRole("link", { name: "This weekend" })).toHaveAttribute("aria-current", "page")
-    expect(within(dates).getByRole("link", { name: "December" })).toHaveAttribute("href", "/?type=bazaar&when=next_month")
   })
 
-  it("marks a city as current only when the address filters by it", () => {
+  it("filters by date from a menu that names the current choice", async () => {
+    const user = userEvent.setup()
+    renderWithQuery(<ListingView listing={listingFixture()} query={{ type: "bazaar", when: "weekend" }} />)
+
+    await user.click(screen.getByRole("button", { name: /This weekend/ }))
+    const menu = screen.getByRole("menu")
+    expect(within(menu).getByRole("menuitem", { name: "This weekend" })).toHaveAttribute("aria-current", "true")
+    expect(within(menu).getByRole("menuitem", { name: "Any date" })).toHaveAttribute("href", "/?type=bazaar")
+    expect(within(menu).getByRole("menuitem", { name: "December" })).toHaveAttribute("href", "/?type=bazaar&when=next_month")
+  })
+
+  it("filters by city from a menu, and clears it", async () => {
+    const user = userEvent.setup()
     const { unmount } = renderWithQuery(<ListingView listing={listingFixture()} query={{}} />)
 
-    const city = within(screen.getByRole("navigation", { name: "City" })).getByRole("link", { name: "Davao City" })
-    expect(city).not.toHaveAttribute("aria-current")
-    expect(city).toHaveAttribute("href", "/?city=Davao+City")
+    await user.click(screen.getByRole("button", { name: /Any city/ }))
+    expect(screen.getByRole("menuitem", { name: "Davao City" })).toHaveAttribute("href", "/?city=Davao+City")
     unmount()
 
     renderWithQuery(<ListingView listing={listingFixture()} query={{ city: "Davao City" }} />)
-    const on = within(screen.getByRole("navigation", { name: "City" })).getByRole("link", { name: "Davao City" })
-    expect(on).toHaveAttribute("aria-current", "page")
-    expect(on).toHaveAttribute("href", "/")
+    await user.click(screen.getByRole("button", { name: /Davao City/ }))
+    expect(screen.getByRole("menuitem", { name: "Davao City" })).toHaveAttribute("aria-current", "true")
+    expect(screen.getByRole("menuitem", { name: "Any city" })).toHaveAttribute("href", "/")
   })
 
   it("marks today and the days with events in the Next 7 days strip", () => {
@@ -66,6 +75,15 @@ describe("ListingView, list", () => {
     const strip = screen.getByRole("navigation", { name: "Next 7 days" })
     expect(within(strip).getByRole("link", { name: "Today, Thu, Nov 12, no events" })).toBeInTheDocument()
     expect(within(strip).getByRole("link", { name: "Sat, Nov 14, 1 event" })).toHaveAttribute("href", "/?view=calendar&month=2026-11&day=2026-11-14")
+  })
+
+  it("shows Later as a row of cards with its date span and a link to the calendar", () => {
+    renderWithQuery(<ListingView listing={listingFixture()} query={{ type: "flea-market" }} />)
+
+    const later = screen.getByRole("region", { name: "Later" })
+    expect(within(later).getByText("Dec 5 · 1 event")).toBeInTheDocument()
+    expect(within(later).getByRole("link", { name: /Paskong Ukay Night/ })).toHaveAttribute("href", "/events/paskong-ukay-night")
+    expect(within(later).getByRole("link", { name: "See all in calendar" })).toHaveAttribute("href", "/?type=flea-market&view=calendar&month=2026-12")
   })
 
   it("says when nothing matches, with a way out", () => {
