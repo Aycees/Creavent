@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { Suspense } from "react"
 
+import { ReportLink } from "@/components/reports/report-link"
 import { NotFoundView } from "@/components/public/not-found-view"
 import { OrganizerPageView } from "@/components/public/organizer-page"
 import { Container } from "@/components/ui/container"
@@ -21,7 +22,13 @@ export async function generateMetadata({ params }: PageProps<"/organizers/[slug]
 async function View({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const [page, config] = await Promise.all([getOrganizerPage(slug), getPublicConfig()])
-  return page ? <OrganizerPageView page={page} supportEmail={config.supportEmail} /> : <NotFoundView what="organizer" />
+  return page ? (
+    <OrganizerPageView
+      page={page}
+      supportEmail={config.supportEmail}
+      report={<ReportLink targetType="user" targetId={page.organizer.userId} ownerUserId={page.organizer.userId} noun="organizer" supportEmail={config.supportEmail} />}
+    />
+  ) : <NotFoundView what="organizer" />
 }
 
 // /organizers/[slug] (spec §7.1).

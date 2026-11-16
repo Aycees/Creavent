@@ -23160,6 +23160,11 @@
                         "event": {
                           "type": "object",
                           "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
                             "slug": {
                               "type": "string"
                             },
@@ -23230,6 +23235,11 @@
                             "organizer": {
                               "type": "object",
                               "properties": {
+                                "userId": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
                                 "displayName": {
                                   "type": "string"
                                 },
@@ -23261,6 +23271,7 @@
                                 }
                               },
                               "required": [
+                                "userId",
                                 "displayName",
                                 "slug",
                                 "logoUrl",
@@ -23330,6 +23341,7 @@
                             }
                           },
                           "required": [
+                            "id",
                             "slug",
                             "name",
                             "typeName",
@@ -38161,6 +38173,11 @@
                             "event": {
                               "type": "object",
                               "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
                                 "slug": {
                                   "type": "string"
                                 },
@@ -38231,6 +38248,11 @@
                                 "organizer": {
                                   "type": "object",
                                   "properties": {
+                                    "userId": {
+                                      "type": "string",
+                                      "format": "uuid",
+                                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                    },
                                     "displayName": {
                                       "type": "string"
                                     },
@@ -38262,6 +38284,7 @@
                                     }
                                   },
                                   "required": [
+                                    "userId",
                                     "displayName",
                                     "slug",
                                     "logoUrl",
@@ -38331,6 +38354,7 @@
                                 }
                               },
                               "required": [
+                                "id",
                                 "slug",
                                 "name",
                                 "typeName",
@@ -38530,6 +38554,11 @@
                     "organizer": {
                       "type": "object",
                       "properties": {
+                        "userId": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
                         "displayName": {
                           "type": "string"
                         },
@@ -38567,6 +38596,7 @@
                         }
                       },
                       "required": [
+                        "userId",
                         "displayName",
                         "slug",
                         "logoUrl",
@@ -38798,6 +38828,11 @@
                     "vendor": {
                       "type": "object",
                       "properties": {
+                        "userId": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
                         "shopName": {
                           "type": "string"
                         },
@@ -38848,6 +38883,7 @@
                         }
                       },
                       "required": [
+                        "userId",
                         "shopName",
                         "slug",
                         "avatarUrl",
@@ -39071,6 +39107,1347 @@
         },
         "tags": [
           "Public"
+        ]
+      }
+    },
+    "/api/reports": {
+      "post": {
+        "operationId": "ReportsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "targetType": {
+                    "type": "string",
+                    "enum": [
+                      "user",
+                      "event"
+                    ]
+                  },
+                  "targetId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "enum": [
+                      "fake_account",
+                      "scam",
+                      "inappropriate_content",
+                      "other"
+                    ]
+                  },
+                  "details": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 2000
+                  }
+                },
+                "required": [
+                  "targetType",
+                  "targetId",
+                  "reason"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "number": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "number"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Reports"
+        ]
+      }
+    },
+    "/api/reports/mine": {
+      "get": {
+        "operationId": "ReportsController_mine",
+        "parameters": [
+          {
+            "name": "targetType",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "user",
+                "event"
+              ]
+            }
+          },
+          {
+            "name": "targetId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "number": {
+                      "nullable": true,
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "number"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Reports"
+        ]
+      }
+    },
+    "/api/admin/reports": {
+      "get": {
+        "operationId": "AdminReportsController_list",
+        "parameters": [
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "open",
+              "type": "string",
+              "enum": [
+                "open",
+                "resolved"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "target": {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "user",
+                                  "event"
+                                ]
+                              },
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "subtitle": {
+                                "type": "string"
+                              },
+                              "startsAt": {
+                                "nullable": true,
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "id",
+                              "name",
+                              "subtitle",
+                              "startsAt"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "count": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "reasons": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "enum": [
+                                "fake_account",
+                                "scam",
+                                "inappropriate_content",
+                                "other"
+                              ]
+                            }
+                          },
+                          "fromEmail": {
+                            "type": "boolean"
+                          },
+                          "oldestAt": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "open",
+                              "dismissed",
+                              "actioned"
+                            ]
+                          },
+                          "actionTaken": {
+                            "nullable": true,
+                            "type": "string",
+                            "enum": [
+                              "none",
+                              "event_hidden",
+                              "user_suspended",
+                              "other"
+                            ]
+                          },
+                          "resolvedAt": {
+                            "nullable": true,
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "target",
+                          "count",
+                          "reasons",
+                          "fromEmail",
+                          "oldestAt",
+                          "status",
+                          "actionTaken",
+                          "resolvedAt"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "openCount": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "resolvedCount": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "openCount",
+                    "resolvedCount"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "AdminReports"
+        ]
+      },
+      "post": {
+        "operationId": "AdminReportsController_add",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reporterEmail": {
+                    "type": "string",
+                    "format": "email",
+                    "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                  },
+                  "targetType": {
+                    "type": "string",
+                    "enum": [
+                      "user",
+                      "event"
+                    ]
+                  },
+                  "targetId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "enum": [
+                      "fake_account",
+                      "scam",
+                      "inappropriate_content",
+                      "other"
+                    ]
+                  },
+                  "details": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  }
+                },
+                "required": [
+                  "reporterEmail",
+                  "targetType",
+                  "targetId",
+                  "reason",
+                  "details"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "number": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "number"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "AdminReports"
+        ]
+      }
+    },
+    "/api/admin/reports/{id}": {
+      "get": {
+        "operationId": "AdminReportsController_detail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "open",
+                        "dismissed",
+                        "actioned"
+                      ]
+                    },
+                    "actionTaken": {
+                      "nullable": true,
+                      "type": "string",
+                      "enum": [
+                        "none",
+                        "event_hidden",
+                        "user_suspended",
+                        "other"
+                      ]
+                    },
+                    "resolvedAt": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "resolvedByName": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "resolutionNote": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "target": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "user",
+                            "event"
+                          ]
+                        },
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "subtitle": {
+                          "type": "string"
+                        },
+                        "startsAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "organizer": {
+                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "userId": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "suspended": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "userId",
+                            "name",
+                            "suspended"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "hidden": {
+                          "type": "boolean"
+                        },
+                        "roles": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "role": {
+                                "type": "string",
+                                "enum": [
+                                  "vendor",
+                                  "organizer"
+                                ]
+                              },
+                              "name": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "suspended": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "role",
+                              "name",
+                              "suspended"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "id",
+                        "name",
+                        "subtitle",
+                        "startsAt",
+                        "organizer",
+                        "hidden",
+                        "roles"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "reports": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "number": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "reason": {
+                            "type": "string",
+                            "enum": [
+                              "fake_account",
+                              "scam",
+                              "inappropriate_content",
+                              "other"
+                            ]
+                          },
+                          "details": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "source": {
+                            "type": "string",
+                            "enum": [
+                              "report_button",
+                              "support_email"
+                            ]
+                          },
+                          "reporter": {
+                            "type": "string"
+                          },
+                          "addedBy": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "number",
+                          "reason",
+                          "details",
+                          "source",
+                          "reporter",
+                          "addedBy",
+                          "createdAt"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "status",
+                    "actionTaken",
+                    "resolvedAt",
+                    "resolvedByName",
+                    "resolutionNote",
+                    "target",
+                    "reports"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "AdminReports"
+        ]
+      }
+    },
+    "/api/admin/reports/{id}/resolve": {
+      "post": {
+        "operationId": "AdminReportsController_resolve",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "decision": {
+                        "type": "string",
+                        "enum": [
+                          "dismiss"
+                        ]
+                      },
+                      "note": {
+                        "nullable": true,
+                        "type": "string",
+                        "maxLength": 2000
+                      }
+                    },
+                    "required": [
+                      "decision"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "decision": {
+                        "type": "string",
+                        "enum": [
+                          "hide_event"
+                        ]
+                      },
+                      "reason": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 1000
+                      },
+                      "note": {
+                        "nullable": true,
+                        "type": "string",
+                        "maxLength": 2000
+                      }
+                    },
+                    "required": [
+                      "decision",
+                      "reason"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "decision": {
+                        "type": "string",
+                        "enum": [
+                          "suspend_role"
+                        ]
+                      },
+                      "role": {
+                        "type": "string",
+                        "enum": [
+                          "vendor",
+                          "organizer"
+                        ]
+                      },
+                      "reason": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 1000
+                      },
+                      "note": {
+                        "nullable": true,
+                        "type": "string",
+                        "maxLength": 2000
+                      }
+                    },
+                    "required": [
+                      "decision",
+                      "role",
+                      "reason"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "open",
+                        "dismissed",
+                        "actioned"
+                      ]
+                    },
+                    "actionTaken": {
+                      "nullable": true,
+                      "type": "string",
+                      "enum": [
+                        "none",
+                        "event_hidden",
+                        "user_suspended",
+                        "other"
+                      ]
+                    },
+                    "resolvedAt": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "resolvedByName": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "resolutionNote": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "target": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "user",
+                            "event"
+                          ]
+                        },
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "subtitle": {
+                          "type": "string"
+                        },
+                        "startsAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "organizer": {
+                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "userId": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "suspended": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "userId",
+                            "name",
+                            "suspended"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "hidden": {
+                          "type": "boolean"
+                        },
+                        "roles": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "role": {
+                                "type": "string",
+                                "enum": [
+                                  "vendor",
+                                  "organizer"
+                                ]
+                              },
+                              "name": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "suspended": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "role",
+                              "name",
+                              "suspended"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "id",
+                        "name",
+                        "subtitle",
+                        "startsAt",
+                        "organizer",
+                        "hidden",
+                        "roles"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "reports": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "number": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "reason": {
+                            "type": "string",
+                            "enum": [
+                              "fake_account",
+                              "scam",
+                              "inappropriate_content",
+                              "other"
+                            ]
+                          },
+                          "details": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "source": {
+                            "type": "string",
+                            "enum": [
+                              "report_button",
+                              "support_email"
+                            ]
+                          },
+                          "reporter": {
+                            "type": "string"
+                          },
+                          "addedBy": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "number",
+                          "reason",
+                          "details",
+                          "source",
+                          "reporter",
+                          "addedBy",
+                          "createdAt"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "status",
+                    "actionTaken",
+                    "resolvedAt",
+                    "resolvedByName",
+                    "resolutionNote",
+                    "target",
+                    "reports"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "AdminReports"
+        ]
+      }
+    },
+    "/api/admin/search": {
+      "get": {
+        "operationId": "AdminController_search",
+        "parameters": [
+          {
+            "name": "q",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "people": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "email": {
+                            "type": "string"
+                          },
+                          "subtitle": {
+                            "type": "string"
+                          },
+                          "suspended": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "email",
+                          "subtitle",
+                          "suspended"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "subtitle": {
+                            "type": "string"
+                          },
+                          "startsAt": {
+                            "nullable": true,
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "subtitle",
+                          "startsAt"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "people",
+                    "events"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Admin"
         ]
       }
     }

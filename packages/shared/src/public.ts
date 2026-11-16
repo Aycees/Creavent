@@ -17,6 +17,7 @@ const scheduleFields = {
 const cancellationSchema = z.object({ at: z.string(), reason: z.string().nullable() }).nullable();
 
 export const publicOrganizerSchema = z.object({
+  userId: z.uuid(),
   displayName: z.string(),
   // Null when the organizer page isn't available.
   slug: z.string().nullable(),
@@ -41,6 +42,8 @@ export const publicVendorRowSchema = z.object({
 export type PublicVendorRow = z.infer<typeof publicVendorRowSchema>;
 
 export const publicEventSchema = z.object({
+  // For the report button (spec §2.2).
+  id: z.uuid(),
   slug: z.string(),
   name: z.string(),
   typeName: z.string(),
@@ -136,6 +139,8 @@ export type ProfileEvent = z.infer<typeof profileEventSchema>;
 export const publicOrganizerPageSchema = z.object({
   tags: z.array(z.string()),
   organizer: z.object({
+    // For the report button (spec §2.2).
+    userId: z.uuid(),
     displayName: z.string(),
     slug: z.string(),
     logoUrl: z.string().nullable(),
@@ -157,6 +162,8 @@ export type PublicOrganizerPage = z.infer<typeof publicOrganizerPageSchema>;
 export const publicVendorPageSchema = z.object({
   tags: z.array(z.string()),
   vendor: z.object({
+    // For the report button (spec §2.2).
+    userId: z.uuid(),
     shopName: z.string(),
     slug: z.string(),
     avatarUrl: z.string().nullable(),

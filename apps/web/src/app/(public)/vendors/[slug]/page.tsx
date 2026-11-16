@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { Suspense } from "react"
 
+import { ReportLink } from "@/components/reports/report-link"
 import { NotFoundView } from "@/components/public/not-found-view"
 import { VendorPageView } from "@/components/public/vendor-page"
 import { Container } from "@/components/ui/container"
@@ -22,7 +23,13 @@ export async function generateMetadata({ params }: PageProps<"/vendors/[slug]">)
 async function View({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const [page, config] = await Promise.all([getVendorPage(slug), getPublicConfig()])
-  return page ? <VendorPageView page={page} supportEmail={config.supportEmail} /> : <NotFoundView what="vendor" />
+  return page ? (
+    <VendorPageView
+      page={page}
+      supportEmail={config.supportEmail}
+      report={<ReportLink targetType="user" targetId={page.vendor.userId} ownerUserId={page.vendor.userId} noun="vendor" supportEmail={config.supportEmail} />}
+    />
+  ) : <NotFoundView what="vendor" />
 }
 
 // /vendors/[slug] (spec §7.2). Reached from an event's vendor list or a

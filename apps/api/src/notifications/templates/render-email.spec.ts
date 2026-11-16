@@ -94,4 +94,16 @@ describe('event changed and canceled emails', () => {
     expect(email.text).toContain('Contact Habi Events: 0918 555 0187.');
     expect(email.text).toContain('Your slot C-07');
   });
+  it('tells the organizer why their event is hidden and how to reach support', async () => {
+    const email = await renderEmail('event_hidden', {
+      ...base,
+      eventName: 'Black Friday Mega Ukay',
+      reason: 'Your event photos match a different event.',
+    });
+
+    expect(email.subject).toBe('We hid Black Friday Mega Ukay');
+    expect(email.text).toContain('Your event photos match a different event.');
+    expect(email.text).toContain("Visitors and vendors can't find it");
+    expect(email.text).toContain('support@creavent.example');
+  });
 });

@@ -1,9 +1,9 @@
 import type { Metadata } from "next"
 
-import { PlaceholderPage } from "@/components/layout/placeholder-page"
+import { ReportsQueue } from "@/components/admin/reports-queue"
 
-export const metadata: Metadata = { title: "Reports · Creavent" }
+export const metadata: Metadata = { title: "Reports · Admin · Creavent" }
 
 export default function ReportsPage() {
-  return <PlaceholderPage title="Reports" slice="5.1 (reports)" />
+  return <ReportsQueue />
 }

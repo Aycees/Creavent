@@ -76,6 +76,10 @@ model User {
   paymentsDecided     Payment[]           @relation("PaymentDecider")
   proofsUploaded      PaymentProof[]      @relation("ProofUploader")
   proofsDecided       PaymentProof[]      @relation("ProofDecider")
+  reportsMade         Report[]            @relation("ReportReporter")
+  reportsAbout        Report[]            @relation("ReportTargetUser")
+  reportsAdded        Report[]            @relation("ReportCreator")
+  reportsResolved     Report[]            @relation("ReportResolver")
 
   @@map("users")
 }
@@ -436,6 +440,7 @@ model Event {
   proofs              PaymentProof[]
   vendorFloorPlanFile File?                      @relation("VendorFloorPlan", fields: [vendorFloorPlanFileId], references: [id])
   publicFloorPlanFile File?                      @relation("PublicFloorPlan", fields: [publicFloorPlanFileId], references: [id])
+  reports             Report[]
 
   @@index([organizerProfileId])
   @@index([status, moderationState, startsAt])
@@ -843,6 +848,7 @@ enum NotificationType {
   vendor_removed
   event_changed
   event_canceled
+  event_hidden
 
   @@map("notification_type")
 }
@@ -865,6 +871,84 @@ model EmailNotification {
 
   @@index([status, createdAt])
   @@map("email_notifications")
+}
+
+// ─── Reports and moderation (data model §5.8) ──────────────────────────────
+
+enum ReportTarget {
+  user
+  event
+
+  @@map("report_target")
+}
+
+enum ReportSource {
+  report_button
+  support_email
+
+  @@map("report_source")
+}
+
+enum ReportReason {
+  fake_account
+  scam
+  inappropriate_content
+  other
+
+  @@map("report_reason")
+}
+
+enum ReportStatus {
+  open
+  dismissed
+  actioned
+
+  @@map("report_status")
+}
+
+enum ReportAction {
+  none
+  event_hidden
+  user_suspended
+  other
+
+  @@map("report_action")
+}
+
+// Open reports about the same target are shown and resolved together. The
+// check that exactly one target column matches target_type, and the rule of
+// one open report per reporter and target, are in the migration's SQL.
+model Report {
+  id             String        @id @default(uuid()) @db.Uuid
+  // Shown as RPT-0142.
+  number         Int           @unique @default(autoincrement())
+  source         ReportSource
+  reporterUserId String?       @map("reporter_user_id") @db.Uuid
+  reporterEmail  String?       @map("reporter_email") @db.Citext
+  createdById    String?       @map("created_by") @db.Uuid
+  targetType     ReportTarget  @map("target_type")
+  targetUserId   String?       @map("target_user_id") @db.Uuid
+  targetEventId  String?       @map("target_event_id") @db.Uuid
+  reason         ReportReason
+  details        String?
+  status         ReportStatus  @default(open)
+  actionTaken    ReportAction? @map("action_taken")
+  resolvedById   String?       @map("resolved_by") @db.Uuid
+  resolvedAt     DateTime?     @map("resolved_at") @db.Timestamptz
+  resolutionNote String?       @map("resolution_note")
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+
+  reporter    User?  @relation("ReportReporter", fields: [reporterUserId], references: [id])
+  createdBy   User?  @relation("ReportCreator", fields: [createdById], references: [id])
+  targetUser  User?  @relation("ReportTargetUser", fields: [targetUserId], references: [id])
+  targetEvent Event? @relation(fields: [targetEventId], references: [id])
+  resolvedBy  User?  @relation("ReportResolver", fields: [resolvedById], references: [id])
+
+  @@index([status, createdAt])
+  @@index([targetUserId])
+  @@index([targetEventId])
+  @@map("reports")
 }
 
 // ─── Audit log (data model §5.10) ──────────────────────────────────────────

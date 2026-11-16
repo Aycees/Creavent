@@ -1,3 +1,4 @@
+import type * as React from "react"
 import type { PublicEvent } from "@creavent/shared"
 import { ClockIcon, MapPinIcon, NavigationArrowIcon, StorefrontIcon } from "@phosphor-icons/react/dist/ssr"
 import Link from "next/link"
@@ -73,7 +74,7 @@ function OrganizerName({ organizer }: { organizer: PublicEvent["organizer"] }) {
 
 // /events/[slug] for visitors (sitemap §3, mockup EventP4). Rendered on the
 // server and cached (decision Q1), so it has no viewer-specific parts.
-export function PublicEventView({ event: e, supportEmail }: { event: PublicEvent; supportEmail: string }) {
+export function PublicEventView({ event: e, supportEmail, report }: { event: PublicEvent; supportEmail: string; report?: React.ReactNode }) {
   const lines = detailLines(e)
   const days = eventDays(e)
   const ended = e.status === "completed"
@@ -231,6 +232,8 @@ export function PublicEventView({ event: e, supportEmail }: { event: PublicEvent
             </section>
           )}
 
+          {report ?? (
+
           <p className="text-sm text-muted">
             Something wrong with this event? Email us at{" "}
             <a href={`mailto:${supportEmail}`} className="text-ink underline underline-offset-2">
@@ -238,6 +241,8 @@ export function PublicEventView({ event: e, supportEmail }: { event: PublicEvent
             </a>{" "}
             and we&apos;ll look into it.
           </p>
+
+          )}
         </div>
       </div>
     </article>

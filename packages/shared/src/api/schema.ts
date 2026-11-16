@@ -1172,6 +1172,102 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ReportsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ReportsController_mine"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminReportsController_list"];
+        put?: never;
+        post: operations["AdminReportsController_add"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/reports/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminReportsController_detail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/reports/{id}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminReportsController_resolve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminController_search"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -7378,6 +7474,8 @@ export interface operations {
                         /** @enum {string} */
                         view: "public";
                         event: {
+                            /** Format: uuid */
+                            id: string;
                             slug: string;
                             name: string;
                             typeName: string;
@@ -7396,6 +7494,8 @@ export interface operations {
                             coverUrl: string | null;
                             publicFloorPlanUrl: string | null;
                             organizer: {
+                                /** Format: uuid */
+                                userId: string;
                                 displayName: string;
                                 slug: string | null;
                                 logoUrl: string | null;
@@ -11209,6 +11309,8 @@ export interface operations {
                             /** @enum {string} */
                             view: "public";
                             event: {
+                                /** Format: uuid */
+                                id: string;
                                 slug: string;
                                 name: string;
                                 typeName: string;
@@ -11227,6 +11329,8 @@ export interface operations {
                                 coverUrl: string | null;
                                 publicFloorPlanUrl: string | null;
                                 organizer: {
+                                    /** Format: uuid */
+                                    userId: string;
                                     displayName: string;
                                     slug: string | null;
                                     logoUrl: string | null;
@@ -11305,6 +11409,8 @@ export interface operations {
                     "application/json": {
                         tags: string[];
                         organizer: {
+                            /** Format: uuid */
+                            userId: string;
                             displayName: string;
                             slug: string;
                             logoUrl: string | null;
@@ -11382,6 +11488,8 @@ export interface operations {
                     "application/json": {
                         tags: string[];
                         vendor: {
+                            /** Format: uuid */
+                            userId: string;
                             shopName: string;
                             slug: string;
                             avatarUrl: string | null;
@@ -11425,6 +11533,448 @@ export interface operations {
                             organizerName: string;
                             slotLabel: string;
                             upcoming: boolean;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    ReportsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    targetType: "user" | "event";
+                    /** Format: uuid */
+                    targetId: string;
+                    /** @enum {string} */
+                    reason: "fake_account" | "scam" | "inappropriate_content" | "other";
+                    details?: string | null;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        number: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    ReportsController_mine: {
+        parameters: {
+            query: {
+                targetType: "user" | "event";
+                targetId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        number: number | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    AdminReportsController_list: {
+        parameters: {
+            query?: {
+                status?: "open" | "resolved";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            /** Format: uuid */
+                            id: string;
+                            target: {
+                                /** @enum {string} */
+                                type: "user" | "event";
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                subtitle: string;
+                                startsAt: string | null;
+                            };
+                            count: number;
+                            reasons: ("fake_account" | "scam" | "inappropriate_content" | "other")[];
+                            fromEmail: boolean;
+                            oldestAt: string;
+                            /** @enum {string} */
+                            status: "open" | "dismissed" | "actioned";
+                            /** @enum {string|null} */
+                            actionTaken: "none" | "event_hidden" | "user_suspended" | "other" | null;
+                            resolvedAt: string | null;
+                        }[];
+                        openCount: number;
+                        resolvedCount: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    AdminReportsController_add: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: email */
+                    reporterEmail: string;
+                    /** @enum {string} */
+                    targetType: "user" | "event";
+                    /** Format: uuid */
+                    targetId: string;
+                    /** @enum {string} */
+                    reason: "fake_account" | "scam" | "inappropriate_content" | "other";
+                    details: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        number: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    AdminReportsController_detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** @enum {string} */
+                        status: "open" | "dismissed" | "actioned";
+                        /** @enum {string|null} */
+                        actionTaken: "none" | "event_hidden" | "user_suspended" | "other" | null;
+                        resolvedAt: string | null;
+                        resolvedByName: string | null;
+                        resolutionNote: string | null;
+                        target: {
+                            /** @enum {string} */
+                            type: "user" | "event";
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            subtitle: string;
+                            startsAt: string | null;
+                            organizer: {
+                                /** Format: uuid */
+                                userId: string;
+                                name: string;
+                                suspended: boolean;
+                            } | null;
+                            hidden: boolean;
+                            roles: {
+                                /** @enum {string} */
+                                role: "vendor" | "organizer";
+                                name: string | null;
+                                suspended: boolean;
+                            }[];
+                        };
+                        reports: {
+                            number: number;
+                            /** @enum {string} */
+                            reason: "fake_account" | "scam" | "inappropriate_content" | "other";
+                            details: string | null;
+                            /** @enum {string} */
+                            source: "report_button" | "support_email";
+                            reporter: string;
+                            addedBy: string | null;
+                            createdAt: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    AdminReportsController_resolve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    decision: "dismiss";
+                    note?: string | null;
+                } | {
+                    /** @enum {string} */
+                    decision: "hide_event";
+                    reason: string;
+                    note?: string | null;
+                } | {
+                    /** @enum {string} */
+                    decision: "suspend_role";
+                    /** @enum {string} */
+                    role: "vendor" | "organizer";
+                    reason: string;
+                    note?: string | null;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** @enum {string} */
+                        status: "open" | "dismissed" | "actioned";
+                        /** @enum {string|null} */
+                        actionTaken: "none" | "event_hidden" | "user_suspended" | "other" | null;
+                        resolvedAt: string | null;
+                        resolvedByName: string | null;
+                        resolutionNote: string | null;
+                        target: {
+                            /** @enum {string} */
+                            type: "user" | "event";
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            subtitle: string;
+                            startsAt: string | null;
+                            organizer: {
+                                /** Format: uuid */
+                                userId: string;
+                                name: string;
+                                suspended: boolean;
+                            } | null;
+                            hidden: boolean;
+                            roles: {
+                                /** @enum {string} */
+                                role: "vendor" | "organizer";
+                                name: string | null;
+                                suspended: boolean;
+                            }[];
+                        };
+                        reports: {
+                            number: number;
+                            /** @enum {string} */
+                            reason: "fake_account" | "scam" | "inappropriate_content" | "other";
+                            details: string | null;
+                            /** @enum {string} */
+                            source: "report_button" | "support_email";
+                            reporter: string;
+                            addedBy: string | null;
+                            createdAt: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    AdminController_search: {
+        parameters: {
+            query: {
+                q: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        people: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            email: string;
+                            subtitle: string;
+                            suspended: boolean;
+                        }[];
+                        events: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            subtitle: string;
+                            startsAt: string | null;
                         }[];
                     };
                 };

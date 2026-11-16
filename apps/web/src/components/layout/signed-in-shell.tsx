@@ -4,7 +4,7 @@ import type { ApprovalStatus, MeResponse } from "@creavent/shared"
 import type * as React from "react"
 
 import { toShellUser, type ShellUser } from "@/lib/shell-user"
-import { useApprovalQueue } from "@/components/admin/queries"
+import { useApprovalQueue, useReportGroups } from "@/components/admin/queries"
 import { useWaitingCount } from "@/components/organizer-applications/queries"
 import { AppShell } from "./app-shell"
 import type { Area } from "./app-nav"
@@ -28,11 +28,16 @@ function countsFor(me: MeResponse | undefined): Record<string, string | number> 
   return status ? { "/organizer/approval": approvalLabels[status] } : {}
 }
 
-// The admin menu's Approvals count (sitemap §5).
+// The admin menu's Approvals and Reports counts (sitemap §5).
 function AdminShell({ me, children }: { me: MeResponse | undefined; children: React.ReactNode }) {
   const { data: queue } = useApprovalQueue(Boolean(me?.isAdmin))
+  const { data: reports } = useReportGroups("open", Boolean(me?.isAdmin))
+  const counts = {
+    ...(queue?.length ? { "/admin/approvals": queue.length } : {}),
+    ...(reports?.openCount ? { "/admin/reports": reports.openCount } : {}),
+  }
   return (
-    <AppShell area="admin" user={me ? toShellUser(me) : loadingUser} counts={queue?.length ? { "/admin/approvals": queue.length } : {}}>
+    <AppShell area="admin" user={me ? toShellUser(me) : loadingUser} counts={counts}>
       {children}
     </AppShell>
   )

@@ -1,3 +1,4 @@
+import type * as React from "react"
 import type { PublicVendorPage } from "@creavent/shared"
 import Link from "next/link"
 
@@ -11,7 +12,7 @@ import { SocialLinks } from "./social-links"
 
 // /vendors/[slug] (spec §7.2, mockup VendorP4). No contact form, and never
 // the phone, email, applications, documents, or payments.
-export function VendorPageView({ page, supportEmail }: { page: PublicVendorPage; supportEmail: string }) {
+export function VendorPageView({ page, supportEmail, report }: { page: PublicVendorPage; supportEmail: string; report?: React.ReactNode }) {
   const v = page.vendor
   const next = page.next
   const nextDays = next ? eventDays(next.event) : 0
@@ -140,6 +141,8 @@ export function VendorPageView({ page, supportEmail }: { page: PublicVendorPage;
         </section>
       )}
 
+      {report ?? (
+
       <p className="text-sm text-muted">
         Something wrong with this vendor? Email{" "}
         <a href={`mailto:${supportEmail}`} className="text-ink underline underline-offset-2">
@@ -147,6 +150,8 @@ export function VendorPageView({ page, supportEmail }: { page: PublicVendorPage;
         </a>{" "}
         and we&apos;ll look into it.
       </p>
+
+      )}
     </article>
   )
 }

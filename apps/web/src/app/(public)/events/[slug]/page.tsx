@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Suspense } from "react"
 
 import { CanceledNoticeView, NotPublicView, PublicEventView } from "@/components/public/public-event"
+import { ReportLink } from "@/components/reports/report-link"
 import { NotFoundView } from "@/components/public/not-found-view"
 import { EventPageView } from "@/components/vendor-events/event-page"
 import { Container } from "@/components/ui/container"
@@ -34,7 +35,11 @@ async function View({ params }: { params: Promise<{ slug: string }> }) {
       {!page ? (
         <NotFoundView what="event" />
       ) : page.view === "public" ? (
-        <PublicEventView event={page.event} supportEmail={config.supportEmail} />
+        <PublicEventView
+          event={page.event}
+          supportEmail={config.supportEmail}
+          report={<ReportLink targetType="event" targetId={page.event.id} ownerUserId={page.event.organizer.userId} noun="event" supportEmail={config.supportEmail} />}
+        />
       ) : page.view === "not_public" ? (
         <NotPublicView />
       ) : (

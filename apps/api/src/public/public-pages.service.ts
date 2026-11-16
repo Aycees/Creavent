@@ -134,6 +134,7 @@ export class PublicPagesService {
     return {
       tags: [tags.organizer(o.id), ...[...upcoming, ...past].map((e) => tags.event(e.id))],
       organizer: {
+        userId: o.userId,
         displayName: o.displayName,
         slug: o.slug!,
         logoUrl: o.logoFile ? this.files.url(o.logoFile.storageKey) : null,
@@ -181,6 +182,7 @@ export class PublicPagesService {
     return {
       tags: [tags.vendor(v.id), ...sold.map((s) => tags.event(s.event.id))],
       vendor: {
+        userId: v.userId,
         shopName: v.shopName,
         slug: v.slug!,
         avatarUrl: v.user.avatarFile ? this.files.url(v.user.avatarFile.storageKey) : null,
@@ -233,6 +235,7 @@ export class PublicPagesService {
 
   private async publicEvent(e: FullEvent): Promise<PublicEvent> {
     return {
+      id: e.id,
       slug: e.slug,
       name: e.name,
       typeName: e.eventType.name,
@@ -283,6 +286,7 @@ export class PublicPagesService {
     const role = o.user.roles[0];
     const pageAvailable = o.user.deletedAt === null && role?.suspendedAt == null;
     return {
+      userId: o.userId,
       displayName: o.displayName,
       slug: pageAvailable ? o.slug : null,
       logoUrl: o.logoFile ? this.files.url(o.logoFile.storageKey) : null,

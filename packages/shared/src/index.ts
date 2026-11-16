@@ -13,5 +13,6 @@ export * from './health.js';
 export * from './money.js';
 export * from './onboarding.js';
 export * from './public.js';
+export * from './reports.js';
 export * from './schedule.js';
 export * from './text.js';
