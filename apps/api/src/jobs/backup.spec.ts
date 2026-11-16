@@ -1,4 +1,4 @@
-import { backupDatabase, pgDumpArgs } from './backup.js';
+import { backupDatabase, pgDumpCommand } from './backup.js';
 import type { Bucket, ObjectStorage } from '../files/storage.js';
 
 class FakeStorage implements Partial<ObjectStorage> {
@@ -34,7 +34,10 @@ describe('backupDatabase', () => {
     expect(storage.puts).toHaveLength(0);
   });
 
-  it('dumps in the compressed custom format, without owners or grants, so it restores into a fresh database', () => {
-    expect(pgDumpArgs('postgres://u:p@db/creavent')).toEqual(['--format=custom', '--no-owner', '--no-acl', '--dbname=postgres://u:p@db/creavent']);
+  it('dumps in the compressed custom format, without owners or grants, and keeps the password off the command line', () => {
+    expect(pgDumpCommand('postgres://u:s3cret@db:5432/creavent?sslmode=require')).toEqual({
+      args: ['--format=custom', '--no-owner', '--no-acl', '--dbname=postgres://u@db:5432/creavent?sslmode=require'],
+      password: 's3cret',
+    });
   });
 });
