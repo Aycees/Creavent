@@ -9,6 +9,8 @@ import { OutboxService } from '../notifications/outbox.service.js';
 import { PrismaService, type Tx } from '../prisma/prisma.service.js';
 import { changeEventStatus } from './event-status.js';
 import { ownEvent } from './organizer-events.service.js';
+import { PublicRefreshService } from '../public/public-refresh.service.js';
+import { tags } from '../public/tags.js';
 
 // Announce and cancel (spec §3.1, flows 8 and 9, decisions Q4, Q6, Q7), and
 // the emails sent when an event's time or place changes (decision Q8).
@@ -17,6 +19,7 @@ export class EventLifecycleService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly outbox: OutboxService,
+    private readonly refresh: PublicRefreshService,
   ) {}
 
   // Puts the event on the listing. Needs an approved organizer, like opening,
@@ -38,6 +41,7 @@ export class EventLifecycleService {
         data: { announcedAt: new Date() },
       });
     });
+    void this.refresh.refresh([tags.listing, tags.event(eventId)]);
   }
 
   // Cancels for good. Every active assignment ends as canceled, its payment
@@ -97,6 +101,7 @@ export class EventLifecycleService {
         });
       }
     });
+    void this.refresh.refresh([tags.listing, tags.event(eventId)]);
   }
 }
 

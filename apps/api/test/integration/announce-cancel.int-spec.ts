@@ -279,9 +279,9 @@ describe('announcing, changing, and canceling an event', () => {
         endsAt: new Date('2026-11-16T15:00:00Z'),
       });
 
-      const count = await completeEndedEvents(prisma, new Date('2026-11-15T00:00:00Z'));
+      const changed = await completeEndedEvents(prisma, new Date('2026-11-15T00:00:00Z'));
 
-      expect(count).toBe(1);
+      expect(changed).toEqual(['listing', `event:${ended}`]);
       const statuses = await prisma.event.findMany({ where: { id: { in: [ended, neverAnnounced, running] } }, select: { id: true, status: true, completedAt: true } });
       expect(statuses.find((e) => e.id === ended)).toMatchObject({ status: 'completed', completedAt: new Date('2026-11-15T00:00:00Z') });
       expect(statuses.find((e) => e.id === neverAnnounced)!.status).toBe('open_to_vendors');

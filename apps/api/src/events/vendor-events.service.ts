@@ -16,6 +16,7 @@ import { approvedPerCategory, spotsLeft } from '../applications/category-counts.
 import { takenSlotIds } from '../applications/slot-status.js';
 import { FilesService } from '../files/files.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { PublicPagesService } from '../public/public-pages.service.js';
 
 const include = {
   eventType: true,
@@ -37,6 +38,7 @@ export class VendorEventsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly files: FilesService,
+    private readonly publicPages: PublicPagesService,
   ) {}
 
   // Visible events open to vendors or announced that haven't ended, soonest
@@ -97,19 +99,26 @@ export class VendorEventsService {
   // The event page for one viewer (sitemap §3). Vendors see the vendor view
   // once the event is open to vendors; its organizer and admins see it at any
   // status. Drafts and hidden events are Not found to everyone else.
-  async page(viewer: SessionUser | undefined, slug: string): Promise<EventPage> {
+  // The event's organizer sees the public view with "Manage event", or the
+  // vendor view with ?as=vendor (Preview as vendor), at any status. Vendors
+  // see the vendor view; everyone else the public page (decision Q2).
+  async page(viewer: SessionUser | undefined, slug: string, as?: string): Promise<EventPage> {
     const event = await this.prisma.event.findUnique({ where: { slug }, include });
     if (!event) throw new NotFoundException('Event not found');
     const isOrganizer = viewer !== undefined && event.organizerProfile.userId === viewer.id;
     const isAdmin = viewer?.isAdmin === true;
+    if (isOrganizer && as !== 'vendor') {
+      return { view: 'public', event: await this.publicPages.publicEventById(event.id), manage: { eventId: event.id } };
+    }
     if (isOrganizer || isAdmin) return { view: 'vendor', preview: true, event: await this.vendorView(event, viewer!.id) };
     if (event.status === 'draft' || event.moderationState === 'hidden') throw new NotFoundException('Event not found');
 
     const vendor = viewer
       ? await this.prisma.userRole.findUnique({ where: { userId_role: { userId: viewer.id, role: 'vendor' } } })
       : null;
-    if (!vendor || vendor.suspendedAt) return { view: 'not_public' };
-    return { view: 'vendor', preview: false, event: await this.vendorView(event, viewer!.id) };
+    if (vendor && !vendor.suspendedAt) return { view: 'vendor', preview: false, event: await this.vendorView(event, viewer!.id) };
+    const { page } = await this.publicPages.event(slug);
+    return page.view === 'public' ? { ...page, manage: null } : page;
   }
 
   private async vendorView(e: FullEvent, viewerId: string) {

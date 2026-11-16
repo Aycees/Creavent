@@ -23,6 +23,8 @@ import { OutboxService } from '../notifications/outbox.service.js';
 import { freeSlug } from '../onboarding/slugs.js';
 import { queueChangeEmails } from './event-lifecycle.service.js';
 import { PrismaService, type Tx } from '../prisma/prisma.service.js';
+import { PublicRefreshService } from '../public/public-refresh.service.js';
+import { tags } from '../public/tags.js';
 
 type Db = Tx | PrismaService;
 
@@ -34,6 +36,7 @@ export class OrganizerEventsService {
     private readonly prisma: PrismaService,
     private readonly files: FilesService,
     private readonly outbox: OutboxService,
+    private readonly refresh: PublicRefreshService,
   ) {}
 
   eventTypes() {
@@ -325,6 +328,8 @@ export class OrganizerEventsService {
         data: { openedToVendorsAt: new Date(), applicationsOpen: true },
       });
     });
+    // "Sell at these events" counts events taking applications.
+    void this.refresh.refresh([tags.listing]);
     return this.setup(userId, eventId);
   }
 
@@ -367,6 +372,7 @@ export class OrganizerEventsService {
         changes: { applicationsOpen: { from: !open, to: open } },
       });
     });
+    void this.refresh.refresh([tags.listing]);
     return this.setup(userId, eventId);
   }
 
@@ -436,6 +442,7 @@ export class OrganizerEventsService {
       await assertStillReady(tx, event.id);
       await queueChangeEmails(tx, this.outbox, event, after);
     });
+    void this.refresh.refresh([tags.listing, tags.event(eventId)]);
     return this.setup(userId, eventId);
   }
 }

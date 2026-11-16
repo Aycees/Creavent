@@ -1,5 +1,5 @@
 import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
-import { eventPageSchema, vendorEventsQuerySchema, vendorEventsResponseSchema } from '@creavent/shared';
+import { eventPageQuerySchema, eventPageSchema, vendorEventsQuerySchema, vendorEventsResponseSchema } from '@creavent/shared';
 import type { z } from 'zod';
 import { AuthGuard, CurrentUser, OptionalAuthGuard, OptionalUser, type SessionUser } from '../auth/auth.guard.js';
 import { ResponseSchema } from '../response-schema.decorator.js';
@@ -21,7 +21,11 @@ export class VendorEventsController {
   @Get('events/:slug')
   @UseGuards(OptionalAuthGuard)
   @ResponseSchema(eventPageSchema)
-  page(@OptionalUser() user: SessionUser | undefined, @Param('slug') slug: string) {
-    return this.events.page(user, slug);
+  page(
+    @OptionalUser() user: SessionUser | undefined,
+    @Param('slug') slug: string,
+    @Query({ schema: eventPageQuerySchema }) query: z.output<typeof eventPageQuerySchema>,
+  ) {
+    return this.events.page(user, slug, query.as);
   }
 }

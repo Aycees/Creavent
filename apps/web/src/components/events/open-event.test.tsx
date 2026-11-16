@@ -63,7 +63,7 @@ describe("Open to vendors (spec §3.1, flow 3)", () => {
   it("links to the vendor preview", async () => {
     renderWithQuery(<EventSetupPage id={EVENT_ID} />)
 
-    expect(await screen.findByRole("link", { name: "Preview as vendor" })).toHaveAttribute("href", "/events/matina-night-flea-january")
+    expect(await screen.findByRole("link", { name: "Preview as vendor" })).toHaveAttribute("href", "/events/matina-night-flea-january?preview=vendor")
   })
 })
 

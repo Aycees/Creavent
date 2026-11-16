@@ -87,7 +87,7 @@ function Setup({ setup }: { setup: EventSetup }) {
         </div>
         <div className="flex w-full flex-col gap-2 md:w-auto md:flex-none md:flex-row md:items-start">
           <Button asChild variant="secondary">
-            <Link href={`/events/${setup.slug}`}>Preview as vendor</Link>
+            <Link href={`/events/${setup.slug}?preview=vendor`}>Preview as vendor</Link>
           </Button>
           {setup.status !== "draft" && (
             <>

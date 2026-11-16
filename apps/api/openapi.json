@@ -21302,7 +21302,8 @@
                               "reserved",
                               "declined",
                               "withdrawn",
-                              "removed"
+                              "removed",
+                              "event_canceled"
                             ]
                           }
                         },
@@ -21402,6 +21403,17 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "as",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "vendor"
+              ]
             }
           }
         ],
@@ -21696,7 +21708,8 @@
                                     "reserved",
                                     "declined",
                                     "withdrawn",
-                                    "removed"
+                                    "removed",
+                                    "event_canceled"
                                   ]
                                 },
                                 "canReapply": {
@@ -21747,6 +21760,292 @@
                         "view",
                         "preview",
                         "event"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "view": {
+                          "type": "string",
+                          "enum": [
+                            "public"
+                          ]
+                        },
+                        "event": {
+                          "type": "object",
+                          "properties": {
+                            "slug": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "typeName": {
+                              "type": "string"
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "draft",
+                                "open_to_vendors",
+                                "announced",
+                                "completed",
+                                "canceled"
+                              ]
+                            },
+                            "startDate": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "endDate": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "opensAt": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "closesAt": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "venueName": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "addressLine": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "city": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "latitude": {
+                              "nullable": true,
+                              "type": "number"
+                            },
+                            "longitude": {
+                              "nullable": true,
+                              "type": "number"
+                            },
+                            "description": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "coverUrl": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "publicFloorPlanUrl": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "organizer": {
+                              "type": "object",
+                              "properties": {
+                                "displayName": {
+                                  "type": "string"
+                                },
+                                "slug": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "logoUrl": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "approved": {
+                                  "type": "boolean"
+                                },
+                                "about": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "socialLinks": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "eventsHeld": {
+                                  "type": "integer",
+                                  "minimum": -9007199254740991,
+                                  "maximum": 9007199254740991
+                                }
+                              },
+                              "required": [
+                                "displayName",
+                                "slug",
+                                "logoUrl",
+                                "approved",
+                                "about",
+                                "socialLinks",
+                                "eventsHeld"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "vendors": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "shopName": {
+                                    "type": "string"
+                                  },
+                                  "slug": {
+                                    "nullable": true,
+                                    "type": "string"
+                                  },
+                                  "avatarUrl": {
+                                    "nullable": true,
+                                    "type": "string"
+                                  },
+                                  "categories": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "slotLabel": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "shopName",
+                                  "slug",
+                                  "avatarUrl",
+                                  "categories",
+                                  "slotLabel"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "updatedAt": {
+                              "type": "string"
+                            },
+                            "canceled": {
+                              "nullable": true,
+                              "type": "object",
+                              "properties": {
+                                "at": {
+                                  "type": "string"
+                                },
+                                "reason": {
+                                  "nullable": true,
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "at",
+                                "reason"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": [
+                            "slug",
+                            "name",
+                            "typeName",
+                            "status",
+                            "startDate",
+                            "endDate",
+                            "opensAt",
+                            "closesAt",
+                            "venueName",
+                            "addressLine",
+                            "city",
+                            "latitude",
+                            "longitude",
+                            "description",
+                            "coverUrl",
+                            "publicFloorPlanUrl",
+                            "organizer",
+                            "vendors",
+                            "updatedAt",
+                            "canceled"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "manage": {
+                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "eventId": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            }
+                          },
+                          "required": [
+                            "eventId"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "view",
+                        "event",
+                        "manage"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "view": {
+                          "type": "string",
+                          "enum": [
+                            "canceled_notice"
+                          ]
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "startDate": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "endDate": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "opensAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "closesAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "canceled": {
+                          "nullable": true,
+                          "type": "object",
+                          "properties": {
+                            "at": {
+                              "type": "string"
+                            },
+                            "reason": {
+                              "nullable": true,
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "at",
+                            "reason"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "view",
+                        "name",
+                        "startDate",
+                        "endDate",
+                        "opensAt",
+                        "closesAt",
+                        "canceled"
                       ],
                       "additionalProperties": false
                     }
@@ -22014,7 +22313,8 @@
                               "reserved",
                               "declined",
                               "withdrawn",
-                              "removed"
+                              "removed",
+                              "event_canceled"
                             ]
                           },
                           "shopName": {
@@ -22299,7 +22599,8 @@
                         "reserved",
                         "declined",
                         "withdrawn",
-                        "removed"
+                        "removed",
+                        "event_canceled"
                       ]
                     },
                     "submittedAt": {
@@ -23281,7 +23582,8 @@
                               "reserved",
                               "declined",
                               "withdrawn",
-                              "removed"
+                              "removed",
+                              "event_canceled"
                             ]
                           },
                           "slotLabel": {
@@ -23580,7 +23882,8 @@
                               "reserved",
                               "declined",
                               "withdrawn",
-                              "removed"
+                              "removed",
+                              "event_canceled"
                             ]
                           },
                           "slotLabel": {
@@ -23721,7 +24024,8 @@
                         "reserved",
                         "declined",
                         "withdrawn",
-                        "removed"
+                        "removed",
+                        "event_canceled"
                       ]
                     },
                     "submittedAt": {
@@ -24328,7 +24632,8 @@
                         "reserved",
                         "declined",
                         "withdrawn",
-                        "removed"
+                        "removed",
+                        "event_canceled"
                       ]
                     },
                     "submittedAt": {
@@ -24825,7 +25130,8 @@
                         "reserved",
                         "declined",
                         "withdrawn",
-                        "removed"
+                        "removed",
+                        "event_canceled"
                       ]
                     },
                     "submittedAt": {
@@ -25390,7 +25696,8 @@
                         "reserved",
                         "declined",
                         "withdrawn",
-                        "removed"
+                        "removed",
+                        "event_canceled"
                       ]
                     },
                     "submittedAt": {
@@ -25887,7 +26194,8 @@
                         "reserved",
                         "declined",
                         "withdrawn",
-                        "removed"
+                        "removed",
+                        "event_canceled"
                       ]
                     },
                     "submittedAt": {
@@ -26641,7 +26949,8 @@
                         "reserved",
                         "declined",
                         "withdrawn",
-                        "removed"
+                        "removed",
+                        "event_canceled"
                       ]
                     },
                     "submittedAt": {
@@ -27231,7 +27540,8 @@
                         "reserved",
                         "declined",
                         "withdrawn",
-                        "removed"
+                        "removed",
+                        "event_canceled"
                       ]
                     },
                     "submittedAt": {
@@ -27728,7 +28038,8 @@
                         "reserved",
                         "declined",
                         "withdrawn",
-                        "removed"
+                        "removed",
+                        "event_canceled"
                       ]
                     },
                     "submittedAt": {
@@ -36138,6 +36449,386 @@
         },
         "tags": [
           "OrganizerVendors"
+        ]
+      }
+    },
+    "/api/public/events/{slug}": {
+      "get": {
+        "operationId": "PublicController_event",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "page": {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "view": {
+                              "type": "string",
+                              "enum": [
+                                "public"
+                              ]
+                            },
+                            "event": {
+                              "type": "object",
+                              "properties": {
+                                "slug": {
+                                  "type": "string"
+                                },
+                                "name": {
+                                  "type": "string"
+                                },
+                                "typeName": {
+                                  "type": "string"
+                                },
+                                "status": {
+                                  "type": "string",
+                                  "enum": [
+                                    "draft",
+                                    "open_to_vendors",
+                                    "announced",
+                                    "completed",
+                                    "canceled"
+                                  ]
+                                },
+                                "startDate": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "endDate": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "opensAt": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "closesAt": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "venueName": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "addressLine": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "city": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "latitude": {
+                                  "nullable": true,
+                                  "type": "number"
+                                },
+                                "longitude": {
+                                  "nullable": true,
+                                  "type": "number"
+                                },
+                                "description": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "coverUrl": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "publicFloorPlanUrl": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "organizer": {
+                                  "type": "object",
+                                  "properties": {
+                                    "displayName": {
+                                      "type": "string"
+                                    },
+                                    "slug": {
+                                      "nullable": true,
+                                      "type": "string"
+                                    },
+                                    "logoUrl": {
+                                      "nullable": true,
+                                      "type": "string"
+                                    },
+                                    "approved": {
+                                      "type": "boolean"
+                                    },
+                                    "about": {
+                                      "nullable": true,
+                                      "type": "string"
+                                    },
+                                    "socialLinks": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "eventsHeld": {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 9007199254740991
+                                    }
+                                  },
+                                  "required": [
+                                    "displayName",
+                                    "slug",
+                                    "logoUrl",
+                                    "approved",
+                                    "about",
+                                    "socialLinks",
+                                    "eventsHeld"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                "vendors": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "shopName": {
+                                        "type": "string"
+                                      },
+                                      "slug": {
+                                        "nullable": true,
+                                        "type": "string"
+                                      },
+                                      "avatarUrl": {
+                                        "nullable": true,
+                                        "type": "string"
+                                      },
+                                      "categories": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "slotLabel": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "shopName",
+                                      "slug",
+                                      "avatarUrl",
+                                      "categories",
+                                      "slotLabel"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                },
+                                "updatedAt": {
+                                  "type": "string"
+                                },
+                                "canceled": {
+                                  "nullable": true,
+                                  "type": "object",
+                                  "properties": {
+                                    "at": {
+                                      "type": "string"
+                                    },
+                                    "reason": {
+                                      "nullable": true,
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "at",
+                                    "reason"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              },
+                              "required": [
+                                "slug",
+                                "name",
+                                "typeName",
+                                "status",
+                                "startDate",
+                                "endDate",
+                                "opensAt",
+                                "closesAt",
+                                "venueName",
+                                "addressLine",
+                                "city",
+                                "latitude",
+                                "longitude",
+                                "description",
+                                "coverUrl",
+                                "publicFloorPlanUrl",
+                                "organizer",
+                                "vendors",
+                                "updatedAt",
+                                "canceled"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": [
+                            "view",
+                            "event"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "view": {
+                              "type": "string",
+                              "enum": [
+                                "not_public"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "view"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "view": {
+                              "type": "string",
+                              "enum": [
+                                "canceled_notice"
+                              ]
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "startDate": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "endDate": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "opensAt": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "closesAt": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "canceled": {
+                              "nullable": true,
+                              "type": "object",
+                              "properties": {
+                                "at": {
+                                  "type": "string"
+                                },
+                                "reason": {
+                                  "nullable": true,
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "at",
+                                "reason"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": [
+                            "view",
+                            "name",
+                            "startDate",
+                            "endDate",
+                            "opensAt",
+                            "closesAt",
+                            "canceled"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "tags",
+                    "page"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Public"
         ]
       }
     }

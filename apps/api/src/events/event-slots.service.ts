@@ -13,6 +13,8 @@ import { assertAttachable, retireFiles } from '../files/files.service.js';
 import { PrismaService, type Tx } from '../prisma/prisma.service.js';
 import { assertStillReady } from './event-status.js';
 import { assertNotOnOtherEvent, OrganizerEventsService, ownEvent } from './organizer-events.service.js';
+import { PublicRefreshService } from '../public/public-refresh.service.js';
+import { tags } from '../public/tags.js';
 
 type SlotFields = z.output<typeof slotSchema>;
 
@@ -23,6 +25,7 @@ export class EventSlotsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly events: OrganizerEventsService,
+    private readonly refresh: PublicRefreshService,
   ) {}
 
   async add(userId: string, eventId: string, input: SlotFields) {
@@ -130,6 +133,7 @@ export class EventSlotsService {
       await retireFiles(tx, [event.publicFloorPlanFileId], [input.fileId]);
       await tx.event.update({ where: { id: event.id }, data: { publicFloorPlanFileId: input.fileId } });
     });
+    void this.refresh.refresh([tags.event(eventId)]);
     return this.events.setup(userId, eventId);
   }
 }

@@ -4,6 +4,8 @@ import type { z } from 'zod';
 import { changeApprovalStatus, lockOrganizer, needsReReview } from '../approvals/approval-status.js';
 import { assertAttachable, retireFiles } from '../files/files.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { PublicRefreshService } from '../public/public-refresh.service.js';
+import { tags } from '../public/tags.js';
 import { OnboardingService } from './onboarding.service.js';
 import { slugAvailable } from './slugs.js';
 
@@ -17,6 +19,7 @@ export class ProfilesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly onboarding: OnboardingService,
+    private readonly refresh: PublicRefreshService,
   ) {}
 
   async slugAvailable(userId: string, kind: 'vendor' | 'organizer', slug: string) {
@@ -24,7 +27,7 @@ export class ProfilesService {
   }
 
   async updateVendor(userId: string, input: z.output<typeof vendorProfileUpdateSchema>) {
-    await this.prisma.$transaction(async (tx) => {
+    const vendorProfileId = await this.prisma.$transaction(async (tx) => {
       await this.onboarding.requireRole(tx, userId, 'vendor');
       if (!(await slugAvailable(tx, 'vendor', input.slug, userId))) throw new ConflictException(TAKEN);
       const active = await tx.category.count({ where: { id: { in: input.categoryIds }, isActive: true } });
@@ -51,12 +54,15 @@ export class ProfilesService {
       await tx.vendorProfilePhoto.createMany({
         data: photoIds.map((fileId, sortOrder) => ({ vendorProfileId: profile.id, fileId, sortOrder })),
       });
+      return profile.id;
     });
+    // The vendor page, and the event pages that list this vendor (decision Q1).
+    void this.refresh.refresh([tags.vendor(vendorProfileId)]);
     return this.onboarding.state(userId);
   }
 
   async updateOrganizer(userId: string, input: z.output<typeof organizerProfileUpdateSchema>) {
-    await this.prisma.$transaction(async (tx) => {
+    const organizerProfileId = await this.prisma.$transaction(async (tx) => {
       await lockOrganizer(tx, userId);
       const role = await this.onboarding.requireRole(tx, userId, 'organizer');
       if (!(await slugAvailable(tx, 'organizer', input.slug, userId))) throw new ConflictException(TAKEN);
@@ -72,7 +78,7 @@ export class ProfilesService {
         about: input.about ?? null,
         socialLinks: input.socialLinks,
       };
-      await tx.organizerProfile.upsert({ where: { userId }, update: data, create: { ...data, userId } });
+      const profile = await tx.organizerProfile.upsert({ where: { userId }, update: data, create: { ...data, userId } });
 
       const reReview =
         current !== null &&
@@ -91,7 +97,10 @@ export class ProfilesService {
           data: { approvalSubmittedAt: new Date() },
         });
       }
+      return profile.id;
     });
+    // The organizer page, their event pages, and the listing cards.
+    void this.refresh.refresh([tags.organizer(organizerProfileId), tags.listing]);
     return this.onboarding.state(userId);
   }
 }

@@ -1092,6 +1092,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/public/events/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PublicController_event"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -6851,7 +6867,7 @@ export interface operations {
                                 max: number;
                             }[];
                             /** @enum {string|null} */
-                            myStatus: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed" | null;
+                            myStatus: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed" | "event_canceled" | null;
                         }[];
                     };
                 };
@@ -6877,7 +6893,9 @@ export interface operations {
     };
     VendorEventsController_page: {
         parameters: {
-            query?: never;
+            query?: {
+                as?: "vendor";
+            };
             header?: never;
             path: {
                 slug: string;
@@ -6955,10 +6973,69 @@ export interface operations {
                                 /** Format: uuid */
                                 id: string;
                                 /** @enum {string} */
-                                status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed";
+                                status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed" | "event_canceled";
                                 canReapply: boolean | null;
                             } | null;
                         };
+                    } | {
+                        /** @enum {string} */
+                        view: "public";
+                        event: {
+                            slug: string;
+                            name: string;
+                            typeName: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            venueName: string | null;
+                            addressLine: string | null;
+                            city: string | null;
+                            latitude: number | null;
+                            longitude: number | null;
+                            description: string | null;
+                            coverUrl: string | null;
+                            publicFloorPlanUrl: string | null;
+                            organizer: {
+                                displayName: string;
+                                slug: string | null;
+                                logoUrl: string | null;
+                                approved: boolean;
+                                about: string | null;
+                                socialLinks: string[];
+                                eventsHeld: number;
+                            };
+                            vendors: {
+                                shopName: string;
+                                slug: string | null;
+                                avatarUrl: string | null;
+                                categories: string[];
+                                slotLabel: string;
+                            }[];
+                            updatedAt: string;
+                            canceled: {
+                                at: string;
+                                reason: string | null;
+                            } | null;
+                        };
+                        manage: {
+                            /** Format: uuid */
+                            eventId: string;
+                        } | null;
+                    } | {
+                        /** @enum {string} */
+                        view: "canceled_notice";
+                        name: string;
+                        startDate: string | null;
+                        endDate: string | null;
+                        opensAt: string | null;
+                        closesAt: string | null;
+                        canceled: {
+                            at: string;
+                            reason: string | null;
+                        } | null;
                     };
                 };
             };
@@ -7032,7 +7109,7 @@ export interface operations {
                             eventName: string;
                             eventStartDate: string | null;
                             /** @enum {string} */
-                            stage: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed";
+                            stage: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed" | "event_canceled";
                             shopName: string;
                             avatarUrl: string | null;
                             categories: string[];
@@ -7132,7 +7209,7 @@ export interface operations {
                         /** Format: uuid */
                         id: string;
                         /** @enum {string} */
-                        stage: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed";
+                        stage: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed" | "event_canceled";
                         submittedAt: string;
                         decidedAt: string | null;
                         decisionNote: string | null;
@@ -7408,7 +7485,7 @@ export interface operations {
                                 venueName: string | null;
                             };
                             /** @enum {string} */
-                            status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed";
+                            status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed" | "event_canceled";
                             slotLabel: string | null;
                             amountDue: number | null;
                             /** @enum {string|null} */
@@ -7492,7 +7569,7 @@ export interface operations {
                                 venueName: string | null;
                             };
                             /** @enum {string} */
-                            status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed";
+                            status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed" | "event_canceled";
                             slotLabel: string | null;
                             amountDue: number | null;
                             /** @enum {string|null} */
@@ -7542,7 +7619,7 @@ export interface operations {
                         /** Format: uuid */
                         id: string;
                         /** @enum {string} */
-                        status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed";
+                        status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed" | "event_canceled";
                         submittedAt: string;
                         decidedAt: string | null;
                         decisionNote: string | null;
@@ -7697,7 +7774,7 @@ export interface operations {
                         /** Format: uuid */
                         id: string;
                         /** @enum {string} */
-                        status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed";
+                        status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed" | "event_canceled";
                         submittedAt: string;
                         decidedAt: string | null;
                         decisionNote: string | null;
@@ -7810,7 +7887,7 @@ export interface operations {
                         /** Format: uuid */
                         id: string;
                         /** @enum {string} */
-                        status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed";
+                        status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed" | "event_canceled";
                         submittedAt: string;
                         decidedAt: string | null;
                         decisionNote: string | null;
@@ -7953,7 +8030,7 @@ export interface operations {
                         /** Format: uuid */
                         id: string;
                         /** @enum {string} */
-                        status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed";
+                        status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed" | "event_canceled";
                         submittedAt: string;
                         decidedAt: string | null;
                         decisionNote: string | null;
@@ -8066,7 +8143,7 @@ export interface operations {
                         /** Format: uuid */
                         id: string;
                         /** @enum {string} */
-                        status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed";
+                        status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed" | "event_canceled";
                         submittedAt: string;
                         decidedAt: string | null;
                         decisionNote: string | null;
@@ -8270,7 +8347,7 @@ export interface operations {
                         /** Format: uuid */
                         id: string;
                         /** @enum {string} */
-                        status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed";
+                        status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed" | "event_canceled";
                         submittedAt: string;
                         decidedAt: string | null;
                         decisionNote: string | null;
@@ -8419,7 +8496,7 @@ export interface operations {
                         /** Format: uuid */
                         id: string;
                         /** @enum {string} */
-                        status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed";
+                        status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed" | "event_canceled";
                         submittedAt: string;
                         decidedAt: string | null;
                         decisionNote: string | null;
@@ -8532,7 +8609,7 @@ export interface operations {
                         /** Format: uuid */
                         id: string;
                         /** @enum {string} */
-                        status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed";
+                        status: "submitted" | "approved" | "slot_assigned" | "reserved" | "declined" | "withdrawn" | "removed" | "event_canceled";
                         submittedAt: string;
                         decidedAt: string | null;
                         decisionNote: string | null;
@@ -10618,6 +10695,105 @@ export interface operations {
                                 archived: boolean;
                             }[];
                         }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    PublicController_event: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        tags: string[];
+                        page: {
+                            /** @enum {string} */
+                            view: "public";
+                            event: {
+                                slug: string;
+                                name: string;
+                                typeName: string;
+                                /** @enum {string} */
+                                status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                                startDate: string | null;
+                                endDate: string | null;
+                                opensAt: string | null;
+                                closesAt: string | null;
+                                venueName: string | null;
+                                addressLine: string | null;
+                                city: string | null;
+                                latitude: number | null;
+                                longitude: number | null;
+                                description: string | null;
+                                coverUrl: string | null;
+                                publicFloorPlanUrl: string | null;
+                                organizer: {
+                                    displayName: string;
+                                    slug: string | null;
+                                    logoUrl: string | null;
+                                    approved: boolean;
+                                    about: string | null;
+                                    socialLinks: string[];
+                                    eventsHeld: number;
+                                };
+                                vendors: {
+                                    shopName: string;
+                                    slug: string | null;
+                                    avatarUrl: string | null;
+                                    categories: string[];
+                                    slotLabel: string;
+                                }[];
+                                updatedAt: string;
+                                canceled: {
+                                    at: string;
+                                    reason: string | null;
+                                } | null;
+                            };
+                        } | {
+                            /** @enum {string} */
+                            view: "not_public";
+                        } | {
+                            /** @enum {string} */
+                            view: "canceled_notice";
+                            name: string;
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            canceled: {
+                                at: string;
+                                reason: string | null;
+                            } | null;
+                        };
                     };
                 };
             };

@@ -60,6 +60,7 @@ export async function readyEvent(
       applicationsOpen: overrides.applicationsOpen ?? status !== 'draft',
       applicationsCloseAt: overrides.applicationsCloseAt ?? null,
       openedToVendorsAt: status === 'draft' ? null : new Date(),
+      announcedAt: status === 'announced' || status === 'completed' ? new Date() : null,
       slotMode: overrides.slotMode ?? 'organizer_assigns',
       moderationState: overrides.moderationState ?? 'visible',
       defaultSlotPrice: 800,
