@@ -105,6 +105,11 @@ export function EventCard({ e }: { e: ListingCard }) {
   )
 }
 
+// The grid for event cards. Fewer than three share the row in halves rather
+// than leaving an empty column on wide screens.
+export const cardGrid = (count: number) =>
+  cn("grid grid-cols-1 gap-4 md:gap-6", count < 3 ? "md:grid-cols-2" : "md:grid-cols-[repeat(auto-fill,minmax(320px,1fr))]")
+
 // A compact row for Later and the calendar's day list.
 export function EventRow({ e, note }: { e: ListingCard; note?: string }) {
   return (
@@ -538,13 +543,7 @@ export function ListingView({ listing, query: params }: { listing: Listing; quer
                   ))}
                 </ul>
               ) : (
-                // Fewer than three cards share the row in halves rather than leaving an empty column.
-                <ul
-                  className={cn(
-                    "grid grid-cols-1 gap-4 md:gap-6",
-                    g.events.length < 3 ? "md:grid-cols-2" : "md:grid-cols-[repeat(auto-fill,minmax(320px,1fr))]",
-                  )}
-                >
+                <ul className={cardGrid(g.events.length)}>
                   {g.events.map((e) => (
                     <EventCard key={e.slug} e={e} />
                   ))}

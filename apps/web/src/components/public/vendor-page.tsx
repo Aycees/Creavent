@@ -17,7 +17,7 @@ export function VendorPageView({ page, supportEmail }: { page: PublicVendorPage;
   const nextDays = next ? eventDays(next.event) : 0
   return (
     <article className="flex flex-col gap-10 md:gap-14">
-      <section className="flex flex-col gap-8 md:flex-row md:items-start md:gap-14">
+      <section className="flex flex-col gap-8 md:flex-row md:flex-wrap md:items-start md:gap-x-14 md:gap-y-8">
         {/* One heading: beside the avatar on phones, under it on the right on desktop. */}
         <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 gap-y-3.5 md:flex-[999_1_560px] md:items-start md:gap-x-7">
           {v.avatarUrl ? (
@@ -31,7 +31,7 @@ export function VendorPageView({ page, supportEmail }: { page: PublicVendorPage;
               {initialsOf(v.shopName)}
             </span>
           )}
-          <h1 className="text-[30px] leading-9 font-bold tracking-[-0.03em] md:text-display">{v.shopName}</h1>
+          <h1 className="text-display text-balance">{v.shopName}</h1>
           <div className="col-span-2 flex min-w-0 flex-col gap-3.5 md:col-span-1 md:col-start-2">
             {v.categories.length > 0 && (
               <ul className="flex flex-wrap gap-1.5">

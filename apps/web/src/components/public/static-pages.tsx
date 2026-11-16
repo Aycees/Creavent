@@ -31,14 +31,16 @@ function Point({ id, title, icon, children }: { id: string; title: string; icon:
 // what it doesn't. Never says "verified".
 export function ApprovedView({ supportEmail }: { supportEmail: string }) {
   return (
-    <div className="flex flex-col gap-10 md:flex-row md:items-start md:gap-20">
-      <div className="flex flex-col gap-5 md:sticky md:top-6 md:flex-[1_1_380px]">
+    // The intro wraps above the points when the two can't sit side by side (tablets). It
+    // isn't sticky: a sticky intro on its own row would slide over the points.
+    <div className="flex flex-col gap-10 md:flex-row md:flex-wrap md:items-start md:gap-x-20 md:gap-y-12">
+      <div className="flex flex-col gap-5 md:flex-[1_1_380px]">
         <span aria-hidden="true" className="grid size-13 place-items-center rounded-pill bg-info md:size-16">
           <svg viewBox="0 0 12 12" className="size-6 fill-none stroke-on-inverse stroke-[1.6] [stroke-linecap:round] [stroke-linejoin:round] md:size-7.5">
             <path d="M3 6.2l2 2 4-4.4" />
           </svg>
         </span>
-        <h1 className="text-[30px] leading-9 font-bold tracking-[-0.03em] text-balance md:text-display">What &quot;Approved by Creavent&quot; means</h1>
+        <h1 className="text-display text-balance">What &quot;Approved by Creavent&quot; means</h1>
         <p className="text-muted md:text-body-lg">
           Every organizer is reviewed by the Creavent team before they can open an event to vendors. This seal shows they passed that review.
         </p>
@@ -197,7 +199,7 @@ export function LegalView({ kind, version, minimumAge, supportEmail }: { kind: "
     <Link
       href={href}
       aria-current={current ? "page" : undefined}
-      className={cn("inline-flex h-9 items-center rounded-pill px-4 text-label no-underline", current ? "bg-surface text-ink shadow-sm" : "text-muted")}
+      className={cn("inline-flex h-11 items-center rounded-pill px-4 text-label no-underline md:h-9", current ? "bg-surface text-ink shadow-sm" : "text-muted")}
     >
       {label}
     </Link>
@@ -206,7 +208,8 @@ export function LegalView({ kind, version, minimumAge, supportEmail }: { kind: "
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-4">
-        <nav aria-label="Legal documents" className="inline-flex gap-0.5 self-start rounded-pill bg-sunken p-1">
+        {/* 44px tabs on phones; on wider screens the pill's inset brings them to 36px. */}
+        <nav aria-label="Legal documents" className="inline-flex gap-0.5 self-start rounded-pill bg-sunken md:p-1">
           {tab("/terms", "Terms of use", kind === "terms")}
           {tab("/privacy", "Privacy notice", kind === "privacy")}
         </nav>
@@ -220,7 +223,7 @@ export function LegalView({ kind, version, minimumAge, supportEmail }: { kind: "
         <nav aria-label="On this page" className="flex flex-col gap-0.5 md:sticky md:top-6 md:w-[260px] md:flex-none">
           <p className="pb-2 text-label text-muted md:px-3">On this page</p>
           {/* Phones: one scrolling row, so the text starts right away. */}
-          <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:flex-col md:gap-0 md:px-0">
+          <ul className="-mx-4 -my-1 flex gap-2 overflow-x-auto px-4 py-1 [scrollbar-width:none] md:mx-0 md:flex-col md:gap-0 md:px-0">
             {sections.map((s) => (
               <li key={s.id} className="flex-none">
                 <a
@@ -264,9 +267,9 @@ export function SupportView({ supportEmail }: { supportEmail: string }) {
   ]
   return (
     <div className="flex flex-col gap-8 md:gap-10">
-      <div className="flex flex-col gap-6 md:flex-row md:items-end md:gap-20">
+      <div className="flex flex-col gap-6 md:flex-row md:flex-wrap md:items-end md:gap-x-20 md:gap-y-8">
         <div className="flex flex-col gap-3.5 md:flex-[999_1_520px]">
-          <h1 className="text-[32px] leading-[38px] font-bold tracking-[-0.03em] md:text-display">Support</h1>
+          <h1 className="text-display">Support</h1>
           <p className="max-w-[560px] text-muted md:text-body-lg">
             Write to us for questions, reports about an event or user, or to delete your account. We reply by email.
           </p>

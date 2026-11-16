@@ -2,7 +2,7 @@ import type { ProfileEvent, PublicOrganizerPage } from "@creavent/shared"
 import { CaretRightIcon } from "@phosphor-icons/react/dist/ssr"
 import Link from "next/link"
 
-import { EventCard } from "@/components/listing/listing-view"
+import { cardGrid, EventCard } from "@/components/listing/listing-view"
 import { ApprovedMark } from "@/components/ui/approved-mark"
 import { Badge } from "@/components/ui/badge"
 import { DateStamp } from "@/components/ui/date-stamp"
@@ -54,7 +54,7 @@ export function OrganizerPageView({ page, supportEmail }: { page: PublicOrganize
   const o = page.organizer
   return (
     <article className="flex flex-col gap-12 md:gap-14">
-      <section className="flex flex-col gap-6 md:flex-row md:items-start md:gap-14">
+      <section className="flex flex-col gap-6 md:flex-row md:flex-wrap md:items-start md:gap-x-14 md:gap-y-8">
         <div className="flex min-w-0 flex-col gap-4 md:flex-[999_1_560px] md:flex-row md:gap-7">
           {o.logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element -- R2 addresses, already sized
@@ -68,13 +68,13 @@ export function OrganizerPageView({ page, supportEmail }: { page: PublicOrganize
             </span>
           )}
           <div className="flex min-w-0 flex-col gap-3.5">
-            <h1 className="text-[32px] leading-[38px] font-bold tracking-[-0.03em] md:text-display">{o.displayName}</h1>
+            <h1 className="text-display text-balance">{o.displayName}</h1>
             {o.approved && <ApprovedMark className="min-h-11 md:min-h-0" />}
             {o.about && <p className="max-w-[640px] whitespace-pre-line text-pretty md:text-body-lg">{o.about}</p>}
             <SocialLinks links={o.socialLinks} />
           </div>
         </div>
-        <dl className="grid grid-cols-3 gap-2 md:flex md:max-w-[380px] md:flex-[1_1_300px] md:flex-col md:gap-0 md:rounded-lg md:border md:border-border md:bg-surface md:px-5 md:py-2">
+        <dl className="grid grid-cols-2 gap-2 md:flex md:max-w-[380px] md:flex-[1_1_300px] md:flex-col md:gap-0 md:rounded-lg md:border md:border-border md:bg-surface md:px-5 md:py-2">
           <div className="rounded-md bg-sunken p-3 md:flex md:items-center md:justify-between md:rounded-none md:border-b md:border-border md:bg-transparent md:px-0 md:py-3">
             <dt className="text-cap text-muted md:text-sm">Events held on Creavent</dt>
             <dd className="text-price tabular-nums">{o.eventsHeld}</dd>
@@ -83,7 +83,8 @@ export function OrganizerPageView({ page, supportEmail }: { page: PublicOrganize
             <dt className="text-cap text-muted md:text-sm">City</dt>
             <dd className="text-label">{o.city ?? "Not set"}</dd>
           </div>
-          <div className="rounded-md bg-sunken p-3 md:flex md:items-center md:justify-between md:rounded-none md:bg-transparent md:px-0 md:py-3">
+          {/* Phones: the joined line takes the full row, so it stays on one line. */}
+          <div className="col-span-2 rounded-md bg-sunken p-3 md:flex md:items-center md:justify-between md:rounded-none md:bg-transparent md:px-0 md:py-3">
             <dt className="sr-only">Joined</dt>
             <dd className="text-cap md:text-label">{`On Creavent since ${joinedMonth(o.joinedAt)}`}</dd>
           </div>
@@ -95,7 +96,7 @@ export function OrganizerPageView({ page, supportEmail }: { page: PublicOrganize
           Upcoming
         </h2>
         {page.upcoming.length ? (
-          <ul className="grid grid-cols-1 gap-4 md:grid-cols-[repeat(auto-fill,minmax(360px,1fr))] md:gap-6">
+          <ul className={cardGrid(page.upcoming.length)}>
             {page.upcoming.map((e) => (
               <EventCard key={e.slug} e={e} />
             ))}
