@@ -13,8 +13,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { eventDays, stampDate } from "@/lib/event-format"
 import { DetailsTab } from "./details-tab"
 import { RequirementsTab } from "./requirements-tab"
-import { AnnounceButton, CancelEventButton, CanceledNotice } from "./lifecycle-controls"
-import { ApplicationsPanel, Checklist, DeleteDraftButton, OpenButton } from "./open-controls"
+import { EventTabs } from "@/components/organizer-vendors/event-tabs"
+import { EventActionsMenu } from "./event-actions-menu"
+import { AnnounceButton, CanceledNotice } from "./lifecycle-controls"
+import { Checklist, OpenButton } from "./open-controls"
 import { EventStatusBadge } from "./parts"
 import { PaymentsTab } from "./payments-tab"
 import { PolicyTab } from "./policy-tab"
@@ -72,52 +74,46 @@ function Setup({ setup }: { setup: EventSetup }) {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* The stamp stays beside the name on phones too, as on the event page. */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center">
-        <div className="flex min-w-0 flex-1 items-start gap-4">
-          {d.startDate && <DateStamp date={stampDate(d.startDate)} endDay={days > 1 && d.endDate ? Number(d.endDate.slice(8)) : undefined} />}
-          <div className="flex min-w-0 flex-col gap-2">
-            <h1 className="text-h1">{d.name}</h1>
+      <EventTabs
+        eventId={setup.id}
+        name={d.name}
+        current="setup"
+        nav={setup.status !== "draft"}
+        stamp={d.startDate && <DateStamp date={stampDate(d.startDate)} endDay={days > 1 && d.endDate ? Number(d.endDate.slice(8)) : undefined} />}
+        meta={
+          <>
             <div className="flex flex-wrap items-center gap-2">
               <EventStatusBadge status={setup.status} />
               {type && <Badge dot={false}>{type.name}</Badge>}
             </div>
-            {setup.status === "draft" && <p className="text-sm text-muted">Only you can see this event.</p>}
-          </div>
+            {!setup.canceled && <p className="max-w-[560px] text-sm text-muted">{statusLine(setup)}</p>}
+          </>
+        }
+      >
+        {/* The one next step, then everything else under More actions. On
+            phones the step fills the row beside the menu. */}
+        <div className="flex-1 md:flex-none [&_button]:max-md:w-full">
+          {setup.status === "draft" ? <OpenButton setup={setup} /> : <AnnounceButton setup={setup} />}
         </div>
-        <div className="flex w-full flex-col gap-2 md:w-auto md:flex-none md:flex-row md:items-start">
-          <Button asChild variant="secondary">
-            <Link href={`/events/${setup.slug}?preview=vendor`}>Preview as vendor</Link>
-          </Button>
-          {setup.status !== "draft" && (
-            <>
-              <Button asChild variant="secondary">
-                <Link href={`/organizer/events/${setup.id}/applications`}>Applications</Link>
-              </Button>
-              <Button asChild variant="secondary">
-                <Link href={`/organizer/events/${setup.id}/vendors`}>Vendors and slots</Link>
-              </Button>
-            </>
-          )}
-          {setup.status === "draft" && <OpenButton setup={setup} />}
-          {setup.status === "draft" && <DeleteDraftButton setup={setup} />}
-          <AnnounceButton setup={setup} />
-          <CancelEventButton setup={setup} />
-        </div>
-      </div>
+        <EventActionsMenu setup={setup} />
+      </EventTabs>
 
       {setup.canceled ? (
         <CanceledNotice canceled={setup.canceled} />
-      ) : setup.status === "draft" ? (
-        <Checklist checklist={setup.checklist} onGo={choose} />
       ) : (
-        <ApplicationsPanel setup={setup} />
+        setup.status === "draft" && <Checklist checklist={setup.checklist} onGo={choose} />
       )}
 
       <Tabs value={tab} onValueChange={choose}>
-        <TabsList aria-label="Event setup">
+        {/* The sections of this page, as pills: the underline tabs above
+            are the event's pages, so the two levels never look alike. */}
+        <TabsList aria-label="Event setup" className="-mx-4 gap-2 px-4 shadow-none md:mx-0 md:px-0">
           {setupTabs.map((t) => (
-            <TabsTrigger key={t.id} value={t.id}>
+            <TabsTrigger
+              key={t.id}
+              value={t.id}
+              className="h-11 rounded-pill border border-border-strong bg-surface px-4 text-ink hover:text-ink data-active:border-inverse data-active:bg-inverse data-active:text-on-inverse md:h-10"
+            >
               {t.label}
             </TabsTrigger>
           ))}
@@ -143,4 +139,23 @@ function Setup({ setup }: { setup: EventSetup }) {
       </Tabs>
     </div>
   )
+}
+
+// One line under the name: who can see the event and whether vendors can
+// apply, instead of a panel of its own.
+function statusLine(setup: EventSetup) {
+  const applications = setup.applicationsOpen ? "open" : "closed"
+  switch (setup.status) {
+    case "draft":
+      return "Only you can see this draft."
+    case "open_to_vendors":
+      if (setup.ended) return "This event has ended."
+      return setup.applicationsOpen
+        ? "Applications are open. Vendors can find this event and apply. Visitors can't see it yet."
+        : "Applications are closed. Vendors can still see this event. Visitors can't see it yet."
+    case "announced":
+      return `Announced, on the event listing. Applications are ${applications}.`
+    default:
+      return "Completed. It stays on your organizer page as a past event."
+  }
 }

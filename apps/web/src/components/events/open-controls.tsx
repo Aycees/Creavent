@@ -121,46 +121,11 @@ export function OpenButton({ setup }: { setup: EventSetup }) {
   )
 }
 
-// Close or reopen applications on an open event (spec §3.3).
-export function ApplicationsPanel({ setup }: { setup: EventSetup }) {
-  const saved = useSetupSaved(setup.id)
-  const [saving, setSaving] = React.useState(false)
-  const [error, setError] = React.useState<string | null>(null)
-  const open = setup.applicationsOpen
-
-  async function toggle() {
-    setSaving(true)
-    setError(null)
-    const res = await api.PUT("/api/organizer/events/{id}/applications", { params: { path: { id: setup.id } }, body: { open: !open } })
-    setSaving(false)
-    if (!res.data) return setError(saveError(res.error).message)
-    saved(res.data)
-    toast.success(open ? "Applications closed" : "Applications open")
-  }
-
-  return (
-    <section aria-label="Applications" className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4 md:flex-row md:items-center md:p-5">
-      <div className="flex flex-1 flex-col gap-1">
-        <p className="text-label font-semibold">{open ? "Applications are open" : "Applications are closed"}</p>
-        <p className="text-sm text-muted">
-          {setup.status === "open_to_vendors" ? "Vendors can find this event and apply. Visitors can't see it yet." : "Vendors can find this event."}
-          {!open && " New applications are turned off."}
-        </p>
-        {error && <p className="text-help text-danger-ink">{error}</p>}
-      </div>
-      <Button type="button" variant="secondary" disabled={saving} onClick={toggle}>
-        {open ? "Close applications" : "Open applications"}
-      </Button>
-    </section>
-  )
-}
-
 // Delete a draft for good (decided 2026-11-15). Events vendors could see are
-// canceled instead, so this shows on drafts only.
-export function DeleteDraftButton({ setup }: { setup: EventSetup }) {
+// canceled instead, so More actions offers it on drafts only.
+export function DeleteDraftDialog({ setup, open: confirming, onOpenChange: setConfirming }: { setup: EventSetup; open: boolean; onOpenChange: (open: boolean) => void }) {
   const router = useRouter()
   const queryClient = useQueryClient()
-  const [confirming, setConfirming] = React.useState(false)
   const [deleting, setDeleting] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
 
@@ -179,9 +144,6 @@ export function DeleteDraftButton({ setup }: { setup: EventSetup }) {
 
   return (
     <>
-      <Button type="button" variant="danger-ghost" onClick={() => setConfirming(true)}>
-        Delete draft
-      </Button>
       <Dialog open={confirming} onOpenChange={setConfirming}>
         <DialogContent>
           <DialogHeader>

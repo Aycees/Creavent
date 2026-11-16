@@ -106,11 +106,10 @@ export function AnnounceButton({ setup }: { setup: EventSetup }) {
 }
 
 // Cancel event (flow 9, decisions Q4, Q6, Q7): on an event open to vendors
-// or announced. It can't be undone, so it is a quiet button with a firm
+// or announced. It can't be undone, so it sits in More actions and has a firm
 // confirm step (mockup OrgCancelPhone).
-export function CancelEventButton({ setup }: { setup: EventSetup }) {
+export function CancelEventDialog({ setup, open: confirming, onOpenChange: setConfirming }: { setup: EventSetup; open: boolean; onOpenChange: (open: boolean) => void }) {
   const saved = useSetupSaved(setup.id)
-  const [confirming, setConfirming] = React.useState(false)
   const [reason, setReason] = React.useState("")
   const [saving, setSaving] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
@@ -134,9 +133,6 @@ export function CancelEventButton({ setup }: { setup: EventSetup }) {
 
   return (
     <>
-      <Button type="button" variant="danger-ghost" onClick={() => setConfirming(true)}>
-        Cancel event
-      </Button>
       <Dialog open={confirming} onOpenChange={setConfirming}>
         <DialogContent role="alertdialog">
           <DialogHeader>
