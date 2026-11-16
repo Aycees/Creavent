@@ -25,7 +25,7 @@ export class OrganizerVendorsService {
   ) {}
 
   async vendors(userId: string, eventId: string): Promise<EventVendors> {
-    await organizerProfile(this.prisma, userId);
+    await organizerProfile(this.prisma, userId, { read: true });
     const event = await this.prisma.event.findFirst({
       where: { id: eventId, organizerProfile: { userId } },
       include: { slots: { where: { deletedAt: null }, orderBy: [{ sortOrder: 'asc' }, { label: 'asc' }] } },

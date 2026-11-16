@@ -74,7 +74,7 @@ export class OrganizerEventsService {
   // The organizer's events in Upcoming (not ended, or no dates yet) and Past,
   // each with its next step (spec §3.8).
   async list(userId: string): Promise<OrganizerEvents> {
-    const profile = await organizerProfile(this.prisma, userId);
+    const profile = await organizerProfile(this.prisma, userId, { read: true });
     const role = await this.prisma.userRole.findUniqueOrThrow({ where: { userId_role: { userId, role: 'organizer' } } });
     const events = await this.prisma.event.findMany({
       where: { organizerProfileId: profile.id },
@@ -155,7 +155,7 @@ export class OrganizerEventsService {
   }
 
   async setup(userId: string, eventId: string): Promise<EventSetup> {
-    await organizerProfile(this.prisma, userId);
+    await organizerProfile(this.prisma, userId, { read: true });
     const role = await this.prisma.userRole.findUniqueOrThrow({ where: { userId_role: { userId, role: 'organizer' } } });
     const event = await this.prisma.event.findFirst({
       where: { id: eventId, organizerProfile: { userId } },
@@ -186,6 +186,7 @@ export class OrganizerEventsService {
       applicationsOpen: event.applicationsOpen,
       checklist: await this.prisma.$transaction((tx) => checklist(tx, event.id)),
       organizerApproved: isApproved(role),
+      hiddenByCreavent: event.moderationState === 'hidden' ? { reason: event.moderationReason } : null,
       details: {
         name: event.name,
         eventTypeId: event.eventTypeId,
@@ -450,11 +451,13 @@ export class OrganizerEventsService {
 
 // The organizer profile of a user who may run events: the organizer role,
 // not suspended, with the organizer page and a mobile number (flow 1).
-// Approval is not needed for drafts (spec §10).
-export async function organizerProfile(db: Db, userId: string) {
+// Approval is not needed for drafts (spec §10). Pages that only show
+// something pass `read`: a suspended organizer still sees their events, but
+// can't change them (spec §2.1, decided 2026-11-17).
+export async function organizerProfile(db: Db, userId: string, options: { read?: boolean } = {}) {
   const role = await db.userRole.findUnique({ where: { userId_role: { userId, role: 'organizer' } } });
   if (!role) throw new ForbiddenException('Add the organizer role first');
-  if (role.suspendedAt) throw new ForbiddenException('Your organizer role is suspended');
+  if (role.suspendedAt && !options.read) throw new ForbiddenException('Your organizer role is suspended');
   const user = await db.user.findUniqueOrThrow({ where: { id: userId }, include: { organizerProfile: true } });
   if (!user.organizerProfile || !user.phone) {
     throw new ForbiddenException('Finish your organizer page and contact number first');

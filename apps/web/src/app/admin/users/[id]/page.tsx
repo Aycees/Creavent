@@ -1,9 +1,19 @@
 import type { Metadata } from "next"
+import { Suspense } from "react"
 
-import { PlaceholderPage } from "@/components/layout/placeholder-page"
+import { AdminUserDetail } from "@/components/admin/user-detail"
 
-export const metadata: Metadata = { title: "User · Creavent" }
+export const metadata: Metadata = { title: "User · Admin · Creavent" }
 
-export default function UserPage() {
-  return <PlaceholderPage title="User" slice="5.2 (users and events)" />
+async function Detail({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  return <AdminUserDetail userId={id} />
+}
+
+export default function UserPage({ params }: PageProps<"/admin/users/[id]">) {
+  return (
+    <Suspense>
+      <Detail params={params} />
+    </Suspense>
+  )
 }

@@ -70,6 +70,7 @@ export function vendorApplicationFixture(overrides: Partial<VendorApplication> =
       ingressInfo: "From 3 PM, Gate 2",
       preferredSlots: true,
       vendorFloorPlanUrl: null,
+      hidden: false,
     },
     organizer: { displayName: "Sari-Sari Collective", fullName: "Joanna Lim", phone: "0928 115 7720", contactEmail: "hello@sarisaricollective.ph", approved: true },
     slotsRequested: 1,

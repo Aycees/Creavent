@@ -1268,6 +1268,134 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminController_listUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminController_user"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{id}/roles/{role}/suspend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminController_suspend"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{id}/roles/{role}/reinstate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminController_reinstate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminController_listEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/events/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminController_event"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/events/{id}/hide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminController_hide"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/events/{id}/show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminController_show"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3327,6 +3455,9 @@ export interface operations {
                             payments: boolean;
                         };
                         organizerApproved: boolean;
+                        hiddenByCreavent: {
+                            reason: string | null;
+                        } | null;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -3555,6 +3686,9 @@ export interface operations {
                             payments: boolean;
                         };
                         organizerApproved: boolean;
+                        hiddenByCreavent: {
+                            reason: string | null;
+                        } | null;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -3744,6 +3878,9 @@ export interface operations {
                             payments: boolean;
                         };
                         organizerApproved: boolean;
+                        hiddenByCreavent: {
+                            reason: string | null;
+                        } | null;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -3921,6 +4058,9 @@ export interface operations {
                             payments: boolean;
                         };
                         organizerApproved: boolean;
+                        hiddenByCreavent: {
+                            reason: string | null;
+                        } | null;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -4109,6 +4249,9 @@ export interface operations {
                             payments: boolean;
                         };
                         organizerApproved: boolean;
+                        hiddenByCreavent: {
+                            reason: string | null;
+                        } | null;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -4290,6 +4433,9 @@ export interface operations {
                             payments: boolean;
                         };
                         organizerApproved: boolean;
+                        hiddenByCreavent: {
+                            reason: string | null;
+                        } | null;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -4431,6 +4577,9 @@ export interface operations {
                             payments: boolean;
                         };
                         organizerApproved: boolean;
+                        hiddenByCreavent: {
+                            reason: string | null;
+                        } | null;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -4613,6 +4762,9 @@ export interface operations {
                             payments: boolean;
                         };
                         organizerApproved: boolean;
+                        hiddenByCreavent: {
+                            reason: string | null;
+                        } | null;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -4754,6 +4906,9 @@ export interface operations {
                             payments: boolean;
                         };
                         organizerApproved: boolean;
+                        hiddenByCreavent: {
+                            reason: string | null;
+                        } | null;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -4926,6 +5081,9 @@ export interface operations {
                             payments: boolean;
                         };
                         organizerApproved: boolean;
+                        hiddenByCreavent: {
+                            reason: string | null;
+                        } | null;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -5108,6 +5266,9 @@ export interface operations {
                             payments: boolean;
                         };
                         organizerApproved: boolean;
+                        hiddenByCreavent: {
+                            reason: string | null;
+                        } | null;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -5287,6 +5448,9 @@ export interface operations {
                             payments: boolean;
                         };
                         organizerApproved: boolean;
+                        hiddenByCreavent: {
+                            reason: string | null;
+                        } | null;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -5470,6 +5634,9 @@ export interface operations {
                             payments: boolean;
                         };
                         organizerApproved: boolean;
+                        hiddenByCreavent: {
+                            reason: string | null;
+                        } | null;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -5648,6 +5815,9 @@ export interface operations {
                             payments: boolean;
                         };
                         organizerApproved: boolean;
+                        hiddenByCreavent: {
+                            reason: string | null;
+                        } | null;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -5819,6 +5989,9 @@ export interface operations {
                             payments: boolean;
                         };
                         organizerApproved: boolean;
+                        hiddenByCreavent: {
+                            reason: string | null;
+                        } | null;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -5960,6 +6133,9 @@ export interface operations {
                             payments: boolean;
                         };
                         organizerApproved: boolean;
+                        hiddenByCreavent: {
+                            reason: string | null;
+                        } | null;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -6131,6 +6307,9 @@ export interface operations {
                             payments: boolean;
                         };
                         organizerApproved: boolean;
+                        hiddenByCreavent: {
+                            reason: string | null;
+                        } | null;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -6272,6 +6451,9 @@ export interface operations {
                             payments: boolean;
                         };
                         organizerApproved: boolean;
+                        hiddenByCreavent: {
+                            reason: string | null;
+                        } | null;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -6443,6 +6625,9 @@ export interface operations {
                             payments: boolean;
                         };
                         organizerApproved: boolean;
+                        hiddenByCreavent: {
+                            reason: string | null;
+                        } | null;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -6584,6 +6769,9 @@ export interface operations {
                             payments: boolean;
                         };
                         organizerApproved: boolean;
+                        hiddenByCreavent: {
+                            reason: string | null;
+                        } | null;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -6761,6 +6949,9 @@ export interface operations {
                             payments: boolean;
                         };
                         organizerApproved: boolean;
+                        hiddenByCreavent: {
+                            reason: string | null;
+                        } | null;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -6902,6 +7093,9 @@ export interface operations {
                             payments: boolean;
                         };
                         organizerApproved: boolean;
+                        hiddenByCreavent: {
+                            reason: string | null;
+                        } | null;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -7172,6 +7366,9 @@ export interface operations {
                             payments: boolean;
                         };
                         organizerApproved: boolean;
+                        hiddenByCreavent: {
+                            reason: string | null;
+                        } | null;
                         details: {
                             name: string;
                             /** Format: uuid */
@@ -8152,6 +8349,7 @@ export interface operations {
                             ingressInfo: string | null;
                             preferredSlots: boolean;
                             vendorFloorPlanUrl: string | null;
+                            hidden: boolean;
                         };
                         organizer: {
                             displayName: string;
@@ -8307,6 +8505,7 @@ export interface operations {
                             ingressInfo: string | null;
                             preferredSlots: boolean;
                             vendorFloorPlanUrl: string | null;
+                            hidden: boolean;
                         };
                         organizer: {
                             displayName: string;
@@ -8420,6 +8619,7 @@ export interface operations {
                             ingressInfo: string | null;
                             preferredSlots: boolean;
                             vendorFloorPlanUrl: string | null;
+                            hidden: boolean;
                         };
                         organizer: {
                             displayName: string;
@@ -8563,6 +8763,7 @@ export interface operations {
                             ingressInfo: string | null;
                             preferredSlots: boolean;
                             vendorFloorPlanUrl: string | null;
+                            hidden: boolean;
                         };
                         organizer: {
                             displayName: string;
@@ -8676,6 +8877,7 @@ export interface operations {
                             ingressInfo: string | null;
                             preferredSlots: boolean;
                             vendorFloorPlanUrl: string | null;
+                            hidden: boolean;
                         };
                         organizer: {
                             displayName: string;
@@ -8880,6 +9082,7 @@ export interface operations {
                             ingressInfo: string | null;
                             preferredSlots: boolean;
                             vendorFloorPlanUrl: string | null;
+                            hidden: boolean;
                         };
                         organizer: {
                             displayName: string;
@@ -9029,6 +9232,7 @@ export interface operations {
                             ingressInfo: string | null;
                             preferredSlots: boolean;
                             vendorFloorPlanUrl: string | null;
+                            hidden: boolean;
                         };
                         organizer: {
                             displayName: string;
@@ -9142,6 +9346,7 @@ export interface operations {
                             ingressInfo: string | null;
                             preferredSlots: boolean;
                             vendorFloorPlanUrl: string | null;
+                            hidden: boolean;
                         };
                         organizer: {
                             displayName: string;
@@ -11975,6 +12180,712 @@ export interface operations {
                             name: string;
                             subtitle: string;
                             startsAt: string | null;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    AdminController_listUsers: {
+        parameters: {
+            query?: {
+                q?: string;
+                filter?: "all" | "vendors" | "organizers" | "suspended";
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            /** Format: uuid */
+                            id: string;
+                            fullName: string;
+                            email: string;
+                            joinedAt: string;
+                            roles: {
+                                /** @enum {string} */
+                                role: "vendor" | "organizer";
+                                name: string | null;
+                                /** @enum {string|null} */
+                                approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected" | null;
+                                suspended: boolean;
+                            }[];
+                            openReports: number;
+                        }[];
+                        total: number;
+                        page: number;
+                        pageSize: number;
+                        counts: {
+                            all: number;
+                            vendors: number;
+                            organizers: number;
+                            suspended: number;
+                        };
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    AdminController_user: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        fullName: string;
+                        email: string;
+                        emailVerified: boolean;
+                        phone: string | null;
+                        joinedAt: string;
+                        lastLoginAt: string | null;
+                        roles: {
+                            /** @enum {string} */
+                            role: "vendor" | "organizer";
+                            name: string | null;
+                            /** @enum {string|null} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected" | null;
+                            suspended: boolean;
+                            slug: string | null;
+                            reviewedAt: string | null;
+                            suspendedAt: string | null;
+                            suspendedByName: string | null;
+                            suspensionReason: string | null;
+                            upcomingEvents: number;
+                        }[];
+                        events: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            startsAt: string | null;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                            hidden: boolean;
+                            applied: number;
+                            confirmed: number;
+                        }[];
+                        applications: {
+                            /** Format: uuid */
+                            eventId: string;
+                            eventName: string;
+                            startsAt: string | null;
+                            status: string;
+                            slotLabels: string[];
+                        }[];
+                        reports: {
+                            /** Format: uuid */
+                            id: string;
+                            number: number;
+                            /** @enum {string} */
+                            reason: "fake_account" | "scam" | "inappropriate_content" | "other";
+                            open: boolean;
+                            about: string;
+                        }[];
+                        history: {
+                            at: string;
+                            text: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    AdminController_suspend: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                role: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    reason: string;
+                    hideUpcomingEvents?: boolean;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        fullName: string;
+                        email: string;
+                        emailVerified: boolean;
+                        phone: string | null;
+                        joinedAt: string;
+                        lastLoginAt: string | null;
+                        roles: {
+                            /** @enum {string} */
+                            role: "vendor" | "organizer";
+                            name: string | null;
+                            /** @enum {string|null} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected" | null;
+                            suspended: boolean;
+                            slug: string | null;
+                            reviewedAt: string | null;
+                            suspendedAt: string | null;
+                            suspendedByName: string | null;
+                            suspensionReason: string | null;
+                            upcomingEvents: number;
+                        }[];
+                        events: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            startsAt: string | null;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                            hidden: boolean;
+                            applied: number;
+                            confirmed: number;
+                        }[];
+                        applications: {
+                            /** Format: uuid */
+                            eventId: string;
+                            eventName: string;
+                            startsAt: string | null;
+                            status: string;
+                            slotLabels: string[];
+                        }[];
+                        reports: {
+                            /** Format: uuid */
+                            id: string;
+                            number: number;
+                            /** @enum {string} */
+                            reason: "fake_account" | "scam" | "inappropriate_content" | "other";
+                            open: boolean;
+                            about: string;
+                        }[];
+                        history: {
+                            at: string;
+                            text: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    AdminController_reinstate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                role: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        fullName: string;
+                        email: string;
+                        emailVerified: boolean;
+                        phone: string | null;
+                        joinedAt: string;
+                        lastLoginAt: string | null;
+                        roles: {
+                            /** @enum {string} */
+                            role: "vendor" | "organizer";
+                            name: string | null;
+                            /** @enum {string|null} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected" | null;
+                            suspended: boolean;
+                            slug: string | null;
+                            reviewedAt: string | null;
+                            suspendedAt: string | null;
+                            suspendedByName: string | null;
+                            suspensionReason: string | null;
+                            upcomingEvents: number;
+                        }[];
+                        events: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            startsAt: string | null;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                            hidden: boolean;
+                            applied: number;
+                            confirmed: number;
+                        }[];
+                        applications: {
+                            /** Format: uuid */
+                            eventId: string;
+                            eventName: string;
+                            startsAt: string | null;
+                            status: string;
+                            slotLabels: string[];
+                        }[];
+                        reports: {
+                            /** Format: uuid */
+                            id: string;
+                            number: number;
+                            /** @enum {string} */
+                            reason: "fake_account" | "scam" | "inappropriate_content" | "other";
+                            open: boolean;
+                            about: string;
+                        }[];
+                        history: {
+                            at: string;
+                            text: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    AdminController_listEvents: {
+        parameters: {
+            query?: {
+                q?: string;
+                filter?: "all" | "open" | "announced" | "reported" | "hidden" | "drafts";
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            startsAt: string | null;
+                            typeName: string;
+                            venueName: string | null;
+                            organizerName: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                            hidden: boolean;
+                            slots: number;
+                            confirmed: number;
+                            openReports: number;
+                        }[];
+                        total: number;
+                        page: number;
+                        pageSize: number;
+                        counts: {
+                            all: number;
+                            open: number;
+                            announced: number;
+                            reported: number;
+                            hidden: number;
+                            drafts: number;
+                        };
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    AdminController_event: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        name: string;
+                        slug: string;
+                        /** @enum {string} */
+                        status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                        startsAt: string | null;
+                        venueName: string | null;
+                        city: string | null;
+                        hidden: boolean;
+                        moderationReason: string | null;
+                        moderatedAt: string | null;
+                        moderatedByName: string | null;
+                        organizer: {
+                            /** Format: uuid */
+                            userId: string;
+                            name: string;
+                            fullName: string;
+                            approved: boolean;
+                            suspended: boolean;
+                        };
+                        slots: {
+                            total: number;
+                            assigned: number;
+                            reserved: number;
+                        };
+                        applications: {
+                            /** Format: uuid */
+                            id: string;
+                            shopName: string;
+                            /** Format: uuid */
+                            vendorUserId: string;
+                            status: string;
+                            slotLabels: string[];
+                            documents: {
+                                /** Format: uuid */
+                                fileId: string;
+                                label: string;
+                            }[];
+                            proofs: {
+                                /** Format: uuid */
+                                fileId: string;
+                                label: string;
+                            }[];
+                        }[];
+                        openReports: {
+                            count: number;
+                            /** Format: uuid */
+                            reportId: string | null;
+                        };
+                        history: {
+                            at: string;
+                            text: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    AdminController_hide: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        name: string;
+                        slug: string;
+                        /** @enum {string} */
+                        status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                        startsAt: string | null;
+                        venueName: string | null;
+                        city: string | null;
+                        hidden: boolean;
+                        moderationReason: string | null;
+                        moderatedAt: string | null;
+                        moderatedByName: string | null;
+                        organizer: {
+                            /** Format: uuid */
+                            userId: string;
+                            name: string;
+                            fullName: string;
+                            approved: boolean;
+                            suspended: boolean;
+                        };
+                        slots: {
+                            total: number;
+                            assigned: number;
+                            reserved: number;
+                        };
+                        applications: {
+                            /** Format: uuid */
+                            id: string;
+                            shopName: string;
+                            /** Format: uuid */
+                            vendorUserId: string;
+                            status: string;
+                            slotLabels: string[];
+                            documents: {
+                                /** Format: uuid */
+                                fileId: string;
+                                label: string;
+                            }[];
+                            proofs: {
+                                /** Format: uuid */
+                                fileId: string;
+                                label: string;
+                            }[];
+                        }[];
+                        openReports: {
+                            count: number;
+                            /** Format: uuid */
+                            reportId: string | null;
+                        };
+                        history: {
+                            at: string;
+                            text: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    AdminController_show: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        name: string;
+                        slug: string;
+                        /** @enum {string} */
+                        status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                        startsAt: string | null;
+                        venueName: string | null;
+                        city: string | null;
+                        hidden: boolean;
+                        moderationReason: string | null;
+                        moderatedAt: string | null;
+                        moderatedByName: string | null;
+                        organizer: {
+                            /** Format: uuid */
+                            userId: string;
+                            name: string;
+                            fullName: string;
+                            approved: boolean;
+                            suspended: boolean;
+                        };
+                        slots: {
+                            total: number;
+                            assigned: number;
+                            reserved: number;
+                        };
+                        applications: {
+                            /** Format: uuid */
+                            id: string;
+                            shopName: string;
+                            /** Format: uuid */
+                            vendorUserId: string;
+                            status: string;
+                            slotLabels: string[];
+                            documents: {
+                                /** Format: uuid */
+                                fileId: string;
+                                label: string;
+                            }[];
+                            proofs: {
+                                /** Format: uuid */
+                                fileId: string;
+                                label: string;
+                            }[];
+                        }[];
+                        openReports: {
+                            count: number;
+                            /** Format: uuid */
+                            reportId: string | null;
+                        };
+                        history: {
+                            at: string;
+                            text: string;
                         }[];
                     };
                 };

@@ -240,6 +240,13 @@ export class FilesService {
     if (!file || !uploadRules[file.purpose as UploadPurpose]?.private || !(await this.canOpen(user, file))) {
       throw new NotFoundException('File not found');
     }
+    // Each admin view of someone's application document or proof of payment
+    // is saved in the audit log (spec §2, decision D8).
+    if (user.isAdmin && file.uploadedBy !== user.id && (file.purpose === 'application_document' || file.purpose === 'payment_proof')) {
+      await this.prisma.auditLog.create({
+        data: { actorUserId: user.id, action: `${file.purpose}.view`, entityType: 'file', entityId: file.id },
+      });
+    }
     // PDFs always download, named from the purpose and date (spec §11.6).
     const download =
       file.mimeType === 'application/pdf'

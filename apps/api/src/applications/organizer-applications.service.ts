@@ -20,7 +20,7 @@ export class OrganizerApplicationsService {
   ) {}
 
   async list(userId: string, eventId: string): Promise<EventApplications> {
-    await organizerProfile(this.prisma, userId);
+    await organizerProfile(this.prisma, userId, { read: true });
     const event = await this.prisma.event.findFirst({
       where: { id: eventId, organizerProfile: { userId } },
       include: { categories: { include: { category: true } } },

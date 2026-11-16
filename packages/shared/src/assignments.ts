@@ -184,6 +184,8 @@ export const vendorApplicationSchema = z.object({
     // Whether vendors choose a preferred slot here (spec §3.4).
     preferredSlots: z.boolean(),
     vendorFloorPlanUrl: z.string().nullable(),
+    // Hidden by Creavent: the page stays, but nothing can be changed (decided 2026-11-17).
+    hidden: z.boolean(),
   }),
   // Vendors who applied see the organizer's contact (spec §8.2).
   organizer: z.object({

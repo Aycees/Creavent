@@ -137,7 +137,7 @@ export class ModerationService {
 }
 
 // Visible events of an organizer that haven't ended or been canceled.
-export function upcomingEvents(tx: Tx, organizerProfileId: string) {
+export function upcomingEvents(tx: Pick<Tx, 'event'>, organizerProfileId: string) {
   return tx.event.findMany({
     where: {
       organizerProfileId,
