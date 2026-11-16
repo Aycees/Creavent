@@ -1,5 +1,6 @@
 import Link from "next/link"
 
+import { AdminSearch } from "@/components/admin/admin-search"
 import { Badge } from "@/components/ui/badge"
 import { Logo } from "@/components/ui/logo"
 import { Segmented, SegmentedItem } from "@/components/ui/segmented"
@@ -32,10 +33,15 @@ export function TopBar({ area, user, className }: { area: Area; user: ShellUser;
   return (
     <div className={cn("flex h-16 items-center gap-2 border-b border-border bg-surface px-4 md:gap-4 md:px-8", className)}>
       <Logo className="md:hidden" />
-      <Breadcrumb area={areaLabels[area]} items={crumbs} className="hidden md:block" />
-      <div className="flex-1" />
       {area === "admin" ? (
-        <Badge tone="ink" dot={false}>
+        // Admins search users, organizers and events from every page (sitemap §5).
+        <AdminSearch className="min-w-0 flex-1 md:max-w-[420px]" />
+      ) : (
+        <Breadcrumb area={areaLabels[area]} items={crumbs} className="hidden md:block" />
+      )}
+      <div className={cn("flex-1", area === "admin" && "max-md:hidden")} />
+      {area === "admin" ? (
+        <Badge tone="ink" dot={false} className="max-md:hidden">
           Admin
         </Badge>
       ) : (
