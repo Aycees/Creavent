@@ -34,7 +34,11 @@ export function VendorList({ vendors, title }: { vendors: PublicVendorRow[]; tit
         </p>
       </div>
       {categories.length > 1 && (
-        <div role="group" aria-label="Filter by category" className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:flex-wrap md:px-0 [&::-webkit-scrollbar]:hidden">
+        <div
+          role="group"
+          aria-label="Filter by category"
+          className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:flex-wrap md:px-0 [&::-webkit-scrollbar]:hidden"
+        >
           <Chip pressed={category === null} count={vendors.length} onClick={() => setCategory(null)}>
             All
           </Chip>
@@ -55,7 +59,9 @@ export function VendorList({ vendors, title }: { vendors: PublicVendorRow[]; tit
                   <AvatarFallback>{v.slug === null && v.shopName === "Deleted user" ? "?" : initialsOf(v.shopName)}</AvatarFallback>
                 </Avatar>
                 <span className="flex min-w-0 flex-1 flex-col">
-                  <span className={v.slug ? "truncate text-label font-semibold underline underline-offset-3" : "truncate text-label font-semibold"}>{v.shopName}</span>
+                  <span className={v.slug ? "truncate text-label font-semibold underline underline-offset-3" : "truncate text-label font-semibold"}>
+                    {v.shopName}
+                  </span>
                   <span className="truncate text-cap text-muted">{v.categories.join(", ")}</span>
                 </span>
                 <span className="font-mono text-mono">{v.slotLabel}</span>

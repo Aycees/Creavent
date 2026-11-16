@@ -1092,6 +1092,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/public/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PublicController_listing"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/public/events/{slug}": {
         parameters: {
             query?: never;
@@ -1100,6 +1116,38 @@ export interface paths {
             cookie?: never;
         };
         get: operations["PublicController_event"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/organizers/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PublicController_organizer"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/vendors/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PublicController_vendor"];
         put?: never;
         post?: never;
         delete?: never;
@@ -10717,6 +10765,79 @@ export interface operations {
             };
         };
     };
+    PublicController_listing: {
+        parameters: {
+            query?: {
+                q?: string;
+                type?: string;
+                city?: string;
+                when?: "any" | "weekend" | "2weeks" | "next_month" | "dates";
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        tags: string[];
+                        today: string;
+                        events: {
+                            slug: string;
+                            name: string;
+                            typeName: string;
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            venueName: string | null;
+                            city: string | null;
+                            coverUrl: string | null;
+                            organizer: {
+                                displayName: string;
+                                approved: boolean;
+                            };
+                        }[];
+                        types: {
+                            slug: string;
+                            name: string;
+                            count: number;
+                        }[];
+                        cities: string[];
+                        next7: {
+                            date: string;
+                            count: number;
+                        }[];
+                        openToVendors: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
     PublicController_event: {
         parameters: {
             query?: never;
@@ -10794,6 +10915,168 @@ export interface operations {
                                 reason: string | null;
                             } | null;
                         };
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    PublicController_organizer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        tags: string[];
+                        organizer: {
+                            displayName: string;
+                            slug: string;
+                            logoUrl: string | null;
+                            approved: boolean;
+                            about: string | null;
+                            city: string | null;
+                            socialLinks: string[];
+                            joinedAt: string;
+                            eventsHeld: number;
+                        };
+                        upcoming: {
+                            slug: string;
+                            name: string;
+                            typeName: string;
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            venueName: string | null;
+                            city: string | null;
+                            coverUrl: string | null;
+                            organizer: {
+                                displayName: string;
+                                approved: boolean;
+                            };
+                        }[];
+                        past: {
+                            slug: string;
+                            name: string;
+                            typeName: string;
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            venueName: string | null;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    PublicController_vendor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        tags: string[];
+                        vendor: {
+                            shopName: string;
+                            slug: string;
+                            avatarUrl: string | null;
+                            categories: string[];
+                            description: string | null;
+                            products: string | null;
+                            city: string | null;
+                            socialLinks: string[];
+                            photos: string[];
+                            joinedAt: string;
+                            eventsSoldAt: number;
+                        };
+                        next: {
+                            event: {
+                                slug: string;
+                                name: string;
+                                typeName: string;
+                                startDate: string | null;
+                                endDate: string | null;
+                                opensAt: string | null;
+                                closesAt: string | null;
+                                venueName: string | null;
+                                city: string | null;
+                                coverUrl: string | null;
+                                organizer: {
+                                    displayName: string;
+                                    approved: boolean;
+                                };
+                            };
+                            slotLabel: string;
+                        } | null;
+                        sold: {
+                            slug: string;
+                            name: string;
+                            typeName: string;
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            venueName: string | null;
+                            organizerName: string;
+                            slotLabel: string;
+                            upcoming: boolean;
+                        }[];
                     };
                 };
             };

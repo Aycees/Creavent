@@ -36452,6 +36452,289 @@
         ]
       }
     },
+    "/api/public/events": {
+      "get": {
+        "operationId": "PublicController_listing",
+        "parameters": [
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 40
+            }
+          },
+          {
+            "name": "city",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 60
+            }
+          },
+          {
+            "name": "when",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "any",
+                "weekend",
+                "2weeks",
+                "next_month",
+                "dates"
+              ]
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "today": {
+                      "type": "string"
+                    },
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "slug": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "typeName": {
+                            "type": "string"
+                          },
+                          "startDate": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "endDate": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "opensAt": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "closesAt": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "venueName": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "city": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "coverUrl": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "organizer": {
+                            "type": "object",
+                            "properties": {
+                              "displayName": {
+                                "type": "string"
+                              },
+                              "approved": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "displayName",
+                              "approved"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": [
+                          "slug",
+                          "name",
+                          "typeName",
+                          "startDate",
+                          "endDate",
+                          "opensAt",
+                          "closesAt",
+                          "venueName",
+                          "city",
+                          "coverUrl",
+                          "organizer"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "types": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "slug": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "count": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          }
+                        },
+                        "required": [
+                          "slug",
+                          "name",
+                          "count"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "cities": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "next7": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "date": {
+                            "type": "string"
+                          },
+                          "count": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          }
+                        },
+                        "required": [
+                          "date",
+                          "count"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "openToVendors": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "tags",
+                    "today",
+                    "events",
+                    "types",
+                    "cities",
+                    "next7",
+                    "openToVendors"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Public"
+        ]
+      }
+    },
     "/api/public/events/{slug}": {
       "get": {
         "operationId": "PublicController_event",
@@ -36772,6 +37055,580 @@
                   "required": [
                     "tags",
                     "page"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Public"
+        ]
+      }
+    },
+    "/api/public/organizers/{slug}": {
+      "get": {
+        "operationId": "PublicController_organizer",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "organizer": {
+                      "type": "object",
+                      "properties": {
+                        "displayName": {
+                          "type": "string"
+                        },
+                        "slug": {
+                          "type": "string"
+                        },
+                        "logoUrl": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "approved": {
+                          "type": "boolean"
+                        },
+                        "about": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "city": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "socialLinks": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "joinedAt": {
+                          "type": "string"
+                        },
+                        "eventsHeld": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        }
+                      },
+                      "required": [
+                        "displayName",
+                        "slug",
+                        "logoUrl",
+                        "approved",
+                        "about",
+                        "city",
+                        "socialLinks",
+                        "joinedAt",
+                        "eventsHeld"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "upcoming": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "slug": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "typeName": {
+                            "type": "string"
+                          },
+                          "startDate": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "endDate": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "opensAt": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "closesAt": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "venueName": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "city": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "coverUrl": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "organizer": {
+                            "type": "object",
+                            "properties": {
+                              "displayName": {
+                                "type": "string"
+                              },
+                              "approved": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "displayName",
+                              "approved"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": [
+                          "slug",
+                          "name",
+                          "typeName",
+                          "startDate",
+                          "endDate",
+                          "opensAt",
+                          "closesAt",
+                          "venueName",
+                          "city",
+                          "coverUrl",
+                          "organizer"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "past": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "slug": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "typeName": {
+                            "type": "string"
+                          },
+                          "startDate": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "endDate": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "opensAt": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "closesAt": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "venueName": {
+                            "nullable": true,
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "slug",
+                          "name",
+                          "typeName",
+                          "startDate",
+                          "endDate",
+                          "opensAt",
+                          "closesAt",
+                          "venueName"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "tags",
+                    "organizer",
+                    "upcoming",
+                    "past"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Public"
+        ]
+      }
+    },
+    "/api/public/vendors/{slug}": {
+      "get": {
+        "operationId": "PublicController_vendor",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "vendor": {
+                      "type": "object",
+                      "properties": {
+                        "shopName": {
+                          "type": "string"
+                        },
+                        "slug": {
+                          "type": "string"
+                        },
+                        "avatarUrl": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "categories": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "description": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "products": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "city": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "socialLinks": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "photos": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "joinedAt": {
+                          "type": "string"
+                        },
+                        "eventsSoldAt": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        }
+                      },
+                      "required": [
+                        "shopName",
+                        "slug",
+                        "avatarUrl",
+                        "categories",
+                        "description",
+                        "products",
+                        "city",
+                        "socialLinks",
+                        "photos",
+                        "joinedAt",
+                        "eventsSoldAt"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "next": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "event": {
+                          "type": "object",
+                          "properties": {
+                            "slug": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "typeName": {
+                              "type": "string"
+                            },
+                            "startDate": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "endDate": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "opensAt": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "closesAt": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "venueName": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "city": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "coverUrl": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "organizer": {
+                              "type": "object",
+                              "properties": {
+                                "displayName": {
+                                  "type": "string"
+                                },
+                                "approved": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "displayName",
+                                "approved"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": [
+                            "slug",
+                            "name",
+                            "typeName",
+                            "startDate",
+                            "endDate",
+                            "opensAt",
+                            "closesAt",
+                            "venueName",
+                            "city",
+                            "coverUrl",
+                            "organizer"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "slotLabel": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "event",
+                        "slotLabel"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "sold": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "slug": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "typeName": {
+                            "type": "string"
+                          },
+                          "startDate": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "endDate": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "opensAt": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "closesAt": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "venueName": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "organizerName": {
+                            "type": "string"
+                          },
+                          "slotLabel": {
+                            "type": "string"
+                          },
+                          "upcoming": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "slug",
+                          "name",
+                          "typeName",
+                          "startDate",
+                          "endDate",
+                          "opensAt",
+                          "closesAt",
+                          "venueName",
+                          "organizerName",
+                          "slotLabel",
+                          "upcoming"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "tags",
+                    "vendor",
+                    "next",
+                    "sold"
                   ],
                   "additionalProperties": false
                 }

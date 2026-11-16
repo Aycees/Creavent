@@ -1,5 +1,5 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { listingQuerySchema, listingSchema, publicEventResponseSchema } from '@creavent/shared';
+import { listingQuerySchema, listingSchema, publicEventResponseSchema, publicOrganizerPageSchema, publicVendorPageSchema } from '@creavent/shared';
 import type { z } from 'zod';
 import { ResponseSchema } from '../response-schema.decorator.js';
 import { PublicPagesService } from './public-pages.service.js';
@@ -21,5 +21,17 @@ export class PublicController {
   @ResponseSchema(publicEventResponseSchema)
   event(@Param('slug') slug: string) {
     return this.pages.event(slug);
+  }
+
+  @Get('organizers/:slug')
+  @ResponseSchema(publicOrganizerPageSchema)
+  organizer(@Param('slug') slug: string) {
+    return this.pages.organizerPage(slug);
+  }
+
+  @Get('vendors/:slug')
+  @ResponseSchema(publicVendorPageSchema)
+  vendor(@Param('slug') slug: string) {
+    return this.pages.vendorPage(slug);
   }
 }

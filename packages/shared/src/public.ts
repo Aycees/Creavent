@@ -120,3 +120,61 @@ export const listingSchema = z.object({
   openToVendors: z.number().int(),
 });
 export type Listing = z.infer<typeof listingSchema>;
+
+// ─── Organizer and vendor pages (spec §7.1, §7.2) ──────────────────────────
+
+// A past or listed event on a profile page.
+export const profileEventSchema = z.object({
+  slug: z.string(),
+  name: z.string(),
+  typeName: z.string(),
+  ...scheduleFields,
+  venueName: z.string().nullable(),
+});
+export type ProfileEvent = z.infer<typeof profileEventSchema>;
+
+export const publicOrganizerPageSchema = z.object({
+  tags: z.array(z.string()),
+  organizer: z.object({
+    displayName: z.string(),
+    slug: z.string(),
+    logoUrl: z.string().nullable(),
+    approved: z.boolean(),
+    about: z.string().nullable(),
+    city: z.string().nullable(),
+    socialLinks: z.array(z.string()),
+    joinedAt: z.string(),
+    // Completed events on Creavent.
+    eventsHeld: z.number().int(),
+  }),
+  // Announced events that haven't ended, soonest first.
+  upcoming: z.array(listingCardSchema),
+  // Completed events, newest first.
+  past: z.array(profileEventSchema),
+});
+export type PublicOrganizerPage = z.infer<typeof publicOrganizerPageSchema>;
+
+export const publicVendorPageSchema = z.object({
+  tags: z.array(z.string()),
+  vendor: z.object({
+    shopName: z.string(),
+    slug: z.string(),
+    avatarUrl: z.string().nullable(),
+    categories: z.array(z.string()),
+    description: z.string().nullable(),
+    products: z.string().nullable(),
+    city: z.string().nullable(),
+    socialLinks: z.array(z.string()),
+    // Up to 8 (spec §7.2).
+    photos: z.array(z.string()),
+    joinedAt: z.string(),
+    // The events in "Where they've sold".
+    eventsSoldAt: z.number().int(),
+  }),
+  // "Find them next at": the soonest announced event with a reserved slot.
+  next: z.object({ event: listingCardSchema, slotLabel: z.string() }).nullable(),
+  // "Where they've sold": announced or completed events with a reserved
+  // slot, newest first (data model §7).
+  sold: z.array(profileEventSchema.extend({ organizerName: z.string(), slotLabel: z.string(), upcoming: z.boolean() })),
+});
+export type PublicVendorPage = z.infer<typeof publicVendorPageSchema>;

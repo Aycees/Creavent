@@ -15,8 +15,18 @@ import { VendorList } from "./vendor-list"
 
 type Schedule = Pick<PublicEvent, "startDate" | "endDate" | "opensAt" | "closesAt">
 
-const longDay = new Intl.DateTimeFormat("en-US", { timeZone: "UTC", weekday: "long", month: "short", day: "numeric" })
-const manilaDay = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Manila", weekday: "short", month: "short", day: "numeric" })
+const longDay = new Intl.DateTimeFormat("en-US", {
+  timeZone: "UTC",
+  weekday: "long",
+  month: "short",
+  day: "numeric",
+})
+const manilaDay = new Intl.DateTimeFormat("en-US", {
+  timeZone: "Asia/Manila",
+  weekday: "short",
+  month: "short",
+  day: "numeric",
+})
 
 // The detail page lines (design brief §4): "Saturday, Nov 14" and "5 PM to
 // 11 PM", or "Fri, Nov 20 to Sun, Nov 22" and "9 AM to 5 PM daily".
@@ -24,7 +34,10 @@ function detailLines(s: Schedule) {
   if (!s.startDate || !s.endDate || !s.opensAt || !s.closesAt) return null
   const hours = `${formatTime(s.opensAt)} to ${formatTime(s.closesAt)}`
   if (s.startDate === s.endDate) return { day: longDay.format(new Date(`${s.startDate}T00:00:00Z`)), hours }
-  return { day: `${formatDay(s.startDate)} to ${formatDay(s.endDate)}`, hours: `${hours} daily` }
+  return {
+    day: `${formatDay(s.startDate)} to ${formatDay(s.endDate)}`,
+    hours: `${hours} daily`,
+  }
 }
 
 function Stamp({ s, size, past }: { s: Schedule; size?: "sm" | "md" | "lg"; past?: boolean }) {
@@ -165,7 +178,9 @@ export function PublicEventView({ event: e, supportEmail }: { event: PublicEvent
               </div>
             </div>
             {e.organizer.about && <p className="line-clamp-3 text-sm text-muted">{e.organizer.about}</p>}
-            {e.organizer.eventsHeld > 0 && <p className="text-sm text-muted">{`${e.organizer.eventsHeld} ${e.organizer.eventsHeld === 1 ? "event" : "events"} held on Creavent`}</p>}
+            {e.organizer.eventsHeld > 0 && (
+              <p className="text-sm text-muted">{`${e.organizer.eventsHeld} ${e.organizer.eventsHeld === 1 ? "event" : "events"} held on Creavent`}</p>
+            )}
             {e.organizer.slug && (
               <Button asChild variant="secondary" block>
                 <Link href={`/organizers/${e.organizer.slug}`}>See organizer page</Link>
@@ -266,4 +281,3 @@ export function CanceledNoticeView({ name, canceled, ...schedule }: Schedule & {
     </div>
   )
 }
-

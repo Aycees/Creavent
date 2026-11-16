@@ -1,4 +1,4 @@
-import type { Listing, PublicConfig, PublicEventResponse } from "@creavent/shared"
+import type { Listing, PublicConfig, PublicEventResponse, PublicOrganizerPage, PublicVendorPage } from "@creavent/shared"
 import { cacheLife, cacheTag } from "next/cache"
 
 // Server-side reads of the public pages (architecture §8). Each response is
@@ -38,6 +38,31 @@ export async function getListing(search: string) {
   cacheLife({ stale: 300, revalidate: 900, expire: 3600 })
   const data = await getJson<Listing>(`/api/public/events${search ? `?${search}` : ""}`)
   if (!data) throw new Error("GET /api/public/events failed")
+  cacheTag(...data.tags)
+  return data
+}
+
+export async function getOrganizerPage(slug: string) {
+  "use cache"
+  const data = await getJson<PublicOrganizerPage>(`/api/public/organizers/${encodeURIComponent(slug)}`)
+  if (!data) {
+    cacheMissing()
+    return null
+  }
+  // Upcoming events move to Past as days go by.
+  cacheLife("days")
+  cacheTag(...data.tags)
+  return data
+}
+
+export async function getVendorPage(slug: string) {
+  "use cache"
+  const data = await getJson<PublicVendorPage>(`/api/public/vendors/${encodeURIComponent(slug)}`)
+  if (!data) {
+    cacheMissing()
+    return null
+  }
+  cacheLife("days")
   cacheTag(...data.tags)
   return data
 }

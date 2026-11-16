@@ -1,5 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { manilaParts, scheduleOf, type Listing, type ListingQuery, type PublicEvent, type PublicEventResponse } from '@creavent/shared';
+import {
+  manilaParts,
+  scheduleOf,
+  type Listing,
+  type ListingCard,
+  type ListingQuery,
+  type PublicEvent,
+  type PublicEventResponse,
+  type PublicOrganizerPage,
+  type PublicVendorPage,
+} from '@creavent/shared';
 import { sortedSlots } from '../applications/slot-status.js';
 import { FilesService } from '../files/files.service.js';
 import { Prisma } from '../generated/prisma/client.js';
@@ -94,20 +104,115 @@ export class PublicPagesService {
     return {
       tags: [tags.listing, ...events.map((e) => tags.event(e.id))],
       today,
-      events: events.map((e) => ({
-        slug: e.slug,
-        name: e.name,
-        typeName: e.eventType.name,
-        ...scheduleOf(e),
-        venueName: e.venueName,
-        city: e.city,
-        coverUrl: e.coverFile ? this.files.url(e.coverFile.storageKey) : null,
-        organizer: { displayName: e.organizerProfile.displayName, approved: approved(e.organizerProfile.user.roles[0]) },
-      })),
+      events: events.map((e) => this.card(e)),
       types: types.map((t) => ({ slug: t.slug, name: t.name, count: filtered.filter((e) => e.eventTypeId === t.id).length })),
       cities: [...new Set(all.flatMap((e) => e.city ?? []))].sort((a, b) => a.localeCompare(b)),
       next7,
       openToVendors,
+    };
+  }
+
+  // /organizers/[slug] (spec §7.1). Not found while the organizer role is
+  // suspended or the account is deleted.
+  async organizerPage(slug: string, now = new Date()): Promise<PublicOrganizerPage> {
+    const o = await this.prisma.organizerProfile.findUnique({
+      where: { slug },
+      include: { logoFile: true, user: { include: { roles: { where: { role: 'organizer' } } } } },
+    });
+    const role = o?.user.roles[0];
+    if (!o || !role || role.suspendedAt || o.user.deletedAt) throw new NotFoundException('Organizer not found');
+    const today = manilaParts(now).date;
+    const visible = { organizerProfileId: o.id, moderationState: 'visible' as const };
+    const [upcoming, past] = await Promise.all([
+      this.prisma.event.findMany({
+        where: { ...visible, status: 'announced', endsAt: { gte: manilaStart(today) } },
+        include: listingInclude,
+        orderBy: { startsAt: 'asc' },
+      }),
+      this.prisma.event.findMany({ where: { ...visible, status: 'completed' }, include: { eventType: true }, orderBy: { startsAt: 'desc' } }),
+    ]);
+    return {
+      tags: [tags.organizer(o.id), ...[...upcoming, ...past].map((e) => tags.event(e.id))],
+      organizer: {
+        displayName: o.displayName,
+        slug: o.slug!,
+        logoUrl: o.logoFile ? this.files.url(o.logoFile.storageKey) : null,
+        approved: approved(role),
+        about: o.about,
+        city: o.city,
+        socialLinks: links(o.socialLinks),
+        joinedAt: role.createdAt.toISOString(),
+        eventsHeld: past.length,
+      },
+      upcoming: upcoming.map((e) => this.card(e)),
+      past: past.map((e) => profileEvent(e)),
+    };
+  }
+
+  // /vendors/[slug] (spec §7.2, data model §7). Only events where the vendor
+  // had a reserved slot and the event was announced or completed, and
+  // visible. Never contact details, applications, documents, or payments.
+  async vendorPage(slug: string, now = new Date()): Promise<PublicVendorPage> {
+    const v = await this.prisma.vendorProfile.findUnique({
+      where: { slug },
+      include: {
+        categories: { include: { category: true } },
+        photos: { include: { file: true }, orderBy: { sortOrder: 'asc' }, take: 8 },
+        user: { include: { avatarFile: true, roles: { where: { role: 'vendor' } } } },
+      },
+    });
+    const role = v?.user.roles[0];
+    if (!v || !role || role.suspendedAt || v.user.deletedAt) throw new NotFoundException('Vendor not found');
+    const assignments = await this.prisma.slotAssignment.findMany({
+      where: { vendorProfileId: v.id, status: 'reserved', event: { status: { in: ['announced', 'completed'] }, moderationState: 'visible' } },
+      include: { slots: { include: { slot: true } }, event: { include: listingInclude } },
+    });
+    const startOfToday = manilaStart(manilaParts(now).date);
+    const sold = assignments
+      .map((a) => ({
+        event: a.event,
+        slotLabel: sortedSlots(a.slots)
+          .map((x) => x.slot.label)
+          .join(', '),
+        upcoming: a.event.status === 'announced' && a.event.endsAt !== null && a.event.endsAt >= startOfToday,
+      }))
+      .sort((a, b) => (b.event.startsAt?.getTime() ?? 0) - (a.event.startsAt?.getTime() ?? 0));
+    const next = sold.filter((s) => s.upcoming).at(-1) ?? null;
+    return {
+      tags: [tags.vendor(v.id), ...sold.map((s) => tags.event(s.event.id))],
+      vendor: {
+        shopName: v.shopName,
+        slug: v.slug!,
+        avatarUrl: v.user.avatarFile ? this.files.url(v.user.avatarFile.storageKey) : null,
+        categories: v.categories.sort((a, b) => a.category.sortOrder - b.category.sortOrder).map((c) => c.category.name),
+        description: v.description,
+        products: v.products,
+        city: v.city,
+        socialLinks: links(v.socialLinks),
+        photos: v.photos.filter((p) => !p.file.deletedAt).map((p) => this.files.url(p.file.storageKey)),
+        joinedAt: role.createdAt.toISOString(),
+        eventsSoldAt: sold.length,
+      },
+      next: next ? { event: this.card(next.event), slotLabel: next.slotLabel } : null,
+      sold: sold.map((s) => ({
+        ...profileEvent(s.event),
+        organizerName: s.event.organizerProfile.displayName,
+        slotLabel: s.slotLabel,
+        upcoming: s.upcoming,
+      })),
+    };
+  }
+
+  private card(e: Prisma.EventGetPayload<{ include: typeof listingInclude }>): ListingCard {
+    return {
+      slug: e.slug,
+      name: e.name,
+      typeName: e.eventType.name,
+      ...scheduleOf(e),
+      venueName: e.venueName,
+      city: e.city,
+      coverUrl: e.coverFile ? this.files.url(e.coverFile.storageKey) : null,
+      organizer: { displayName: e.organizerProfile.displayName, approved: approved(e.organizerProfile.user.roles[0]) },
     };
   }
 
@@ -183,7 +288,7 @@ export class PublicPagesService {
       logoUrl: o.logoFile ? this.files.url(o.logoFile.storageKey) : null,
       approved: role?.approvalStatus === 'approved' && role.suspendedAt === null,
       about: o.about,
-      socialLinks: Array.isArray(o.socialLinks) ? (o.socialLinks as string[]) : [],
+      socialLinks: links(o.socialLinks),
       eventsHeld: await this.prisma.event.count({ where: { organizerProfileId: o.id, status: 'completed', moderationState: 'visible' } }),
     };
   }
@@ -198,6 +303,14 @@ const listingInclude = {
 // "Approved by Creavent" (data model §7).
 function approved(role: { approvalStatus: string | null; suspendedAt: Date | null } | undefined) {
   return role?.approvalStatus === 'approved' && role.suspendedAt === null;
+}
+
+function links(json: Prisma.JsonValue) {
+  return Array.isArray(json) ? json.filter((l): l is string => typeof l === 'string') : [];
+}
+
+function profileEvent(e: { slug: string; name: string; eventType: { name: string }; startsAt: Date | null; endsAt: Date | null; venueName: string | null }) {
+  return { slug: e.slug, name: e.name, typeName: e.eventType.name, ...scheduleOf(e), venueName: e.venueName };
 }
 
 // Midnight starting a Manila date, as an instant.

@@ -2,7 +2,11 @@ import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
 
-const words = { event: "event", organizer: "organizer", vendor: "vendor" } as const
+const words = {
+  event: "event",
+  organizer: "organizer",
+  vendor: "vendor",
+} as const
 
 // Not found on a public page (mockup NotFoundPhone): the link may be old, or
 // the page is no longer on Creavent (spec §7.1, §7.2).

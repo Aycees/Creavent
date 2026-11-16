@@ -29,7 +29,7 @@ describe("PublicEventView", () => {
     const { unmount } = render(<PublicEventView event={publicEventFixture()} supportEmail={SUPPORT} />)
     expect(screen.getByRole("link", { name: "Get directions" })).toHaveAttribute(
       "href",
-      "https://www.google.com/maps/search/?api=1&query=Matina%20Town%20Square%2C%20MacArthur%20Highway%2C%20Matina%2C%20Davao%20City"
+      "https://www.google.com/maps/search/?api=1&query=Matina%20Town%20Square%2C%20MacArthur%20Highway%2C%20Matina%2C%20Davao%20City",
     )
     unmount()
 
@@ -85,9 +85,13 @@ describe("PublicEventView", () => {
   it("marks a canceled event, with the organizer's note and no vendor list", () => {
     render(
       <PublicEventView
-        event={publicEventFixture({ status: "canceled", vendors: [], canceled: { at: "2026-11-11T03:00:00Z", reason: "Typhoon signal 2." } })}
+        event={publicEventFixture({
+          status: "canceled",
+          vendors: [],
+          canceled: { at: "2026-11-11T03:00:00Z", reason: "Typhoon signal 2." },
+        })}
         supportEmail={SUPPORT}
-      />
+      />,
     )
 
     expect(screen.getByText(/This event is canceled/)).toBeInTheDocument()
@@ -114,10 +118,14 @@ describe("the other public states", () => {
         opensAt="09:00"
         closesAt="17:00"
         canceled={{ at: "2026-11-18T01:00:00Z", reason: "Venue fell through." }}
-      />
+      />,
     )
 
-    expect(screen.getByRole("heading", { name: "Pasalubong and Handmade Fair was canceled" })).toBeInTheDocument()
+    expect(
+      screen.getByRole("heading", {
+        name: "Pasalubong and Handmade Fair was canceled",
+      }),
+    ).toBeInTheDocument()
     expect(screen.getByText("Fri, Nov 20 to Sun, Nov 22 · 9 AM to 5 PM daily")).toBeInTheDocument()
     expect(screen.getByText("Venue fell through.")).toBeInTheDocument()
   })
