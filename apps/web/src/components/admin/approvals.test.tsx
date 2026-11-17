@@ -19,12 +19,14 @@ const nextId = "9d4a7f3e-1b2c-4d5e-8f90-123456789abc"
 
 const detail: ApprovalDetail = {
   userId,
+  kind: "organizer",
   displayName: "Bazaar ng Mintal",
   slug: "bazaar-ng-mintal",
   city: "Davao City",
   about: "Monthly bazaar.",
   logoUrl: null,
   socialLinks: ["https://facebook.com/bazaarngmintal"],
+  newLinks: [],
   fullName: "Rosalie Cabahug",
   loginEmail: "rosalie@example.com",
   contactEmail: "bazaar@example.com",
@@ -36,7 +38,8 @@ const detail: ApprovalDetail = {
   reviewedAt: null,
   rejectionReason: null,
   adminNotes: null,
-  queue: { position: 1, total: 7, nextUserId: nextId },
+  host: null,
+  queue: { position: 1, total: 7, nextUserId: nextId, nextKind: "organizer" },
   businessDaysWaiting: 3,
   daysOverTarget: 1,
 }
@@ -49,7 +52,7 @@ beforeEach(() => {
 describe("ApprovalQueue", () => {
   it("lists waiting organizers with their links and a link to review each", async () => {
     vi.mocked(api.GET).mockResolvedValue({
-      data: { items: [{ userId, displayName: "Bazaar ng Mintal", city: "Davao City", linksCount: 3, submittedAt: "2026-11-09T02:00:00.000Z", resubmission: true, businessDaysWaiting: 3, daysOverTarget: 1 }] },
+      data: { items: [{ userId, kind: "organizer", displayName: "Bazaar ng Mintal", city: "Davao City", linksCount: 3, submittedAt: "2026-11-09T02:00:00.000Z", resubmission: true, businessDaysWaiting: 3, daysOverTarget: 1 }] },
       response: { status: 200 },
     } as never)
     renderWithQuery(<ApprovalQueue />)
@@ -60,11 +63,23 @@ describe("ApprovalQueue", () => {
     expect(screen.getByText("Resubmitted")).toBeInTheDocument()
   })
 
+  it("tags pop-up host requests, and links to the host review", async () => {
+    vi.mocked(api.GET).mockResolvedValue({
+      data: { items: [{ userId, kind: "host", displayName: "Tahi Studio", city: null, linksCount: 2, submittedAt: "2026-11-12T02:00:00.000Z", resubmission: false, businessDaysWaiting: 1, daysOverTarget: 0 }] },
+      response: { status: 200 },
+    } as never)
+    renderWithQuery(<ApprovalQueue />)
+
+    const link = await screen.findByRole("link", { name: /Tahi Studio/ })
+    expect(link).toHaveAttribute("href", `/admin/approvals/${userId}?kind=host`)
+    expect(within(link).getByText("Pop-up host")).toBeInTheDocument()
+  })
+
   it("says when nobody is waiting", async () => {
     vi.mocked(api.GET).mockResolvedValue({ data: { items: [] }, response: { status: 200 } } as never)
     renderWithQuery(<ApprovalQueue />)
 
-    expect(await screen.findByText("No organizers are waiting for review.")).toBeInTheDocument()
+    expect(await screen.findByText("Nobody is waiting for review.")).toBeInTheDocument()
   })
 })
 
@@ -135,7 +150,7 @@ describe("ApprovalReview", () => {
     await userEvent.click(await screen.findByRole("radio", { name: /Reject with a reason/ }))
     await userEvent.click(screen.getByRole("button", { name: "Reject and email Rosalie" }))
 
-    expect(await screen.findByText("Tell the organizer what to fix")).toBeInTheDocument()
+    expect(await screen.findByText("Tell them what to fix")).toBeInTheDocument()
     expect(api.POST).not.toHaveBeenCalled()
   })
 
@@ -145,5 +160,60 @@ describe("ApprovalReview", () => {
 
     expect(await screen.findByText(/Approved on/)).toBeInTheDocument()
     expect(screen.queryByRole("button", { name: /Approve Bazaar/ })).not.toBeInTheDocument()
+  })
+})
+
+describe("ApprovalReview for a pop-up host", () => {
+  const hostDetail: ApprovalDetail = {
+    ...detail,
+    kind: "host",
+    displayName: "Tahi Studio",
+    slug: "tahi-studio",
+    about: "Hand-sewn totes and pouches from Davao fabric scraps.",
+    socialLinks: ["https://instagram.com/tahistudio.dvo", "https://facebook.com/tahistudiodavao"],
+    newLinks: ["https://facebook.com/tahistudiodavao"],
+    fullName: "Mara Santos",
+    contactEmail: null,
+    roles: ["vendor"],
+    host: {
+      categories: ["Handmade", "Bags"],
+      products: "Totes, pouches, scrunchies",
+      photos: [],
+      eventsSoldAt: 0,
+      popups: [{ name: "Tahi Studio Weekend Sale", status: "draft", startsAt: "2026-11-28T02:00:00.000Z" }],
+    },
+    queue: { position: 2, total: 8, nextUserId: nextId, nextKind: "host" },
+  }
+
+  beforeEach(() => {
+    vi.mocked(api.GET).mockResolvedValue({ data: hostDetail, response: { status: 200 } } as never)
+  })
+
+  it("shows the vendor profile, past events, pop-ups, and the links not reviewed before", async () => {
+    renderWithQuery(<ApprovalReview userId={userId} kind="host" />)
+
+    expect(await screen.findByRole("heading", { name: "Tahi Studio" })).toBeInTheDocument()
+    expect(api.GET).toHaveBeenCalledWith("/api/admin/approvals/hosts/{userId}", { params: { path: { userId } } })
+    expect(screen.getByText("Pop-up host")).toBeInTheDocument()
+    expect(screen.getByText("Handmade, Bags · Totes, pouches, scrunchies")).toBeInTheDocument()
+    expect(screen.getByText("None yet")).toBeInTheDocument()
+    expect(screen.getByText(/Tahi Studio Weekend Sale/)).toBeInTheDocument()
+    const links = within(screen.getByRole("list", { name: "Links to check" })).getAllByRole("listitem")
+    expect(within(links[0]!).queryByText("New")).not.toBeInTheDocument()
+    expect(within(links[1]!).getByText("New")).toBeInTheDocument()
+    expect(screen.queryByText("Contact email")).not.toBeInTheDocument()
+  })
+
+  it("approves the host and moves to the next request of its kind", async () => {
+    vi.mocked(api.POST).mockResolvedValue({ data: { ...hostDetail, status: "approved" }, response: { status: 200 } } as never)
+    renderWithQuery(<ApprovalReview userId={userId} kind="host" />)
+
+    await userEvent.click(await screen.findByRole("button", { name: "Approve Tahi Studio" }))
+
+    expect(api.POST).toHaveBeenCalledWith("/api/admin/approvals/hosts/{userId}/approve", {
+      params: { path: { userId } },
+      body: { note: "", seen: { displayName: "Tahi Studio", socialLinks: hostDetail.socialLinks } },
+    })
+    await vi.waitFor(() => expect(push).toHaveBeenCalledWith(`/admin/approvals/${nextId}?kind=host`))
   })
 })

@@ -9,6 +9,7 @@ import type {
   AdminUsers,
   AdminUsersFilter,
   ApprovalDetail,
+  ApprovalKind,
   ApprovalQueueItem,
   ReportDetail,
 } from "@creavent/shared"
@@ -30,11 +31,18 @@ export function useApprovalQueue(enabled = true) {
   })
 }
 
-export function useApprovalDetail(userId: string) {
+// Where an approval request is reviewed: a pop-up host request on the vendor
+// role, or an organizer request (spec §4.7).
+export function approvalHref(userId: string, kind: ApprovalKind) {
+  return kind === "host" ? `/admin/approvals/${userId}?kind=host` : `/admin/approvals/${userId}`
+}
+
+export function useApprovalDetail(userId: string, kind: ApprovalKind = "organizer") {
   return useQuery({
-    queryKey: [...approvalQueueKey, userId],
+    queryKey: [...approvalQueueKey, kind, userId],
     queryFn: async (): Promise<ApprovalDetail> => {
-      const { data, response } = await api.GET("/api/admin/approvals/{userId}", { params: { path: { userId } } })
+      const path = kind === "host" ? "/api/admin/approvals/hosts/{userId}" : "/api/admin/approvals/{userId}"
+      const { data, response } = await api.GET(path, { params: { path: { userId } } })
       if (!data) throw new Error(`GET approval failed with ${response.status}`)
       return data
     },

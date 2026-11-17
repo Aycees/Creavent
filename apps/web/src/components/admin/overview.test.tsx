@@ -13,6 +13,7 @@ vi.mock("@/lib/api", () => ({ api: { GET: vi.fn() } }))
 const id = (n: number) => `${n}d4a7f3e-1b2c-4d5e-8f90-123456789abc`
 const waiting = (n: number, over: number, resubmission = false): ApprovalQueueItem => ({
   userId: id(n),
+  kind: "organizer",
   displayName: `Organizer ${n}`,
   city: "Davao City",
   linksCount: 2,
@@ -46,7 +47,7 @@ describe("AdminOverview", () => {
       )) as never)
     renderWithQuery(<AdminOverview />)
 
-    const waitingCard = await screen.findByRole("link", { name: /Organizers waiting/ })
+    const waitingCard = await screen.findByRole("link", { name: /Approvals waiting/ })
     expect(within(waitingCard).getByText("3")).toBeInTheDocument()
     expect(within(waitingCard).getByText("2 over target")).toBeInTheDocument()
     expect(within(screen.getByRole("link", { name: /Resubmissions/ })).getByText("1")).toBeInTheDocument()

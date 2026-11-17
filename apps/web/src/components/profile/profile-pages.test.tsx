@@ -29,6 +29,8 @@ const state: OnboardingState = {
     products: "Tops",
     photos: [photo(1), photo(2)],
     socialLinks: ["https://facebook.com/lolas"],
+    hostApprovalStatus: "not_submitted",
+    hostReviewedLinks: [],
   },
   organizer: {
     displayName: "Bazaar ng Mintal",
@@ -122,6 +124,33 @@ describe("VendorProfileEdit", () => {
     expect(api.PUT).toHaveBeenCalledWith("/api/vendor/profile", {
       body: expect.objectContaining({ photoFileIds: [photo(2).id] }),
     })
+  })
+})
+
+describe("VendorProfileEdit for an approved pop-up host", () => {
+  beforeEach(() => {
+    const host = { ...state, vendor: { ...state.vendor!, hostApprovalStatus: "approved" as const, hostReviewedLinks: ["https://facebook.com/lolas"] } }
+    vi.mocked(api.GET).mockResolvedValue({ data: host, response: { status: 200 } } as never)
+  })
+
+  it("warns that a new shop name sends host approval back for review", async () => {
+    renderWithQuery(<VendorProfileEdit />)
+
+    const name = await screen.findByLabelText("Shop name")
+    expect(screen.queryByText("This sends your host approval back for review")).not.toBeInTheDocument()
+    await userEvent.type(name, " PH")
+
+    const warning = screen.getByText("This sends your host approval back for review").closest("[role=alert], div")!
+    expect(within(warning as HTMLElement).getByText(/Your announced pop-ups stay up, but you can't edit them/)).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Save and send for review" })).toBeInTheDocument()
+  })
+
+  it("doesn't warn when a link is removed", async () => {
+    renderWithQuery(<VendorProfileEdit />)
+
+    await userEvent.click(await screen.findByRole("button", { name: "Remove https://facebook.com/lolas" }))
+
+    expect(screen.queryByText("This sends your host approval back for review")).not.toBeInTheDocument()
   })
 })
 
