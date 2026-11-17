@@ -469,13 +469,16 @@ export async function organizerProfile(db: Db, userId: string, options: { read?:
 // row is locked for the rest of the transaction, so every change to one event
 // runs one after the other: two saves can't both pass the "still ready" check
 // on an open event (flow 3), or slip past a status change.
-export async function ownEvent(tx: Tx, userId: string, eventId: string) {
+export async function ownEvent(tx: Tx, userId: string, eventId: string, options: { allowHidden?: boolean } = {}) {
   await organizerProfile(tx, userId);
   await tx.$queryRaw`SELECT id FROM events WHERE id = ${eventId}::uuid FOR UPDATE`;
   const event = await tx.event.findFirst({ where: { id: eventId, organizerProfile: { userId } } });
   if (!event) throw new NotFoundException('Event not found');
   // A canceled event is a record now (decision Q7).
   if (event.status === 'canceled') throw new ConflictException('This event is canceled');
+  // Nothing changes while Creavent has it hidden (decision R2), except
+  // letting vendors go (removal), which callers allow.
+  if (event.moderationState === 'hidden' && !options.allowHidden) throw new ConflictException('This event is hidden by Creavent');
   return event;
 }
 

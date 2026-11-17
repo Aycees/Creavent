@@ -161,7 +161,7 @@ function RoleCard({ user, role }: { user: AdminUser; role: Role }) {
           </Button>
         </>
       ) : (
-        <Button type="button" variant="danger-ghost" size="sm" className="self-start" onClick={() => setSuspending(true)}>
+        <Button type="button" variant="danger-ghost" className="self-start" onClick={() => setSuspending(true)}>
           {`Suspend ${roleWord[role.role]} role`}
         </Button>
       )}
@@ -251,7 +251,7 @@ export function AdminUserDetail({ userId }: { userId: string }) {
                       </Link>
                       <span className="text-cap text-muted">Vendor{a.slotLabels.length ? ` · slot ${a.slotLabels.join(", ")}` : ""}</span>
                     </span>
-                    <Badge>{a.status.replace("_", " ")}</Badge>
+                    <Badge>{a.status.replaceAll("_", " ")}</Badge>
                   </li>
                 ))}
               </ul>

@@ -142,15 +142,13 @@ export function VendorPageView({ page, supportEmail, report }: { page: PublicVen
       )}
 
       {report ?? (
-
-      <p className="text-sm text-muted">
-        Something wrong with this vendor? Email{" "}
-        <a href={`mailto:${supportEmail}`} className="text-ink underline underline-offset-2">
-          {supportEmail}
-        </a>{" "}
-        and we&apos;ll look into it.
-      </p>
-
+        <p className="text-sm text-muted">
+          Something wrong with this vendor? Email{" "}
+          <a href={`mailto:${supportEmail}`} className="text-ink underline underline-offset-2">
+            {supportEmail}
+          </a>{" "}
+          and we&apos;ll look into it.
+        </p>
       )}
     </article>
   )

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, NotFoundException, Param, ParseUUIDPipe, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Post, Query, UseGuards } from '@nestjs/common';
 import {
   adminEventSchema,
   adminEventsQuerySchema,
@@ -11,6 +11,7 @@ import {
   hideEventSchema,
   roleTypeSchema,
   suspendRoleSchema,
+  type RoleType,
 } from '@creavent/shared';
 import type { z } from 'zod';
 import { AdminGuard } from '../auth/admin.guard.js';
@@ -19,12 +20,6 @@ import { ResponseSchema } from '../response-schema.decorator.js';
 import { AdminEventsService } from './admin-events.service.js';
 import { AdminSearchService } from './admin-search.service.js';
 import { AdminUsersService } from './admin-users.service.js';
-
-function roleParam(value: string) {
-  const parsed = roleTypeSchema.safeParse(value);
-  if (!parsed.success) throw new NotFoundException('Role not found');
-  return parsed.data;
-}
 
 // Admin search, users and events (sitemap §6).
 @Controller('admin')
@@ -60,17 +55,17 @@ export class AdminController {
   suspend(
     @CurrentUser() admin: SessionUser,
     @Param('id', ParseUUIDPipe) id: string,
-    @Param('role') role: string,
+    @Param('role', { schema: roleTypeSchema }) role: RoleType,
     @Body({ schema: suspendRoleSchema }) body: z.output<typeof suspendRoleSchema>,
   ) {
-    return this.users.suspend(admin.id, id, roleParam(role), body.reason, body.hideUpcomingEvents);
+    return this.users.suspend(admin.id, id, role, body.reason, body.hideUpcomingEvents);
   }
 
   @Post('users/:id/roles/:role/reinstate')
   @HttpCode(200)
   @ResponseSchema(adminUserSchema)
-  reinstate(@CurrentUser() admin: SessionUser, @Param('id', ParseUUIDPipe) id: string, @Param('role') role: string) {
-    return this.users.reinstate(admin.id, id, roleParam(role));
+  reinstate(@CurrentUser() admin: SessionUser, @Param('id', ParseUUIDPipe) id: string, @Param('role', { schema: roleTypeSchema }) role: RoleType) {
+    return this.users.reinstate(admin.id, id, role);
   }
 
   @Get('events')

@@ -12075,6 +12075,7 @@ export interface operations {
                     role: "vendor" | "organizer";
                     reason: string;
                     note?: string | null;
+                    hideUpcomingEvents?: boolean;
                 };
             };
         };
@@ -12368,7 +12369,7 @@ export interface operations {
             header?: never;
             path: {
                 id: string;
-                role: string;
+                role: "vendor" | "organizer";
             };
             cookie?: never;
         };
@@ -12469,7 +12470,7 @@ export interface operations {
             header?: never;
             path: {
                 id: string;
-                role: string;
+                role: "vendor" | "organizer";
             };
             cookie?: never;
         };

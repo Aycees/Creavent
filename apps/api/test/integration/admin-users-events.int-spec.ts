@@ -126,8 +126,9 @@ describe('admin users and events', () => {
 
       expect(res.status).toBe(200);
       const states = await prisma.event.findMany({ where: { id: { in: [upcoming, draft, past] } }, select: { id: true, moderationState: true } });
-      expect(Object.fromEntries(states.map((s) => [s.id, s.moderationState]))).toEqual({ [upcoming]: 'hidden', [draft]: 'hidden', [past]: 'visible' });
-      expect(await prisma.emailNotification.count({ where: { type: 'event_hidden' } })).toBe(2);
+      // Drafts aren't public, so they stay as they are.
+      expect(Object.fromEntries(states.map((s) => [s.id, s.moderationState]))).toEqual({ [upcoming]: 'hidden', [draft]: 'visible', [past]: 'visible' });
+      expect(await prisma.emailNotification.count({ where: { type: 'event_hidden' } })).toBe(1);
     });
 
     it('reinstates a suspended role', async () => {
@@ -198,6 +199,25 @@ describe('admin users and events', () => {
       expect(release.status).toBe(409);
       expect(withdraw.status).toBe(409);
       expect(release.body.message).toBe('This event is hidden by Creavent');
+    });
+
+    it("refuses the organizer's changes too, until it's shown again", async () => {
+      const { browser } = await admin();
+      const organizer = await createOrganizer(prisma);
+      const eventId = await readyEvent(prisma, organizer.profile.id, { status: 'open_to_vendors' });
+      await browser.post(`/api/admin/events/${eventId}/hide`).send({ reason: 'Photos match another event' });
+      const organizerBrowser = await signInAs(app, organizer.user.email);
+
+      const policy = await organizerBrowser.put(`/api/organizer/events/${eventId}/policy`).send({ text: 'New policy' });
+      const close = await organizerBrowser.put(`/api/organizer/events/${eventId}/applications`).send({ open: false });
+      const cancel = await organizerBrowser.post(`/api/organizer/events/${eventId}/cancel`).send({});
+
+      expect([policy.status, close.status, cancel.status]).toEqual([409, 409, 409]);
+      expect(policy.body.message).toBe('This event is hidden by Creavent');
+      expect((await prisma.event.findUniqueOrThrow({ where: { id: eventId } })).status).toBe('open_to_vendors');
+
+      await browser.post(`/api/admin/events/${eventId}/show`).send({});
+      expect((await organizerBrowser.put(`/api/organizer/events/${eventId}/applications`).send({ open: false })).status).toBe(200);
     });
   });
 
@@ -297,6 +317,9 @@ describe('admin users and events', () => {
       const { browser } = await admin();
       const { eventId, doc } = await eventWithApplications();
       await browser.get(`/api/files/${doc.id}`);
+
+      // The retention job later deletes the document; the view stays in the history.
+      await prisma.applicationDocument.deleteMany({ where: { fileId: doc.id } });
 
       const res = await browser.get(`/api/admin/events/${eventId}`);
 

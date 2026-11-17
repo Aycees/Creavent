@@ -21,7 +21,10 @@ import { outcomeLabels } from "./reports-queue"
 const when = new Intl.DateTimeFormat("en-PH", { timeZone: "Asia/Manila", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })
 const day = new Intl.DateTimeFormat("en-PH", { timeZone: "Asia/Manila", weekday: "short", month: "short", day: "numeric" })
 
-type Choice = { key: string; label: string; hint: string; input: (reason: string, note: string) => ResolveReportInput; button: string }
+type Choice = { key: string; label: string; hint: string; input: (reason: string, note: string, hideEvents: boolean) => ResolveReportInput; button: string }
+
+const already = "This records the decision. Nobody is emailed again."
+
 
 const roleWords: Record<RoleType, string> = { vendor: "vendor", organizer: "organizer" }
 
@@ -40,31 +43,33 @@ function choicesFor(d: ReportDetail): Choice[] {
     },
   ]
   if (d.target.type === "event") {
-    if (!d.target.hidden) {
-      list.push({
-        key: "hide",
-        label: "Hide the event",
-        hint: 'It leaves listings and its link shows "Not found". The reason is emailed to the organizer. You can show it again later.',
-        input: (reason, note) => ({ decision: "hide_event", reason, note }),
-        button: `Hide event and resolve${many || " report"}`,
-      })
-    }
-    if (d.target.organizer && !d.target.organizer.suspended) {
+    list.push({
+      key: "hide",
+      label: "Hide the event",
+      hint: d.target.hidden
+        ? `Already hidden. ${already}`
+        : 'It leaves listings and its link shows "Not found". The reason is emailed to the organizer. You can show it again later.',
+      input: (reason, note) => ({ decision: "hide_event", reason, note }),
+      button: `Hide event and resolve${many || " report"}`,
+    })
+    if (d.target.organizer) {
+      const suspended = d.target.organizer.suspended
       list.push({
         key: "suspend-organizer",
         label: "Suspend the organizer role",
-        hint: `${d.target.organizer.name} can't manage events and their organizer page is hidden. The reason shows in the app.`,
-        input: (reason, note) => ({ decision: "suspend_role", role: "organizer", reason, note }),
+        hint: suspended ? `Already suspended. ${already}` : `${d.target.organizer.name} can't manage events and their organizer page is hidden. The reason shows in the app.`,
+        input: (reason, note, hideEvents) => ({ decision: "suspend_role", role: "organizer", reason, note, ...(suspended ? {} : { hideUpcomingEvents: hideEvents }) }),
         button: "Suspend and resolve",
       })
     }
   } else {
-    for (const r of d.target.roles.filter((x) => !x.suspended)) {
+    for (const r of d.target.roles) {
       list.push({
         key: `suspend-${r.role}`,
         label: `Suspend the ${roleWords[r.role]} role`,
-        hint:
-          r.role === "vendor"
+        hint: r.suspended
+          ? `Already suspended. ${already}`
+          : r.role === "vendor"
             ? "They can't apply or manage slots, and their vendor page is hidden. The reason shows in the app."
             : "They can't manage events or applications, and their organizer page is hidden. The reason shows in the app.",
         input: (reason, note) => ({ decision: "suspend_role", role: r.role, reason, note }),
@@ -82,6 +87,7 @@ function Decision({ d }: { d: ReportDetail }) {
   const [key, setKey] = React.useState(choices[0]!.key)
   const [reason, setReason] = React.useState("")
   const [note, setNote] = React.useState("")
+  const [hideEvents, setHideEvents] = React.useState(true)
   const [reasonError, setReasonError] = React.useState<string | null>(null)
   const [error, setError] = React.useState<string | null>(null)
   const [saving, setSaving] = React.useState(false)
@@ -89,7 +95,7 @@ function Decision({ d }: { d: ReportDetail }) {
   const needsReason = choice.key !== "dismiss"
 
   async function resolve() {
-    const body = choice.input(reason, note)
+    const body = choice.input(reason, note, hideEvents)
     const parsed = resolveReportSchema.safeParse(body)
     if (!parsed.success) return setReasonError(parsed.error.issues[0]?.message ?? "Write the reason they will see")
     setReasonError(null)
@@ -137,6 +143,15 @@ function Decision({ d }: { d: ReportDetail }) {
           <Textarea id="decision-reason" value={reason} maxLength={1000} onChange={(e) => setReason(e.target.value)} />
         </Field>
       )}
+      {choice.key === "suspend-organizer" && !d.target.organizer?.suspended && (
+        <ChoiceCard>
+          <input type="checkbox" className="mt-0.5 size-5 accent-ink" checked={hideEvents} onChange={(e) => setHideEvents(e.target.checked)} />
+          <span className="flex flex-col">
+            <span className="text-label font-semibold">Also hide their upcoming events</span>
+            <span className="text-cap text-muted">Events open to vendors or announced. The same reason is emailed for each. Email the vendors from the support inbox.</span>
+          </span>
+        </ChoiceCard>
+      )}
       <Field label="Note for the team" htmlFor="decision-note" optional help="Internal. What you checked and why you decided.">
         <Textarea id="decision-note" value={note} maxLength={2000} onChange={(e) => setNote(e.target.value)} />
       </Field>
@@ -181,17 +196,17 @@ export function ReportReview({ reportId }: { reportId: string }) {
       <div className="flex flex-wrap gap-2">
         {t.type === "event" ? (
           <>
-            <Button asChild variant="secondary" size="sm">
+            <Button asChild variant="secondary">
               <Link href={`/admin/events/${t.id}`}>Open event</Link>
             </Button>
             {t.organizer && (
-              <Button asChild variant="secondary" size="sm">
+              <Button asChild variant="secondary">
                 <Link href={`/admin/users/${t.organizer.userId}`}>Open organizer</Link>
               </Button>
             )}
           </>
         ) : (
-          <Button asChild variant="secondary" size="sm">
+          <Button asChild variant="secondary">
             <Link href={`/admin/users/${t.id}`}>Open user</Link>
           </Button>
         )}

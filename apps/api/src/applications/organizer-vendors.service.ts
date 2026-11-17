@@ -243,7 +243,7 @@ export class OrganizerVendorsService {
   // payment records are archived (spec §6.6). Allowed on a hidden event too.
   async remove(userId: string, eventId: string, applicationId: string, canReapply: boolean, note: string | null) {
     const vendorProfileId = await this.prisma.$transaction(async (tx) => {
-      const event = await ownEvent(tx, userId, eventId);
+      const event = await ownEvent(tx, userId, eventId, { allowHidden: true });
       const application = await tx.application.findFirst({
         where: { id: applicationId, eventId },
         include: { vendorProfile: { include: { user: true } }, assignments: { where: { status: { in: [...ACTIVE] } } } },

@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import {
   reportNumber,
   type ReportDetail,
@@ -13,6 +13,8 @@ import { Prisma, type ReportAction, type ReportReason, type ReportSource, type R
 import { ModerationService } from '../moderation/moderation.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { PublicRefreshService } from '../public/public-refresh.service.js';
+
+const MAX_REPORTS_PER_HOUR = 10;
 
 export const statusWords: Record<string, string> = {
   draft: 'draft',
@@ -65,6 +67,9 @@ export class ReportsService {
   ) {}
 
   async create(userId: string, input: z.output<typeof createReportSchema>) {
+    // A rate limit, counted in the database like uploads (architecture §10).
+    const lastHour = await this.prisma.report.count({ where: { reporterUserId: userId, createdAt: { gt: new Date(Date.now() - 3_600_000) } } });
+    if (lastHour >= MAX_REPORTS_PER_HOUR) throw new HttpException('You sent a lot of reports in the last hour. Try again later.', HttpStatus.TOO_MANY_REQUESTS);
     await this.assertReportable(input.targetType, input.targetId, userId);
     const existing = await this.prisma.report.findFirst({
       where: { reporterUserId: userId, status: 'open', ...targetWhere(input.targetType, input.targetId) },
@@ -148,8 +153,7 @@ export class ReportsService {
   async detail(id: string): Promise<ReportDetail> {
     const group = await this.group(id);
     const first = group[0]!;
-    const t = first;
-    const summary = summarize(t);
+    const summary = summarize(first);
     return {
       id: first.id,
       status: first.status,
@@ -159,21 +163,21 @@ export class ReportsService {
       resolutionNote: first.resolutionNote,
       target: {
         ...summary,
-        organizer: t.targetEvent
+        organizer: first.targetEvent
           ? {
-              userId: t.targetEvent.organizerProfile.userId,
-              name: t.targetEvent.organizerProfile.displayName,
-              suspended: t.targetEvent.organizerProfile.user.roles.some((r) => r.role === 'organizer' && r.suspendedAt !== null),
+              userId: first.targetEvent.organizerProfile.userId,
+              name: first.targetEvent.organizerProfile.displayName,
+              suspended: first.targetEvent.organizerProfile.user.roles.some((r) => r.role === 'organizer' && r.suspendedAt !== null),
             }
           : null,
-        hidden: t.targetEvent?.moderationState === 'hidden',
-        roles: t.targetUser
-          ? t.targetUser.roles
+        hidden: first.targetEvent?.moderationState === 'hidden',
+        roles: first.targetUser
+          ? first.targetUser.roles
               .slice()
               .sort((a, b) => a.role.localeCompare(b.role))
               .map((r) => ({
                 role: r.role,
-                name: r.role === 'vendor' ? (t.targetUser!.vendorProfile?.shopName ?? null) : (t.targetUser!.organizerProfile?.displayName ?? null),
+                name: r.role === 'vendor' ? (first.targetUser!.vendorProfile?.shopName ?? null) : (first.targetUser!.organizerProfile?.displayName ?? null),
                 suspended: r.suspendedAt !== null,
               }))
           : [],
@@ -183,7 +187,7 @@ export class ReportsService {
         reason: r.reason,
         details: r.details,
         source: r.source,
-        reporter: r.reporter ? `${r.reporter.fullName} (${describeRoles(r.reporter).toLowerCase()})` : (r.reporterEmail ?? 'Unknown'),
+        reporter: r.reporter ? `${r.reporter.fullName} (${describeRoles(r.reporter).replace(/\b(Vendor|Organizer)\b/g, (w) => w.toLowerCase())})` : (r.reporterEmail ?? 'Unknown'),
         addedBy: r.createdBy?.fullName ?? null,
         createdAt: r.createdAt.toISOString(),
       })),
@@ -210,9 +214,20 @@ export class ReportsService {
 
   async resolve(adminId: string, id: string, input: z.output<typeof resolveReportSchema>) {
     const refresh = await this.prisma.$transaction(async (tx) => {
-      await tx.$queryRaw`SELECT id FROM reports WHERE id = ${id}::uuid FOR UPDATE`;
-      const report = await tx.report.findUnique({ where: { id }, include: { targetEvent: { include: { organizerProfile: true } } } });
-      if (!report) throw new NotFoundException('Report not found');
+      const found = await tx.report.findUnique({ where: { id } });
+      if (!found) throw new NotFoundException('Report not found');
+      // Lock every report about this target, so two admins deciding the same
+      // group through different reports wait for each other (flow 11).
+      await tx.$queryRaw`
+        SELECT id FROM reports
+        WHERE target_type = ${found.targetType}::report_target
+          AND target_user_id IS NOT DISTINCT FROM ${found.targetUserId}::uuid
+          AND target_event_id IS NOT DISTINCT FROM ${found.targetEventId}::uuid
+        FOR UPDATE`;
+      const report = await tx.report.findUniqueOrThrow({
+        where: { id },
+        include: { targetEvent: { include: { organizerProfile: true } } },
+      });
       if (report.status !== 'open') throw new ConflictException('These reports were already resolved. Reload to see the decision.');
 
       let refresh: string[] = [];
@@ -220,7 +235,8 @@ export class ReportsService {
       const status: ReportStatus = input.decision === 'dismiss' ? 'dismissed' : 'actioned';
       if (input.decision === 'hide_event') {
         if (report.targetType !== 'event') throw new BadRequestException('Only an event report can hide an event');
-        refresh = await this.moderation.hideEvent(tx, adminId, report.targetEventId!, input.reason);
+        // Already hidden from the events page: record the decision only.
+        if (report.targetEvent!.moderationState !== 'hidden') refresh = await this.moderation.hideEvent(tx, adminId, report.targetEventId!, input.reason);
         action = 'event_hidden';
       } else if (input.decision === 'suspend_role') {
         const userId = report.targetType === 'event' ? report.targetEvent!.organizerProfile.userId : report.targetUserId!;
@@ -229,7 +245,10 @@ export class ReportsService {
         }
         const role = await tx.userRole.findUnique({ where: { userId_role: { userId, role: input.role } } });
         if (!role) throw new BadRequestException(`This user has no ${input.role} role`);
-        refresh = await this.moderation.suspendRole(tx, adminId, userId, input.role, input.reason);
+        // Already suspended from the user's page: record the decision only.
+        if (!role.suspendedAt) {
+          refresh = await this.moderation.suspendRole(tx, adminId, userId, input.role, input.reason, { hideUpcomingEvents: input.hideUpcomingEvents });
+        }
         action = 'user_suspended';
       }
 

@@ -40407,6 +40407,9 @@
                         "nullable": true,
                         "type": "string",
                         "maxLength": 2000
+                      },
+                      "hideUpcomingEvents": {
+                        "type": "boolean"
                       }
                     },
                     "required": [
@@ -41422,7 +41425,11 @@
             "required": true,
             "in": "path",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "vendor",
+                "organizer"
+              ]
             }
           }
         ],
@@ -41793,7 +41800,11 @@
             "required": true,
             "in": "path",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "vendor",
+                "organizer"
+              ]
             }
           }
         ],

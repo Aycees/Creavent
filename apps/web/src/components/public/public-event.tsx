@@ -233,15 +233,13 @@ export function PublicEventView({ event: e, supportEmail, report }: { event: Pub
           )}
 
           {report ?? (
-
-          <p className="text-sm text-muted">
-            Something wrong with this event? Email us at{" "}
-            <a href={`mailto:${supportEmail}`} className="text-ink underline underline-offset-2">
-              {supportEmail}
-            </a>{" "}
-            and we&apos;ll look into it.
-          </p>
-
+            <p className="text-sm text-muted">
+              Something wrong with this event? Email us at{" "}
+              <a href={`mailto:${supportEmail}`} className="text-ink underline underline-offset-2">
+                {supportEmail}
+              </a>{" "}
+              and we&apos;ll look into it.
+            </p>
           )}
         </div>
       </div>

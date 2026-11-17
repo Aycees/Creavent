@@ -97,7 +97,7 @@ export function ReportLink({
   return (
     <>
       <div>
-        <Button type="button" variant="ghost" size="sm" className="-ml-3 text-muted" onClick={() => setOpen(true)}>
+        <Button type="button" variant="ghost" className="-ml-3 text-muted" onClick={() => setOpen(true)}>
           Report this {noun}
         </Button>
       </div>

@@ -121,7 +121,14 @@ const moderationReasonSchema = z.string().trim().min(1, 'Write the reason they w
 export const resolveReportSchema = z.discriminatedUnion('decision', [
   z.object({ decision: z.literal('dismiss'), note: optionalText }),
   z.object({ decision: z.literal('hide_event'), reason: moderationReasonSchema, note: optionalText }),
-  z.object({ decision: z.literal('suspend_role'), role: roleTypeSchema, reason: moderationReasonSchema, note: optionalText }),
+  z.object({
+    decision: z.literal('suspend_role'),
+    role: roleTypeSchema,
+    reason: moderationReasonSchema,
+    note: optionalText,
+    // Organizers: hide their upcoming events too (decision R1).
+    hideUpcomingEvents: z.boolean().optional(),
+  }),
 ]);
 export type ResolveReportInput = z.input<typeof resolveReportSchema>;
 

@@ -50,10 +50,10 @@ export function Pager({ page, pageSize, total, onPage }: { page: number; pageSiz
         {from} to {to} of {total}
       </p>
       <div className="flex gap-2">
-        <Button type="button" variant="secondary" size="sm" disabled={page === 1} onClick={() => onPage(page - 1)}>
+        <Button type="button" variant="secondary" disabled={page === 1} onClick={() => onPage(page - 1)}>
           Previous
         </Button>
-        <Button type="button" variant="secondary" size="sm" disabled={to >= total} onClick={() => onPage(page + 1)}>
+        <Button type="button" variant="secondary" disabled={to >= total} onClick={() => onPage(page + 1)}>
           Next
         </Button>
       </div>

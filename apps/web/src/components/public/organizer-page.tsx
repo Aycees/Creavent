@@ -133,15 +133,13 @@ export function OrganizerPageView({ page, supportEmail, report }: { page: Public
       )}
 
       {report ?? (
-
-      <p className="text-sm text-muted">
-        Something wrong with this organizer? Email{" "}
-        <a href={`mailto:${supportEmail}`} className="text-ink underline underline-offset-2">
-          {supportEmail}
-        </a>{" "}
-        and we&apos;ll look into it.
-      </p>
-
+        <p className="text-sm text-muted">
+          Something wrong with this organizer? Email{" "}
+          <a href={`mailto:${supportEmail}`} className="text-ink underline underline-offset-2">
+            {supportEmail}
+          </a>{" "}
+          and we&apos;ll look into it.
+        </p>
       )}
     </article>
   )

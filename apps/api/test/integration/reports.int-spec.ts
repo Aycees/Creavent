@@ -113,6 +113,18 @@ describe('reports', () => {
       expect((await browser.post('/api/reports').send({ targetType: 'user', targetId: plain.id, reason: 'scam' })).status).toBe(404);
     });
 
+    it('takes at most 10 reports per person an hour', async () => {
+      const { browser } = await vendorBrowser();
+      const targets = await Promise.all(Array.from({ length: 11 }, () => createVendor(prisma)));
+
+      const statuses: number[] = [];
+      for (const t of targets) statuses.push((await browser.post('/api/reports').send({ targetType: 'user', targetId: t.user.id, reason: 'scam' })).status);
+
+      expect(statuses.slice(0, 10).every((s) => s === 201)).toBe(true);
+      expect(statuses[10]).toBe(429);
+      expect(await prisma.report.count()).toBe(10);
+    });
+
     it("tells the viewer they already reported something while it's open", async () => {
       const { event } = await announcedEvent();
       const { browser } = await vendorBrowser();
@@ -250,6 +262,34 @@ describe('reports', () => {
       expect((await prisma.userRole.findUniqueOrThrow({ where: { userId_role: { userId: reported.user.id, role: 'vendor' } } })).suspendedAt).not.toBeNull();
       expect(await prisma.report.count({ where: { actionTaken: 'user_suspended' } })).toBe(2);
       expect(await prisma.auditLog.count({ where: { action: 'user_role.suspend' } })).toBe(2);
+    });
+
+    it("suspending the organizer from a report can also hide their upcoming events", async () => {
+      const { browser } = await admin();
+      const { organizer, event } = await announcedEvent();
+      const other = await readyEvent(prisma, organizer.profile.id, { status: 'open_to_vendors' });
+      await (await vendorBrowser()).browser.post('/api/reports').send({ targetType: 'event', targetId: event.id, reason: 'scam' });
+      const id = (await prisma.report.findFirstOrThrow()).id;
+
+      const res = await browser.post(`/api/admin/reports/${id}/resolve`).send({ decision: 'suspend_role', role: 'organizer', reason: 'Scam', hideUpcomingEvents: true });
+
+      expect(res.status).toBe(200);
+      expect(await prisma.event.count({ where: { id: { in: [event.id, other] }, moderationState: 'hidden' } })).toBe(2);
+    });
+
+    it('records a decision whose action is already in place, without doing it again', async () => {
+      const { browser } = await admin();
+      const { event } = await announcedEvent();
+      await (await vendorBrowser()).browser.post('/api/reports').send({ targetType: 'event', targetId: event.id, reason: 'scam' });
+      const id = (await prisma.report.findFirstOrThrow()).id;
+      await browser.post(`/api/admin/events/${event.id}/hide`).send({ reason: 'Hidden from the events page' });
+
+      const res = await browser.post(`/api/admin/reports/${id}/resolve`).send({ decision: 'hide_event', reason: 'Same reason' });
+
+      expect(res.status).toBe(200);
+      expect(await prisma.report.findFirstOrThrow()).toMatchObject({ status: 'actioned', actionTaken: 'event_hidden' });
+      expect(await prisma.emailNotification.count({ where: { type: 'event_hidden' } })).toBe(1);
+      expect((await prisma.event.findUniqueOrThrow({ where: { id: event.id } })).moderationReason).toBe('Hidden from the events page');
     });
 
     it('refuses decisions that make no sense for the report', async () => {

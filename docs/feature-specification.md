@@ -595,7 +595,7 @@ Processing runs while the browser waits for the Complete step. The API limits ho
 ### 11.7 Replacing, removing, and cleanup
 
 - **Replacing** a picture (cover, logo, avatar, floor plan) creates a new file and removes the old one. Removing a vendor photo removes that file.
-- A removed file is deleted from storage within 24 hours.
+- A removed file is deleted from storage by the daily cleanup once it has been removed for 24 hours, so within 2 days (data model §8).
 - Uploads that never reach Complete are deleted automatically after 24 hours.
 - Proof-of-payment, payment QR, and application document files follow the retention rules in section 6.7. When an account is deleted, its avatar is removed.
 

@@ -21,7 +21,7 @@ const filters: { id: AdminUsersFilter; label: string }[] = [
 const roleWord = { vendor: "Vendor", organizer: "Organizer" } as const
 
 function roleTag(r: AdminUsers["items"][number]["roles"][number]) {
-  const approval = r.role === "organizer" && r.approvalStatus && r.approvalStatus !== "approved" ? ` · ${r.approvalStatus === "pending_review" ? "pending" : r.approvalStatus.replace("_", " ")}` : ""
+  const approval = r.role === "organizer" && r.approvalStatus && r.approvalStatus !== "approved" ? ` · ${r.approvalStatus === "pending_review" ? "pending" : r.approvalStatus.replaceAll("_", " ")}` : ""
   return `${roleWord[r.role]}${r.name ? ` · ${r.name}` : ""}${approval}`
 }
 

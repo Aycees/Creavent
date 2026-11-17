@@ -2,6 +2,7 @@
 
 import { REPORT_REASON_LABELS, REVIEW_TARGET_TEXT } from "@creavent/shared"
 import Link from "next/link"
+import * as React from "react"
 
 import { Alert } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
@@ -9,6 +10,8 @@ import { useApprovalQueue, useReportGroups } from "./queries"
 
 const today = new Intl.DateTimeFormat("en-PH", { timeZone: "Asia/Manila", weekday: "long", month: "short", day: "numeric" })
 const day = new Intl.DateTimeFormat("en-PH", { timeZone: "Asia/Manila", weekday: "short", month: "short", day: "numeric" })
+
+const noSubscribe = () => () => {}
 
 function Stat({ href, label, value, children }: { href: string; label: string; value: number; children?: React.ReactNode }) {
   return (
@@ -27,11 +30,14 @@ export function AdminOverview() {
   const over = queue?.filter((q) => q.daysOverTarget > 0).length ?? 0
   const resubmissions = queue?.filter((q) => q.resubmission).length ?? 0
   const oldest = reports?.items[0]
+  // Read in the browser only: a date read while prerendering would be frozen
+  // into the page.
+  const todayLabel = React.useSyncExternalStore(noSubscribe, () => today.format(new Date()), () => null)
 
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-1">
-        <p className="text-cap font-semibold text-muted uppercase">{today.format(new Date())}</p>
+        <p className="min-h-4 text-cap font-semibold text-muted uppercase">{todayLabel}</p>
         <h1 className="text-h1">Overview</h1>
       </div>
       {(queueError || reportsError) && <Alert tone="danger">We couldn&apos;t load everything. Refresh to try again.</Alert>}

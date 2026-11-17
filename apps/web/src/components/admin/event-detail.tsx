@@ -184,12 +184,12 @@ export function AdminEventDetail({ eventId }: { eventId: string }) {
                         </Link>
                         {a.slotLabels.length > 0 && <span className="text-cap text-muted">Slot {a.slotLabels.join(", ")}</span>}
                       </span>
-                      <Badge>{a.status.replace("_", " ")}</Badge>
+                      <Badge>{a.status.replaceAll("_", " ")}</Badge>
                     </div>
                     {(a.documents.length > 0 || a.proofs.length > 0) && (
                       <div className="flex flex-wrap gap-2">
                         {[...a.documents, ...a.proofs].map((f) => (
-                          <Button key={f.fileId} asChild variant="secondary" size="sm">
+                          <Button key={f.fileId} asChild variant="secondary">
                             <a href={`/api/files/${f.fileId}`} target="_blank" rel="noreferrer" aria-label={`View ${f.label} from ${a.shopName}`}>
                               {f.label}
                             </a>

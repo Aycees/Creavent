@@ -154,6 +154,30 @@ describe("ReportReview", () => {
     expect(push).toHaveBeenCalledWith("/admin/reports")
   })
 
+  it("suspends the organizer from an event report, hiding their upcoming events unless unticked", async () => {
+    serve(eventDetail)
+    vi.mocked(api.POST).mockResolvedValue({ data: eventDetail, response: { status: 200 } } as never)
+    renderWithQuery(<ReportReview reportId={reportId} />)
+
+    await userEvent.click(await screen.findByRole("radio", { name: /Suspend the organizer role/ }))
+    expect(screen.getByRole("checkbox", { name: /Also hide their upcoming events/ })).toBeChecked()
+    await userEvent.type(screen.getByLabelText(/Reason/), "Scam reports")
+    await userEvent.click(screen.getByRole("button", { name: "Suspend and resolve" }))
+
+    expect(api.POST).toHaveBeenCalledWith("/api/admin/reports/{id}/resolve", {
+      params: { path: { id: reportId } },
+      body: { decision: "suspend_role", role: "organizer", reason: "Scam reports", note: "", hideUpcomingEvents: true },
+    })
+  })
+
+  it("records a decision that's already in place", async () => {
+    serve({ ...eventDetail, target: { ...eventDetail.target, hidden: true } })
+    renderWithQuery(<ReportReview reportId={reportId} />)
+
+    expect(await screen.findByRole("radio", { name: /Hide the event/ })).toBeInTheDocument()
+    expect(screen.getByText(/Already hidden/)).toBeInTheDocument()
+  })
+
   it("offers to suspend each role of a reported user", async () => {
     serve({
       ...eventDetail,

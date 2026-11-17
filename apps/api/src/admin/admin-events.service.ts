@@ -98,14 +98,10 @@ export class AdminEventsService {
     if (!e) throw new NotFoundException('Event not found');
     const role = e.organizerProfile.user.roles[0];
 
-    // Who opened which file, for the history (spec §2).
-    const shopOfFile = new Map<string, string>();
-    for (const a of e.applications) {
-      for (const d of a.documents) shopOfFile.set(d.fileId, a.vendorProfile.shopName);
-      for (const s of a.assignments) for (const p of s.payment?.proofs ?? []) shopOfFile.set(p.fileId, a.vendorProfile.shopName);
-    }
+    // Who opened which file, for the history (spec §2). Each view row holds
+    // its event and shop, so it outlives the file.
     const logs = await this.prisma.auditLog.findMany({
-      where: { OR: [{ entityType: 'event', entityId: id }, { entityType: 'file', entityId: { in: [...shopOfFile.keys()] } }] },
+      where: { OR: [{ entityType: 'event', entityId: id }, { entityType: 'file', changes: { path: ['eventId'], equals: id } }] },
       include: { actor: true },
       orderBy: { createdAt: 'desc' },
     });
@@ -117,7 +113,7 @@ export class AdminEventsService {
             ? `Hidden by ${l.actor.fullName}`
             : l.action === 'event.show'
               ? `Shown again by ${l.actor.fullName}`
-              : `${l.actor.fullName} viewed ${shopOfFile.get(l.entityId)}'s ${fileWords[l.action] ?? 'file'}`,
+              : `${l.actor.fullName} viewed ${(l.changes as { shopName?: string } | null)?.shopName ?? 'a vendor'}'s ${fileWords[l.action] ?? 'file'}`,
       })),
       ...e.reports.map((r) => ({
         at: r.createdAt,
