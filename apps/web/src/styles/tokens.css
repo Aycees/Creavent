@@ -109,11 +109,28 @@
   --shadow-lg: 0 12px 32px rgb(24 24 27 / 0.14);
   --shadow-up: 0 -4px 16px rgb(24 24 27 / 0.06);
 
+  /* Motion (design brief §13): strong curves, since the built-in ones are too weak. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
   /* Layout (design brief §7). One breakpoint: phone below 760px. */
   --breakpoint-*: initial;
   --breakpoint-md: 760px;
   --container-page: 1264px;
   --container-app: 1200px;
+}
+
+/*
+ * Entrance animations. `inline` keeps var(--cv-delay) resolved on the element that
+ * uses the class, so `animate-rise [--cv-delay:60ms]` staggers per element.
+ * Fill is `backwards` (hidden during the delay, released after) so no transform
+ * lingers to become the containing block of a fixed descendant.
+ */
+@theme inline {
+  --animate-rise: cv-rise 300ms var(--ease-out) var(--cv-delay, 0ms) backwards;
+  --animate-fade: cv-fade 150ms var(--ease-out) var(--cv-delay, 0ms) backwards;
+  --animate-sheet: cv-sheet 300ms var(--ease-drawer) var(--cv-delay, 0ms) backwards;
 }
 
 :root {

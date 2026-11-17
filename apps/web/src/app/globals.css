@@ -26,6 +26,31 @@
   [role="button"]:not(:disabled) {
     cursor: pointer;
   }
+  a,
+  button,
+  [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+}
+
+@keyframes cv-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes cv-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes cv-sheet {
+  from {
+    transform: translateY(100%);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
