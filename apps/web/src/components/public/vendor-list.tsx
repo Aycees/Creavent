@@ -69,9 +69,9 @@ export function VendorList({ vendors, title }: { vendors: PublicVendorRow[]; tit
             )
             const row = "flex min-h-16 items-center gap-3 px-3.5 py-3"
             return (
-              <li key={v.slotLabel} className="border-b border-border last:border-b-0 md:rounded-lg md:border md:bg-surface md:last:border-b">
+              <li key={v.slotLabel} className="animate-fade border-b border-border last:border-b-0 md:rounded-lg md:border md:bg-surface md:last:border-b">
                 {v.slug ? (
-                  <Link href={`/vendors/${v.slug}`} className={`${row} text-ink no-underline`}>
+                  <Link href={`/vendors/${v.slug}`} className={`${row} text-ink no-underline transition-colors duration-120 ease-out hover:bg-sunken md:rounded-lg active:bg-sunken`}>
                     {body}
                   </Link>
                 ) : (

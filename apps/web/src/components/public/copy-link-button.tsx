@@ -10,9 +10,10 @@ export function CopyLinkButton({ className }: { className?: string }) {
   async function copy() {
     try {
       await navigator.clipboard.writeText(window.location.href.split("?")[0]!)
-      toast.success("Link copied")
+      // Top of the screen: on phones the bottom holds the pinned actions.
+      toast.success("Link copied", { position: "top-center" })
     } catch {
-      toast.error("Couldn't copy the link. Copy it from the address bar.")
+      toast.error("Couldn't copy the link. Copy it from the address bar.", { position: "top-center" })
     }
   }
   return (

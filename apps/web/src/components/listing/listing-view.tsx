@@ -1,6 +1,7 @@
 import type { Listing, ListingCard, ListingWhen } from "@creavent/shared"
 import { CaretLeftIcon, CaretRightIcon, CheckIcon, MagnifyingGlassIcon, MapPinIcon, SquaresFourIcon, StorefrontIcon } from "@phosphor-icons/react/dist/ssr"
 import Link from "next/link"
+import type * as React from "react"
 
 import { ApprovedMark } from "@/components/ui/approved-mark"
 import { Badge } from "@/components/ui/badge"
@@ -79,19 +80,45 @@ function Tags({ e }: { e: ListingCard }) {
 // A big card for this and next weekend (mockup ListingP4): the date stamp
 // sits on the cover's edge. With `rowOnPhone` the same markup lays out as a
 // compact row on phones (cover and organizer dropped), for Next weekend.
-export function EventCard({ e, rowOnPhone, className }: { e: ListingCard; rowOnPhone?: boolean; className?: string }) {
+// `enter` is the entrance delay in ms (the first cards only; omit for none) and `lazy`
+// defers the cover for cards below the fold.
+export function EventCard({
+  e,
+  rowOnPhone,
+  enter,
+  lazy,
+  className,
+}: {
+  e: ListingCard
+  rowOnPhone?: boolean
+  enter?: number
+  lazy?: boolean
+  className?: string
+}) {
   return (
-    <li className={cn(rowOnPhone && "max-md:border-b max-md:border-border max-md:last:border-b-0", className)}>
+    <li
+      style={enter === undefined ? undefined : ({ "--cv-delay": `${enter}ms` } as React.CSSProperties)}
+      className={cn(enter !== undefined && "animate-rise", rowOnPhone && "max-md:border-b max-md:border-border max-md:last:border-b-0", className)}
+    >
       <Link
         href={`/events/${e.slug}`}
         className={cn(
-          "flex h-full flex-col overflow-hidden rounded-lg border border-border bg-surface text-ink no-underline shadow-sm transition-shadow hover:shadow-md",
+          "group/card flex h-full flex-col overflow-hidden rounded-lg border border-border bg-surface text-ink no-underline shadow-sm transition-[box-shadow,transform] duration-200 ease-out hover:shadow-md active:scale-[0.985]",
           rowOnPhone && "max-md:flex-row max-md:items-center max-md:gap-4 max-md:rounded-none max-md:border-0 max-md:px-4 max-md:py-3.5 max-md:shadow-none",
         )}
       >
         {e.coverUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- R2 addresses, already sized
-          <img src={e.coverUrl} alt="" className={cn("aspect-video w-full object-cover", rowOnPhone && "max-md:hidden")} />
+          <img
+            src={e.coverUrl}
+            alt=""
+            loading={lazy ? "lazy" : undefined}
+            decoding="async"
+            className={cn(
+              "aspect-video w-full object-cover transition-transform duration-300 ease-out group-hover/card:scale-[1.03]",
+              rowOnPhone && "max-md:hidden",
+            )}
+          />
         ) : (
           <PhotoPlaceholder className={cn(rowOnPhone && "max-md:hidden")} />
         )}
@@ -133,7 +160,7 @@ export const cardGrid = (count: number) =>
 export function EventRow({ e, note }: { e: ListingCard; note?: string }) {
   return (
     <li className="border-b border-border last:border-b-0">
-      <Link href={`/events/${e.slug}`} className="flex min-h-19 items-center gap-3 px-4 py-3.5 text-ink no-underline">
+      <Link href={`/events/${e.slug}`} className="flex min-h-19 items-center gap-3 px-4 py-3.5 text-ink no-underline transition-colors duration-120 ease-out hover:bg-sunken active:bg-sunken">
         <Stamp e={e} className="h-12 w-11 self-start [&_[data-day]]:text-[19px] [&_[data-sub]]:hidden" />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="text-[16px] leading-[22px] font-semibold">{e.name}</span>
@@ -195,7 +222,7 @@ function FilterLink({ href, current, count, children }: { href: string; current:
       href={href}
       aria-current={current ? "page" : undefined}
       className={cn(
-        "inline-flex h-11 shrink-0 items-center gap-1.5 rounded-pill border px-4 text-label whitespace-nowrap no-underline md:h-10",
+        "inline-flex h-11 shrink-0 items-center gap-1.5 rounded-pill border px-4 text-label whitespace-nowrap no-underline transition-[color,background-color,border-color,transform] duration-120 ease-out active:scale-[0.97] md:h-10",
         current ? "border-inverse bg-inverse text-on-inverse" : "border-border-strong bg-surface text-ink",
       )}
     >
@@ -210,7 +237,8 @@ function FilterLink({ href, current, count, children }: { href: string; current:
 // from being clipped by the scroll box.
 const scrollRow = "-my-1 flex items-center gap-2 overflow-x-auto py-1 pr-1 [scrollbar-width:none] md:-mx-1 md:px-1"
 // List or Calendar: 44px tall on phones, 40px (with the pill's inset) to match the chips on wider screens.
-const viewItem = "inline-flex h-11 items-center rounded-pill px-3.5 text-label text-muted no-underline md:h-9 md:px-4"
+const viewItem =
+  "inline-flex h-11 items-center rounded-pill px-3.5 text-label text-muted no-underline transition-[color,background-color,box-shadow,transform] duration-120 ease-out active:scale-[0.97] md:h-9 md:px-4"
 const viewOn = "bg-surface text-ink shadow-sm"
 
 const stripDay = new Intl.DateTimeFormat("en-US", {
@@ -234,7 +262,7 @@ function Next7({ listing }: { listing: Listing }) {
             })}
             aria-label={label}
             className={cn(
-              "flex min-h-17 flex-col items-center justify-center gap-0.5 rounded-[10px] bg-surface text-ink no-underline tabular-nums md:min-h-19",
+              "flex min-h-17 flex-col items-center justify-center gap-0.5 rounded-[10px] bg-surface text-ink no-underline tabular-nums transition-[background-color,transform] duration-120 ease-out hover:bg-sunken active:scale-[0.97] md:min-h-19",
               isToday ? "border-2 border-brand" : "border border-border",
             )}
           >
@@ -435,12 +463,12 @@ export function ListingView({ listing, query: params }: { listing: Listing; quer
       <Container>
         <section className="flex flex-col gap-6 pt-6 pb-5 md:flex-row md:flex-wrap md:items-end md:gap-x-16 md:gap-y-8 md:pt-14 md:pb-8">
           <div className="flex min-w-0 flex-col gap-3 md:flex-[999_1_520px] md:gap-4">
-            <h1 className="max-w-[680px] text-display text-balance">Markets, bazaars and pop-ups in Davao</h1>
-            <p className="max-w-[560px] text-muted md:text-body-lg">See what&apos;s on and who&apos;s selling. Every organizer here is approved by Creavent.</p>
+            <h1 className="max-w-[680px] animate-rise text-display text-balance">Markets, bazaars and pop-ups in Davao</h1>
+            <p className="max-w-[560px] animate-rise text-muted [--cv-delay:60ms] md:text-body-lg">See what&apos;s on and who&apos;s selling. Every organizer here is approved by Creavent.</p>
             <form
               role="search"
               action="/"
-              className="mt-1 flex h-12 max-w-[600px] items-center gap-2.5 rounded-pill border border-border-strong bg-surface pr-1.5 pl-4.5 text-muted shadow-sm md:mt-2 md:h-13"
+              className="mt-1 flex h-12 max-w-[600px] animate-rise items-center gap-2.5 rounded-pill border border-border-strong bg-surface pr-1.5 pl-4.5 text-muted shadow-sm [--cv-delay:100ms] md:mt-2 md:h-13"
             >
               <MagnifyingGlassIcon aria-hidden="true" className="size-5 flex-none" />
               <label htmlFor="listing-q" className="sr-only">
@@ -449,6 +477,7 @@ export function ListingView({ listing, query: params }: { listing: Listing; quer
               <input
                 id="listing-q"
                 type="search"
+                enterKeyHint="search"
                 name="q"
                 defaultValue={params.q}
                 placeholder="Search events, venues, or organizers"
@@ -460,7 +489,7 @@ export function ListingView({ listing, query: params }: { listing: Listing; quer
               </Button>
             </form>
           </div>
-          <div className="flex flex-col gap-2.5 md:flex-[1_1_420px]">
+          <div className="flex animate-rise flex-col gap-2.5 [--cv-delay:140ms] md:flex-[1_1_420px]">
             <div className="flex items-center justify-between">
               <h2 className="text-label">Next 7 days</h2>
               <Link href={listingHref({ ...listParams, view: "calendar" })} className="inline-flex min-h-11 items-center text-sm">
@@ -536,7 +565,7 @@ export function ListingView({ listing, query: params }: { listing: Listing; quer
         ) : listing.events.length === 0 ? (
           <Empty params={params} today={listing.today} />
         ) : (
-          groups.map((g) =>
+          groups.map((g, gi) =>
             g.key === "later" ? (
               <LaterCarousel
                 key={g.key}
@@ -545,7 +574,7 @@ export function ListingView({ listing, query: params }: { listing: Listing; quer
                 calendarHref={listingHref({ ...listParams, view: "calendar", month: g.events[0]!.startDate?.slice(0, 7) })}
               >
                 {g.events.map((e) => (
-                  <EventCard key={e.slug} e={e} className="w-[260px] flex-none md:w-[300px]" />
+                  <EventCard key={e.slug} e={e} lazy={gi > 0} className="w-[260px] flex-none md:w-[300px]" />
                 ))}
               </LaterCarousel>
             ) : (
@@ -562,8 +591,8 @@ export function ListingView({ listing, query: params }: { listing: Listing; quer
                     g.key === "next" && "max-md:gap-0 max-md:overflow-hidden max-md:rounded-lg max-md:border max-md:border-border max-md:bg-surface",
                   )}
                 >
-                  {g.events.map((e) => (
-                    <EventCard key={e.slug} e={e} rowOnPhone={g.key === "next"} />
+                  {g.events.map((e, i) => (
+                    <EventCard key={e.slug} e={e} rowOnPhone={g.key === "next"} enter={gi === 0 ? Math.min(i, 2) * 40 : undefined} lazy={gi > 0} />
                   ))}
                 </ul>
               </section>

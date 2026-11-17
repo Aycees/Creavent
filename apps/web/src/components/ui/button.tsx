@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 
 // Design brief §10. `brand` (ember) is for at most one conversion button per page.
 const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-2 rounded-md border border-transparent text-label whitespace-nowrap transition-colors duration-120 select-none disabled:cursor-not-allowed disabled:border-transparent disabled:bg-sunken disabled:text-subtle [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-5",
+  "inline-flex shrink-0 items-center justify-center gap-2 rounded-md border border-transparent text-label whitespace-nowrap transition-[color,background-color,transform] duration-120 ease-out select-none active:scale-[0.97] disabled:cursor-not-allowed disabled:border-transparent disabled:bg-sunken disabled:text-subtle [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-5",
   {
     variants: {
       variant: {

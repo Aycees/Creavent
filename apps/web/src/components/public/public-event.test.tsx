@@ -43,6 +43,21 @@ describe("PublicEventView", () => {
     expect(screen.getByRole("link", { name: "Get directions" })).toHaveAttribute("href", "https://www.google.com/maps/search/?api=1&query=7.06%2C125.59")
   })
 
+  it("renders directions and copy link once each, together in the actions that stick to the bottom on phones", () => {
+    render(<PublicEventView event={publicEventFixture()} supportEmail={SUPPORT} />)
+
+    const directions = screen.getByRole("link", { name: "Get directions" })
+    const copy = screen.getByRole("button", { name: "Copy link" })
+    expect(directions.closest("[data-sticky-bar]")).not.toBeNull()
+    expect(directions.closest("[data-sticky-bar]")).toBe(copy.closest("[data-sticky-bar]"))
+  })
+
+  it("does not pin actions to the bottom for an ended event, which has no directions", () => {
+    render(<PublicEventView event={publicEventFixture({ status: "completed" })} supportEmail={SUPPORT} />)
+
+    expect(screen.getByRole("button", { name: "Copy link" }).closest("[data-sticky-bar]")).toBeNull()
+  })
+
   it("lists vendors with their category and slot, linking those with a page", () => {
     render(<PublicEventView event={publicEventFixture()} supportEmail={SUPPORT} />)
 

@@ -35,6 +35,12 @@ describe("ListingView, list", () => {
     expect(screen.getByRole("searchbox", { name: "Search events" })).toHaveValue("vintage")
   })
 
+  it("offers a Search key on phone keyboards, since the Search button is hidden there", () => {
+    renderWithQuery(<ListingView listing={listingFixture()} query={{}} />)
+
+    expect(screen.getByRole("searchbox", { name: "Search events" })).toHaveAttribute("enterkeyhint", "search")
+  })
+
   it("filters by type with links, marking the current one", () => {
     renderWithQuery(<ListingView listing={listingFixture()} query={{ type: "bazaar", when: "weekend" }} />)
 
