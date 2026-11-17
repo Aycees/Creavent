@@ -8,7 +8,7 @@ export function TabBar({ label, items, className }: { label: string; items: NavI
     <nav
       aria-label={label}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-10 grid h-18 grid-cols-4 border-t border-border bg-surface pb-3",
+        "fixed inset-x-0 bottom-0 z-10 grid h-18 grid-cols-5 border-t border-border bg-surface pb-3",
         className
       )}
     >

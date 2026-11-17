@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
 import * as React from "react"
 
+import { YourPopups } from "@/components/popups/your-popups"
 import { Alert } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -114,6 +115,8 @@ export function VendorDashboardPage() {
               </div>
             </section>
           )}
+
+          <YourPopups />
 
           <section aria-labelledby="open-h" className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4 md:p-5">
             <h2 id="open-h" className="text-h3">Open to vendors</h2>
