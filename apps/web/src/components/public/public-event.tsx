@@ -108,7 +108,7 @@ export function PublicEventView({ event: e, supportEmail, report }: { event: Pub
       )}
 
       <header className="flex flex-col gap-2.5">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex animate-rise flex-wrap gap-2">
           <Badge dot={false}>{e.typeName}</Badge>
           {days > 1 && (
             <Badge tone="info" dot={false}>
@@ -118,8 +118,8 @@ export function PublicEventView({ event: e, supportEmail, report }: { event: Pub
           {ended && <Badge>Completed</Badge>}
           {canceled && <Badge tone="danger">Canceled</Badge>}
         </div>
-        <h1 className="max-w-[900px] text-display text-balance">{e.name}</h1>
-        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-body">
+        <h1 className="max-w-[900px] animate-rise text-display text-balance">{e.name}</h1>
+        <p className="flex animate-rise flex-wrap items-center gap-x-2 gap-y-1 text-body [--cv-delay:60ms]">
           <span>by</span> <OrganizerName organizer={e.organizer} />
           {e.organizer.approved && <ApprovedMark />}
         </p>
@@ -128,7 +128,7 @@ export function PublicEventView({ event: e, supportEmail, report }: { event: Pub
       <div className="flex flex-col gap-8 md:grid md:grid-cols-[minmax(0,1fr)_340px] md:items-start md:gap-x-12">
         {/* Phones: the cover, then the summary card, so dates and directions
             are one scroll away, then the rest. Desktop: the summary stays beside the content. */}
-        <aside className="flex flex-col gap-4 md:sticky md:top-6 md:col-start-2 md:row-span-2 md:row-start-1">
+        <aside className="flex flex-col gap-4 [--cv-delay:120ms] md:sticky md:top-6 md:col-start-2 md:row-span-2 md:row-start-1 md:animate-rise">
           <section aria-label="When and where" className="flex flex-col gap-5 rounded-lg border border-border bg-surface p-4 md:p-6 md:shadow-md">
             <div className="flex items-center gap-4">
               <Stamp s={e} size="lg" past={ended || canceled} />
@@ -157,7 +157,16 @@ export function PublicEventView({ event: e, supportEmail, report }: { event: Pub
                 </li>
               )}
             </ul>
-            <div className="flex flex-col gap-2">
+            {/* Phones: these two actions pin to the bottom of the screen (design brief §14), the same
+                element, so each control still renders once. Ended and canceled events have no directions, so nothing pins. */}
+            <div
+              data-sticky-bar={directions ? "" : undefined}
+              className={
+                directions
+                  ? "flex flex-col gap-2 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-10 max-md:flex-row max-md:gap-3 max-md:border-t max-md:border-border max-md:bg-surface max-md:px-4 max-md:pt-3 max-md:pb-5 max-md:shadow-up max-md:animate-sheet max-md:[--cv-delay:350ms] max-md:[&>*]:flex-1"
+                  : "flex flex-col gap-2"
+              }
+            >
               {directions && (
                 <Button asChild block>
                   <a href={directions} target="_blank" rel="noreferrer">
@@ -196,9 +205,9 @@ export function PublicEventView({ event: e, supportEmail, report }: { event: Pub
 
         {/* On phones this column dissolves into the page's single column so the cover can lead. */}
         <div className="flex min-w-0 flex-col gap-10 max-md:contents md:col-start-1 md:row-start-1">
-          <div className="overflow-hidden rounded-xl max-md:order-first">
+          <div className="animate-rise overflow-hidden rounded-xl [--cv-delay:120ms] max-md:order-first">
             {/* eslint-disable-next-line @next/next/no-img-element -- R2 addresses, already sized */}
-            {e.coverUrl ? <img src={e.coverUrl} alt="" className="aspect-[3/2] w-full object-cover" /> : <PhotoPlaceholder ratio="3/2" />}
+            {e.coverUrl ? <img src={e.coverUrl} alt="" fetchPriority="high" className="aspect-[3/2] w-full object-cover" /> : <PhotoPlaceholder ratio="3/2" />}
           </div>
 
           {e.description && (
