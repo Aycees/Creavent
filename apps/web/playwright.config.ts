@@ -31,7 +31,9 @@ export default defineConfig({
   reporter: [["list"]],
   use: {
     baseURL: process.env.E2E_BASE_URL ?? process.env.WEB_URL ?? "http://localhost:3100",
-    ...devices["Pixel 7"],
+    ...devices["Desktop Chrome"],
+    // Opens a visible browser so the run can be watched.
+    headless: false,
     // Traces would keep the typed seed password, so only screenshots are kept.
     screenshot: "only-on-failure",
   },
