@@ -15,18 +15,25 @@ import { api } from "@/lib/api"
 import { useMe } from "@/lib/queries"
 
 const hints: Record<ReportReason, string | null> = {
+  fake_or_misleading_event: "It didn't happen, or isn't what it says",
   fake_account: "It isn't real, or it copies someone else",
   scam: "Asking for money in a way that seems wrong",
   inappropriate_content: "Offensive pictures or text",
   other: null,
 }
 
-type Noun = ReportButtonTarget
+// What the page is called: a pop-up is an event too (spec §4.7).
+type Noun = ReportButtonTarget | "pop-up"
+
+// The order on the form. "Fake or misleading event" is for events only
+// (decided 2026-11-17, U16).
+const eventReasons: ReportReason[] = ["fake_or_misleading_event", "fake_account", "scam", "inappropriate_content", "other"]
+const profileReasons: ReportReason[] = ["fake_account", "scam", "inappropriate_content", "other"]
 
 function EmailSupport({ noun, supportEmail }: { noun: Noun; supportEmail: string }) {
   return (
     <p className="text-sm text-muted">
-      Something wrong with this {noun}? Email{noun === "event" ? " us at" : ""}{" "}
+      Something wrong with this {noun}? Email{noun === "event" || noun === "pop-up" ? " us at" : ""}{" "}
       <a href={`mailto:${supportEmail}`} className="text-ink underline underline-offset-2">
         {supportEmail}
       </a>{" "}
@@ -39,8 +46,17 @@ function EmailSupport({ noun, supportEmail }: { noun: Noun; supportEmail: string
 // (spec §2.2, decided 2026-11-17). It names the event or the organizer or
 // vendor page by its own id, never a user id. Signed-out visitors, and the
 // page's owner, see the support email instead.
-export function ReportLink({ targetType, targetId, supportEmail }: { targetType: ReportButtonTarget; targetId: string; supportEmail: string }) {
-  const noun: Noun = targetType
+export function ReportLink({
+  targetType,
+  targetId,
+  supportEmail,
+  noun = targetType,
+}: {
+  targetType: ReportButtonTarget
+  targetId: string
+  supportEmail: string
+  noun?: Noun
+}) {
   const { data: me } = useMe()
   const signedIn = !!me && !me.needsLegal
   const mineKey = ["reports", "mine", targetType, targetId]
@@ -97,12 +113,12 @@ export function ReportLink({ targetType, targetId, supportEmail }: { targetType:
           <DialogHeader>
             <DialogTitle>Report this {noun}</DialogTitle>
             <DialogDescription>
-              The Creavent team reviews every report. The {noun === "event" ? "organizer" : noun} isn&apos;t told who reported.
+              The Creavent team reviews every report. The {noun === "event" ? "organizer" : noun === "pop-up" ? "host" : noun} isn&apos;t told who reported.
             </DialogDescription>
           </DialogHeader>
           <fieldset className="flex flex-col gap-2">
             <legend className="mb-2 text-label font-semibold">What&apos;s wrong?</legend>
-            {(Object.keys(REPORT_REASON_LABELS) as ReportReason[]).map((r) => (
+            {(targetType === "event" ? eventReasons : profileReasons).map((r) => (
               <ChoiceCard key={r}>
                 <input type="radio" name="reason" className="mt-0.5 size-5 accent-ink" checked={reason === r} onChange={() => setReason(r)} />
                 <span className="flex flex-col">

@@ -18,6 +18,7 @@ export const outcomeLabels: Record<string, string> = {
   none: "Dismissed",
   event_hidden: "Event hidden",
   user_suspended: "Role suspended",
+  host_approval_revoked: "Host approval revoked",
   other: "Resolved",
 }
 

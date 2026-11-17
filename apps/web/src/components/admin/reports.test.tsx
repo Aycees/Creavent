@@ -37,7 +37,7 @@ const eventDetail: ReportDetail = {
   resolvedAt: null,
   resolvedByName: null,
   resolutionNote: null,
-  target: { ...group.target, organizer: { userId, name: "Mega Sale DVO", suspended: false }, hidden: false, roles: [] },
+  target: { ...group.target, organizer: { userId, name: "Mega Sale DVO", suspended: false }, host: null, hidden: false, roles: [] },
   reports: [
     { number: 142, reason: "fake_account", details: "Same photos as a Cebu event.", source: "report_button", reporter: "Maria Santos (vendor, lola's ukay)", addedBy: null, createdAt: "2026-11-10T12:12:00.000Z" },
     { number: 143, reason: "scam", details: "Asked for a GCash deposit.", source: "support_email", reporter: "visitor@example.com", addedBy: "Mika Admin", createdAt: "2026-11-11T01:40:00.000Z" },
@@ -67,7 +67,7 @@ describe("ReportsQueue", () => {
     const link = await screen.findByRole("link", { name: /Black Friday Mega Ukay/ })
     expect(link).toHaveAttribute("href", `/admin/reports/${reportId}`)
     expect(within(link).getByText("2 reports")).toBeInTheDocument()
-    expect(within(link).getByText(/Scam, Fake event or account/)).toBeInTheDocument()
+    expect(within(link).getByText(/Scam, Fake account/)).toBeInTheDocument()
     expect(within(link).getByText("Email")).toBeInTheDocument()
   })
 
@@ -181,7 +181,7 @@ describe("ReportReview", () => {
   it("offers to suspend each role of a reported user", async () => {
     serve({
       ...eventDetail,
-      target: { type: "user", id: userId, name: "Jun Reyes", subtitle: "Vendor, Kalye Kicks", startsAt: null, organizer: null, hidden: false, roles: [{ role: "vendor", name: "Kalye Kicks", suspended: false }] },
+      target: { type: "user", id: userId, name: "Jun Reyes", subtitle: "Vendor, Kalye Kicks", startsAt: null, organizer: null, host: null, hidden: false, roles: [{ role: "vendor", name: "Kalye Kicks", suspended: false }] },
       reports: [eventDetail.reports[0]!],
     })
     vi.mocked(api.POST).mockResolvedValue({ data: eventDetail, response: { status: 200 } } as never)
@@ -197,6 +197,49 @@ describe("ReportReview", () => {
       params: { path: { id: reportId } },
       body: { decision: "suspend_role", role: "vendor", reason: "Took a deposit and didn't attend", note: "" },
     })
+  })
+
+  it("on a pop-up, suspends the host's vendor role and offers to revoke host approval", async () => {
+    const popupDetail: ReportDetail = {
+      ...eventDetail,
+      target: {
+        type: "event",
+        id: eventId,
+        name: "Lola's Ukay at Habi Café",
+        subtitle: "Pop-up by Lola's Ukay · announced",
+        startsAt: null,
+        organizer: null,
+        host: { userId, name: "Lola's Ukay", suspended: false, approved: true },
+        hidden: false,
+        roles: [],
+      },
+    }
+    serve(popupDetail)
+    vi.mocked(api.POST).mockResolvedValue({ data: popupDetail, response: { status: 200 } } as never)
+    renderWithQuery(<ReportReview reportId={reportId} />)
+
+    expect(await screen.findByRole("link", { name: "Open host" })).toHaveAttribute("href", `/admin/users/${userId}`)
+    expect(screen.getByRole("radio", { name: /Suspend the vendor role/ })).toBeInTheDocument()
+    expect(screen.queryByRole("radio", { name: /Suspend the organizer role/ })).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole("radio", { name: /Revoke host approval/ }))
+    expect(screen.getByText(/hides their announced pop-ups/)).toBeInTheDocument()
+    await userEvent.type(screen.getByLabelText(/Reason/), "The address was a vacant lot")
+    await userEvent.click(screen.getByRole("button", { name: "Revoke and resolve" }))
+
+    expect(api.POST).toHaveBeenCalledWith("/api/admin/reports/{id}/resolve", {
+      params: { path: { id: reportId } },
+      body: { decision: "revoke_host", reason: "The address was a vacant lot", note: "" },
+    })
+  })
+
+  it("offers to revoke host approval on a report about an approved host", async () => {
+    serve({
+      ...eventDetail,
+      target: { type: "user", id: userId, name: "Luz Dimaculangan", subtitle: "Vendor, Lola's Ukay", startsAt: null, organizer: null, host: { userId, name: "Lola's Ukay", suspended: false, approved: true }, hidden: false, roles: [{ role: "vendor", name: "Lola's Ukay", suspended: false }] },
+    })
+    renderWithQuery(<ReportReview reportId={reportId} />)
+
+    expect(await screen.findByRole("radio", { name: /Revoke host approval/ })).toBeInTheDocument()
   })
 
   it("dismisses without a reason", async () => {
