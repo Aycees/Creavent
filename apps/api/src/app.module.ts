@@ -9,12 +9,13 @@ import { FilesModule } from './files/files.module.js';
 import { HealthController } from './health/health.controller.js';
 import { OnboardingModule } from './onboarding/onboarding.module.js';
 import { NotificationsModule } from './notifications/notifications.module.js';
+import { PopupsModule } from './popups/popups.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { PublicModule } from './public/public.module.js';
 import { ReportsModule } from './reports/reports.module.js';
 
 @Module({
-  imports: [PrismaModule, NotificationsModule, AuthModule, FilesModule, AccountsModule, OnboardingModule, ApprovalsModule, EventsModule, ApplicationsModule, PublicModule, ReportsModule, AdminModule],
+  imports: [PrismaModule, NotificationsModule, AuthModule, FilesModule, AccountsModule, OnboardingModule, ApprovalsModule, EventsModule, PopupsModule, ApplicationsModule, PublicModule, ReportsModule, AdminModule],
   controllers: [HealthController],
 })
 export class AppModule {}

@@ -74,13 +74,13 @@ describe('onboarding', () => {
   });
 
   describe('step 1, roles', () => {
-    it('adds the chosen roles: organizers start at not submitted, vendors need no approval', async () => {
+    it('adds the chosen roles, both at not submitted (vendors for pop-up host approval)', async () => {
       const { user, browser } = await signedIn();
 
       const res = await browser.put('/api/onboarding/roles').send({ roles: ['vendor', 'organizer'] });
 
       expect(res.status).toBe(200);
-      expect(await roleOf(user.id, 'vendor')).toMatchObject({ approvalStatus: null, onboardingStep: 1 });
+      expect(await roleOf(user.id, 'vendor')).toMatchObject({ approvalStatus: 'not_submitted', onboardingStep: 1 });
       expect(await roleOf(user.id, 'organizer')).toMatchObject({ approvalStatus: 'not_submitted', onboardingStep: 1 });
     });
 

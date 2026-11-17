@@ -11,7 +11,8 @@ import {
   type RoleType,
 } from '@creavent/shared';
 import type { z } from 'zod';
-import { assertApprovalChange, changeApprovalStatus, lockOrganizer, sameLinks } from '../approvals/approval-status.js';
+import type { ApprovalStatus } from '../generated/prisma/client.js';
+import { assertApprovalChange, changeApprovalStatus, hostNeedsReReview, lockOrganizer, lockVendor, sameLinks } from '../approvals/approval-status.js';
 import { assertAttachable, FilesService, retireFiles } from '../files/files.service.js';
 import { PrismaService, type Tx } from '../prisma/prisma.service.js';
 import { freeSlug, slugAvailable } from './slugs.js';
@@ -44,6 +45,7 @@ export class OnboardingService {
       }),
     ]);
     const organizerRole = user.roles.find((r) => r.role === 'organizer');
+    const vendorRole = user.roles.find((r) => r.role === 'vendor');
     const v = user.vendorProfile;
     const o = user.organizerProfile;
     const image = (f: { id: string; storageKey: string } | null | undefined) =>
@@ -60,6 +62,8 @@ export class OnboardingService {
         products: v.products,
         photos: v.photos.map((p) => image(p.file)!),
         socialLinks: v.socialLinks as string[],
+        hostApprovalStatus: vendorRole?.approvalStatus ?? 'not_submitted',
+        hostReviewedLinks: (vendorRole?.reviewedLinks ?? []) as string[],
       },
       organizer:
         organizerRole && o
@@ -87,7 +91,7 @@ export class OnboardingService {
         await tx.userRole.upsert({
           where: { userId_role: { userId, role } },
           update: {},
-          create: { userId, role, approvalStatus: role === 'organizer' ? 'not_submitted' : null, onboardingStep: 1 },
+          create: { userId, role, approvalStatus: 'not_submitted', onboardingStep: 1 },
         });
       }
     });
@@ -96,7 +100,8 @@ export class OnboardingService {
 
   async vendorShop(userId: string, input: z.output<typeof vendorShopSchema>) {
     await this.prisma.$transaction(async (tx) => {
-      await this.requireRole(tx, userId, 'vendor');
+      await lockVendor(tx, userId);
+      const role = await this.requireRole(tx, userId, 'vendor');
       const active = await tx.category.count({ where: { id: { in: input.categoryIds }, isActive: true } });
       if (active !== new Set(input.categoryIds).size) throw new BadRequestException('Pick categories from the list');
       const existing = await tx.vendorProfile.findUnique({ where: { userId } });
@@ -104,6 +109,7 @@ export class OnboardingService {
       const profile = existing
         ? await tx.vendorProfile.update({ where: { userId }, data })
         : await tx.vendorProfile.create({ data: { ...data, userId, slug: await freeSlug(tx, 'vendor', input.shopName, userId) } });
+      if (existing) await hostReReview(tx, userId, role, existing, { shopName: input.shopName, socialLinks: existing.socialLinks as string[] });
       await tx.vendorProfileCategory.deleteMany({ where: { vendorProfileId: profile.id } });
       await tx.vendorProfileCategory.createMany({
         data: [...new Set(input.categoryIds)].map((categoryId) => ({ vendorProfileId: profile.id, categoryId })),
@@ -134,8 +140,10 @@ export class OnboardingService {
 
   async vendorContact(userId: string, input: z.output<typeof vendorContactSchema>) {
     await this.prisma.$transaction(async (tx) => {
-      await this.requireRole(tx, userId, 'vendor');
-      await this.vendorProfile(tx, userId);
+      await lockVendor(tx, userId);
+      const role = await this.requireRole(tx, userId, 'vendor');
+      const existing = await this.vendorProfile(tx, userId);
+      await hostReReview(tx, userId, role, existing, { shopName: existing.shopName, socialLinks: input.socialLinks });
       await tx.user.update({ where: { id: userId }, data: { phone: input.phone } });
       await tx.vendorProfile.update({ where: { userId }, data: { socialLinks: input.socialLinks } });
       await this.reachStep(tx, userId, 'vendor', 4);
@@ -260,4 +268,18 @@ export class OnboardingService {
       data: { onboardingStep: step },
     });
   }
+}
+
+// An approved pop-up host who changes the shop name or adds a link the admin
+// didn't review goes back to review (spec §4.7). Shared by onboarding and the
+// profile page, which both save these fields.
+export async function hostReReview(
+  tx: Tx,
+  userId: string,
+  role: { id: string; approvalStatus: ApprovalStatus | null; reviewedLinks: unknown },
+  before: { shopName: string },
+  after: { shopName: string; socialLinks: string[] },
+) {
+  if (!hostNeedsReReview(role.approvalStatus, { shopName: before.shopName, reviewedLinks: (role.reviewedLinks ?? []) as string[] }, after)) return;
+  await changeApprovalStatus(tx, { roleId: role.id, from: role.approvalStatus, action: 're_review', subject: 'host', actorUserId: userId, data: { approvalSubmittedAt: new Date() } });
 }

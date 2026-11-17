@@ -8,9 +8,14 @@ export const tags = {
   organizer: (organizerProfileId: string) => `organizer:${organizerProfileId}`,
   vendor: (vendorProfileId: string) => `vendor:${vendorProfileId}`,
 
-  // An event page shows its organizer and its vendors, so it is refreshed
-  // when any of them changes.
-  forEvent(e: { id: string; organizerProfileId: string; assignments?: { vendorProfileId: string }[] }) {
-    return [tags.event(e.id), tags.organizer(e.organizerProfileId), ...(e.assignments ?? []).map((a) => tags.vendor(a.vendorProfileId))];
+  // An event page shows its organizer (or a pop-up's host) and its vendors,
+  // so it is refreshed when any of them changes.
+  forEvent(e: { id: string; organizerProfileId: string | null; hostVendorProfileId?: string | null; assignments?: { vendorProfileId: string }[] }) {
+    return [
+      tags.event(e.id),
+      ...(e.organizerProfileId ? [tags.organizer(e.organizerProfileId)] : []),
+      ...(e.hostVendorProfileId ? [tags.vendor(e.hostVendorProfileId)] : []),
+      ...(e.assignments ?? []).map((a) => tags.vendor(a.vendorProfileId)),
+    ];
   },
 };

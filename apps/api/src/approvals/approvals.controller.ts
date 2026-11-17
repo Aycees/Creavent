@@ -17,6 +17,35 @@ export class ApprovalsController {
     return { items: await this.approvals.queue() };
   }
 
+  // Pop-up host requests (spec §4.7), the same review on the vendor row.
+  @Get('hosts/:userId')
+  @ResponseSchema(approvalDetailSchema)
+  hostDetail(@Param('userId', ParseUUIDPipe) userId: string) {
+    return this.approvals.detail(userId, 'host');
+  }
+
+  @Post('hosts/:userId/approve')
+  @HttpCode(200)
+  @ResponseSchema(approvalDetailSchema)
+  approveHost(
+    @CurrentUser() admin: SessionUser,
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @Body({ schema: approveSchema }) body: z.output<typeof approveSchema>,
+  ) {
+    return this.approvals.decide(admin.id, userId, body.seen, { approve: true, note: body.note }, 'host');
+  }
+
+  @Post('hosts/:userId/reject')
+  @HttpCode(200)
+  @ResponseSchema(approvalDetailSchema)
+  rejectHost(
+    @CurrentUser() admin: SessionUser,
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @Body({ schema: rejectSchema }) body: z.output<typeof rejectSchema>,
+  ) {
+    return this.approvals.decide(admin.id, userId, body.seen, { approve: false, reason: body.reason, note: body.note }, 'host');
+  }
+
   @Get(':userId')
   @ResponseSchema(approvalDetailSchema)
   detail(@Param('userId', ParseUUIDPipe) userId: string) {

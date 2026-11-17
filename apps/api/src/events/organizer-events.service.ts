@@ -39,9 +39,11 @@ export class OrganizerEventsService {
     private readonly refresh: PublicRefreshService,
   ) {}
 
+  // The types an organizer can pick: Pop-up is a vendor's own event (spec
+  // §3.1, rule 6.15).
   eventTypes() {
     return this.prisma.eventType.findMany({
-      where: { isActive: true },
+      where: { isActive: true, hostKind: 'organizer' },
       orderBy: { sortOrder: 'asc' },
       select: { id: true, name: true, slug: true },
     });
@@ -501,6 +503,6 @@ function isApproved(role: { approvalStatus: string | null; suspendedAt: Date | n
 }
 
 async function assertEventType(tx: Tx, eventTypeId: string) {
-  const type = await tx.eventType.findFirst({ where: { id: eventTypeId, isActive: true } });
+  const type = await tx.eventType.findFirst({ where: { id: eventTypeId, isActive: true, hostKind: 'organizer' } });
   if (!type) throw new BadRequestException('Pick an event type from the list');
 }

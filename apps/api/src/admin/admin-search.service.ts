@@ -23,8 +23,8 @@ export class AdminSearchService {
         take: 5,
       }),
       this.prisma.event.findMany({
-        where: { OR: [{ name: contains }, { organizerProfile: { displayName: contains } }] },
-        include: { organizerProfile: true },
+        where: { OR: [{ name: contains }, { organizerProfile: { displayName: contains } }, { hostVendorProfile: { shopName: contains } }] },
+        include: { organizerProfile: true, hostVendorProfile: true },
         orderBy: [{ startsAt: { sort: 'asc', nulls: 'last' } }, { name: 'asc' }],
         take: 5,
       }),
@@ -40,7 +40,7 @@ export class AdminSearchService {
       events: events.map((e) => ({
         id: e.id,
         name: e.name,
-        subtitle: `${e.organizerProfile.displayName} · ${statusWords[e.status] ?? e.status}${e.moderationState === 'hidden' ? ', hidden' : ''}`,
+        subtitle: `${e.organizerProfile?.displayName ?? `Pop-up by ${e.hostVendorProfile!.shopName}`} · ${statusWords[e.status] ?? e.status}${e.moderationState === 'hidden' ? ', hidden' : ''}`,
         startsAt: e.startsAt?.toISOString() ?? null,
       })),
     };

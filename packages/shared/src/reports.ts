@@ -6,15 +6,16 @@ import { roleTypeSchema } from './accounts.js';
 export const reportTargetSchema = z.enum(['user', 'event']);
 export type ReportTarget = z.infer<typeof reportTargetSchema>;
 
-export const reportReasonSchema = z.enum(['fake_account', 'scam', 'inappropriate_content', 'other']);
+export const reportReasonSchema = z.enum(['fake_account', 'fake_or_misleading_event', 'scam', 'inappropriate_content', 'other']);
 export type ReportReason = z.infer<typeof reportReasonSchema>;
 
 export const reportSourceSchema = z.enum(['report_button', 'support_email']);
 export const reportStatusSchema = z.enum(['open', 'dismissed', 'actioned']);
-export const reportActionSchema = z.enum(['none', 'event_hidden', 'user_suspended', 'other']);
+export const reportActionSchema = z.enum(['none', 'event_hidden', 'user_suspended', 'host_approval_revoked', 'other']);
 
 export const REPORT_REASON_LABELS: Record<ReportReason, string> = {
-  fake_account: 'Fake event or account',
+  fake_account: 'Fake account',
+  fake_or_misleading_event: 'Fake or misleading event',
   scam: 'Scam',
   inappropriate_content: 'Inappropriate content',
   other: 'Something else',
@@ -104,6 +105,9 @@ export const reportDetailSchema = z.object({
   target: reportTargetSummarySchema.extend({
     // Events: the organizer, for "Suspend the organizer role".
     organizer: z.object({ userId: z.uuid(), name: z.string(), suspended: z.boolean() }).nullable(),
+    // A pop-up's host, or a reported vendor who hosts pop-ups: for "Suspend
+    // the vendor role" and "Revoke host approval" (spec §4.7).
+    host: z.object({ userId: z.uuid(), name: z.string(), suspended: z.boolean(), approved: z.boolean() }).nullable(),
     hidden: z.boolean(),
     // Users: the roles that can be suspended.
     roles: z.array(roleStateSchema),
@@ -136,6 +140,8 @@ export const resolveReportSchema = z.discriminatedUnion('decision', [
     // Organizers: hide their upcoming events too (decision R1).
     hideUpcomingEvents: z.boolean().optional(),
   }),
+  // A pop-up or its host (spec §4.7).
+  z.object({ decision: z.literal('revoke_host'), reason: moderationReasonSchema, note: optionalText }),
 ]);
 export type ResolveReportInput = z.input<typeof resolveReportSchema>;
 
@@ -150,6 +156,10 @@ export type SuspendRoleInput = z.input<typeof suspendRoleSchema>;
 
 export const hideEventSchema = z.object({ reason: moderationReasonSchema });
 export type HideEventInput = z.input<typeof hideEventSchema>;
+
+// Revoke a vendor's pop-up host approval (spec §4.7).
+export const revokeHostSchema = z.object({ reason: moderationReasonSchema });
+export type RevokeHostInput = z.input<typeof revokeHostSchema>;
 
 export const myReportQuerySchema = z.object({ targetType: reportButtonTargetSchema, targetId: z.uuid() });
 export const reportListQuerySchema = z.object({ status: z.enum(['open', 'resolved']).default('open') });

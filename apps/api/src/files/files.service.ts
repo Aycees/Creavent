@@ -30,10 +30,11 @@ const MAX_PENDING = 20;
 const MAX_PER_HOUR = 30;
 const MAX_VENDOR_PHOTOS = 8;
 
-const needsRole: Partial<Record<UploadPurpose, 'vendor' | 'organizer'>> = {
+const needsRole: Partial<Record<UploadPurpose, 'vendor' | 'organizer' | 'either'>> = {
   organizer_logo: 'organizer',
   vendor_photo: 'vendor',
-  event_cover: 'organizer',
+  // Organizers' events, and vendors' pop-ups (spec §4.7).
+  event_cover: 'either',
   payment_qr: 'organizer',
   vendor_floor_plan: 'organizer',
   public_floor_plan: 'organizer',
@@ -63,11 +64,11 @@ export class FilesService {
     // product photos the vendor role. Avatars are for anyone.
     const role = needsRole[input.purpose];
     if (role) {
-      const has = await this.prisma.userRole.findUnique({
-        where: { userId_role: { userId, role } },
+      const has = await this.prisma.userRole.findFirst({
+        where: { userId, role: role === 'either' ? { in: ['vendor', 'organizer'] } : role, suspendedAt: null },
       });
-      if (!has || has.suspendedAt) {
-        throw new ForbiddenException(`Add the ${role} role to upload this`);
+      if (!has) {
+        throw new ForbiddenException(role === 'either' ? 'Add the vendor or organizer role to upload this' : `Add the ${role} role to upload this`);
       }
     }
     if (input.purpose === 'vendor_photo') {
@@ -212,6 +213,32 @@ export class FilesService {
       data: { status: 'ready', sizeBytes: body.length },
     });
     return this.toUploadedFile(ready);
+  }
+
+  // A new file with the same picture, for Duplicate (spec §4.7): replacing
+  // one pop-up's cover never changes the other's. Public images only.
+  async copyPublicImage(tx: Tx, fileId: string, userId: string) {
+    const file = await tx.file.findFirst({ where: { id: fileId, status: 'ready', deletedAt: null } });
+    if (!file || uploadRules[file.purpose as UploadPurpose]?.private) return null;
+    const body = await this.storage.get('public', file.storageKey);
+    if (!body) return null;
+    const id = crypto.randomUUID();
+    const storageKey = `${file.purpose}/${id}.webp`;
+    await this.storage.put('public', storageKey, body, file.mimeType);
+    await tx.file.create({
+      data: {
+        id,
+        uploadedBy: userId,
+        purpose: file.purpose,
+        status: 'ready',
+        storageKey,
+        mimeType: file.mimeType,
+        sizeBytes: file.sizeBytes,
+        width: file.width,
+        height: file.height,
+      },
+    });
+    return id;
   }
 
   toUploadedFile(file: File): UploadedFile {

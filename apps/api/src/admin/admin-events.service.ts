@@ -22,11 +22,14 @@ export class AdminEventsService {
 
   async list(query: { q?: string; filter: AdminEventsFilter; page: number }): Promise<AdminEvents> {
     const contains = query.q ? { contains: query.q, mode: 'insensitive' as const } : null;
-    const base: Prisma.EventWhereInput = contains ? { OR: [{ name: contains }, { organizerProfile: { displayName: contains } }] } : {};
+    const base: Prisma.EventWhereInput = contains
+      ? { OR: [{ name: contains }, { organizerProfile: { displayName: contains } }, { hostVendorProfile: { shopName: contains } }] }
+      : {};
     const filters: Record<AdminEventsFilter, Prisma.EventWhereInput> = {
       all: base,
       open: { ...base, status: 'open_to_vendors' },
       announced: { ...base, status: 'announced' },
+      popups: { ...base, hostVendorProfileId: { not: null } },
       reported: { ...base, reports: { some: { status: 'open' } } },
       hidden: { ...base, moderationState: 'hidden' },
       drafts: { ...base, status: 'draft' },
@@ -38,6 +41,7 @@ export class AdminEventsService {
         include: {
           eventType: true,
           organizerProfile: true,
+          hostVendorProfile: true,
           _count: {
             select: { slots: { where: { deletedAt: null } }, assignments: { where: { status: 'reserved' } }, reports: { where: { status: 'open' } } },
           },
@@ -47,9 +51,9 @@ export class AdminEventsService {
         take: ADMIN_PAGE_SIZE,
       }),
       this.prisma.event.count({ where }),
-      ...(['all', 'open', 'announced', 'reported', 'hidden', 'drafts'] as const).map((f) => this.prisma.event.count({ where: filters[f] })),
+      ...(['all', 'open', 'announced', 'popups', 'reported', 'hidden', 'drafts'] as const).map((f) => this.prisma.event.count({ where: filters[f] })),
     ]);
-    const [all, open, announced, reported, hidden, drafts] = counts as number[];
+    const [all, open, announced, popups, reported, hidden, drafts] = counts as number[];
     return {
       items: events.map((e) => ({
         id: e.id,
@@ -57,7 +61,8 @@ export class AdminEventsService {
         startsAt: e.startsAt?.toISOString() ?? null,
         typeName: e.eventType.name,
         venueName: e.venueName,
-        organizerName: e.organizerProfile.displayName,
+        organizerName: e.organizerProfile?.displayName ?? e.hostVendorProfile!.shopName,
+        isPopup: e.hostVendorProfileId !== null,
         status: e.status,
         hidden: e.moderationState === 'hidden',
         slots: e._count.slots,
@@ -67,7 +72,7 @@ export class AdminEventsService {
       total,
       page: query.page,
       pageSize: ADMIN_PAGE_SIZE,
-      counts: { all: all!, open: open!, announced: announced!, reported: reported!, hidden: hidden!, drafts: drafts! },
+      counts: { all: all!, open: open!, announced: announced!, popups: popups!, reported: reported!, hidden: hidden!, drafts: drafts! },
     };
   }
 
@@ -77,6 +82,7 @@ export class AdminEventsService {
       include: {
         moderatedBy: true,
         organizerProfile: { include: { user: { include: { roles: { where: { role: 'organizer' } } } } } },
+        hostVendorProfile: { include: { user: { include: { roles: { where: { role: 'vendor' } } } } } },
         slots: { where: { deletedAt: null }, select: { id: true } },
         assignments: { select: { status: true } },
         applications: {
@@ -96,7 +102,10 @@ export class AdminEventsService {
       },
     });
     if (!e) throw new NotFoundException('Event not found');
-    const role = e.organizerProfile.user.roles[0];
+    const host = e.organizerProfile
+      ? { userId: e.organizerProfile.userId, name: e.organizerProfile.displayName, user: e.organizerProfile.user }
+      : { userId: e.hostVendorProfile!.userId, name: e.hostVendorProfile!.shopName, user: e.hostVendorProfile!.user };
+    const role = host.user.roles[0];
 
     // Who opened which file, for the history (spec §2). Each view row holds
     // its event and shop, so it outlives the file.
@@ -138,10 +147,11 @@ export class AdminEventsService {
       moderationReason: e.moderationState === 'hidden' ? e.moderationReason : null,
       moderatedAt: e.moderatedAt?.toISOString() ?? null,
       moderatedByName: e.moderatedBy?.fullName ?? null,
+      isPopup: e.hostVendorProfileId !== null,
       organizer: {
-        userId: e.organizerProfile.userId,
-        name: e.organizerProfile.displayName,
-        fullName: e.organizerProfile.user.fullName,
+        userId: host.userId,
+        name: host.name,
+        fullName: host.user.fullName,
         approved: role?.approvalStatus === 'approved',
         suspended: role?.suspendedAt != null,
       },

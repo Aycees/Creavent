@@ -64,7 +64,7 @@ const blankToNull = <T extends z.ZodType<string, string>>(schema: T) =>
     .transform((v) => v ?? null);
 
 // Optional text: blank is saved as null.
-const optionalText = (max: number) => blankToNull(text(max));
+export const optionalText = (max: number) => blankToNull(text(max));
 export const optionalLongText = (max: number) => blankToNull(longText(max));
 
 // A real calendar date: "2027-02-31" is refused, not moved to March.
@@ -72,19 +72,47 @@ const isRealDate = (d: string) => {
   const parsed = new Date(`${d.slice(0, 10)}T00:00:00Z`);
   return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === d.slice(0, 10);
 };
-const dateString = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Pick a date').refine(isRealDate, 'Pick a date');
-const timeString = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Pick a time');
+export const dateString = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Pick a date').refine(isRealDate, 'Pick a date');
+export const timeString = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Pick a time');
 const dateTimeString = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}T([01]\d|2[0-3]):[0-5]\d$/, 'Pick a date and time')
   .refine(isRealDate, 'Pick a date and time');
 // Blank form fields are saved as null.
-const blankAsNull = <T extends z.ZodType<string>>(schema: T) =>
+export const blankAsNull = <T extends z.ZodType<string>>(schema: T) =>
   z
     .union([z.literal(''), schema])
     .nullable()
     .optional()
     .transform((v) => (v ? (v as z.output<T>) : null));
+
+type Schedule = { startDate: string | null; endDate: string | null; opensAt: string | null; closesAt: string | null };
+
+// The date rules of every event, pop-ups included (spec §3.1.1): all four
+// fields or none, 1 to 7 days in a row, closing after opening on the same
+// day. False when the fields are only partly filled.
+export function checkSchedule(v: Schedule, ctx: z.RefinementCtx) {
+  const schedule = [v.startDate, v.endDate, v.opensAt, v.closesAt];
+  const filled = schedule.filter(Boolean).length;
+  if (filled > 0 && filled < 4) {
+    const names = ['startDate', 'endDate', 'opensAt', 'closesAt'] as const;
+    for (const [i, name] of names.entries()) {
+      if (!schedule[i]) ctx.addIssue({ code: 'custom', path: [name], message: 'Fill in the dates and both times' });
+    }
+    return false;
+  }
+  if (v.startDate && v.endDate && v.opensAt && v.closesAt) {
+    const days = daysBetween(v.startDate, v.endDate);
+    if (days < 0) ctx.addIssue({ code: 'custom', path: ['endDate'], message: 'End on or after the start date' });
+    else if (days >= MAX_EVENT_DAYS) {
+      ctx.addIssue({ code: 'custom', path: ['endDate'], message: `An event runs at most ${MAX_EVENT_DAYS} days in a row` });
+    }
+    if (v.closesAt <= v.opensAt) {
+      ctx.addIssue({ code: 'custom', path: ['closesAt'], message: 'Close later than it opens, on the same day' });
+    }
+  }
+  return true;
+}
 
 export const eventNameSchema = text(100, 'name').min(1, 'Enter the event name');
 
@@ -112,27 +140,9 @@ export const eventDetailsSchema = z
     ingressInfo: optionalText(200),
   })
   .superRefine((v, ctx) => {
-    const schedule = [v.startDate, v.endDate, v.opensAt, v.closesAt];
-    const filled = schedule.filter(Boolean).length;
-    if (filled > 0 && filled < 4) {
-      const names = ['startDate', 'endDate', 'opensAt', 'closesAt'] as const;
-      for (const [i, name] of names.entries()) {
-        if (!schedule[i]) ctx.addIssue({ code: 'custom', path: [name], message: 'Fill in the dates and both times' });
-      }
-      return;
-    }
-    if (v.startDate && v.endDate && v.opensAt && v.closesAt) {
-      const days = daysBetween(v.startDate, v.endDate);
-      if (days < 0) ctx.addIssue({ code: 'custom', path: ['endDate'], message: 'End on or after the start date' });
-      else if (days >= MAX_EVENT_DAYS) {
-        ctx.addIssue({ code: 'custom', path: ['endDate'], message: `An event runs at most ${MAX_EVENT_DAYS} days in a row` });
-      }
-      if (v.closesAt <= v.opensAt) {
-        ctx.addIssue({ code: 'custom', path: ['closesAt'], message: 'Close later than it opens, on the same day' });
-      }
-      if (v.applicationsCloseAt && v.applicationsCloseAt > `${v.startDate}T${v.opensAt}`) {
-        ctx.addIssue({ code: 'custom', path: ['applicationsCloseAt'], message: 'Close applications before the event starts' });
-      }
+    if (!checkSchedule(v, ctx)) return;
+    if (v.startDate && v.opensAt && v.applicationsCloseAt && v.applicationsCloseAt > `${v.startDate}T${v.opensAt}`) {
+      ctx.addIssue({ code: 'custom', path: ['applicationsCloseAt'], message: 'Close applications before the event starts' });
     }
   });
 export type EventDetailsInput = z.input<typeof eventDetailsSchema>;

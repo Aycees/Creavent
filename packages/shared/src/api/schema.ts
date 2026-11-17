@@ -372,6 +372,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/approvals/hosts/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ApprovalsController_hostDetail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/approvals/hosts/{userId}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ApprovalsController_approveHost"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/approvals/hosts/{userId}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ApprovalsController_rejectHost"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/approvals/{userId}": {
         parameters: {
             query?: never;
@@ -734,6 +782,118 @@ export interface paths {
         get: operations["VendorEventsController_page"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vendor/host-approval": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PopupsController_host"];
+        put?: never;
+        post: operations["PopupsController_requestHost"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vendor/popups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PopupsController_list"];
+        put?: never;
+        post: operations["PopupsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vendor/popups/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PopupsController_summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vendor/popups/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PopupsController_get"];
+        put: operations["PopupsController_update"];
+        post?: never;
+        delete: operations["PopupsController_deleteDraft"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vendor/popups/{id}/announce": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PopupsController_announce"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vendor/popups/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PopupsController_cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vendor/popups/{id}/duplicate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PopupsController_duplicate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1326,6 +1486,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["AdminController_reinstate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/users/{id}/revoke-host": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminController_revokeHost"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2010,6 +2186,9 @@ export interface operations {
                                 url: string;
                             }[];
                             socialLinks: string[];
+                            /** @enum {string} */
+                            hostApprovalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            hostReviewedLinks: string[];
                         } | null;
                         organizer: {
                             displayName: string;
@@ -2096,6 +2275,9 @@ export interface operations {
                                 url: string;
                             }[];
                             socialLinks: string[];
+                            /** @enum {string} */
+                            hostApprovalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            hostReviewedLinks: string[];
                         } | null;
                         organizer: {
                             displayName: string;
@@ -2185,6 +2367,9 @@ export interface operations {
                                 url: string;
                             }[];
                             socialLinks: string[];
+                            /** @enum {string} */
+                            hostApprovalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            hostReviewedLinks: string[];
                         } | null;
                         organizer: {
                             displayName: string;
@@ -2273,6 +2458,9 @@ export interface operations {
                                 url: string;
                             }[];
                             socialLinks: string[];
+                            /** @enum {string} */
+                            hostApprovalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            hostReviewedLinks: string[];
                         } | null;
                         organizer: {
                             displayName: string;
@@ -2360,6 +2548,9 @@ export interface operations {
                                 url: string;
                             }[];
                             socialLinks: string[];
+                            /** @enum {string} */
+                            hostApprovalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            hostReviewedLinks: string[];
                         } | null;
                         organizer: {
                             displayName: string;
@@ -2451,6 +2642,9 @@ export interface operations {
                                 url: string;
                             }[];
                             socialLinks: string[];
+                            /** @enum {string} */
+                            hostApprovalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            hostReviewedLinks: string[];
                         } | null;
                         organizer: {
                             displayName: string;
@@ -2539,6 +2733,9 @@ export interface operations {
                                 url: string;
                             }[];
                             socialLinks: string[];
+                            /** @enum {string} */
+                            hostApprovalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            hostReviewedLinks: string[];
                         } | null;
                         organizer: {
                             displayName: string;
@@ -2626,6 +2823,9 @@ export interface operations {
                                 url: string;
                             }[];
                             socialLinks: string[];
+                            /** @enum {string} */
+                            hostApprovalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            hostReviewedLinks: string[];
                         } | null;
                         organizer: {
                             displayName: string;
@@ -2706,6 +2906,9 @@ export interface operations {
                                 url: string;
                             }[];
                             socialLinks: string[];
+                            /** @enum {string} */
+                            hostApprovalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            hostReviewedLinks: string[];
                         } | null;
                         organizer: {
                             displayName: string;
@@ -2841,6 +3044,9 @@ export interface operations {
                                 url: string;
                             }[];
                             socialLinks: string[];
+                            /** @enum {string} */
+                            hostApprovalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            hostReviewedLinks: string[];
                         } | null;
                         organizer: {
                             displayName: string;
@@ -2935,6 +3141,9 @@ export interface operations {
                                 url: string;
                             }[];
                             socialLinks: string[];
+                            /** @enum {string} */
+                            hostApprovalStatus: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            hostReviewedLinks: string[];
                         } | null;
                         organizer: {
                             displayName: string;
@@ -2995,6 +3204,8 @@ export interface operations {
                         items: {
                             /** Format: uuid */
                             userId: string;
+                            /** @enum {string} */
+                            kind: "organizer" | "host";
                             displayName: string;
                             city: string | null;
                             linksCount: number;
@@ -3003,6 +3214,276 @@ export interface operations {
                             businessDaysWaiting: number;
                             daysOverTarget: number;
                         }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    ApprovalsController_hostDetail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        userId: string;
+                        /** @enum {string} */
+                        kind: "organizer" | "host";
+                        displayName: string;
+                        slug: string | null;
+                        city: string | null;
+                        about: string | null;
+                        logoUrl: string | null;
+                        socialLinks: string[];
+                        newLinks: string[];
+                        fullName: string;
+                        loginEmail: string;
+                        contactEmail: string | null;
+                        phone: string | null;
+                        accountCreatedAt: string;
+                        roles: ("vendor" | "organizer")[];
+                        /** @enum {string} */
+                        status: "not_submitted" | "pending_review" | "approved" | "rejected";
+                        submittedAt: string | null;
+                        reviewedAt: string | null;
+                        rejectionReason: string | null;
+                        adminNotes: string | null;
+                        host: {
+                            categories: string[];
+                            products: string | null;
+                            photos: string[];
+                            eventsSoldAt: number;
+                            popups: {
+                                name: string;
+                                status: string;
+                                startsAt: string | null;
+                            }[];
+                        } | null;
+                        queue: {
+                            position: number | null;
+                            total: number;
+                            /** Format: uuid */
+                            nextUserId: string | null;
+                            /** @enum {string|null} */
+                            nextKind: "organizer" | "host" | null;
+                        };
+                        businessDaysWaiting: number;
+                        daysOverTarget: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    ApprovalsController_approveHost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    note?: string | null;
+                    seen: {
+                        displayName: string;
+                        socialLinks: string[];
+                    };
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        userId: string;
+                        /** @enum {string} */
+                        kind: "organizer" | "host";
+                        displayName: string;
+                        slug: string | null;
+                        city: string | null;
+                        about: string | null;
+                        logoUrl: string | null;
+                        socialLinks: string[];
+                        newLinks: string[];
+                        fullName: string;
+                        loginEmail: string;
+                        contactEmail: string | null;
+                        phone: string | null;
+                        accountCreatedAt: string;
+                        roles: ("vendor" | "organizer")[];
+                        /** @enum {string} */
+                        status: "not_submitted" | "pending_review" | "approved" | "rejected";
+                        submittedAt: string | null;
+                        reviewedAt: string | null;
+                        rejectionReason: string | null;
+                        adminNotes: string | null;
+                        host: {
+                            categories: string[];
+                            products: string | null;
+                            photos: string[];
+                            eventsSoldAt: number;
+                            popups: {
+                                name: string;
+                                status: string;
+                                startsAt: string | null;
+                            }[];
+                        } | null;
+                        queue: {
+                            position: number | null;
+                            total: number;
+                            /** Format: uuid */
+                            nextUserId: string | null;
+                            /** @enum {string|null} */
+                            nextKind: "organizer" | "host" | null;
+                        };
+                        businessDaysWaiting: number;
+                        daysOverTarget: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    ApprovalsController_rejectHost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    reason: string;
+                    note?: string | null;
+                    seen: {
+                        displayName: string;
+                        socialLinks: string[];
+                    };
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        userId: string;
+                        /** @enum {string} */
+                        kind: "organizer" | "host";
+                        displayName: string;
+                        slug: string | null;
+                        city: string | null;
+                        about: string | null;
+                        logoUrl: string | null;
+                        socialLinks: string[];
+                        newLinks: string[];
+                        fullName: string;
+                        loginEmail: string;
+                        contactEmail: string | null;
+                        phone: string | null;
+                        accountCreatedAt: string;
+                        roles: ("vendor" | "organizer")[];
+                        /** @enum {string} */
+                        status: "not_submitted" | "pending_review" | "approved" | "rejected";
+                        submittedAt: string | null;
+                        reviewedAt: string | null;
+                        rejectionReason: string | null;
+                        adminNotes: string | null;
+                        host: {
+                            categories: string[];
+                            products: string | null;
+                            photos: string[];
+                            eventsSoldAt: number;
+                            popups: {
+                                name: string;
+                                status: string;
+                                startsAt: string | null;
+                            }[];
+                        } | null;
+                        queue: {
+                            position: number | null;
+                            total: number;
+                            /** Format: uuid */
+                            nextUserId: string | null;
+                            /** @enum {string|null} */
+                            nextKind: "organizer" | "host" | null;
+                        };
+                        businessDaysWaiting: number;
+                        daysOverTarget: number;
                     };
                 };
             };
@@ -3044,12 +3525,15 @@ export interface operations {
                     "application/json": {
                         /** Format: uuid */
                         userId: string;
+                        /** @enum {string} */
+                        kind: "organizer" | "host";
                         displayName: string;
                         slug: string | null;
                         city: string | null;
                         about: string | null;
                         logoUrl: string | null;
                         socialLinks: string[];
+                        newLinks: string[];
                         fullName: string;
                         loginEmail: string;
                         contactEmail: string | null;
@@ -3062,11 +3546,24 @@ export interface operations {
                         reviewedAt: string | null;
                         rejectionReason: string | null;
                         adminNotes: string | null;
+                        host: {
+                            categories: string[];
+                            products: string | null;
+                            photos: string[];
+                            eventsSoldAt: number;
+                            popups: {
+                                name: string;
+                                status: string;
+                                startsAt: string | null;
+                            }[];
+                        } | null;
                         queue: {
                             position: number | null;
                             total: number;
                             /** Format: uuid */
                             nextUserId: string | null;
+                            /** @enum {string|null} */
+                            nextKind: "organizer" | "host" | null;
                         };
                         businessDaysWaiting: number;
                         daysOverTarget: number;
@@ -3121,12 +3618,15 @@ export interface operations {
                     "application/json": {
                         /** Format: uuid */
                         userId: string;
+                        /** @enum {string} */
+                        kind: "organizer" | "host";
                         displayName: string;
                         slug: string | null;
                         city: string | null;
                         about: string | null;
                         logoUrl: string | null;
                         socialLinks: string[];
+                        newLinks: string[];
                         fullName: string;
                         loginEmail: string;
                         contactEmail: string | null;
@@ -3139,11 +3639,24 @@ export interface operations {
                         reviewedAt: string | null;
                         rejectionReason: string | null;
                         adminNotes: string | null;
+                        host: {
+                            categories: string[];
+                            products: string | null;
+                            photos: string[];
+                            eventsSoldAt: number;
+                            popups: {
+                                name: string;
+                                status: string;
+                                startsAt: string | null;
+                            }[];
+                        } | null;
                         queue: {
                             position: number | null;
                             total: number;
                             /** Format: uuid */
                             nextUserId: string | null;
+                            /** @enum {string|null} */
+                            nextKind: "organizer" | "host" | null;
                         };
                         businessDaysWaiting: number;
                         daysOverTarget: number;
@@ -3199,12 +3712,15 @@ export interface operations {
                     "application/json": {
                         /** Format: uuid */
                         userId: string;
+                        /** @enum {string} */
+                        kind: "organizer" | "host";
                         displayName: string;
                         slug: string | null;
                         city: string | null;
                         about: string | null;
                         logoUrl: string | null;
                         socialLinks: string[];
+                        newLinks: string[];
                         fullName: string;
                         loginEmail: string;
                         contactEmail: string | null;
@@ -3217,11 +3733,24 @@ export interface operations {
                         reviewedAt: string | null;
                         rejectionReason: string | null;
                         adminNotes: string | null;
+                        host: {
+                            categories: string[];
+                            products: string | null;
+                            photos: string[];
+                            eventsSoldAt: number;
+                            popups: {
+                                name: string;
+                                status: string;
+                                startsAt: string | null;
+                            }[];
+                        } | null;
                         queue: {
                             position: number | null;
                             total: number;
                             /** Format: uuid */
                             nextUserId: string | null;
+                            /** @enum {string|null} */
+                            nextKind: "organizer" | "host" | null;
                         };
                         businessDaysWaiting: number;
                         daysOverTarget: number;
@@ -7698,7 +8227,19 @@ export interface operations {
                                 about: string | null;
                                 socialLinks: string[];
                                 eventsHeld: number;
-                            };
+                            } | null;
+                            host: {
+                                shopName: string;
+                                slug: string | null;
+                                avatarUrl: string | null;
+                                approved: boolean;
+                                categories: string[];
+                                products: string | null;
+                                photos: string[];
+                                socialLinks: string[];
+                                joinedAt: string;
+                                eventsSoldAt: number;
+                            } | null;
                             vendors: {
                                 shopName: string;
                                 slug: string | null;
@@ -7715,6 +8256,7 @@ export interface operations {
                         manage: {
                             /** Format: uuid */
                             eventId: string;
+                            popup: boolean;
                         } | null;
                     } | {
                         /** @enum {string} */
@@ -7728,6 +8270,790 @@ export interface operations {
                             at: string;
                             reason: string | null;
                         } | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    PopupsController_host: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "not_submitted" | "pending_review" | "approved" | "rejected";
+                        /** @enum {string|null} */
+                        source: "reviewed" | "earned" | null;
+                        submittedAt: string | null;
+                        decidedAt: string | null;
+                        rejectionReason: string | null;
+                        revoked: boolean;
+                        suspended: boolean;
+                        socialLinks: string[];
+                        reviewedLinks: string[];
+                        justEarned: boolean;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    PopupsController_requestHost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    socialLinks: string[];
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "not_submitted" | "pending_review" | "approved" | "rejected";
+                        /** @enum {string|null} */
+                        source: "reviewed" | "earned" | null;
+                        submittedAt: string | null;
+                        decidedAt: string | null;
+                        rejectionReason: string | null;
+                        revoked: boolean;
+                        suspended: boolean;
+                        socialLinks: string[];
+                        reviewedLinks: string[];
+                        justEarned: boolean;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    PopupsController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        host: {
+                            /** @enum {string} */
+                            status: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            /** @enum {string|null} */
+                            source: "reviewed" | "earned" | null;
+                            submittedAt: string | null;
+                            decidedAt: string | null;
+                            rejectionReason: string | null;
+                            revoked: boolean;
+                            suspended: boolean;
+                            socialLinks: string[];
+                            reviewedLinks: string[];
+                            justEarned: boolean;
+                        };
+                        upcoming: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            venueName: string | null;
+                            hidden: boolean;
+                            nextStep: string;
+                        }[];
+                        past: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            venueName: string | null;
+                            hidden: boolean;
+                            nextStep: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    PopupsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    name: string;
+                };
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    PopupsController_summary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        host: {
+                            /** @enum {string} */
+                            status: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            /** @enum {string|null} */
+                            source: "reviewed" | "earned" | null;
+                            submittedAt: string | null;
+                            decidedAt: string | null;
+                            rejectionReason: string | null;
+                            revoked: boolean;
+                            suspended: boolean;
+                            socialLinks: string[];
+                            reviewedLinks: string[];
+                            justEarned: boolean;
+                        };
+                        upcoming: {
+                            /** Format: uuid */
+                            id: string;
+                            slug: string;
+                            name: string;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            venueName: string | null;
+                            hidden: boolean;
+                            nextStep: string;
+                        }[];
+                        total: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    PopupsController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        slug: string;
+                        /** @enum {string} */
+                        status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                        details: {
+                            name: string;
+                            description: string | null;
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            venueName: string | null;
+                            addressLine: string | null;
+                            city: string | null;
+                            cover: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                        };
+                        shop: {
+                            shopName: string;
+                            categories: string[];
+                        };
+                        checklist: {
+                            about: boolean;
+                            cover: boolean;
+                            schedule: boolean;
+                            venue: boolean;
+                            profile: boolean;
+                            host: boolean;
+                        };
+                        host: {
+                            /** @enum {string} */
+                            status: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            /** @enum {string|null} */
+                            source: "reviewed" | "earned" | null;
+                            submittedAt: string | null;
+                            decidedAt: string | null;
+                            rejectionReason: string | null;
+                            revoked: boolean;
+                            suspended: boolean;
+                            socialLinks: string[];
+                            reviewedLinks: string[];
+                            justEarned: boolean;
+                        };
+                        /** @enum {string|null} */
+                        lock: "canceled" | "ended" | "hidden" | "suspended" | "pending_review" | null;
+                        hiddenByCreavent: {
+                            reason: string | null;
+                        } | null;
+                        canceled: {
+                            at: string;
+                            reason: string | null;
+                        } | null;
+                        ended: boolean;
+                        updatedAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    PopupsController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    name: string;
+                    description?: string | null;
+                    startDate?: ("" | string) | null;
+                    endDate?: ("" | string) | null;
+                    opensAt?: ("" | string) | null;
+                    closesAt?: ("" | string) | null;
+                    venueName?: string | null;
+                    addressLine?: string | null;
+                    city?: ("" | "Davao City") | null;
+                    /** Format: uuid */
+                    coverFileId: string | null;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        slug: string;
+                        /** @enum {string} */
+                        status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                        details: {
+                            name: string;
+                            description: string | null;
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            venueName: string | null;
+                            addressLine: string | null;
+                            city: string | null;
+                            cover: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                        };
+                        shop: {
+                            shopName: string;
+                            categories: string[];
+                        };
+                        checklist: {
+                            about: boolean;
+                            cover: boolean;
+                            schedule: boolean;
+                            venue: boolean;
+                            profile: boolean;
+                            host: boolean;
+                        };
+                        host: {
+                            /** @enum {string} */
+                            status: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            /** @enum {string|null} */
+                            source: "reviewed" | "earned" | null;
+                            submittedAt: string | null;
+                            decidedAt: string | null;
+                            rejectionReason: string | null;
+                            revoked: boolean;
+                            suspended: boolean;
+                            socialLinks: string[];
+                            reviewedLinks: string[];
+                            justEarned: boolean;
+                        };
+                        /** @enum {string|null} */
+                        lock: "canceled" | "ended" | "hidden" | "suspended" | "pending_review" | null;
+                        hiddenByCreavent: {
+                            reason: string | null;
+                        } | null;
+                        canceled: {
+                            at: string;
+                            reason: string | null;
+                        } | null;
+                        ended: boolean;
+                        updatedAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    PopupsController_deleteDraft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    PopupsController_announce: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        slug: string;
+                        /** @enum {string} */
+                        status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                        details: {
+                            name: string;
+                            description: string | null;
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            venueName: string | null;
+                            addressLine: string | null;
+                            city: string | null;
+                            cover: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                        };
+                        shop: {
+                            shopName: string;
+                            categories: string[];
+                        };
+                        checklist: {
+                            about: boolean;
+                            cover: boolean;
+                            schedule: boolean;
+                            venue: boolean;
+                            profile: boolean;
+                            host: boolean;
+                        };
+                        host: {
+                            /** @enum {string} */
+                            status: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            /** @enum {string|null} */
+                            source: "reviewed" | "earned" | null;
+                            submittedAt: string | null;
+                            decidedAt: string | null;
+                            rejectionReason: string | null;
+                            revoked: boolean;
+                            suspended: boolean;
+                            socialLinks: string[];
+                            reviewedLinks: string[];
+                            justEarned: boolean;
+                        };
+                        /** @enum {string|null} */
+                        lock: "canceled" | "ended" | "hidden" | "suspended" | "pending_review" | null;
+                        hiddenByCreavent: {
+                            reason: string | null;
+                        } | null;
+                        canceled: {
+                            at: string;
+                            reason: string | null;
+                        } | null;
+                        ended: boolean;
+                        updatedAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    PopupsController_cancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    reason?: string | null;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        slug: string;
+                        /** @enum {string} */
+                        status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                        details: {
+                            name: string;
+                            description: string | null;
+                            startDate: string | null;
+                            endDate: string | null;
+                            opensAt: string | null;
+                            closesAt: string | null;
+                            venueName: string | null;
+                            addressLine: string | null;
+                            city: string | null;
+                            cover: {
+                                /** Format: uuid */
+                                id: string;
+                                url: string;
+                            } | null;
+                        };
+                        shop: {
+                            shopName: string;
+                            categories: string[];
+                        };
+                        checklist: {
+                            about: boolean;
+                            cover: boolean;
+                            schedule: boolean;
+                            venue: boolean;
+                            profile: boolean;
+                            host: boolean;
+                        };
+                        host: {
+                            /** @enum {string} */
+                            status: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            /** @enum {string|null} */
+                            source: "reviewed" | "earned" | null;
+                            submittedAt: string | null;
+                            decidedAt: string | null;
+                            rejectionReason: string | null;
+                            revoked: boolean;
+                            suspended: boolean;
+                            socialLinks: string[];
+                            reviewedLinks: string[];
+                            justEarned: boolean;
+                        };
+                        /** @enum {string|null} */
+                        lock: "canceled" | "ended" | "hidden" | "suspended" | "pending_review" | null;
+                        hiddenByCreavent: {
+                            reason: string | null;
+                        } | null;
+                        canceled: {
+                            at: string;
+                            reason: string | null;
+                        } | null;
+                        ended: boolean;
+                        updatedAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    PopupsController_duplicate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
                     };
                 };
             };
@@ -11456,6 +12782,7 @@ export interface operations {
                                 displayName: string;
                                 approved: boolean;
                             };
+                            isPopup: boolean;
                         }[];
                         types: {
                             slug: string;
@@ -11539,7 +12866,19 @@ export interface operations {
                                     about: string | null;
                                     socialLinks: string[];
                                     eventsHeld: number;
-                                };
+                                } | null;
+                                host: {
+                                    shopName: string;
+                                    slug: string | null;
+                                    avatarUrl: string | null;
+                                    approved: boolean;
+                                    categories: string[];
+                                    products: string | null;
+                                    photos: string[];
+                                    socialLinks: string[];
+                                    joinedAt: string;
+                                    eventsSoldAt: number;
+                                } | null;
                                 vendors: {
                                     shopName: string;
                                     slug: string | null;
@@ -11637,6 +12976,7 @@ export interface operations {
                                 displayName: string;
                                 approved: boolean;
                             };
+                            isPopup: boolean;
                         }[];
                         past: {
                             slug: string;
@@ -11719,8 +13059,9 @@ export interface operations {
                                     displayName: string;
                                     approved: boolean;
                                 };
+                                isPopup: boolean;
                             };
-                            slotLabel: string;
+                            slotLabel: string | null;
                         } | null;
                         sold: {
                             slug: string;
@@ -11732,7 +13073,8 @@ export interface operations {
                             closesAt: string | null;
                             venueName: string | null;
                             organizerName: string;
-                            slotLabel: string;
+                            slotLabel: string | null;
+                            isPopup: boolean;
                             upcoming: boolean;
                         }[];
                     };
@@ -11772,7 +13114,7 @@ export interface operations {
                     /** Format: uuid */
                     targetId: string;
                     /** @enum {string} */
-                    reason: "fake_account" | "scam" | "inappropriate_content" | "other";
+                    reason: "fake_account" | "fake_or_misleading_event" | "scam" | "inappropriate_content" | "other";
                     details?: string | null;
                 };
             };
@@ -11879,13 +13221,13 @@ export interface operations {
                                 startsAt: string | null;
                             };
                             count: number;
-                            reasons: ("fake_account" | "scam" | "inappropriate_content" | "other")[];
+                            reasons: ("fake_account" | "fake_or_misleading_event" | "scam" | "inappropriate_content" | "other")[];
                             fromEmail: boolean;
                             oldestAt: string;
                             /** @enum {string} */
                             status: "open" | "dismissed" | "actioned";
                             /** @enum {string|null} */
-                            actionTaken: "none" | "event_hidden" | "user_suspended" | "other" | null;
+                            actionTaken: "none" | "event_hidden" | "user_suspended" | "host_approval_revoked" | "other" | null;
                             resolvedAt: string | null;
                         }[];
                         openCount: number;
@@ -11929,7 +13271,7 @@ export interface operations {
                     /** Format: uuid */
                     targetId: string;
                     /** @enum {string} */
-                    reason: "fake_account" | "scam" | "inappropriate_content" | "other";
+                    reason: "fake_account" | "fake_or_misleading_event" | "scam" | "inappropriate_content" | "other";
                     details: string;
                 };
             };
@@ -11986,7 +13328,7 @@ export interface operations {
                         /** @enum {string} */
                         status: "open" | "dismissed" | "actioned";
                         /** @enum {string|null} */
-                        actionTaken: "none" | "event_hidden" | "user_suspended" | "other" | null;
+                        actionTaken: "none" | "event_hidden" | "user_suspended" | "host_approval_revoked" | "other" | null;
                         resolvedAt: string | null;
                         resolvedByName: string | null;
                         resolutionNote: string | null;
@@ -12004,6 +13346,13 @@ export interface operations {
                                 name: string;
                                 suspended: boolean;
                             } | null;
+                            host: {
+                                /** Format: uuid */
+                                userId: string;
+                                name: string;
+                                suspended: boolean;
+                                approved: boolean;
+                            } | null;
                             hidden: boolean;
                             roles: {
                                 /** @enum {string} */
@@ -12015,7 +13364,7 @@ export interface operations {
                         reports: {
                             number: number;
                             /** @enum {string} */
-                            reason: "fake_account" | "scam" | "inappropriate_content" | "other";
+                            reason: "fake_account" | "fake_or_misleading_event" | "scam" | "inappropriate_content" | "other";
                             details: string | null;
                             /** @enum {string} */
                             source: "report_button" | "support_email";
@@ -12073,6 +13422,11 @@ export interface operations {
                     reason: string;
                     note?: string | null;
                     hideUpcomingEvents?: boolean;
+                } | {
+                    /** @enum {string} */
+                    decision: "revoke_host";
+                    reason: string;
+                    note?: string | null;
                 };
             };
         };
@@ -12088,7 +13442,7 @@ export interface operations {
                         /** @enum {string} */
                         status: "open" | "dismissed" | "actioned";
                         /** @enum {string|null} */
-                        actionTaken: "none" | "event_hidden" | "user_suspended" | "other" | null;
+                        actionTaken: "none" | "event_hidden" | "user_suspended" | "host_approval_revoked" | "other" | null;
                         resolvedAt: string | null;
                         resolvedByName: string | null;
                         resolutionNote: string | null;
@@ -12106,6 +13460,13 @@ export interface operations {
                                 name: string;
                                 suspended: boolean;
                             } | null;
+                            host: {
+                                /** Format: uuid */
+                                userId: string;
+                                name: string;
+                                suspended: boolean;
+                                approved: boolean;
+                            } | null;
                             hidden: boolean;
                             roles: {
                                 /** @enum {string} */
@@ -12117,7 +13478,7 @@ export interface operations {
                         reports: {
                             number: number;
                             /** @enum {string} */
-                            reason: "fake_account" | "scam" | "inappropriate_content" | "other";
+                            reason: "fake_account" | "fake_or_misleading_event" | "scam" | "inappropriate_content" | "other";
                             details: string | null;
                             /** @enum {string} */
                             source: "report_button" | "support_email";
@@ -12325,12 +13686,32 @@ export interface operations {
                             status: string;
                             slotLabels: string[];
                         }[];
+                        host: {
+                            /** @enum {string} */
+                            status: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            /** @enum {string|null} */
+                            source: "reviewed" | "earned" | null;
+                            decidedAt: string | null;
+                            earnedFrom: string | null;
+                            rejectionReason: string | null;
+                            revoked: boolean;
+                            announcedPopups: number;
+                        } | null;
+                        popups: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            startsAt: string | null;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                            hidden: boolean;
+                        }[];
                         reports: {
                             /** Format: uuid */
                             id: string;
                             number: number;
                             /** @enum {string} */
-                            reason: "fake_account" | "scam" | "inappropriate_content" | "other";
+                            reason: "fake_account" | "fake_or_misleading_event" | "scam" | "inappropriate_content" | "other";
                             open: boolean;
                             about: string;
                         }[];
@@ -12426,12 +13807,32 @@ export interface operations {
                             status: string;
                             slotLabels: string[];
                         }[];
+                        host: {
+                            /** @enum {string} */
+                            status: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            /** @enum {string|null} */
+                            source: "reviewed" | "earned" | null;
+                            decidedAt: string | null;
+                            earnedFrom: string | null;
+                            rejectionReason: string | null;
+                            revoked: boolean;
+                            announcedPopups: number;
+                        } | null;
+                        popups: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            startsAt: string | null;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                            hidden: boolean;
+                        }[];
                         reports: {
                             /** Format: uuid */
                             id: string;
                             number: number;
                             /** @enum {string} */
-                            reason: "fake_account" | "scam" | "inappropriate_content" | "other";
+                            reason: "fake_account" | "fake_or_misleading_event" | "scam" | "inappropriate_content" | "other";
                             open: boolean;
                             about: string;
                         }[];
@@ -12520,12 +13921,151 @@ export interface operations {
                             status: string;
                             slotLabels: string[];
                         }[];
+                        host: {
+                            /** @enum {string} */
+                            status: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            /** @enum {string|null} */
+                            source: "reviewed" | "earned" | null;
+                            decidedAt: string | null;
+                            earnedFrom: string | null;
+                            rejectionReason: string | null;
+                            revoked: boolean;
+                            announcedPopups: number;
+                        } | null;
+                        popups: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            startsAt: string | null;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                            hidden: boolean;
+                        }[];
                         reports: {
                             /** Format: uuid */
                             id: string;
                             number: number;
                             /** @enum {string} */
-                            reason: "fake_account" | "scam" | "inappropriate_content" | "other";
+                            reason: "fake_account" | "fake_or_misleading_event" | "scam" | "inappropriate_content" | "other";
+                            open: boolean;
+                            about: string;
+                        }[];
+                        history: {
+                            at: string;
+                            text: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        error: string;
+                        message: string;
+                        details?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    AdminController_revokeHost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        fullName: string;
+                        email: string;
+                        emailVerified: boolean;
+                        phone: string | null;
+                        joinedAt: string;
+                        lastLoginAt: string | null;
+                        roles: {
+                            /** @enum {string} */
+                            role: "vendor" | "organizer";
+                            name: string | null;
+                            /** @enum {string|null} */
+                            approvalStatus: "not_submitted" | "pending_review" | "approved" | "rejected" | null;
+                            suspended: boolean;
+                            slug: string | null;
+                            reviewedAt: string | null;
+                            suspendedAt: string | null;
+                            suspendedByName: string | null;
+                            suspensionReason: string | null;
+                            upcomingEvents: number;
+                        }[];
+                        events: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            startsAt: string | null;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                            hidden: boolean;
+                            applied: number;
+                            confirmed: number;
+                        }[];
+                        applications: {
+                            /** Format: uuid */
+                            eventId: string;
+                            eventName: string;
+                            startsAt: string | null;
+                            status: string;
+                            slotLabels: string[];
+                        }[];
+                        host: {
+                            /** @enum {string} */
+                            status: "not_submitted" | "pending_review" | "approved" | "rejected";
+                            /** @enum {string|null} */
+                            source: "reviewed" | "earned" | null;
+                            decidedAt: string | null;
+                            earnedFrom: string | null;
+                            rejectionReason: string | null;
+                            revoked: boolean;
+                            announcedPopups: number;
+                        } | null;
+                        popups: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            startsAt: string | null;
+                            /** @enum {string} */
+                            status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
+                            hidden: boolean;
+                        }[];
+                        reports: {
+                            /** Format: uuid */
+                            id: string;
+                            number: number;
+                            /** @enum {string} */
+                            reason: "fake_account" | "fake_or_misleading_event" | "scam" | "inappropriate_content" | "other";
                             open: boolean;
                             about: string;
                         }[];
@@ -12559,7 +14099,7 @@ export interface operations {
         parameters: {
             query?: {
                 q?: string;
-                filter?: "all" | "open" | "announced" | "reported" | "hidden" | "drafts";
+                filter?: "all" | "open" | "announced" | "popups" | "reported" | "hidden" | "drafts";
                 page?: number;
             };
             header?: never;
@@ -12582,6 +14122,7 @@ export interface operations {
                             typeName: string;
                             venueName: string | null;
                             organizerName: string;
+                            isPopup: boolean;
                             /** @enum {string} */
                             status: "draft" | "open_to_vendors" | "announced" | "completed" | "canceled";
                             hidden: boolean;
@@ -12596,6 +14137,7 @@ export interface operations {
                             all: number;
                             open: number;
                             announced: number;
+                            popups: number;
                             reported: number;
                             hidden: number;
                             drafts: number;
@@ -12652,6 +14194,7 @@ export interface operations {
                         moderationReason: string | null;
                         moderatedAt: string | null;
                         moderatedByName: string | null;
+                        isPopup: boolean;
                         organizer: {
                             /** Format: uuid */
                             userId: string;
@@ -12751,6 +14294,7 @@ export interface operations {
                         moderationReason: string | null;
                         moderatedAt: string | null;
                         moderatedByName: string | null;
+                        isPopup: boolean;
                         organizer: {
                             /** Format: uuid */
                             userId: string;
@@ -12844,6 +14388,7 @@ export interface operations {
                         moderationReason: string | null;
                         moderatedAt: string | null;
                         moderatedByName: string | null;
+                        isPopup: boolean;
                         organizer: {
                             /** Format: uuid */
                             userId: string;

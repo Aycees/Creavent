@@ -17,6 +17,7 @@ import { takenSlotIds } from '../applications/slot-status.js';
 import { FilesService } from '../files/files.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { PublicPagesService } from '../public/public-pages.service.js';
+import { organizerOf } from './event-status.js';
 
 const include = {
   eventType: true,
@@ -51,6 +52,8 @@ export class VendorEventsService {
     const startOfToday = new Date(`${manilaParts(now).date}T00:00:00+08:00`);
     const where: Prisma.EventWhereInput = {
       status: { in: ['open_to_vendors', 'announced'] },
+      // Pop-ups take no vendors (spec §4.7).
+      hostVendorProfileId: null,
       moderationState: 'visible',
       ...(query.city ? { city: query.city } : {}),
       ...(query.q
@@ -104,12 +107,23 @@ export class VendorEventsService {
   // vendor view with ?as=vendor (Preview as vendor), at any status. Vendors
   // see the vendor view; everyone else the public page (decision Q2).
   async page(viewer: SessionUser | undefined, slug: string, as?: string): Promise<EventPage> {
-    const event = await this.prisma.event.findUnique({ where: { slug }, include });
+    const event = await this.prisma.event.findUnique({ where: { slug }, include: { ...include, hostVendorProfile: true } });
     if (!event) throw new NotFoundException('Event not found');
-    const isOrganizer = viewer !== undefined && event.organizerProfile.userId === viewer.id;
     const isAdmin = viewer?.isAdmin === true;
+    // A pop-up has one page for everyone: no vendor view (sitemap §3). Its
+    // host and admins see it at any status, the host with "Manage event".
+    if (event.hostVendorProfile) {
+      const isHost = viewer !== undefined && event.hostVendorProfile.userId === viewer.id;
+      if (isHost || isAdmin) {
+        return { view: 'public', event: await this.publicPages.publicEventById(event.id), manage: isHost ? { eventId: event.id, popup: true } : null };
+      }
+      if (event.status === 'draft' || event.moderationState === 'hidden') throw new NotFoundException('Event not found');
+      const { page } = await this.publicPages.event(slug);
+      return page.view === 'public' ? { ...page, manage: null } : page;
+    }
+    const isOrganizer = viewer !== undefined && event.organizerProfile?.userId === viewer.id;
     if (isOrganizer && as !== 'vendor') {
-      return { view: 'public', event: await this.publicPages.publicEventById(event.id), manage: { eventId: event.id } };
+      return { view: 'public', event: await this.publicPages.publicEventById(event.id), manage: { eventId: event.id, popup: false } };
     }
     if (isOrganizer || isAdmin) return { view: 'vendor', preview: true, event: await this.vendorView(event, viewer!.id) };
     if (event.status === 'draft' || event.moderationState === 'hidden') throw new NotFoundException('Event not found');
@@ -193,11 +207,12 @@ export class VendorEventsService {
   }
 
   private organizer(e: FullEvent) {
-    const role = e.organizerProfile.user.roles[0];
+    const o = organizerOf(e);
+    const role = o.user.roles[0];
     return {
-      displayName: e.organizerProfile.displayName,
-      slug: e.organizerProfile.slug,
-      logoUrl: e.organizerProfile.logoFile ? this.files.url(e.organizerProfile.logoFile.storageKey) : null,
+      displayName: o.displayName,
+      slug: o.slug,
+      logoUrl: o.logoFile ? this.files.url(o.logoFile.storageKey) : null,
       approved: role?.approvalStatus === 'approved' && role.suspendedAt === null,
     };
   }

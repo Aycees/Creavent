@@ -1,7 +1,11 @@
 import { z } from 'zod';
 import { approvalStatusSchema, roleTypeSchema } from './accounts.js';
 
-// Organizer approval, admin side (spec §2.1, flow 11).
+// Organizer approval and pop-up host approval, admin side (spec §2.1, §4.7,
+// flow 11). Both wait in one queue.
+
+export const approvalKindSchema = z.enum(['organizer', 'host']);
+export type ApprovalKind = z.infer<typeof approvalKindSchema>;
 
 // The review target (spec §2.1), as a number and in words.
 export const REVIEW_TARGET_DAYS = 2;
@@ -16,6 +20,8 @@ const waitingSchema = z.object({
 
 export const approvalQueueItemSchema = z.object({
   userId: z.uuid(),
+  // A host request is tagged "Pop-up host".
+  kind: approvalKindSchema,
   displayName: z.string(),
   city: z.string().nullable(),
   linksCount: z.number().int(),
@@ -29,12 +35,16 @@ export const approvalQueueSchema = z.object({ items: z.array(approvalQueueItemSc
 
 export const approvalDetailSchema = z.object({
   userId: z.uuid(),
+  kind: approvalKindSchema,
+  // The organizer's display name, or the host's shop name.
   displayName: z.string(),
   slug: z.string().nullable(),
   city: z.string().nullable(),
   about: z.string().nullable(),
   logoUrl: z.string().nullable(),
   socialLinks: z.array(z.string()),
+  // Links the admin hasn't reviewed before, on a re-review (open question D9).
+  newLinks: z.array(z.string()),
   fullName: z.string(),
   loginEmail: z.string(),
   contactEmail: z.string().nullable(),
@@ -46,8 +56,24 @@ export const approvalDetailSchema = z.object({
   reviewedAt: z.string().nullable(),
   rejectionReason: z.string().nullable(),
   adminNotes: z.string().nullable(),
+  // A host request: the vendor profile, photos and past events, in place
+  // of the organizer details (sitemap §6).
+  host: z
+    .object({
+      categories: z.array(z.string()),
+      products: z.string().nullable(),
+      photos: z.array(z.string()),
+      eventsSoldAt: z.number().int(),
+      popups: z.array(z.object({ name: z.string(), status: z.string(), startsAt: z.string().nullable() })),
+    })
+    .nullable(),
   // Where this request sits in the queue, oldest first.
-  queue: z.object({ position: z.number().int().nullable(), total: z.number().int(), nextUserId: z.uuid().nullable() }),
+  queue: z.object({
+    position: z.number().int().nullable(),
+    total: z.number().int(),
+    nextUserId: z.uuid().nullable(),
+    nextKind: approvalKindSchema.nullable(),
+  }),
 }).merge(waitingSchema);
 export type ApprovalDetail = z.infer<typeof approvalDetailSchema>;
 
@@ -67,7 +93,7 @@ export const approveSchema = z.object({ note: noteSchema, seen: seenSchema });
 export type ApproveInput = z.input<typeof approveSchema>;
 
 export const rejectSchema = z.object({
-  reason: z.string().trim().min(1, 'Tell the organizer what to fix').max(1000),
+  reason: z.string().trim().min(1, 'Tell them what to fix').max(1000),
   note: noteSchema,
   seen: seenSchema,
 });

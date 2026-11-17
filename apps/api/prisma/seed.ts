@@ -341,7 +341,7 @@ async function seedAssignment(
 ) {
   const hour = 3_600_000;
   const target = await prisma.event.findUniqueOrThrow({ where: { slug: eventSlug }, include: { organizerProfile: true } });
-  const ownerId = target.organizerProfile.userId;
+  const ownerId = target.organizerProfile!.userId;
   const ended = state === 'released' || state === 'removed' || state === 'canceled';
   const paid = state === 'reserved' || state === 'canceled';
   const assignedAt = new Date(Date.now() - (assignedDaysAgo ?? 2) * 24 * hour);
@@ -512,7 +512,8 @@ await event(
     paymentMethods: gcash,
     slots: { create: row('G', 8, 'Garden court', '2 × 2 m', 0) },
   },
-  'pop-up',
+  // Pop-up is a vendor-only type now (decided 2026-11-17, U20).
+  'bazaar',
 );
 
 await event('organizer@creavent.test', 'matina-night-flea-october', {
@@ -689,7 +690,7 @@ type Kind = 'submitted' | 'approved' | 'declined' | 'withdrawn';
 type Applicant = [vendor: { id: string }, categoryId: string, kind: Kind, extra?: { preferred?: string[]; note?: string; decision?: string; slots?: number }];
 async function applications(eventSlug: string, list: Applicant[]) {
   const target = await prisma.event.findUniqueOrThrow({ where: { slug: eventSlug }, include: { organizerProfile: true } });
-  const owner = { decidedById: target.organizerProfile.userId, decidedAt: new Date(Date.now() - day) };
+  const owner = { decidedById: target.organizerProfile!.userId, decidedAt: new Date(Date.now() - day) };
   for (const [n, [vendorProfile, categoryId, kind, extra = {}]] of list.entries()) {
     await application(vendorProfile.id, eventSlug, categoryId, {
       preferredLabels: extra.preferred,
@@ -847,7 +848,7 @@ await event('suspended@creavent.test', 'marfori-pop-up-september', {
   categories: { create: [{ categoryId: vintage, maxVendors: null }] },
   paymentMethods: { create: [{ channel: 'gcash', label: 'GCash, Eli M.', accountName: 'Eli M.', accountNumber: '0917 555 0188', sortOrder: 0 }] },
   slots: { create: row('Z', 6, 'Annex', '2 × 2 m', 0) },
-}, 'pop-up');
+}, 'bazaar');
 await book('marfori-pop-up-september', 'Z', 1, 63, [[v.sulyap, vintage, 1], [v.vinyl, vintage, 1]]);
 
 // This week and the next three: announced, partly or mostly filled.
@@ -1000,7 +1001,7 @@ await event('organizer3@creavent.test', 'makers-christmas-pop-up', {
   documents: { create: [{ name: 'Valid ID', sortOrder: 0 }] },
   paymentMethods: { create: [{ channel: 'gcash', label: 'GCash, Davao Makers', accountName: 'Bea C.', accountNumber: '0917 555 0101', sortOrder: 0 }] },
   slots: { create: row('K', 12, 'Garden court', '2 × 2 m', 0) },
-}, 'pop-up');
+}, 'bazaar');
 await book('makers-christmas-pop-up', 'K', 1, 2, [[habi, crafts, 1], [v.mugs, crafts, 1], [v.kandila, crafts, 1], [v.hablon, crafts, 1, 'waiting']]);
 await applications('makers-christmas-pop-up', [
   [v.beads, crafts, 'approved'],
@@ -1173,7 +1174,7 @@ await event('suspended@creavent.test', 'marfori-mega-sale', {
   categories: { create: [{ categoryId: preloved.id, maxVendors: null }] },
   paymentMethods: { create: [{ channel: 'gcash', label: 'GCash, Eli M.', accountName: 'Eli M.', accountNumber: '0917 555 0188', sortOrder: 0 }] },
   slots: { create: row('Z', 8, 'Annex', '2 × 2 m', 0) },
-}, 'pop-up');
+}, 'bazaar');
 await book('marfori-mega-sale', 'Z', 1, 9, [[v.replika, preloved.id, 2, 'reserved']]);
 
 // ─── Phase 5: reports and moderation ───────────────────────────────────────

@@ -1,6 +1,7 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import type { RoleType } from '@creavent/shared';
 import { writeAuditLog } from '../audit/audit-log.js';
+import { changeApprovalStatus } from '../approvals/approval-status.js';
 import { appConfig } from '../config.js';
 import { OutboxService } from '../notifications/outbox.service.js';
 import type { Tx } from '../prisma/prisma.service.js';
@@ -13,11 +14,18 @@ import { tags } from '../public/tags.js';
 export class ModerationService {
   constructor(private readonly outbox: OutboxService) {}
 
-  async hideEvent(tx: Tx, adminId: string, eventId: string, reason: string): Promise<string[]> {
+  // Emails the organizer, or a pop-up's host, unless `notify` is false: a
+  // pop-up hidden by a suspension or a revoked host approval sends no email
+  // of its own (spec §8.1).
+  async hideEvent(tx: Tx, adminId: string, eventId: string, reason: string, options: { notify?: boolean } = {}): Promise<string[]> {
     await tx.$queryRaw`SELECT id FROM events WHERE id = ${eventId}::uuid FOR UPDATE`;
     const event = await tx.event.findUnique({
       where: { id: eventId },
-      include: { organizerProfile: { include: { user: true } }, assignments: { select: { vendorProfileId: true } } },
+      include: {
+        organizerProfile: { include: { user: true } },
+        hostVendorProfile: { include: { user: true } },
+        assignments: { select: { vendorProfileId: true } },
+      },
     });
     if (!event) throw new NotFoundException('Event not found');
     if (event.moderationState === 'hidden') throw new ConflictException('This event is already hidden');
@@ -33,22 +41,24 @@ export class ModerationService {
       changes: { moderationState: { from: 'visible', to: 'hidden' } },
       reason,
     });
-    const organizer = event.organizerProfile.user;
+    const host = (event.organizerProfile ?? event.hostVendorProfile)!.user;
     const config = appConfig();
-    await this.outbox.queue(tx, {
-      userId: organizer.id,
-      toEmail: organizer.email,
-      type: 'event_hidden',
-      relatedEntityType: 'event',
-      relatedEntityId: eventId,
-      payload: {
-        name: organizer.fullName,
-        eventName: event.name,
-        reason,
-        url: `${config.webUrl}/organizer/events/${eventId}`,
-        supportEmail: config.supportEmail,
-      },
-    });
+    if (options.notify !== false) {
+      await this.outbox.queue(tx, {
+        userId: host.id,
+        toEmail: host.email,
+        type: 'event_hidden',
+        relatedEntityType: 'event',
+        relatedEntityId: eventId,
+        payload: {
+          name: host.fullName,
+          eventName: event.name,
+          reason,
+          url: event.hostVendorProfileId ? `${config.webUrl}/vendor/popups/${eventId}` : `${config.webUrl}/organizer/events/${eventId}`,
+          supportEmail: config.supportEmail,
+        },
+      });
+    }
     return [...tags.forEvent(event), tags.listing];
   }
 
@@ -102,13 +112,57 @@ export class ModerationService {
       reason,
     });
     const refresh = [tags.listing];
-    if (role === 'vendor' && found.user.vendorProfile) refresh.push(...(await vendorPageTags(tx, found.user.vendorProfile.id)));
+    if (role === 'vendor' && found.user.vendorProfile) {
+      const profileId = found.user.vendorProfile.id;
+      refresh.push(...(await vendorPageTags(tx, profileId)));
+      // No other vendor depends on a pop-up, so it is hidden with the
+      // suspension (spec §4.7). The vendor sees the reason in the app.
+      for (const event of await announcedPopups(tx, profileId)) refresh.push(...(await this.hideEvent(tx, adminId, event.id, reason, { notify: false })));
+    }
     if (role === 'organizer' && found.user.organizerProfile) {
       const profileId = found.user.organizerProfile.id;
       refresh.push(tags.organizer(profileId));
       if (options.hideUpcomingEvents) {
         for (const event of await upcomingEvents(tx, profileId)) refresh.push(...(await this.hideEvent(tx, adminId, event.id, reason)));
       }
+    }
+    return refresh;
+  }
+
+  // Revoke a vendor's pop-up host approval (spec §4.7): back to rejected with
+  // the reason, the earned route off for good, and their announced pop-ups
+  // hidden with the same reason. They keep selling at other events.
+  async revokeHost(tx: Tx, adminId: string, userId: string, reason: string): Promise<string[]> {
+    await tx.$queryRaw`SELECT id FROM user_roles WHERE user_id = ${userId}::uuid AND role = 'vendor' FOR UPDATE`;
+    const found = await tx.userRole.findUnique({
+      where: { userId_role: { userId, role: 'vendor' } },
+      include: { user: { include: { vendorProfile: true } } },
+    });
+    if (!found) throw new NotFoundException('This user has no vendor role');
+    const now = new Date();
+    await changeApprovalStatus(tx, {
+      roleId: found.id,
+      from: found.approvalStatus,
+      action: 'revoke',
+      subject: 'host',
+      actorUserId: adminId,
+      reason,
+      data: { rejectionReason: reason, hostRevokedAt: now, approvalSource: null, reviewedBy: { connect: { id: adminId } }, reviewedAt: now },
+    });
+    const config = appConfig();
+    await this.outbox.queue(tx, {
+      userId,
+      toEmail: found.user.email,
+      type: 'host_approval_revoked',
+      relatedEntityType: 'user_role',
+      relatedEntityId: found.id,
+      payload: { name: found.user.fullName, reason, url: `${config.webUrl}/vendor/host-approval`, supportEmail: config.supportEmail },
+    });
+    const refresh = [tags.listing];
+    if (found.user.vendorProfile) {
+      const profileId = found.user.vendorProfile.id;
+      refresh.push(tags.vendor(profileId));
+      for (const event of await announcedPopups(tx, profileId)) refresh.push(...(await this.hideEvent(tx, adminId, event.id, reason, { notify: false })));
     }
     return refresh;
   }
@@ -141,6 +195,11 @@ export class ModerationService {
 async function vendorPageTags(tx: Tx, vendorProfileId: string) {
   const events = await tx.slotAssignment.findMany({ where: { vendorProfileId, status: 'reserved' }, select: { eventId: true }, distinct: ['eventId'] });
   return [tags.vendor(vendorProfileId), ...events.map((e) => tags.event(e.eventId))];
+}
+
+// A host's visible announced pop-ups, which a suspension or a revoke hides.
+function announcedPopups(tx: Tx, vendorProfileId: string) {
+  return tx.event.findMany({ where: { hostVendorProfileId: vendorProfileId, status: 'announced', moderationState: 'visible' }, select: { id: true } });
 }
 
 // An organizer's live events: open to vendors or announced, visible, and not

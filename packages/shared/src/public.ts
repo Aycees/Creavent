@@ -29,6 +29,25 @@ export const publicOrganizerSchema = z.object({
   eventsHeld: z.number().int(),
 });
 
+// A pop-up's host block (spec §4.7, §7): the vendor in place of the
+// organizer, with their history.
+export const publicHostSchema = z.object({
+  shopName: z.string(),
+  // Null when the vendor page isn't available.
+  slug: z.string().nullable(),
+  avatarUrl: z.string().nullable(),
+  // "Approved by Creavent": host approval, and the vendor role not suspended.
+  approved: z.boolean(),
+  categories: z.array(z.string()),
+  products: z.string().nullable(),
+  photos: z.array(z.string()),
+  socialLinks: z.array(z.string()),
+  joinedAt: z.string(),
+  // "Sold at 3 Creavent events", the vendor page count.
+  eventsSoldAt: z.number().int(),
+});
+export type PublicHost = z.infer<typeof publicHostSchema>;
+
 // A vendor with a reserved slot (spec §7). Slug is null when their page isn't
 // available (suspended or deleted), so the name shows without a link.
 export const publicVendorRowSchema = z.object({
@@ -56,7 +75,9 @@ export const publicEventSchema = z.object({
   description: z.string().nullable(),
   coverUrl: z.string().nullable(),
   publicFloorPlanUrl: z.string().nullable(),
-  organizer: publicOrganizerSchema,
+  // One of the two: an organizer's event, or a vendor's pop-up.
+  organizer: publicOrganizerSchema.nullable(),
+  host: publicHostSchema.nullable(),
   // Empty once the event is canceled (decision Q2).
   vendors: z.array(publicVendorRowSchema),
   // "Details updated Tue, Nov 10".
@@ -104,7 +125,9 @@ export const listingCardSchema = z.object({
   venueName: z.string().nullable(),
   city: z.string().nullable(),
   coverUrl: z.string().nullable(),
+  // The organizer, or a pop-up's host shop with their badge.
   organizer: z.object({ displayName: z.string(), approved: z.boolean() }),
+  isPopup: z.boolean(),
 });
 export type ListingCard = z.infer<typeof listingCardSchema>;
 
@@ -177,10 +200,13 @@ export const publicVendorPageSchema = z.object({
     // The events in "Where they've sold".
     eventsSoldAt: z.number().int(),
   }),
-  // "Find them next at": the soonest announced event with a reserved slot.
-  next: z.object({ event: listingCardSchema, slotLabel: z.string() }).nullable(),
+  // "Find them next at": the soonest announced event with a reserved slot,
+  // or the vendor's own announced pop-up (no slot).
+  next: z.object({ event: listingCardSchema, slotLabel: z.string().nullable() }).nullable(),
   // "Where they've sold": announced or completed events with a reserved
-  // slot, newest first (data model §7).
-  sold: z.array(profileEventSchema.extend({ organizerName: z.string(), slotLabel: z.string(), upcoming: z.boolean() })),
+  // slot, and the vendor's own pop-ups, newest first (data model §7).
+  sold: z.array(
+    profileEventSchema.extend({ organizerName: z.string(), slotLabel: z.string().nullable(), isPopup: z.boolean(), upcoming: z.boolean() }),
+  ),
 });
 export type PublicVendorPage = z.infer<typeof publicVendorPageSchema>;

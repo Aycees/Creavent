@@ -120,6 +120,54 @@ const templates = {
       </>
     ),
   },
+  // Pop-up host approval (spec §4.7). The reviewed route only: an earned
+  // approval sends nothing.
+  host_approved: {
+    payload: z.object({ name: z.string(), shopName: z.string(), url: z.string(), supportEmail: z.string() }),
+    subject: () => "You're approved to host pop-ups",
+    body: (p: { name: string; shopName: string; url: string }) => (
+      <>
+        <Paragraph>Hi {firstName(p.name)},</Paragraph>
+        <Paragraph>
+          We reviewed {p.shopName}'s pages and approved you to host pop-ups. Your pop-ups show "Approved by Creavent", and
+          you can announce them to the event listing.
+        </Paragraph>
+        <ActionButton href={p.url}>Go to your pop-ups</ActionButton>
+      </>
+    ),
+  },
+  host_rejected: {
+    payload: z.object({ name: z.string(), reason: z.string(), url: z.string(), supportEmail: z.string() }),
+    subject: () => 'Your pop-up host request needs changes',
+    body: (p: { name: string; reason: string; url: string; supportEmail: string }) => (
+      <>
+        <Paragraph>Hi {firstName(p.name)},</Paragraph>
+        <Paragraph>We couldn't approve you to host pop-ups yet. Here's why:</Paragraph>
+        <Paragraph>{p.reason}</Paragraph>
+        <Paragraph>
+          You can add a link and submit again. Your pop-up drafts stay as they are. If you think this is a mistake, email{' '}
+          {p.supportEmail}.
+        </Paragraph>
+        <ActionButton href={p.url}>Update and resubmit</ActionButton>
+      </>
+    ),
+  },
+  host_approval_revoked: {
+    payload: z.object({ name: z.string(), reason: z.string(), url: z.string(), supportEmail: z.string() }),
+    subject: () => 'Your pop-up host approval was revoked',
+    body: (p: { name: string; reason: string; url: string; supportEmail: string }) => (
+      <>
+        <Paragraph>Hi {firstName(p.name)},</Paragraph>
+        <Paragraph>The Creavent team revoked your approval to host pop-ups, and hid your announced pop-ups.</Paragraph>
+        <InfoBox label="Why" lines={[p.reason]} />
+        <Paragraph>
+          You can still apply to and sell at other events. To host again, submit your pages for review. If you think this is
+          a mistake, reply to this email or write to {p.supportEmail}.
+        </Paragraph>
+        <ActionButton href={p.url}>See your host approval</ActionButton>
+      </>
+    ),
+  },
   application_submitted: {
     payload: z.object({ name: z.string(), shopName: z.string(), eventName: z.string(), url: z.string(), supportEmail: z.string() }),
     subject: (p: { shopName: string; eventName: string }) => `New application: ${p.shopName} for ${p.eventName}`,
