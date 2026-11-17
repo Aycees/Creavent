@@ -46,7 +46,7 @@ export function EventPageView({ slug, supportEmail, children }: { slug: string; 
   if (data.view === "public" && data.manage) {
     return (
       <div className="flex flex-col gap-6">
-        <ManageBar slug={slug} eventId={data.manage.eventId} status={data.event.status} />
+        <ManageBar slug={slug} eventId={data.manage.eventId} popup={data.manage.popup} status={data.event.status} />
         <PublicEventView event={data.event} supportEmail={supportEmail} />
       </div>
     )
@@ -62,20 +62,23 @@ const visibility: Record<EventStatus, string> = {
   canceled: "Canceled.",
 }
 
-// The organizer's bar above their own event (mockup EventOrganizerPhone).
-function ManageBar({ slug, eventId, status }: { slug: string; eventId: string; status: EventStatus }) {
+// The organizer's bar above their own event (mockup EventOrganizerPhone), or
+// the host's above their pop-up, which has no vendor view (spec §4.7).
+function ManageBar({ slug, eventId, popup, status }: { slug: string; eventId: string; popup: boolean; status: EventStatus }) {
   return (
     // White focus rings: the default blue is too dark to see on the ink bar.
     <div className="-mx-4 -mt-6 flex flex-wrap items-center gap-3 bg-inverse px-4 py-3 text-on-inverse md:mx-0 md:mt-0 md:rounded-lg md:px-5 [&_:focus-visible]:outline-on-inverse">
       <div className="min-w-0 flex-[1_1_220px]">
-        <p className="text-label font-semibold">Your event, as visitors will see it</p>
+        <p className="text-label font-semibold">{popup ? "Your pop-up, as visitors will see it" : "Your event, as visitors will see it"}</p>
         <p className="text-cap text-on-inverse-muted">{visibility[status]}</p>
       </div>
-      <Link href={`/events/${slug}?preview=vendor`} className="inline-flex min-h-11 items-center px-2 text-label text-on-inverse underline underline-offset-3">
-        Preview as vendor
-      </Link>
+      {!popup && (
+        <Link href={`/events/${slug}?preview=vendor`} className="inline-flex min-h-11 items-center px-2 text-label text-on-inverse underline underline-offset-3">
+          Preview as vendor
+        </Link>
+      )}
       <Button asChild variant="secondary">
-        <Link href={`/organizer/events/${eventId}`}>Manage event</Link>
+        <Link href={popup ? `/vendor/popups/${eventId}` : `/organizer/events/${eventId}`}>{popup ? "Manage pop-up" : "Manage event"}</Link>
       </Button>
     </div>
   )

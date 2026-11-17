@@ -12,6 +12,7 @@ export const card = (name: string, startDate: string, endDate = startDate, overr
   city: "Davao City",
   coverUrl: null,
   organizer: { displayName: "Sari-Sari Collective", approved: true },
+  isPopup: false,
   ...overrides,
 })
 

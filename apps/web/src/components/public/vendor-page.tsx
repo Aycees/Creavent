@@ -84,12 +84,13 @@ export function VendorPageView({ page, supportEmail, report }: { page: PublicVen
                 <p className="text-sm text-muted">{next.event.venueName}</p>
               </div>
             </div>
+            {/* Their own pop-up has no slot (spec §4.7). */}
             <div className="flex items-center justify-between rounded-md bg-sunken px-4 py-3">
-              <span className="text-sm text-muted">{next.slotLabel.includes(", ") ? "Slots" : "Slot"}</span>
-              <span className="font-mono text-[20px] leading-6 font-semibold">{next.slotLabel}</span>
+              <span className="text-sm text-muted">{next.slotLabel === null ? "Their own" : next.slotLabel.includes(", ") ? "Slots" : "Slot"}</span>
+              <span className={next.slotLabel === null ? "text-label font-semibold" : "font-mono text-[20px] leading-6 font-semibold"}>{next.slotLabel ?? "Pop-up"}</span>
             </div>
             <Button asChild block>
-              <Link href={`/events/${next.event.slug}`}>See event and floor plan</Link>
+              <Link href={`/events/${next.event.slug}`}>{next.slotLabel === null ? "See pop-up" : "See event and floor plan"}</Link>
             </Button>
           </section>
         )}
@@ -125,16 +126,18 @@ export function VendorPageView({ page, supportEmail, report }: { page: PublicVen
             <h2 id="sold-h" className="text-h3 md:text-h2">
               Where they&apos;ve sold
             </h2>
-            <p className="text-sm text-muted">{`Events where ${v.shopName} had a confirmed slot`}</p>
+            <p className="text-sm text-muted">
+              {page.sold.some((s) => s.isPopup) ? "Events with a confirmed slot, and their own pop-ups" : `Events where ${v.shopName} had a confirmed slot`}
+            </p>
           </div>
           <ul className="overflow-hidden rounded-lg border border-border bg-surface">
             {page.sold.map((s) => (
               <PastRow
                 key={s.slug}
                 e={s}
-                detail={[s.organizerName, s.venueName].filter(Boolean).join(" · ")}
+                detail={s.isPopup ? "Their pop-up" : [s.organizerName, s.venueName].filter(Boolean).join(" · ")}
                 upcoming={s.upcoming}
-                trailing={<span className="font-mono text-mono text-muted">{s.slotLabel}</span>}
+                trailing={s.isPopup ? <span className="text-sm text-muted">Pop-up</span> : <span className="font-mono text-mono text-muted">{s.slotLabel}</span>}
               />
             ))}
           </ul>

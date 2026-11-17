@@ -3,11 +3,47 @@ import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
 import { CanceledNoticeView, NotPublicView, PublicEventView } from "./public-event"
-import { manyVendors, publicEventFixture } from "./fixtures"
+import { manyVendors, popupEventFixture, publicEventFixture } from "./fixtures"
 
 vi.mock("sonner", () => ({ toast: { success: vi.fn() } }))
 
 const SUPPORT = "support@creavent.example"
+
+// Feature 6.4: a pop-up's page, with the host block (spec §4.7, §7).
+describe("PublicEventView for a pop-up", () => {
+  it("shows the host block instead of the organizer, with no vendor count, list or floor plan", () => {
+    render(<PublicEventView event={popupEventFixture()} supportEmail={SUPPORT} />)
+
+    const host = screen.getByRole("region", { name: "Hosted by" })
+    expect(within(host).getByRole("link", { name: "Lola's Ukay" })).toHaveAttribute("href", "/vendors/lolas-ukay")
+    expect(within(host).getByRole("link", { name: /Approved by Creavent/ })).toHaveAttribute("href", "/approved")
+    expect(within(host).getByText("Joined Mar 2026 · Sold at 6 Creavent events")).toBeInTheDocument()
+    expect(within(host).getByText("Preloved clothing")).toBeInTheDocument()
+    expect(within(host).getByText("Tops, denim, jackets, bags")).toBeInTheDocument()
+    expect(within(host).getByRole("link", { name: /instagram\.com/ })).toBeInTheDocument()
+    expect(within(host).getByRole("link", { name: "See Lola's Ukay's page" })).toHaveAttribute("href", "/vendors/lolas-ukay")
+    expect(screen.queryByRole("region", { name: "Organizer" })).not.toBeInTheDocument()
+    expect(screen.queryByText(/vendors? confirmed/)).not.toBeInTheDocument()
+    expect(screen.queryByRole("heading", { name: "Who's selling" })).not.toBeInTheDocument()
+    expect(screen.getByText(/Something wrong with this pop-up/)).toBeInTheDocument()
+  })
+
+  it("hides the badge while the host isn't approved, and the page link when it's down", () => {
+    render(<PublicEventView event={popupEventFixture({ host: { ...popupEventFixture().host!, approved: false, slug: null } })} supportEmail={SUPPORT} />)
+
+    const host = screen.getByRole("region", { name: "Hosted by" })
+    expect(within(host).queryByText(/Approved by Creavent/)).not.toBeInTheDocument()
+    expect(within(host).queryByRole("link", { name: "Lola's Ukay" })).not.toBeInTheDocument()
+  })
+
+  it("says a canceled pop-up was called off, with the host's note", () => {
+    render(<PublicEventView event={popupEventFixture({ status: "canceled", canceled: { at: "2026-11-20T02:00:00Z", reason: "Habi Café is closed for a private event." } })} supportEmail={SUPPORT} />)
+
+    expect(screen.getByText("This pop-up was canceled.")).toBeInTheDocument()
+    expect(screen.getByText("Note from Lola's Ukay:")).toBeInTheDocument()
+    expect(screen.getByText("Habi Café is closed for a private event.")).toBeInTheDocument()
+  })
+})
 
 // Feature 4.2: the public view of /events/[slug] (sitemap §3, spec §7).
 describe("PublicEventView", () => {

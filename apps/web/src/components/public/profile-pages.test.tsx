@@ -117,6 +117,7 @@ const vendorPage = (overrides: Partial<PublicVendorPage> = {}): PublicVendorPage
       venueName: "Matina Town Square",
       organizerName: "Sari-Sari Collective",
       slotLabel: "A-03",
+      isPopup: false,
       upcoming: true,
     },
     {
@@ -130,6 +131,7 @@ const vendorPage = (overrides: Partial<PublicVendorPage> = {}): PublicVendorPage
       venueName: "Matina Town Square",
       organizerName: "Sari-Sari Collective",
       slotLabel: "A-03",
+      isPopup: false,
       upcoming: false,
     },
   ],
@@ -137,6 +139,47 @@ const vendorPage = (overrides: Partial<PublicVendorPage> = {}): PublicVendorPage
 })
 
 // Feature 4.5 (spec §7.2, mockup VendorP4).
+describe("VendorPageView with pop-ups", () => {
+  const popupRow = {
+    slug: "lolas-ukay-at-habi-cafe",
+    name: "Lola's Ukay at Habi Café",
+    typeName: "Pop-up",
+    startDate: "2026-11-21",
+    endDate: "2026-11-21",
+    opensAt: "14:00",
+    closesAt: "20:00",
+    venueName: "Habi Café",
+    organizerName: "Lola's Ukay",
+    slotLabel: null,
+    isPopup: true,
+    upcoming: true,
+  }
+
+  it("shows their next pop-up in Find them next at, marked Pop-up instead of a slot", () => {
+    render(
+      <VendorPageView
+        page={vendorPage({ next: { event: card("Lola's Ukay at Habi Café", "2026-11-21", "2026-11-21", { typeName: "Pop-up", isPopup: true }), slotLabel: null } })}
+        supportEmail={SUPPORT}
+      />,
+    )
+
+    const next = screen.getByRole("region", { name: "Find them next at" })
+    expect(within(next).getByText("Their own")).toBeInTheDocument()
+    expect(within(next).getByText("Pop-up")).toBeInTheDocument()
+    expect(within(next).getByRole("link", { name: "See pop-up" })).toHaveAttribute("href", "/events/lola-s-ukay-at-habi-caf-")
+  })
+
+  it("lists their pop-ups in Where they've sold, marked as theirs", () => {
+    render(<VendorPageView page={vendorPage({ sold: [popupRow, ...vendorPage().sold] })} supportEmail={SUPPORT} />)
+
+    const sold = screen.getByRole("region", { name: "Where they've sold" })
+    expect(within(sold).getByText("Events with a confirmed slot, and their own pop-ups")).toBeInTheDocument()
+    const row = within(sold).getByRole("link", { name: /Lola's Ukay at Habi Café/ })
+    expect(within(row).getByText("Their pop-up")).toBeInTheDocument()
+    expect(within(row).getByText("Pop-up")).toBeInTheDocument()
+  })
+})
+
 describe("VendorPageView", () => {
   it("shows the shop, its categories, products, and photos", () => {
     render(<VendorPageView page={vendorPage()} supportEmail={SUPPORT} />)

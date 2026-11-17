@@ -1,11 +1,11 @@
-import { screen, waitFor, within } from "@testing-library/react"
+import { render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { api } from "@/lib/api"
 import { renderWithQuery } from "@/test-utils"
 import { card, listingFixture } from "./fixtures"
-import { ListingView } from "./listing-view"
+import { EventRow, ListingView } from "./listing-view"
 
 vi.mock("@/lib/api", () => ({ api: { GET: vi.fn() } }))
 
@@ -27,6 +27,37 @@ describe("ListingView, list", () => {
     expect(within(screen.getByRole("region", { name: "Next weekend" })).getByText("3 days")).toBeInTheDocument()
     expect(within(screen.getByRole("region", { name: "Later" })).getByText("Paskong Ukay Night")).toBeInTheDocument()
     expect(within(thisWeekend).getByText("Approved")).toBeInTheDocument()
+  })
+
+  it("shows a pop-up with the host's shop and badge, and rows say who hosts it", () => {
+    const popup = card("Kape Kalinaw Sunday Brew", "2026-11-14", "2026-11-14", {
+      typeName: "Pop-up",
+      isPopup: true,
+      organizer: { displayName: "Kape Kalinaw", approved: true },
+    })
+    const next = card("Tahi Studio Weekend Sale", "2026-11-21", "2026-11-22", {
+      typeName: "Pop-up",
+      isPopup: true,
+      organizer: { displayName: "Tahi Studio", approved: false },
+    })
+    renderWithQuery(<ListingView listing={listingFixture({ events: [popup, next] })} query={{}} />)
+
+    const thisWeekend = screen.getByRole("region", { name: "This weekend" })
+    expect(within(thisWeekend).getByText("Pop-up")).toBeInTheDocument()
+    expect(within(thisWeekend).getByText("Kape Kalinaw")).toBeInTheDocument()
+    expect(within(thisWeekend).getByText("Approved")).toBeInTheDocument()
+    // Phones show Next weekend as rows, which keep the host for a pop-up.
+    expect(within(screen.getByRole("region", { name: "Next weekend" })).getByText("Tahi Studio")).not.toHaveClass("max-md:hidden")
+  })
+
+  it("names a pop-up's host in a calendar row", () => {
+    render(
+      <ul>
+        <EventRow e={card("Kape Kalinaw Sunday Brew", "2026-11-22", "2026-11-22", { typeName: "Pop-up", isPopup: true, organizer: { displayName: "Kape Kalinaw", approved: true } })} />
+      </ul>
+    )
+
+    expect(screen.getByText("by Kape Kalinaw")).toBeInTheDocument()
   })
 
   it("keeps the search words in the box", () => {

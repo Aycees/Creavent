@@ -18,6 +18,15 @@ describe("ApprovedView (/approved)", () => {
     expect(screen.getByRole("link", { name: SUPPORT })).toHaveAttribute("href", `mailto:${SUPPORT}`)
     expect(screen.queryByText(/verified/i)).not.toBeInTheDocument()
   })
+
+  it("explains the badge on pop-up hosts: reviewed pages or a past sale, and no promise the pop-up happens", () => {
+    render(<ApprovedView supportEmail={SUPPORT} />)
+
+    const hosts = screen.getByRole("region", { name: "On pop-up hosts" })
+    expect(within(hosts).getByText(/We reviewed the shop's social pages/)).toBeInTheDocument()
+    expect(within(hosts).getByText(/already sold at a completed event on Creavent/)).toBeInTheDocument()
+    expect(within(hosts).getByText(/isn't a promise the pop-up takes place/)).toBeInTheDocument()
+  })
 })
 
 describe("LegalView (/terms, /privacy)", () => {

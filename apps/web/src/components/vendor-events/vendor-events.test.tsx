@@ -6,7 +6,7 @@ import { api } from "@/lib/api"
 import { renderWithQuery } from "@/test-utils"
 import { BrowseEvents } from "./browse-events"
 import { EventPageView } from "./event-page"
-import { publicEventFixture } from "../public/fixtures"
+import { popupEventFixture, publicEventFixture } from "../public/fixtures"
 import { cardFixture, eventFixture } from "./fixtures"
 
 vi.mock("@/lib/api", () => ({ api: { GET: vi.fn() } }))
@@ -168,7 +168,7 @@ describe("EventPageView (/events/[slug])", () => {
   })
 
   it("shows the event's organizer the public view with Manage event", async () => {
-    show({ view: "public", manage: { eventId: "e1" }, event: publicEventFixture({ status: "open_to_vendors" }) })
+    show({ view: "public", manage: { eventId: "e1", popup: false }, event: publicEventFixture({ status: "open_to_vendors" }) })
     renderWithQuery(<EventPageView slug="matina-night-flea" supportEmail="support@creavent.example">{server}</EventPageView>)
 
     expect(await screen.findByText("Your event, as visitors will see it")).toBeInTheDocument()
@@ -176,6 +176,15 @@ describe("EventPageView (/events/[slug])", () => {
     expect(screen.getByRole("link", { name: "Preview as vendor" })).toHaveAttribute("href", "/events/matina-night-flea?preview=vendor")
     expect(screen.getByRole("heading", { level: 1, name: "Matina Night Flea" })).toBeInTheDocument()
     expect(screen.queryByText("Server-rendered public page")).not.toBeInTheDocument()
+  })
+
+  it("shows a pop-up's host the public view with Manage pop-up, and no vendor preview", async () => {
+    show({ view: "public", manage: { eventId: "p1", popup: true }, event: popupEventFixture() })
+    renderWithQuery(<EventPageView slug="lolas-ukay-at-habi-cafe" supportEmail="support@creavent.example">{server}</EventPageView>)
+
+    expect(await screen.findByText("Your pop-up, as visitors will see it")).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "Manage pop-up" })).toHaveAttribute("href", "/vendor/popups/p1")
+    expect(screen.queryByRole("link", { name: "Preview as vendor" })).not.toBeInTheDocument()
   })
 
   it("keeps the server page when the event isn't found for this viewer", async () => {
