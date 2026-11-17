@@ -579,7 +579,7 @@ await event('organizer2@creavent.test', 'kadayawan-rain-market', {
 //   organizer5@ Tagum Weekend Market      organizer6@ Buhangin Green Market
 //   pending3@ Panabo Craft Circle, pending4@ Catalunan Flea Crew  waiting for review
 //   rejected2@ Quick Cash Sale            rejected
-//   suspended@ Marfori Pop-ups            approved, then suspended by the admin
+//   suspended@ Marfori Markets            approved, then suspended by the admin
 // Vendors: vendor10@ to vendor31@ (22 shops across every category), and
 //   vendor32@ Replika Outlet, suspended.
 // Events by status: completed (7 in the past, up to 12 weeks back), announced
@@ -630,7 +630,8 @@ await organizer('organizer6@creavent.test', 'Buhangin Green Market', 'approved',
 await organizer('pending3@creavent.test', 'Panabo Craft Circle', 'pending_review', 2, { city: 'Panabo City', about: 'Craft nights for Panabo makers.', ownerName: 'Tina Gonzaga' });
 await organizer('pending4@creavent.test', 'Catalunan Flea Crew', 'pending_review', 6, { about: 'Neighborhood flea market, new this year.', ownerName: 'Ronnel Abad' });
 await organizer('rejected2@creavent.test', 'Quick Cash Sale', 'rejected', 8, { about: 'Big sale events.', ownerName: 'Anon Seller' });
-await organizer('suspended@creavent.test', 'Marfori Pop-ups', 'approved', 70, { about: 'Pop-up shops around Davao.', ownerName: 'Eli Marfori' });
+// Was "Marfori Pop-ups": Pop-up is a vendor's own event now (U20).
+await organizer('suspended@creavent.test', 'Marfori Markets', 'approved', 70, { about: 'Bazaars around Davao.', ownerName: 'Eli Marfori' });
 const adminUser = await prisma.user.findUniqueOrThrow({ where: { email: 'admin@creavent.test' } });
 await prisma.userRole.updateMany({
   where: { user: { email: 'suspended@creavent.test' }, role: 'organizer', suspendedAt: null },
@@ -837,7 +838,7 @@ await event('organizer3@creavent.test', 'kadayawan-makers-fair', {
 await book('kadayawan-makers-fair', 'C', 1, 80, [[v.hablon, crafts, 2], [v.bakal, crafts, 1], [v.beads, crafts, 1], [v.mugs, crafts, 1], [v.kandila, crafts, 1], [habi, crafts, 2], [paper, crafts, 1], [tahi, crafts, 1], [v.bloom, plants, 1], [v.sticker, crafts, 1], [v.tablea, food, 1], [v.durian, food, 1], [v.puto, food, 1], [v.baked, food, 1]]);
 
 await event('suspended@creavent.test', 'marfori-pop-up-september', {
-  name: 'Marfori Pop-up, September',
+  name: 'Marfori Bazaar, September',
   description: 'A one-day pop-up shop.',
   ...finished,
   ...past(saturday(-9), '10:00'),
@@ -1214,6 +1215,139 @@ if ((await prisma.report.count()) === 0) {
       { actorUserId: adminUser.id, action: 'user_role.suspend', entityType: 'user_role', entityId: suspendedRole.id, changes: { role: 'organizer', suspended: { from: false, to: true } }, reason: suspendedRole.suspensionReason, createdAt: ago(4) },
       { actorUserId: adminUser.id, action: 'user_role.suspend', entityType: 'user_role', entityId: vendorRole.id, changes: { role: 'vendor', suspended: { from: false, to: true } }, reason: vendorRole.suspensionReason, createdAt: ago(6) },
     ],
+  });
+}
+
+// ─── Phase 6: pop-up events ──────────────────────────────────────────────────
+// Vendors who host their own pop-ups (spec §4.7), one per host approval state,
+// and pop-ups in every status. Seeded pop-ups have no cover, like other events.
+//   vendor11@ Kape Kalinaw     approved (reviewed): announced this Sunday and
+//                              in 2 weeks, completed last month, canceled
+//   vendor19@ Denim Diaries    approved (earned): announced next weekend, with
+//                              an open "Fake or misleading event" report
+//   vendor17@ Hablon House     pending review, a complete draft
+//   vendor23@ Sticker Sari-Sari rejected with a reason, a draft without dates
+//   vendor22@ Bloom and Bark   revoked, its announced pop-up hidden
+// vendor@ (Lola's Ukay) is not submitted, and sold at a completed market, so
+// opening Pop-ups approves it through the earned route.
+async function hostApproval(
+  p: { userId: string; socialLinks: unknown },
+  status: ApprovalStatus,
+  extra: { source?: 'reviewed' | 'earned'; daysAgo?: number; reason?: string; revoked?: boolean } = {},
+) {
+  const daysAgo = extra.daysAgo ?? 3;
+  const decided = status === 'approved' || status === 'rejected';
+  await prisma.userRole.update({
+    where: { userId_role: { userId: p.userId, role: 'vendor' } },
+    data: {
+      approvalStatus: status,
+      approvalSource: status === 'approved' ? (extra.source ?? 'reviewed') : null,
+      approvalSubmittedAt: status === 'not_submitted' || extra.source === 'earned' ? null : new Date(Date.now() - (daysAgo + 1) * day),
+      rejectionReason: status === 'rejected' ? (extra.reason ?? null) : null,
+      hostRevokedAt: extra.revoked ? new Date(Date.now() - daysAgo * day) : null,
+      ...(decided ? { reviewedAt: new Date(Date.now() - daysAgo * day), reviewedLinks: (p.socialLinks ?? []) as string[] } : {}),
+      ...(decided && extra.source !== 'earned' ? { reviewedById: adminUser.id } : {}),
+    },
+  });
+}
+
+async function popup(host: { id: string }, slug: string, data: Omit<Prisma.EventUncheckedCreateInput, 'hostVendorProfileId' | 'eventTypeId' | 'slug'>) {
+  const existing = await prisma.event.findUnique({ where: { slug } });
+  if (existing) return existing;
+  const type = await prisma.eventType.findUniqueOrThrow({ where: { slug: 'pop-up' } });
+  return prisma.event.create({ data: { ...data, slug, hostVendorProfileId: host.id, eventTypeId: type.id, applicationsOpen: false } });
+}
+
+const popupAnnounced = { status: 'announced' as const, announcedAt: new Date(Date.now() - 3 * day) };
+
+await hostApproval(v.kape, 'approved', { daysAgo: 20 });
+await popup(v.kape, 'kape-kalinaw-sunday-brew', {
+  name: 'Kape Kalinaw Sunday Brew',
+  description: 'Pour-over and cold brew from Mindanao beans, by the cup or by the bag. Come early: the Kitanglad beans go first.',
+  ...popupAnnounced,
+  startsAt: at(plus(saturday(), 1), '07:00'),
+  endsAt: at(plus(saturday(), 1), '12:00'),
+  ...venue('Rizal Park corner', 'San Pedro Street, Poblacion'),
+});
+await popup(v.kape, 'kape-kalinaw-at-ecoland-garden', {
+  name: 'Kape Kalinaw at the Ecoland Garden',
+  description: 'A weekend coffee stall in the garden, with tablea hot chocolate for the kids.',
+  ...popupAnnounced,
+  startsAt: at(saturday(2), '08:00'),
+  endsAt: at(plus(saturday(2), 1), '14:00'),
+  ...venue('Ecoland Garden', 'Ecoland Drive, Matina'),
+});
+await popup(v.kape, 'kape-kalinaw-october-brew', {
+  name: 'Kape Kalinaw October Brew',
+  description: 'Our October weekend stall at the Obrero corner.',
+  status: 'completed',
+  announcedAt: new Date(Date.now() - 40 * day),
+  startsAt: at(saturday(-4), '07:00'),
+  endsAt: at(saturday(-4), '12:00'),
+  ...venue('Obrero corner', 'Quirino Avenue, Obrero'),
+});
+await popup(v.kape, 'kape-kalinaw-rainy-day-brew', {
+  name: 'Kape Kalinaw Rainy Day Brew',
+  description: 'A morning coffee stall by the river.',
+  status: 'canceled',
+  announcedAt: new Date(Date.now() - 6 * day),
+  canceledAt: new Date(Date.now() - 1 * day),
+  cancelReason: 'The riverside is closed for flood repairs. See you at our Sunday Brew instead!',
+  startsAt: at(saturday(1), '07:00'),
+  endsAt: at(saturday(1), '11:00'),
+  ...venue('Riverside deck', 'Bolton Street, Poblacion'),
+});
+
+await hostApproval(v.denim, 'approved', { source: 'earned', daysAgo: 30 });
+const denimPopup = await popup(v.denim, 'denim-diaries-rework-sale', {
+  name: 'Denim Diaries Rework Sale',
+  description: 'Two racks of reworked jeans and jackets, ₱250 to ₱900, at the café garden. Fitting corner available.',
+  ...popupAnnounced,
+  startsAt: at(saturday(1), '14:00'),
+  endsAt: at(saturday(1), '20:00'),
+  ...venue('Habi Café', 'Quirino Avenue, Obrero'),
+});
+
+await hostApproval(v.hablon, 'pending_review', { daysAgo: 1 });
+await popup(v.hablon, 'hablon-house-weekend-sale', {
+  name: 'Hablon House Weekend Sale',
+  description: 'Hand-woven hablon scarves and runners, straight from the looms. GCash and cash.',
+  startsAt: at(saturday(2), '10:00'),
+  endsAt: at(plus(saturday(2), 1), '18:00'),
+  ...venue('People\'s Park entrance', 'Palma Gil Street, Poblacion'),
+});
+
+await hostApproval(v.sticker, 'rejected', { daysAgo: 2, reason: 'Your Facebook page has no posts yet. Add a page that shows your products or a past stall, then resubmit.' });
+await popup(v.sticker, 'sticker-sari-sari-pop-up', {
+  name: 'Sticker Sari-Sari Pop-up',
+  description: 'Vinyl stickers and pins, three for ₱100.',
+});
+
+await hostApproval(v.bloom, 'rejected', { daysAgo: 2, revoked: true, reason: "Two visitors reported the pop-up didn't take place at the address given." });
+await popup(v.bloom, 'bloom-and-bark-garden-sale', {
+  name: 'Bloom and Bark Garden Sale',
+  description: 'Macramé hangers and potted plants.',
+  ...popupAnnounced,
+  startsAt: at(saturday(), '09:00'),
+  endsAt: at(saturday(), '15:00'),
+  ...venue('Buhangin court', 'Buhangin Road'),
+  moderationState: 'hidden',
+  moderationReason: "Two visitors reported the pop-up didn't take place at the address given.",
+  moderatedAt: new Date(Date.now() - 2 * day),
+  moderatedById: adminUser.id,
+});
+
+if ((await prisma.report.count({ where: { targetEventId: denimPopup.id } })) === 0) {
+  await prisma.report.create({
+    data: {
+      source: 'report_button',
+      reporterUserId: vendor.id,
+      targetType: 'event',
+      targetEventId: denimPopup.id,
+      reason: 'fake_or_misleading_event',
+      details: 'Last week the same pop-up was listed at Habi Café, but nobody was there.',
+      createdAt: new Date(Date.now() - day),
+    },
   });
 }
 
