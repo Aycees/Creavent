@@ -331,11 +331,11 @@ Check a feature when its commit is on the phase branch with its tests passing. C
 - [ ] **M5** The team can moderate and the jobs run
 
 **Phase 6: Pop-up events**
-- [ ] 6.1 Pop-up event type
-- [ ] 6.2 Host approval
-- [ ] 6.3 Create and announce
-- [ ] 6.4 Public pages
-- [ ] 6.5 Moderation
+- [x] 6.1 Pop-up event type (branch `feat/phase-6-popup-events`)
+- [x] 6.2 Host approval (branch `feat/phase-6-popup-events`)
+- [x] 6.3 Create and announce (branch `feat/phase-6-popup-events`)
+- [x] 6.4 Public pages (branch `feat/phase-6-popup-events`)
+- [x] 6.5 Moderation (branch `feat/phase-6-popup-events`)
 - [ ] **M6** A vendor hosts a pop-up that an attendee finds
 
 **Phase 7: Launch readiness**
