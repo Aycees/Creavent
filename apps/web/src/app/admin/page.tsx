@@ -1,9 +1,9 @@
 import type { Metadata } from "next"
 
-import { PlaceholderPage } from "@/components/layout/placeholder-page"
+import { AdminOverview } from "@/components/admin/overview"
 
-export const metadata: Metadata = { title: "Overview · Creavent" }
+export const metadata: Metadata = { title: "Overview · Admin · Creavent" }
 
 export default function OverviewPage() {
-  return <PlaceholderPage title="Overview" slice="5.3 (admin overview)" />
+  return <AdminOverview />
 }

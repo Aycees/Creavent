@@ -16,6 +16,7 @@ import {
 } from '@creavent/shared';
 import { fileTypeFromBuffer } from 'file-type';
 import type { File } from '../generated/prisma/client.js';
+import { writeAuditLog } from '../audit/audit-log.js';
 import { PrismaService, type Tx } from '../prisma/prisma.service.js';
 import {
   processImage,
@@ -239,6 +240,25 @@ export class FilesService {
     const file = await this.prisma.file.findFirst({ where: { id: fileId, status: 'ready', deletedAt: null } });
     if (!file || !uploadRules[file.purpose as UploadPurpose]?.private || !(await this.canOpen(user, file))) {
       throw new NotFoundException('File not found');
+    }
+    // Each admin view of someone's application document or proof of payment
+    // is saved in the audit log (spec §2, decision D8).
+    if (user.isAdmin && file.uploadedBy !== user.id && (file.purpose === 'application_document' || file.purpose === 'payment_proof')) {
+      // The event and shop are copied in, so the view stays in the event's
+      // history after the retention job deletes the file (flow 11).
+      const owner =
+        file.purpose === 'payment_proof'
+          ? await this.prisma.paymentProof.findFirst({ where: { fileId: file.id }, select: { eventId: true, vendorProfile: { select: { shopName: true } } } })
+          : await this.prisma.applicationDocument
+              .findFirst({ where: { fileId: file.id }, select: { application: { select: { eventId: true, vendorProfile: { select: { shopName: true } } } } } })
+              .then((d) => d?.application ?? null);
+      await writeAuditLog(this.prisma, {
+        actorUserId: user.id,
+        action: `${file.purpose}.view`,
+        entityType: 'file',
+        entityId: file.id,
+        changes: owner ? { eventId: owner.eventId, shopName: owner.vendorProfile.shopName } : undefined,
+      });
     }
     // PDFs always download, named from the purpose and date (spec §11.6).
     const download =

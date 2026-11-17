@@ -6,6 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 import Link from "next/link"
 import * as React from "react"
 
+import { HiddenEventNotice } from "@/components/moderation/notices"
 import { Alert } from "@/components/ui/alert"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { ApprovedMark } from "@/components/ui/approved-mark"
@@ -172,6 +173,8 @@ export function VendorApplicationPage({ id }: { id: string }) {
           <Link href={`/events/${a.event.slug}`}>View event</Link>
         </Button>
       </header>
+
+      {a.event.hidden && <HiddenEventNotice audience="vendor" />}
 
       {/* Phones: Pay by first, then the details, then the side panels.
           Desktop: Pay by tops the side column. */}

@@ -85,4 +85,19 @@ describe('refreshing public pages', () => {
     expect(res.status).toBe(200);
     expect(refresh).toHaveBeenLastCalledWith([`organizer:${pending.profile.id}`, 'listing']);
   });
+  it("refreshes the event pages that list a vendor when the vendor's role is suspended or reinstated", async () => {
+    const { organizer, eventId } = await setup();
+    await prisma.event.update({ where: { id: eventId }, data: { status: 'announced' } });
+    const parts = await eventParts(prisma, eventId);
+    const vendor = await createVendor(prisma, [parts.preloved.id]);
+    const { assignment } = await assignedSlot(prisma, { eventId, vendorProfileId: vendor.profile.id, categoryId: parts.preloved.id, slotId: parts.slots[0]!.id, organizerUserId: organizer.user.id });
+    await prisma.slotAssignment.update({ where: { id: assignment.id }, data: { status: 'reserved' } });
+    const admin = await signInAs(app, (await createUser(prisma, { isAdmin: true })).email);
+
+    await admin.post(`/api/admin/users/${vendor.user.id}/roles/vendor/suspend`).send({ reason: 'x' });
+    expect(refresh.mock.lastCall?.[0]).toEqual(expect.arrayContaining([`vendor:${vendor.profile.id}`, `event:${eventId}`]));
+
+    await admin.post(`/api/admin/users/${vendor.user.id}/roles/vendor/reinstate`).send({});
+    expect(refresh.mock.lastCall?.[0]).toEqual(expect.arrayContaining([`vendor:${vendor.profile.id}`, `event:${eventId}`]));
+  });
 });

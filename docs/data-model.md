@@ -766,7 +766,7 @@ A payment can have several proofs over time (a rejected one, then a new one).
 | resolved_by, resolved_at | uuid FK → users / timestamptz, null | |
 | resolution_note | text null | Internal note on what the admin checked and why. |
 
-Check: exactly one target column is set, and it matches `target_type`. Open reports with the same target are shown and resolved together.
+Check: exactly one target column is set, and it matches `target_type`. Partial unique indexes allow one `open` report per reporter and target (decision R3). Open reports with the same target are shown and resolved together.
 
 Moderation actions are stored where they apply: `user_roles.suspended_*` for suspensions, and `events.moderation_*` for hidden events. Each is also written to `audit_logs`.
 
@@ -787,11 +787,11 @@ Moderation actions are stored where they apply: `user_roles.suspended_*` for sus
 | error | text null | |
 | sent_at | timestamptz null | |
 
-`notification_type` values, one per row in spec §8.1, plus the account emails sent by the auth library: `email_verification`, `email_change_confirmation` (to the old address, approving an email change), `password_reset`, `organizer_approved`, `organizer_rejected`, `application_submitted`, `application_withdrawn`, `application_approved`, `application_declined`, `slot_assigned`, `slot_released`, `proof_uploaded`, `payment_approved`, `payment_rejected`, `vendor_removed`, `event_changed`, `event_canceled`, `event_hidden`.
+`notification_type` values, one per row in spec §8.1, plus the account emails sent by the auth library: `email_verification`, `email_change_confirmation` (to the old address, approving an email change), `password_reset`, `organizer_approved`, `organizer_rejected`, `application_submitted`, `application_withdrawn`, `application_approved`, `application_declined`, `slot_assigned`, `slot_released`, `proof_uploaded`, `payment_approved`, `payment_rejected`, `vendor_removed`, `event_changed`, `event_canceled`, `event_hidden` (added in Phase 5).
 
 ### 5.10 Audit log
 
-**audit_logs**: append-only record of admin actions (spec §2), including each time an admin opens an application document or a proof of payment. Rows are never updated or deleted.
+**audit_logs**: append-only record of admin actions (spec §2), including each time an admin opens an application document or a proof of payment. Rows are never deleted. The one change ever made to them: the retention job blanks payment details (`changes` and `reason` on payment and proof rows, the price on assignment rows) with the rest of the event's payment records (decision R14).
 
 | Attribute | Type | Notes |
 |---|---|---|
@@ -889,9 +889,11 @@ Values worked out from other tables instead of being stored.
   - `payments` (amounts, statuses, decisions)
   - the QR images in `event_payment_methods`, and `slot_assignments.payment_instructions_snapshot`, which is set to null
   - the application documents (permits) in storage, their `files` rows, and `application_documents`
+  - the sent `email_notifications` rows that carried payment amounts, slots or account details for that event (decision R12)
+  - the payment details in `audit_logs`: `changes` and `reason` on its payment and proof rows, and the price on its assignment rows; who acted, what and when stay (decision R14)
 
-  The `slot_assignments` and `applications` rows themselves stay, as the record of who joined the event and had which slot. `files.delete_after` is set when the file is uploaded and updated if the event date changes or the event is canceled.
-- **Cleanup job (daily, spec §11.7):** deletes the object and then the row for files with `deleted_at` older than 24 hours, and deletes `pending` files older than 24 hours. A lifecycle rule on the private bucket's `incoming/` area also expires leftover uploads after 1 day, as a safety net. Replacing a cover, logo, avatar, floor plan, or photo sets `deleted_at` on the old file. Deleting an account sets it on the avatar.
+  The `slot_assignments` and `applications` rows themselves stay, as the record of who joined the event and had which slot. The job works from the events: an event's records go when its `ends_at`, or its `canceled_at` if it was canceled, is more than `proof_retention_days` ago (decision R6). It sets `deleted_at` on the files, and the cleanup job deletes the objects. `files.delete_after` is not used (changed 2026-11-17).
+- **Cleanup job (daily, spec §11.7):** deletes the object and then the row for files with `deleted_at` older than 24 hours, and deletes `pending` files older than 24 hours. A removed file that a row still points to is kept, because its `ON DELETE SET NULL` keys would quietly empty a picture. A lifecycle rule on the private bucket's `incoming/` area also expires leftover uploads after 1 day, as a safety net. Replacing a cover, logo, avatar, floor plan, or photo sets `deleted_at` on the old file. Deleting an account sets it on the avatar.
 
 > **Check with the lawyer (G2, G3):** permits can include health certificates, which may be sensitive personal information under the Philippine Data Privacy Act. Confirm that 90 days is the right period for them and for payment records.
 

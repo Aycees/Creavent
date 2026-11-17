@@ -44,7 +44,8 @@ export class VendorEventsService {
   // Visible events open to vendors or announced that haven't ended, soonest
   // first.
   async browse(userId: string, query: z.output<typeof vendorEventsQuerySchema>): Promise<{ events: VendorEventCard[] }> {
-    const vendor = await vendorProfile(this.prisma, userId);
+    // Browsing only shows: a suspended vendor can still look (decision R8).
+    const vendor = await vendorProfile(this.prisma, userId, { read: true });
     const now = new Date();
     // Events that end today or later, by the Manila day (flow 4).
     const startOfToday = new Date(`${manilaParts(now).date}T00:00:00+08:00`);
@@ -202,10 +203,10 @@ export class VendorEventsService {
   }
 }
 
-async function vendorProfile(prisma: PrismaService, userId: string) {
+async function vendorProfile(prisma: PrismaService, userId: string, options: { read?: boolean } = {}) {
   const role = await prisma.userRole.findUnique({ where: { userId_role: { userId, role: 'vendor' } } });
   if (!role) throw new ForbiddenException('Add the vendor role first');
-  if (role.suspendedAt) throw new ForbiddenException('Your vendor role is suspended');
+  if (role.suspendedAt && !options.read) throw new ForbiddenException('Your vendor role is suspended');
   const profile = await prisma.vendorProfile.findUnique({ where: { userId }, include: { categories: true } });
   if (!profile) throw new ForbiddenException('Finish your shop profile first');
   return profile;

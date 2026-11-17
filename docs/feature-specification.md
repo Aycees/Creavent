@@ -113,7 +113,7 @@ Approval states (organizer role only): `not submitted` → `pending review` → 
 
 **Editing after approval:** an approved organizer edits their profile freely. Changing the display name, or adding a link that wasn't reviewed, sends them back to pending review, and the badge hides until an admin approves again. Removing a link, or changing the page link, city, about, logo, or contact email, keeps the approval (decided 2026-11-13, open question D9).
 
-**Suspended roles:** an admin suspends one role at a time (vendor or organizer), with a reason that the user sees in the app. A suspended vendor cannot apply or manage slots, and their vendor page is not shown (section 7.2). A suspended organizer cannot manage events or applications, and their organizer page is not shown (section 7.1). The user's other role keeps working. Organizers of events a suspended vendor joined are not emailed automatically. When an organizer with upcoming events is suspended, an admin hides those events and emails the affected vendors from the support address. There is no automatic freeze in the MVP.
+**Suspended roles:** an admin suspends one role at a time (vendor or organizer), with a reason that the user sees in the app. A suspended vendor cannot apply or manage slots, and their vendor page is not shown (section 7.2). A suspended organizer cannot manage events or applications, and their organizer page is not shown (section 7.1). The user's other role keeps working, and the suspended role still sees its own pages behind a notice with the reason, without changing anything (decision R8). Organizers of events a suspended vendor joined are not emailed automatically. When an organizer with upcoming events is suspended, the admin can hide those events in the same step (decision R1) and emails the affected vendors from the support address. While an event is hidden, its organizer and vendors see a notice, and nothing about it can be changed (decision R2). Reinstating and showing again send no email (decision R4). There is no automatic freeze in the MVP.
 
 **Appeals:** there is no separate appeal process. A rejected organizer resubmits with better links, or emails support to contest the decision. An admin re-reviews either way.
 
@@ -122,6 +122,7 @@ Approval states (organizer role only): `not submitted` → `pending review` → 
 - Signed-in users report an event or user with the report button. Attendees and anyone else email the support address, and an admin adds that email as a report (source "support email") so every report is handled in one queue.
 - Each report has a short reference number (for example, RPT-0142).
 - Open reports about the same event or user are shown together, oldest first, with what each person said. One decision handles them all: dismiss, hide the event, or suspend the user's role. The admin can add an internal note on what they checked.
+- The report link is at the bottom of the event, organizer, and vendor pages, for signed-in users. The reasons are fake event or account, scam, inappropriate content, and something else. A person has one open report per event or user, and can't report themselves or their own event. People who report aren't emailed about the decision (decisions R3, R5).
 
 Notes:
 - Payment disputes and refunds between organizers and vendors are not Creavent's responsibility (see section 6). Admin access is for support, moderation, and fraud reports.
@@ -594,7 +595,7 @@ Processing runs while the browser waits for the Complete step. The API limits ho
 ### 11.7 Replacing, removing, and cleanup
 
 - **Replacing** a picture (cover, logo, avatar, floor plan) creates a new file and removes the old one. Removing a vendor photo removes that file.
-- A removed file is deleted from storage within 24 hours.
+- A removed file is deleted from storage by the daily cleanup once it has been removed for 24 hours, so within 2 days (data model §8).
 - Uploads that never reach Complete are deleted automatically after 24 hours.
 - Proof-of-payment, payment QR, and application document files follow the retention rules in section 6.7. When an account is deleted, its avatar is removed.
 

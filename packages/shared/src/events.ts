@@ -338,6 +338,8 @@ export const eventSetupSchema = z.object({
   checklist: eventChecklistSchema,
   // Approved and not suspended: needed to open to vendors (spec §2.1).
   organizerApproved: z.boolean(),
+  // An admin hid the event, with the reason the organizer was emailed (spec §2).
+  hiddenByCreavent: z.object({ reason: z.string().nullable() }).nullable(),
   details: eventDetailsStateSchema,
   eventTypes: z.array(eventTypeSchema),
   // Active product categories, for the Requirements tab.

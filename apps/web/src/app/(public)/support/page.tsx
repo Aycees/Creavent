@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { connection } from "next/server"
 import { Suspense } from "react"
 
 import { SupportView } from "@/components/public/static-pages"
@@ -8,6 +9,9 @@ import { getPublicConfig } from "@/lib/public-api"
 export const metadata: Metadata = { title: "Support · Creavent" }
 
 async function View() {
+  // Read when a visitor asks, not while building: the build has no API to
+  // call. The config itself stays cached for hours.
+  await connection()
   const config = await getPublicConfig()
   return <SupportView supportEmail={config.supportEmail} />
 }

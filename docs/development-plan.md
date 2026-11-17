@@ -306,11 +306,11 @@ Check a feature when its commit is on the phase branch with its tests passing. C
 - [ ] **M4** An attendee finds the event and its vendors
 
 **Phase 5: Admin and operations**
-- [ ] 5.1 Reports
-- [ ] 5.2 Users and events
-- [ ] 5.3 Admin overview
-- [ ] 5.4 Retention and cleanup jobs
-- [ ] 5.5 Backups
+- [x] 5.1 Reports (branch `feat/phase-5-admin-operations`)
+- [x] 5.2 Users and events (branch `feat/phase-5-admin-operations`)
+- [x] 5.3 Admin overview (branch `feat/phase-5-admin-operations`)
+- [x] 5.4 Retention and cleanup jobs (branch `feat/phase-5-admin-operations`)
+- [x] 5.5 Backups (branch `feat/phase-5-admin-operations`; the worker image and dump are checked locally, the upload to R2 waits for the backups bucket)
 - [ ] **M5** The team can moderate and the jobs run
 
 **Phase 6: Launch readiness**

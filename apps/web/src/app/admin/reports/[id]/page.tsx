@@ -1,9 +1,19 @@
 import type { Metadata } from "next"
+import { Suspense } from "react"
 
-import { PlaceholderPage } from "@/components/layout/placeholder-page"
+import { ReportReview } from "@/components/admin/report-review"
 
-export const metadata: Metadata = { title: "Report · Creavent" }
+export const metadata: Metadata = { title: "Report · Admin · Creavent" }
 
-export default function ReportPage() {
-  return <PlaceholderPage title="Report" slice="5.1 (reports)" />
+async function Review({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  return <ReportReview reportId={id} />
+}
+
+export default function ReportPage({ params }: PageProps<"/admin/reports/[id]">) {
+  return (
+    <Suspense>
+      <Review params={params} />
+    </Suspense>
+  )
 }

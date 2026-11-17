@@ -347,6 +347,29 @@ const templates = {
       </>
     ),
   },
+
+  // An admin hid the event (spec §2). Sent to the organizer only; vendors are
+  // emailed by hand from the support inbox (flow 11).
+  event_hidden: {
+    payload: z.object({ name: z.string(), eventName: z.string(), reason: z.string(), url: z.string(), supportEmail: z.string() }),
+    subject: (p: { eventName: string }) => `We hid ${p.eventName}`,
+    body: (p: { name: string; eventName: string; reason: string; url: string; supportEmail: string }) => (
+      <>
+        <Heading>{`We hid ${p.eventName}`}</Heading>
+        <Paragraph>Hi {firstName(p.name)},</Paragraph>
+        <Paragraph>
+          The Creavent team hid your event. Visitors and vendors can&apos;t find it, and you can&apos;t change it or its
+          applications until we show it again.
+        </Paragraph>
+        <InfoBox label="Why" lines={[p.reason]} />
+        <Paragraph>
+          Reply to this email or write to {p.supportEmail}. If the issue is fixed, we show the event again with its
+          applications and slots as they were.
+        </Paragraph>
+        <ActionButton href={p.url}>Open your event</ActionButton>
+      </>
+    ),
+  },
 } satisfies Record<NotificationType, unknown>;
 
 export async function renderEmail(type: NotificationType, payload: unknown) {

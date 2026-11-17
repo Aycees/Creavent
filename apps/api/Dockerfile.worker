@@ -1,0 +1,29 @@
+# The worker on Render (docs/deployment.md). Docker instead of Render's Node
+# runtime so pg_dump matches the database's major version (17) for the nightly
+# backup (architecture §9.3).
+FROM node:24-bookworm-slim
+
+# PostgreSQL's own apt repository: Debian's pg_dump is older than 17.
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ca-certificates curl gnupg \
+  && install -d /usr/share/postgresql-common/pgdg \
+  && curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+  && echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+  && apt-get update \
+  && apt-get install -y --no-install-recommends postgresql-client-17 \
+  && apt-get purge -y curl gnupg && apt-get autoremove -y \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN corepack enable
+WORKDIR /app
+COPY . .
+RUN pnpm install --frozen-lockfile --filter "@creavent/api..." \
+  && pnpm --filter @creavent/api exec prisma generate \
+  && pnpm --filter "@creavent/api..." run build
+
+# Not root: the worker holds the database and R2 secrets. Started with node
+# directly, so nothing needs to download pnpm at run time.
+ENV NODE_ENV=production
+USER node
+WORKDIR /app/apps/api
+CMD ["node", "dist/worker.js"]

@@ -1,6 +1,7 @@
 // Zod schemas, types, and enums shared by apps/web and apps/api.
 // Schemas are added here as each feature is built.
 export * from './accounts.js';
+export * from './admin.js';
 export * from './api/client.js';
 export * from './applications.js';
 export * from './assignments.js';
@@ -13,5 +14,6 @@ export * from './health.js';
 export * from './money.js';
 export * from './onboarding.js';
 export * from './public.js';
+export * from './reports.js';
 export * from './schedule.js';
 export * from './text.js';

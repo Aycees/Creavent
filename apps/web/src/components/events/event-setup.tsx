@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import * as React from "react"
 
+import { HiddenEventNotice } from "@/components/moderation/notices"
 import { Alert } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -97,6 +98,8 @@ function Setup({ setup }: { setup: EventSetup }) {
         </div>
         <EventActionsMenu setup={setup} />
       </EventTabs>
+
+      {setup.hiddenByCreavent && <HiddenEventNotice audience="organizer" reason={setup.hiddenByCreavent.reason} />}
 
       {setup.canceled ? (
         <CanceledNotice canceled={setup.canceled} />

@@ -226,7 +226,7 @@ The upload rules are in [Feature specification §11](feature-specification.md#11
 
 ### 9.3 Backups
 
-- **Database:** the worker runs `pg_dump` every night and uploads the file to the backups bucket in R2. Dumps are kept for **30 days** through an R2 lifecycle rule, so there is always a dated copy from before any bad data.
+- **Database:** the worker runs `pg_dump` every night (2 AM Manila, custom format) and uploads the file to the backups bucket in R2 as `db/creavent-YYYY-MM-DD.dump`. The worker runs on Render's Docker runtime so its `pg_dump` matches Postgres 17 (decision R7). Dumps are kept for **30 days** through an R2 lifecycle rule, so there is always a dated copy from before any bad data.
 - **Restore drill:** restore a dump into a fresh database at least once before launch, and write down the steps.
 - **Files:** permits and proofs live in R2, not in the database, so database dumps do not cover them. File paths are never reused (section 7), so a file cannot be overwritten by mistake.
 - **Deleted data in backups:** data that is deleted (payment records after 90 days, wiped accounts) stays in the dumps for up to 30 more days. The privacy notice should say so (open question G3).
@@ -237,7 +237,7 @@ The upload rules are in [Feature specification §11](feature-specification.md#11
 - **Errors:** Sentry on web and API (free tier).
 - **Logs:** structured JSON logs from Nest's built-in logger in production (readable text in development), read in Render's log view.
 - **Uptime:** an external uptime check on the web app and on an API health endpoint.
-- **Rate limits** (NestJS throttler): login, signup, password reset, email verification resend, uploads, and reports.
+- **Rate limits:** login, signup, password reset, and email verification resend (Better Auth's limits); uploads and reports are counted in the database per user (reports: 10 an hour, taken under a per-user lock).
 - **Security headers:** Nest's built-in `useSecurityHeaders()` on the API (Helmet's defaults, no extra package), and matching headers on the web app.
 - **Private documents:** each time an admin opens an application document or a proof of payment, a `*.view` row is written to the audit log (spec §2). This supports the Data Privacy Act work (open question G3).
 

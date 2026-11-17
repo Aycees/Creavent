@@ -1,3 +1,4 @@
+import type * as React from "react"
 import type { ProfileEvent, PublicOrganizerPage } from "@creavent/shared"
 import { CaretRightIcon } from "@phosphor-icons/react/dist/ssr"
 import Link from "next/link"
@@ -50,7 +51,7 @@ export function PastRow({ e, detail, trailing, upcoming = false }: { e: ProfileE
 }
 
 // /organizers/[slug] (spec §7.1, mockup OrganizerP4). No contact form.
-export function OrganizerPageView({ page, supportEmail }: { page: PublicOrganizerPage; supportEmail: string }) {
+export function OrganizerPageView({ page, supportEmail, report }: { page: PublicOrganizerPage; supportEmail: string; report?: React.ReactNode }) {
   const o = page.organizer
   return (
     <article className="flex flex-col gap-12 md:gap-14">
@@ -131,13 +132,15 @@ export function OrganizerPageView({ page, supportEmail }: { page: PublicOrganize
         </section>
       )}
 
-      <p className="text-sm text-muted">
-        Something wrong with this organizer? Email{" "}
-        <a href={`mailto:${supportEmail}`} className="text-ink underline underline-offset-2">
-          {supportEmail}
-        </a>{" "}
-        and we&apos;ll look into it.
-      </p>
+      {report ?? (
+        <p className="text-sm text-muted">
+          Something wrong with this organizer? Email{" "}
+          <a href={`mailto:${supportEmail}`} className="text-ink underline underline-offset-2">
+            {supportEmail}
+          </a>{" "}
+          and we&apos;ll look into it.
+        </p>
+      )}
     </article>
   )
 }

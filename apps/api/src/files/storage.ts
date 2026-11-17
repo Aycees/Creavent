@@ -1,7 +1,9 @@
 import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
-// The two buckets of spec §11.2. Uploads land in private/incoming/ first.
+// The two buckets of spec §11.2. Uploads land in private/incoming/ first. The
+// backups bucket isn't here: only the worker reaches it, with its own key
+// (src/jobs/backup.ts).
 export type Bucket = 'public' | 'private';
 
 export interface ObjectStorage {

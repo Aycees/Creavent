@@ -39,7 +39,7 @@ export class OrganizerAllApplicationsService {
   ) {}
 
   async list(userId: string, query: z.output<typeof organizerApplicationsQuerySchema>): Promise<OrganizerApplications> {
-    const profile = await organizerProfile(this.prisma, userId);
+    const profile = await organizerProfile(this.prisma, userId, { read: true });
     const mine: Prisma.ApplicationWhereInput = {
       event: { organizerProfileId: profile.id },
       ...(query.eventId ? { eventId: query.eventId } : {}),
@@ -80,12 +80,12 @@ export class OrganizerAllApplicationsService {
   }
 
   async waitingCount(userId: string) {
-    const profile = await organizerProfile(this.prisma, userId);
+    const profile = await organizerProfile(this.prisma, userId, { read: true });
     return { waiting: await this.prisma.application.count({ where: { status: 'submitted', event: { organizerProfileId: profile.id } } }) };
   }
 
   async detail(userId: string, applicationId: string): Promise<ApplicationDetail> {
-    const profile = await organizerProfile(this.prisma, userId);
+    const profile = await organizerProfile(this.prisma, userId, { read: true });
     const a = await this.prisma.application.findFirst({
       where: { id: applicationId, event: { organizerProfileId: profile.id } },
       include: {

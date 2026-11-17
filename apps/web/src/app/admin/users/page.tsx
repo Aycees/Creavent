@@ -1,9 +1,9 @@
 import type { Metadata } from "next"
 
-import { PlaceholderPage } from "@/components/layout/placeholder-page"
+import { AdminUsersList } from "@/components/admin/users-list"
 
-export const metadata: Metadata = { title: "Users · Creavent" }
+export const metadata: Metadata = { title: "Users · Admin · Creavent" }
 
 export default function UsersPage() {
-  return <PlaceholderPage title="Users" slice="5.2 (users and events)" />
+  return <AdminUsersList />
 }

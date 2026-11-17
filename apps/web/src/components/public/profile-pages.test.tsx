@@ -11,6 +11,7 @@ const SUPPORT = "support@creavent.example"
 const organizerPage = (overrides: Partial<PublicOrganizerPage> = {}): PublicOrganizerPage => ({
   tags: [],
   organizer: {
+    id: "6e0c7b2a-3f4d-4c8e-9a1b-2c3d4e5f6a7b",
     displayName: "Sari-Sari Collective",
     slug: "sari-sari-collective",
     logoUrl: null,
@@ -90,6 +91,7 @@ describe("OrganizerPageView", () => {
 const vendorPage = (overrides: Partial<PublicVendorPage> = {}): PublicVendorPage => ({
   tags: [],
   vendor: {
+    id: "7e0c7b2a-3f4d-4c8e-9a1b-2c3d4e5f6a7b",
     shopName: "Lola's Ukay",
     slug: "lolas-ukay",
     avatarUrl: null,

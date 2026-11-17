@@ -10,6 +10,7 @@ const vendor = (shopName: string, slotLabel: string, categories: string[], slug:
 
 export function publicEventFixture(overrides: Partial<PublicEvent> = {}): PublicEvent {
   return {
+    id: "5e0c7b2a-3f4d-4c8e-9a1b-2c3d4e5f6a7b",
     slug: "matina-night-flea",
     name: "Matina Night Flea",
     typeName: "Flea market",

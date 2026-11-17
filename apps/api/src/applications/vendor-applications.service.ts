@@ -24,6 +24,7 @@ import { changeApplicationStatus } from './application-status.js';
 import { archivePayment, changeAssignmentStatus } from './assignment-status.js';
 import { approvedPerCategory, spotsLeft } from './category-counts.js';
 import { PaymentsService } from './payments.service.js';
+import { assertVisible } from './organizer-applications.service.js';
 import { vendorProfile } from './vendor-profile.js';
 import { ACTIVE, preferenceStates, slotLabel, sortedSlots, takenSlotIds } from './slot-status.js';
 
@@ -158,12 +159,15 @@ export class VendorApplicationsService {
 
   async withdraw(userId: string, applicationId: string) {
     return this.prisma.$transaction(async (tx) => {
+      // Not while the vendor role is suspended (spec §2.1).
+      await vendorProfile(tx, userId);
       const application = await tx.application.findFirst({
         where: { id: applicationId, vendorProfile: { userId } },
         include: { vendorProfile: true, event: { include: eventInclude } },
       });
       if (!application) throw new NotFoundException('Application not found');
       await tx.$queryRaw`SELECT id FROM events WHERE id = ${application.eventId}::uuid FOR UPDATE`;
+      assertVisible(application.event);
       // An unpaid slot is released with the withdrawal; a paid one isn't.
       await this.releaseActive(tx, userId, applicationId);
       await changeApplicationStatus(tx, {
@@ -180,7 +184,7 @@ export class VendorApplicationsService {
 
   // /vendor/applications: every application, newest first (spec §4.6).
   async list(userId: string): Promise<{ applications: VendorApplicationRow[] }> {
-    const vendor = await vendorProfile(this.prisma, userId);
+    const vendor = await vendorProfile(this.prisma, userId, { read: true });
     const applications = await this.prisma.application.findMany({
       where: { vendorProfileId: vendor.id },
       orderBy: { submittedAt: 'desc' },
@@ -206,7 +210,7 @@ export class VendorApplicationsService {
   // /vendor: what needs action, applications, the next confirmed event, and
   // events open to vendors in the vendor's categories (spec §4.6).
   async dashboard(userId: string): Promise<VendorDashboard> {
-    const vendor = await vendorProfile(this.prisma, userId);
+    const vendor = await vendorProfile(this.prisma, userId, { read: true });
     const now = new Date();
     const [due, confirmed, { applications }] = await Promise.all([
       this.prisma.slotAssignment.findMany({
@@ -276,7 +280,7 @@ export class VendorApplicationsService {
 
   // /vendor/applications/[id]: only the vendor who applied (spec §4.6).
   async detail(userId: string, applicationId: string): Promise<VendorApplication> {
-    const vendor = await vendorProfile(this.prisma, userId);
+    const vendor = await vendorProfile(this.prisma, userId, { read: true });
     const a = await this.prisma.application.findFirst({
       where: { id: applicationId, vendorProfileId: vendor.id },
       include: {
@@ -322,6 +326,7 @@ export class VendorApplicationsService {
         ingressInfo: active ? a.event.ingressInfo : null,
         preferredSlots: a.event.slotMode === 'vendor_preference',
         vendorFloorPlanUrl: a.event.vendorFloorPlanFile ? this.files.url(a.event.vendorFloorPlanFile.storageKey) : null,
+        hidden: a.event.moderationState === 'hidden',
       },
       organizer: {
         displayName: a.event.organizerProfile.displayName,
@@ -434,9 +439,11 @@ export class VendorApplicationsService {
   // row is locked so the change runs after any organizer decision on it.
   private async ownApplication(db: Db, userId: string, applicationId: string, lock = true) {
     const vendor = await vendorProfile(db, userId);
-    const application = await db.application.findFirst({ where: { id: applicationId, vendorProfileId: vendor.id } });
+    const application = await db.application.findFirst({ where: { id: applicationId, vendorProfileId: vendor.id }, include: { event: { select: { moderationState: true } } } });
     if (!application) throw new NotFoundException('Application not found');
     if (lock) await db.$queryRaw`SELECT id FROM events WHERE id = ${application.eventId}::uuid FOR UPDATE`;
+    // Nothing changes while Creavent has the event hidden (decided 2026-11-17).
+    assertVisible(application.event);
     return { application, vendor };
   }
 

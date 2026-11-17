@@ -14,7 +14,7 @@ One Render project, `creavent`, with one environment, `staging`, in Singapore:
 |---|---|---|
 | `creavent-web-staging` | Web service (Node) | Next.js. Public. Forwards `/api/*` to the API over the private network. |
 | `creavent-api-staging` | Web service (Node) | NestJS. Runs migrations before each deploy. Health check at `/api/health`. |
-| `creavent-worker-staging` | Background worker (Node) | The same NestJS codebase, started from `dist/worker.js`. Runs pg-boss jobs: sends queued emails now, scheduled jobs and backups later. Serves no HTTP. |
+| `creavent-worker-staging` | Background worker (Docker) | The same NestJS codebase, built by `apps/api/Dockerfile.worker` with `pg_dump` 17. Runs pg-boss jobs: queued emails, the hourly "mark completed" job, the daily retention and file cleanup jobs, and the nightly backup. Serves no HTTP. |
 | `creavent-db-staging` | Postgres 17 | The database. Reachable only from Render's private network. |
 | `creavent-staging-secrets` | Environment group | Secret values, filled in the Render Dashboard. Attached to every service. |
 
@@ -51,6 +51,8 @@ Add these to `creavent-staging-secrets`. `apps/api/.env.example` describes each 
 | `WEB_URL` | API, worker | The web service's address. Email links and Google's redirect use it. |
 | `RESEND_API_KEY`, `EMAIL_FROM` | Worker | The worker refuses to start without the key. |
 | `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` | API | An R2 API token for the two staging buckets. |
+| `R2_BACKUPS_BUCKET`, `R2_BACKUPS_ACCESS_KEY_ID`, `R2_BACKUPS_SECRET_ACCESS_KEY` | Worker only | Phase 5. Put these in `creavent-staging-worker-secrets`, not the shared group. The third private bucket holds the nightly database dump; add a lifecycle rule that deletes objects after 30 days (architecture §9.3). Make a separate R2 token with write access to this bucket only, and keep the backups bucket out of the shared token's scope, so the web app and API can't read the dumps (decision R13). Without the bucket the backup is off and the worker logs a warning. |
+| `PROOF_RETENTION_DAYS` | Worker | Optional, 90 by default (data model §5.11). |
 | `R2_PUBLIC_BUCKET`, `R2_PRIVATE_BUCKET`, `R2_PUBLIC_URL` | API | The private bucket needs a CORS rule allowing `PUT` from `WEB_URL` with the `Content-Type` header. `R2_PUBLIC_URL` is the public bucket's custom domain. Leave it empty until one exists: the API then serves pictures at `/api/files/public/...`. Don't use the r2.dev address, which some networks block. |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | API | Optional. Redirect URI: `<WEB_URL>/api/auth/callback/google`. |
 | `REVALIDATE_SECRET` | Web, API, worker | Phase 4. 32+ random characters, the same for all three (the group gives them one value). The API and worker send it when they ask the web app to refresh cached public pages (decision Q1). Without it, public pages stay cached until their next time-based refresh. |
@@ -69,5 +71,5 @@ Add these to `creavent-staging-secrets`. `apps/api/.env.example` describes each 
 |---|---|
 | Resend sending domain | Resend's test sender until open question E1. |
 | Domain | Open question H1, item 6.2. Until then, services use `*.onrender.com`. |
-| Backups | Feature 5.5 (nightly `pg_dump` to R2). Restore drill in item 6.5. |
+| Restore drill | Item 6.5. The nightly backup is in place (feature 5.5). |
 | Production | Item 6.3: a second environment in `render.yaml`, with its own database and environment group. |
