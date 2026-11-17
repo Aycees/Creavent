@@ -2,7 +2,7 @@
 
 **Status:** First draft. Logical model with PostgreSQL-style types. It follows the [Feature specification](feature-specification.md) and the [User flows](user-flows.md). If this file and the spec disagree, the spec wins.
 
-Last updated: 2026-11-14
+Last updated: 2026-11-17
 
 ## Contents
 
@@ -34,7 +34,9 @@ Agreed on 2026-11-11, and simplified for the MVP on 2026-11-12 (spec §9).
 | Topic | Decision | Where in the model |
 |---|---|---|
 | Product categories | One platform-wide list, set in seed data. Vendors, events, and applications pick from it. | `categories` |
-| Event types | One platform-wide list, set in seed data (Flea market, Bazaar, Pop-up). Each event has one. A table rather than an enum, because the list is managed in seed data like `categories`, can be marked inactive, and adding a type needs no enum migration. | `event_types`, `events.event_type_id` |
+| Event types | One platform-wide list, set in seed data (Flea market, Bazaar, Pop-up). Each event has one. A table rather than an enum, because the list is managed in seed data like `categories`, can be marked inactive, and adding a type needs no enum migration. Each type says who hosts it: Pop-up is for vendors, the others for organizers (added 2026-11-17). | `event_types`, `event_types.host_kind`, `events.event_type_id` |
+| Pop-up events | A pop-up is a row in `events` hosted by a vendor instead of an organizer, so the listing, event page, search, jobs, reports, and hiding work unchanged. Columns a pop-up doesn't use stay null (spec §4.7, decided 2026-11-17). | `events.host_vendor_profile_id` |
+| Pop-up host approval | Lives on the vendor's role row, in the same columns as organizer approval, plus how it was granted and whether it was ever revoked. The links reviewed are the vendor profile's social links. | `user_roles.approval_*`, `user_roles.approval_source`, `user_roles.host_revoked_at` |
 | Public vendor page | Every vendor has a public page at `/vendors/<slug>`. It shows profile content and two lists worked out from slot assignments. Phone, email, applications, documents, and payments are never shown. | `vendor_profiles.slug`, `vendor_profiles.social_links`, section 7 |
 | One assignment per vendor | A vendor has at most one active assignment per event. It can cover several slots, up to the event's limit (decisions P2, P3), with one payment, so each proof belongs to exactly one payment. | partial UK on `slot_assignments`, `slot_assignment_slots`, `payment_proofs.payment_id` |
 | Cash or payment without proof | The organizer can approve a payment without a proof image, with a note (for example, cash on site). | `payments.method`, `payments.decision_note` |
@@ -62,7 +64,8 @@ erDiagram
     categories ||--o{ vendor_profile_categories : ""
     vendor_profiles ||--o{ vendor_profile_photos : "shows"
 
-    organizer_profiles ||--o{ events : "runs"
+    organizer_profiles |o--o{ events : "runs"
+    vendor_profiles |o--o{ events : "hosts (pop-ups)"
     event_types ||--o{ events : "classifies"
     events ||--o{ event_categories : "allows"
     categories ||--o{ event_categories : ""
@@ -94,7 +97,9 @@ erDiagram
 | Enum | Values | Spec |
 |---|---|---|
 | `role_type` | `vendor`, `organizer` | §1 |
-| `approval_status` | `not_submitted`, `pending_review`, `approved`, `rejected` | §2.1 |
+| `approval_status` | `not_submitted`, `pending_review`, `approved`, `rejected` | §2.1, §4.7 |
+| `approval_source` | `reviewed`, `earned` | §4.7 |
+| `event_host_kind` | `organizer`, `vendor` | §3.1, §4.7 |
 | `legal_document` | `terms`, `privacy` | §1 |
 | `file_purpose` | `payment_proof`, `payment_qr`, `application_document`, `event_cover`, `vendor_floor_plan`, `public_floor_plan`, `vendor_photo`, `organizer_logo`, `avatar` | §6.5, §6.7, §11.1 |
 | `file_status` | `pending`, `ready` | §11.3 |
@@ -110,9 +115,9 @@ erDiagram
 | `fee_payer` | `vendor`, `organizer` (unused in the MVP) | Revenue model §7 |
 | `report_target` | `user`, `event` | §7 |
 | `report_source` | `report_button`, `support_email` | §2.2 |
-| `report_reason` | `fake_account`, `scam`, `inappropriate_content`, `other` | §2 |
+| `report_reason` | `fake_account`, `fake_or_misleading_event`, `scam`, `inappropriate_content`, `other` | §2.2 |
 | `report_status` | `open`, `dismissed`, `actioned` | §2 |
-| `report_action` | `none`, `event_hidden`, `user_suspended`, `other` | §2 |
+| `report_action` | `none`, `event_hidden`, `user_suspended`, `host_approval_revoked`, `other` | §2.2, §4.7 |
 | `email_status` | `queued`, `sent`, `failed` | §8.1 |
 | `notification_type` | See section 5.11 | §8.1 |
 
@@ -161,7 +166,9 @@ erDiagram
         uuid id PK
         uuid user_id FK
         role_type role "UK with user_id"
-        approval_status approval_status "null for vendors"
+        approval_status approval_status "organizer approval, or pop-up host approval for vendors"
+        approval_source approval_source "null, vendors"
+        timestamptz host_revoked_at "null, vendors"
         citext contact_email "null, organizers"
         timestamptz approval_submitted_at "null"
         uuid reviewed_by FK "null"
@@ -200,7 +207,7 @@ erDiagram
 - `email`, `full_name`, `phone`, `avatar_file_id`, `image` are cleared or replaced with placeholders ("Deleted user"). `accounts` and `sessions` rows are deleted. Profile photos are deleted. On the vendor and organizer profiles, `social_links` is cleared and `slug` is set to null, so the public page stops working. The profile rows are kept as empty shells (names and text cleared), because applications, assignments, and events point to them, like the `users` row.
 - The `users` row is kept as an empty shell, because applications, payments, reports, and audit logs point to it.
 - Reports, audit logs, and legal acceptances are kept. Payment records and application documents follow the normal 90-day rule (section 8).
-- Not done while the user has an active slot assignment, or runs an event that is `open_to_vendors` or `announced`. Pending applications are withdrawn.
+- Not done while the user has an active slot assignment, runs an event that is `open_to_vendors` or `announced`, or hosts an `announced` pop-up that hasn't ended. Pending applications are withdrawn. The vendor's pop-up drafts are deleted, and past or canceled pop-ups are kept, like an organizer's events.
 - `email` is a UK, so a deleted account's email is replaced with a placeholder. The person can sign up again with the same email as a brand-new account.
 
 **Auth library tables.** Better Auth ([Architecture §4.2](architecture.md#42-auth-library)) keeps three tables of its own next to `users`. Their columns follow Better Auth's schema and are not listed here, except the ones the app reads. They replace the `auth_identities` table and `auth_provider` enum of earlier drafts.
@@ -224,27 +231,29 @@ erDiagram
 
 A user whose latest acceptance is older than the current version is asked to accept the new one before continuing.
 
-**user_roles**: the vendor and organizer roles a user has added, with organizer approval and suspension (spec §1, §2.1).
+**user_roles**: the vendor and organizer roles a user has added, with approval and suspension (spec §1, §2.1). On the organizer row, approval is organizer approval. On the vendor row, it is pop-up host approval (spec §4.7, added 2026-11-17). Both use the same columns and the same admin queue.
 
 | Attribute | Type | Notes |
 |---|---|---|
 | id | uuid PK | |
 | user_id | uuid FK → users | UK with `role`: one row per role per user. |
 | role | role_type | |
-| approval_status | approval_status null | Organizers only. Starts at `not_submitted`. Null for vendors, who need no approval. |
-| contact_email | citext null | Required when an organizer requests approval. |
-| approval_submitted_at | timestamptz null | When the organizer last requested approval. |
+| approval_status | approval_status | Starts at `not_submitted` for both roles. For organizers, it gates opening events to vendors. For vendors, it is pop-up host approval and gates announcing pop-ups. Applying to events never needs it. Existing vendor rows are set to `not_submitted` by the migration that adds pop-ups. |
+| approval_source | approval_source null | Vendors only. `reviewed` when an admin approved the host request, `earned` when the vendor was approved automatically for a reserved slot at a completed event (spec §4.7). Null until approved. |
+| host_revoked_at | timestamptz null | Vendors only. Set when an admin revokes host approval. Never cleared: once set, the earned route no longer applies, and the vendor can only be approved through review. |
+| contact_email | citext null | Required when an organizer requests approval. Not used for host approval. |
+| approval_submitted_at | timestamptz null | When the organizer or host last requested approval. Null for an earned approval. |
 | reviewed_by | uuid FK → users null | The admin. |
 | reviewed_at | timestamptz null | |
-| rejection_reason | text null | Shown to the organizer. Cleared on resubmission. |
-| reviewed_links | jsonb null | The organizer's links at the admin's last decision. Adding a link that isn't here sends an approved organizer back to review (spec §2.1). |
+| rejection_reason | text null | Shown to the organizer or vendor. Also holds the reason when host approval is revoked. Cleared on resubmission. |
+| reviewed_links | jsonb null | The organizer's or host's links at the admin's last decision (for an earned host approval, the profile's links at that moment). Adding a link that isn't here sends an approved organizer or host back to review (spec §2.1, §4.7). |
 | admin_notes | text null | Internal only. |
 | suspended_at | timestamptz null | Not null = suspended. Suspension is per role: a suspended vendor role cannot apply or manage slots, and a suspended organizer role cannot manage events or applications. The other role keeps working. |
 | suspended_by | uuid FK → users null | The admin. |
 | suspension_reason | text null | Shown to the user in the app (spec §2.1). |
 | onboarding_step | int null | The last onboarding step the user completed for this role (1 to 4). Null before the first step. The fields of each step are saved as they are entered (spec §1.1). |
 
-A resubmission clears `rejection_reason` and keeps `reviewed_at` until the next decision, which overwrites the review columns. Each decision is also written to `audit_logs`, which keeps the history.
+A resubmission clears `rejection_reason` and keeps `reviewed_at` until the next decision, which overwrites the review columns. Each admin decision is also written to `audit_logs`, which keeps the history. An earned host approval sets `approval_status` `approved` and `approval_source` `earned`, leaves `reviewed_by` null, and writes no audit row, because no admin acted.
 
 ### 5.2 Files
 
@@ -347,9 +356,9 @@ The badge comes from `user_roles` (role `organizer`, `approval_status` `approved
 | description | text null | The "about your shop" text, up to 300 characters. Shown on the vendor page. |
 | products | text null | Free text about what they sell. Shown on the vendor page. |
 | city | text null | Shown on the vendor page. Optional. Edited on the profile page, not asked in onboarding. |
-| social_links | jsonb | List of URLs. Default `[]`, optional. Shown on the vendor page. Cleared when the account is deleted. Mirrors `organizer_profiles.social_links`. |
+| social_links | jsonb | List of URLs. Default `[]`, optional. Shown on the vendor page. Cleared when the account is deleted. Mirrors `organizer_profiles.social_links`. At least one is required to request pop-up host approval, and these are the links the admin reviews (spec §4.7). |
 
-"Joined" on the vendor page is the profile's `created_at`. The page is not shown while the vendor's `user_roles` row is suspended or the account is deleted.
+"Joined" on the vendor page is the profile's `created_at`. The page is not shown while the vendor's `user_roles` row is suspended or the account is deleted. Changing `shop_name` sends an approved host back to `pending_review` (spec §4.7).
 
 **vendor_profile_categories**: the categories a vendor sells in. Composite PK (`vendor_profile_id`, `category_id`).
 
@@ -363,12 +372,14 @@ erDiagram
         uuid id PK
         text name UK
         text slug UK
+        event_host_kind host_kind
         boolean is_active
         int sort_order
     }
     events {
         uuid id PK
-        uuid organizer_profile_id FK
+        uuid organizer_profile_id FK "null for pop-ups"
+        uuid host_vendor_profile_id FK "null, pop-ups only"
         uuid event_type_id FK
         text name
         text slug UK
@@ -438,23 +449,27 @@ erDiagram
     events ||--o{ event_payment_methods : ""
 ```
 
-**event_types**: the platform-wide list of event types (spec §3.1). The initial seed is Flea market, Bazaar, and Pop-up. Set in seed data and changed by a new seed or migration, with no admin page. A type is never deleted, only made inactive, because old events point to it.
+**event_types**: the platform-wide list of event types (spec §3.1). The seed is Flea market and Bazaar (`host_kind` `organizer`) and Pop-up (`host_kind` `vendor`). Set in seed data and changed by a new seed or migration, with no admin page. A type is never deleted, only made inactive, because old events point to it.
 
 | Attribute | Type | Notes |
 |---|---|---|
 | id | uuid PK | |
 | name | text UK | For example, "Flea market". |
 | slug | text UK | For the attendee filter. |
+| host_kind | event_host_kind | Who can host this type. Organizers pick only `organizer` types on the Details tab. Pop-ups always use the one `vendor` type. Added 2026-11-17. |
 | is_active | boolean | Inactive types can't be picked for new events or shown as a filter. |
 | sort_order | int | |
 
 **events** (spec §3.1). A draft starts from a name and a type (decided 2026-11-14), so the description, dates, venue, and contact columns are null until the organizer fills them. The "Open to vendors" checklist requires them before opening.
 
+A **pop-up** (spec §4.7) is an event with `host_vendor_profile_id` set and `organizer_profile_id` null. It uses the name, slug, description, cover, dates, venue, status, moderation, announce, complete, and cancel columns. Every vendor and slot column (`vendor_floor_plan_file_id`, `public_floor_plan_file_id`, `vendor_contact_info`, `policy_text`, `policy_source_event_id`, `applications_open` (always false), `applications_close_at`, `ingress_info`, `default_slot_price`, `slot_mode`, `max_slots_per_vendor`, `payment_deadline_hours`, `opened_to_vendors_at`) keeps its default or stays null, and a pop-up has no rows in `event_categories`, `event_document_requirements`, `event_payment_methods`, `slots`, or `applications`. Its categories on the page come from the host's `vendor_profile_categories`.
+
 | Attribute | Type | Notes |
 |---|---|---|
 | id | uuid PK | |
-| organizer_profile_id | uuid FK → organizer_profiles | |
-| event_type_id | uuid FK → event_types | Required. The event setup form pre-selects Flea market. Drives the type tag and the attendee type filter (spec §7.3). |
+| organizer_profile_id | uuid FK → organizer_profiles null | The organizer running the event. Null for a pop-up. |
+| host_vendor_profile_id | uuid FK → vendor_profiles null | The vendor hosting a pop-up. Null for organizer events. Exactly one of the two is set (rule 6.14). Added 2026-11-17. |
+| event_type_id | uuid FK → event_types | Required. The event setup form pre-selects Flea market. Drives the type tag and the attendee type filter (spec §7.3). Its `host_kind` must match the host column that is set (rule 6.15). |
 | name | text | |
 | slug | text UK | For the shareable event link. |
 | description | text | |
@@ -467,9 +482,9 @@ erDiagram
 | vendor_contact_info | text | Shown to signed-in vendors, never to attendees. |
 | policy_text | text null | The event's cancellation and withdrawal policy (spec §3.7). Copied from the organizer's most recent event when the draft is created. Null on a first event until the organizer saves it. Required before opening to vendors. |
 | policy_source_event_id | uuid FK → events null | The event the policy was copied from, so the Policy tab can say "Copied from your last event, …" while the text is unchanged. Added 2026-11-14. |
-| status | event_status | `draft` → `open_to_vendors` → `announced` → `completed`, or `canceled`. |
-| moderation_state | moderation_state | `visible` by default. `hidden` = an admin hid it for breaking rules or because the organizer was suspended (spec §2.1). |
-| moderated_at, moderated_by, moderation_reason | timestamptz / uuid FK → users / text, all null | Who hid it and why. |
+| status | event_status | `draft` → `open_to_vendors` → `announced` → `completed`, or `canceled`. A pop-up goes `draft` → `announced` and is never `open_to_vendors` (rule 6.14). |
+| moderation_state | moderation_state | `visible` by default. `hidden` = an admin hid it for breaking rules or because the organizer was suspended (spec §2.1), or, for a pop-up, it was hidden automatically when the host's vendor role was suspended or host approval was revoked (spec §4.7). |
+| moderated_at, moderated_by, moderation_reason | timestamptz / uuid FK → users / text, all null | Who hid it and why. An automatic hide records the admin who suspended or revoked, and the same reason. |
 | applications_open | boolean | The organizer opens and closes applications (spec §3.3). Default false. |
 | applications_close_at | timestamptz null | Optional. After this time no new applications are accepted, even if `applications_open` is true. No later than `starts_at`. |
 | ingress_info | text null | Optional setup details for vendors, for example "From 3 PM, Gate 2". Shown to vendors with an active assignment. |
@@ -768,7 +783,7 @@ A payment can have several proofs over time (a rejected one, then a new one).
 
 Check: exactly one target column is set, and it matches `target_type`. Partial unique indexes allow one `open` report per reporter and target (decision R3). Open reports with the same target are shown and resolved together.
 
-Moderation actions are stored where they apply: `user_roles.suspended_*` for suspensions, and `events.moderation_*` for hidden events. Each is also written to `audit_logs`.
+Moderation actions are stored where they apply: `user_roles.suspended_*` for suspensions, `events.moderation_*` for hidden events, and `user_roles.approval_status`, `rejection_reason`, and `host_revoked_at` for a revoked host approval. Each is also written to `audit_logs`.
 
 ### 5.9 Email notifications
 
@@ -787,7 +802,7 @@ Moderation actions are stored where they apply: `user_roles.suspended_*` for sus
 | error | text null | |
 | sent_at | timestamptz null | |
 
-`notification_type` values, one per row in spec §8.1, plus the account emails sent by the auth library: `email_verification`, `email_change_confirmation` (to the old address, approving an email change), `password_reset`, `organizer_approved`, `organizer_rejected`, `application_submitted`, `application_withdrawn`, `application_approved`, `application_declined`, `slot_assigned`, `slot_released`, `proof_uploaded`, `payment_approved`, `payment_rejected`, `vendor_removed`, `event_changed`, `event_canceled`, `event_hidden` (added in Phase 5).
+`notification_type` values, one per row in spec §8.1, plus the account emails sent by the auth library: `email_verification`, `email_change_confirmation` (to the old address, approving an email change), `password_reset`, `organizer_approved`, `organizer_rejected`, `host_approved`, `host_rejected`, `host_approval_revoked` (added 2026-11-17), `application_submitted`, `application_withdrawn`, `application_approved`, `application_declined`, `slot_assigned`, `slot_released`, `proof_uploaded`, `payment_approved`, `payment_rejected`, `vendor_removed`, `event_changed`, `event_canceled`, `event_hidden` (added in Phase 5).
 
 ### 5.10 Audit log
 
@@ -797,7 +812,7 @@ Moderation actions are stored where they apply: `user_roles.suspended_*` for sus
 |---|---|---|
 | id | uuid PK | |
 | actor_user_id | uuid FK → users | Who did it. |
-| action | text | For example, `organizer_approval.approve`, `organizer_approval.reject`, `application_document.view`, `payment_proof.view`, `user_role.suspend`, `event.hide`, `report.resolve`. |
+| action | text | For example, `organizer_approval.approve`, `organizer_approval.reject`, `host_approval.approve`, `host_approval.reject`, `host_approval.revoke`, `application_document.view`, `payment_proof.view`, `user_role.suspend`, `event.hide`, `report.resolve`. |
 | entity_type | text | |
 | entity_id | uuid | |
 | changes | jsonb null | Before and after values. |
@@ -837,10 +852,14 @@ Rules the database itself should guarantee. Other rules (for example, "an organi
 | 6.11 | Upload limits per place hold (for example, 8 photos per vendor profile). | App check against the limits in the spec table, at the Ask step and again when attaching. | §11.1 |
 | 6.12 | The applications close date is not after the event start. | Check `applications_close_at IS NULL OR applications_close_at <= starts_at`. | §3.3 |
 | 6.13 | An event runs 1 to 7 days in a row, and closes later than it opens each day. | Check in Asia/Manila time: `ends_at::date - starts_at::date` between 0 and 6, and `ends_at::time > starts_at::time`. | §3.1.1 |
+| 6.14 | An event has exactly one host, and a pop-up is never open to vendors. | Check `num_nonnulls(organizer_profile_id, host_vendor_profile_id) = 1`, and `host_vendor_profile_id IS NULL OR (status <> 'open_to_vendors' AND applications_open = false)`. | §4.7 |
+| 6.15 | The event type matches the host. | App check on create and on a type change: an organizer event uses an `organizer` type, a pop-up the `vendor` type. | §3.1, §4.7 |
+| 6.16 | A pop-up has no vendor-side rows. | App check: categories, requirements, payment methods, slots, and applications are refused for an event with `host_vendor_profile_id` set. | §4.7 |
 
 **Useful indexes**
 
 - `events(status, moderation_state, starts_at)` and `events(city, starts_at)` for the attendee listing and filters.
+- `events(host_vendor_profile_id, starts_at) WHERE host_vendor_profile_id IS NOT NULL` for a host's pop-ups and the vendor page.
 - `applications(event_id, status)` for the review list and counters.
 - `slot_assignments(event_id, status)` for the organizer's vendor and slot view.
 - `user_roles(approval_status, approval_submitted_at)` for the admin approval queue.
@@ -857,8 +876,8 @@ Values worked out from other tables instead of being stored.
 | **Preferred by** (per slot) | Applications with the slot in `application_preferred_slots`, `status` `submitted` or `approved`, and no active assignment. Shown to the organizer as "Preferred by 2". |
 | **Overdue payment** | Active assignment with status `assigned`, payment `pending` or `rejected`, and `deadline_at` in the past. Shown to the organizer only. |
 | **Accepted-vendor list** | Vendors with a `reserved` assignment at the event. Each name links to the vendor page. |
-| **Vendor page: "Where they've sold"** | Events where the vendor has a `reserved` assignment, and the event `status` is `announced` or `completed` and `moderation_state` is `visible`. Never `draft` or `open_to_vendors`, and never an event canceled before it was announced. An assignment ends as `canceled` when its event is canceled, so events canceled after announcement are left out too. |
-| **Vendor page: "Find them next at"** | Among the same events, the one with `status` `announced` and the earliest `starts_at` still ahead, with the slot `label`. |
+| **Vendor page: "Where they've sold"** | Events where the vendor has a `reserved` assignment, and the event `status` is `announced` or `completed` and `moderation_state` is `visible`. Never `draft` or `open_to_vendors`, and never an event canceled before it was announced. An assignment ends as `canceled` when its event is canceled, so events canceled after announcement are left out too. Plus pop-ups the vendor hosts (`host_vendor_profile_id`) with `status` `announced` or `completed` and `moderation_state` `visible` (spec §7.2). |
+| **Vendor page: "Find them next at"** | Among the same events, the one with `status` `announced` and the earliest `starts_at` still ahead, with the slot `label`, or "Pop-up" for a pop-up. |
 | **Vendor page: events sold at** | The number of events in "Where they've sold". |
 | **Vendor page visible** | The vendor's `user_roles` row is not suspended, and the user is not deleted. |
 | **Event days** | Every date from `starts_at` to `ends_at` (Asia/Manila), each open from the time of `starts_at` to the time of `ends_at`. Used for the calendar, the "Next 7 days" strip, weekend grouping, and date filters, where an event matches if any of its days does. |
@@ -871,12 +890,16 @@ Values worked out from other tables instead of being stored.
 | **Slots at a glance** | Counts of `open`, `assigned`, and `reserved` slots (see "Slot status") and of overdue payments for the event. |
 | **Category counter** ("Food: 4 of 5 accepted") | Count of `approved` applications with that category in `application_categories`, compared with `event_categories.max_vendors`. |
 | **Approved vendors without a slot** | `approved` applications with no active assignment. |
-| **"Approved by Creavent" badge** | Organizer's `user_roles` row has `approval_status` `approved` and `suspended_at` is null. |
+| **"Approved by Creavent" badge** | Organizer's `user_roles` row has `approval_status` `approved` and `suspended_at` is null. On a pop-up and its listing card, the same test on the host's vendor row. |
+| **Pop-up host history line** ("Joined Nov 2026 · Sold at 3 Creavent events") | The vendor profile's `created_at` and "Vendor page: events sold at". |
+| **Earned host approval** | The vendor has a `reserved` assignment at an event with `status` `completed` and `moderation_state` `visible`, and `host_revoked_at` is null. Checked when the vendor opens Host a pop-up, and saved then (spec §4.7). |
+| **Pop-up checklist** | Name, description, cover, dates, and venue set; the host's vendor row `approved` and not suspended; shop name, phone, and at least one category set. |
+| **Admin: host request** | Vendor role with `approval_status` `pending_review`. Shown in the approvals queue tagged "Pop-up host". |
 | **Event's "event date" for retention** | `events.ends_at`, or `canceled_at` if the event was canceled before it took place. |
 
 **Scheduled jobs that use this model**
 
-- **Mark completed:** move `announced` events to `completed` after `ends_at`.
+- **Mark completed:** move `announced` events to `completed` after `ends_at`. Pop-ups included.
 - **Retention:** 90 days after each event, delete its payment records, proof images, QR images, and application documents (section 8).
 - **Cleanup:** delete removed and abandoned uploads (section 8).
 

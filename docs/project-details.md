@@ -1,6 +1,6 @@
 # Creavent
 
-Last updated: 2026-11-14
+Last updated: 2026-11-17
 
 ## Description
 
@@ -9,7 +9,7 @@ Creavent is a web platform that brings vendor-based community events together in
 ## Scope
 
 - **Initial focus:** flea markets and flea market organizers. The MVP and early development are built around them, and the MVP is centered on organizers.
-- **Event types:** events are general. Each event has one type, and the initial list is Flea market, Bazaar, and Pop-up. Flea markets stay the focus (the default type). The list is managed in seed data, so more types can be added later. See [Feature specification §3.1](feature-specification.md#31-account-and-event-setup).
+- **Event types:** events are general. Each event has one type, and the initial list is Flea market, Bazaar, and Pop-up. Flea markets stay the focus (the default type). Flea markets and bazaars are run by organizers. A pop-up is hosted by a vendor for their own shop, with no organizer (added 2026-11-17, see [Feature specification §4.7](feature-specification.md#47-pop-up-events)). The list is managed in seed data, so more types can be added later. See [Feature specification §3.1](feature-specification.md#31-account-and-event-setup).
 - **Future direction:** other vendor-based events and gatherings beyond these three types.
 - **Not in scope for now:** ticketed or paid entry for attendees. See the full out-of-scope list in the [Feature specification](feature-specification.md#9-out-of-scope-for-the-mvp).
 - **MVP payments:** manual. Vendors pay organizers directly through any channel the organizer sets up (QR code, e-wallet, bank account) and upload proof of payment. Vendors pay the full slot price (no deposits). Organizers approve or reject the proof. There is no platform fee and no online payment integration. Refunds and disputes are handled between the two parties. See [Revenue model](revenue-model.md).
@@ -19,7 +19,7 @@ Creavent is a web platform that brings vendor-based community events together in
 - **Devices:** mobile-first for everyone, including organizers. There is no floor plan editor: organizers upload floor plan images.
 - **MVP pricing:** the MVP is free for everyone. The terms of use say that fees may be introduced later with notice.
 - **MVP notifications:** email only, sent through Resend. Every MVP email is required (account, approval, application, payment, and event changes). There is no in-app messaging: organizers and vendors see each other's contact details.
-- **MVP trust:** no identity verification (no IDs or selfies). Admins approve organizers from their social media and past event links, and approved organizers show an "Approved by Creavent" badge. Vendors need no approval.
+- **MVP trust:** no identity verification (no IDs or selfies). Admins approve organizers from their social media and past event links, and approved organizers show an "Approved by Creavent" badge. Vendors need no approval to apply to events. To host a pop-up, a vendor is approved once, by an admin from their social links, or automatically after selling at a completed Creavent event.
 - **Hosting and files:** the web app, API, and database are hosted on Render. Uploaded files (event covers, floor plan images, vendor photos, proofs of payment, and permits) are stored in Cloudflare R2 through the S3 SDK. See [File uploads](feature-specification.md#11-file-uploads) and [Architecture](architecture.md).
 
 The platform is described in general terms (events, organizers, vendors, attendees) so it can grow beyond flea markets later.
@@ -41,7 +41,8 @@ Keeps the platform trustworthy. Can view everything other roles can see, includi
 - Approve organizers from their social media and past event links (target review time 1 to 2 business days)
 - Re-review resubmissions and support emails from rejected organizers
 - Suspend or reinstate a user's vendor or organizer role, with a reason shown to the user
-- Hide events that break the rules, with a reason emailed to the organizer
+- Hide events that break the rules, with a reason emailed to the organizer (or to a pop-up's host)
+- Approve vendors to host pop-ups, and revoke that approval when a host posts fake or misleading pop-ups
 - Handle user reports from the report button and the support inbox
 
 ### Organizer
@@ -49,7 +50,7 @@ Keeps the platform trustworthy. Can view everything other roles can see, includi
 Plans, promotes, and runs events.
 
 - Add the organizer role to their account through a 4-step onboarding, and get approved (draft events are allowed before approval, but opening an event to vendors needs it). One account can be both an organizer and a vendor
-- Create and manage events (draft, open to vendors, announced, completed, canceled), and pick an event type for each (Flea market by default). Fill and finalize the vendor list first, then announce the event to attendees
+- Create and manage events (draft, open to vendors, announced, completed, canceled), and pick an event type for each (Flea market or Bazaar, Flea market by default). Fill and finalize the vendor list first, then announce the event to attendees
 - See to-do counts per event on a dashboard: applications to review, proofs to check, overdue payments, and approved vendors with no slot
 - Promote events through a public event page once announced
 - Set vendor requirements (product categories, limits on similar vendors, required permits). Requirements are shown only to signed-in vendors
@@ -77,6 +78,7 @@ Finds events to join and manages participation.
 - See the organizer's contact details for each event
 - Track applications, payments, and upcoming events
 - Receive email notifications
+- Host their own pop-ups: get approved once (or automatically after selling at a completed Creavent event), then create, announce, edit, cancel, and duplicate pop-ups. A pop-up has only their shop: no applications, slots, or payments
 
 ### Attendee
 
@@ -85,7 +87,8 @@ Discovers events and plans visits. No account in the MVP.
 - Browse upcoming announced events by date in a list or a calendar, filtered by event type, location, and date range
 - View event details, the public floor plan image once the event is announced, and the list of accepted vendors (reserved slots only)
 - See organizers "Approved by Creavent", and open an organizer's page (details, social links, upcoming and past events)
-- Open a vendor's page from the accepted-vendor list. There is no vendor directory or search
+- Open a vendor's page from the accepted-vendor list or a pop-up. There is no vendor directory or search
+- Find vendors' pop-ups on the event listing, with the host's history shown on the pop-up page
 - See the latest event details
 - Report an event or user through the support email
 - Attendees cannot contact organizers in the MVP

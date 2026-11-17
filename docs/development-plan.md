@@ -2,7 +2,7 @@
 
 **Status:** First draft, written 2026-11-13 after the codebase setup, and changed the same day to build one phase at a time instead of one slice at a time. Describes how the MVP is built: the order of work (phases and milestones), how one phase goes from docs to merged code, and what "done" means. It decides no product behavior. Rules live in the [Feature specification](feature-specification.md), steps in the [User flows](user-flows.md), pages in the [Sitemap](sitemap.md), tables in the [Data model](data-model.md), and technical choices in the [Architecture](architecture.md). If this file and those disagree, they win.
 
-Last updated: 2026-11-14
+Last updated: 2026-11-17
 
 ## Contents
 
@@ -23,7 +23,7 @@ Last updated: 2026-11-14
 - **Unit of work: the phase.** A phase is built end to end in one branch and ships as one pull request. Inside the phase, work goes one feature at a time (the numbered rows in section 3): each feature is built through every layer (shared schema, database migration, API, screens, tests, and seed data) and committed when its tests pass, before the next one starts.
 - **Order of work: phases that end in a milestone.** Each phase ends with something a person can actually do on staging, such as "an approved organizer opens an event to vendors". There are no calendar dates. Progress is measured by milestones.
 - **The critical path comes first.** The path to a confirmed spot (user flows 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8) is the product. It is built before the public pages, the admin tools beyond approval, and the polish.
-- **The goal:** a pilot with one friendly organizer running a real event on Creavent (milestone M6). A pilot counts as real data, so it waits for the legal review ([Legal §1](legal.md#1-the-rule-until-the-review-is-done)).
+- **The goal:** a pilot with one friendly organizer running a real event on Creavent (milestone M7). A pilot counts as real data, so it waits for the legal review ([Legal §1](legal.md#1-the-rule-until-the-review-is-done)).
 
 Why phases: each phase ends in a milestone a person can try, so one PR delivers one thing that works, and the review covers a whole flow instead of a fragment. Why each feature still goes through every layer before the next one starts (instead of building all the backend, then all the frontend): every commit leaves the app working, and mistakes in the docs show up early, when a screen meets real data.
 
@@ -50,7 +50,8 @@ Phase 2  Events                  → M2  An approved organizer opens an event to
 Phase 3  The core loop           → M3  A vendor gets a confirmed spot (end-to-end test)
 Phase 4  Public discovery        → M4  An attendee finds the event and its vendors
 Phase 5  Admin and operations    → M5  The team can moderate and the jobs run
-Phase 6  Launch readiness        → M6  Pilot with one friendly organizer
+Phase 6  Pop-up events           → M6  A vendor hosts a pop-up that an attendee finds
+Phase 7  Launch readiness        → M7  Pilot with one friendly organizer
 ```
 
 ### Phase 0: Foundation
@@ -139,19 +140,35 @@ The heart of the product. Most of the integration tests are written here ([Archi
 
 **M5 is reached when:** an admin can act on a report end to end, the jobs run on staging, and a backup file appears in the backups bucket.
 
-### Phase 6: Launch readiness
+### Phase 6: Pop-up events
+
+Vendors host their own pop-ups, with no organizer (spec §4.7, flow 12). Added before launch readiness on 2026-11-17 (open questions U1 to U23).
+
+| Feature | What it covers | Source |
+|---|---|---|
+| 6.1 Pop-up event type | `event_types.host_kind`, the organizer form without Pop-up, the type check on events, seed organizer pop-ups moved to Bazaar, tests that used Pop-up as an organizer type updated. | Spec §3.1, Data model §5.4, U2, U20 |
+| 6.2 Host approval | Vendor approval columns (`approval_source`, `host_revoked_at`, existing vendor rows set to `not_submitted`), `/vendor/host-approval`, the earned route, the "Pop-up host" tag in `/admin/approvals`, the re-review rule, host approved and rejected emails. | Spec §4.7, flow 12, flow 11 |
+| 6.3 Create and announce | `events.host_vendor_profile_id` and rules 6.14 to 6.16, `/vendor/popups`, the one-form editor with the checklist, Announce, edit, Cancel, Delete draft, Duplicate (with the cover copy), the hourly job, the menu and tab bar item, account deletion check. | Spec §4.7, Sitemap §2, §4, flow 12 |
+| 6.4 Public pages | Host block on the event page, pop-up cards and search on the listing, "Find them next at" and "Where they've sold" on the vendor page, `/approved` for hosts, page refreshes. | Spec §7, §7.2, §7.3, flow 10 |
+| 6.5 Moderation | `fake_or_misleading_event` report reason, Revoke host approval (user page and reports), automatic hiding on suspension and revoke, hide email to hosts, `/admin/events` host column and Pop-ups filter. | Spec §2, §2.2, §4.7, flow 11 |
+
+**M6 is reached when:** a new vendor gets approved as a host, announces a pop-up from a phone, and a signed-out visitor finds it on the listing, opens it, and follows the host block to the vendor page. An admin can revoke a host, which hides their pop-ups.
+
+### Phase 7: Launch readiness
+
+Was Phase 6 until pop-up events were added before it (decided 2026-11-17, open question U6).
 
 | Item | What it covers | Source |
 |---|---|---|
-| 6.1 Legal answers | Lawyer's answers become configuration and content: terms, privacy notice, minimum age, retention days. | Legal, Open questions G |
-| 6.2 Domain | Buy the domain, set the Resend sending domain and the public file domain. | Open questions E1, I2 |
-| 6.3 Production | Production Render services and paid Postgres, environment group, production R2 buckets. | Architecture §9 |
-| 6.4 Monitoring | Sentry on web and API, uptime checks. | Architecture §10 |
-| 6.5 Restore drill | Restore a dump into a fresh database and write down the steps. | Architecture §9.3 |
-| 6.6 Quality pass | Accessibility audit (WCAG 2.1 AA), phone performance check on the listing and event pages, security review of permissions and file access. | Design brief §13 |
-| 6.7 Pilot | One friendly organizer runs a real event. Collect feedback and fix what blocks them. | |
+| 7.1 Legal answers | Lawyer's answers become configuration and content: terms, privacy notice, minimum age, retention days. | Legal, Open questions G |
+| 7.2 Domain | Buy the domain, set the Resend sending domain and the public file domain. | Open questions E1, I2 |
+| 7.3 Production | Production Render services and paid Postgres, environment group, production R2 buckets. | Architecture §9 |
+| 7.4 Monitoring | Sentry on web and API, uptime checks. | Architecture §10 |
+| 7.5 Restore drill | Restore a dump into a fresh database and write down the steps. | Architecture §9.3 |
+| 7.6 Quality pass | Accessibility audit (WCAG 2.1 AA), phone performance check on the listing and event pages, security review of permissions and file access. | Design brief §13 |
+| 7.7 Pilot | One friendly organizer runs a real event. Collect feedback and fix what blocks them. | |
 
-**M6 is reached when:** the legal review is done, production is live on the real domain, and the pilot event has run on Creavent.
+**M7 is reached when:** the legal review is done, production is live on the real domain, and the pilot event has run on Creavent.
 
 ## 4. Building one phase
 
@@ -240,7 +257,7 @@ Following [Architecture §11](architecture.md#11-testing), most tests go where t
 
 ## 9. What blocks launch, not development
 
-These don't stop any phase. They must be done before real users' data is collected (Phase 6).
+These don't stop any phase. They must be done before real users' data is collected (Phase 7).
 
 | Item | Until then | Source |
 |---|---|---|
@@ -313,12 +330,20 @@ Check a feature when its commit is on the phase branch with its tests passing. C
 - [x] 5.5 Backups (branch `feat/phase-5-admin-operations`; the worker image and dump are checked locally, the upload to R2 waits for the backups bucket)
 - [ ] **M5** The team can moderate and the jobs run
 
-**Phase 6: Launch readiness**
-- [ ] 6.1 Legal answers
-- [ ] 6.2 Domain
-- [ ] 6.3 Production
-- [ ] 6.4 Monitoring
-- [ ] 6.5 Restore drill
-- [ ] 6.6 Quality pass
-- [ ] 6.7 Pilot
-- [ ] **M6** Pilot with one friendly organizer
+**Phase 6: Pop-up events**
+- [ ] 6.1 Pop-up event type
+- [ ] 6.2 Host approval
+- [ ] 6.3 Create and announce
+- [ ] 6.4 Public pages
+- [ ] 6.5 Moderation
+- [ ] **M6** A vendor hosts a pop-up that an attendee finds
+
+**Phase 7: Launch readiness**
+- [ ] 7.1 Legal answers
+- [ ] 7.2 Domain
+- [ ] 7.3 Production
+- [ ] 7.4 Monitoring
+- [ ] 7.5 Restore drill
+- [ ] 7.6 Quality pass
+- [ ] 7.7 Pilot
+- [ ] **M7** Pilot with one friendly organizer

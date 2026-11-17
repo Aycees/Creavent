@@ -41,6 +41,9 @@ Questions the MVP should answer before the revenue model is finalized. These fee
 | What are people willing to pay for? | Interviews with organizers and vendors; what they request |
 | Is there real attendee traffic? | Event page views (this unlocks sponsor revenue later). Follows and saves come with attendee accounts, after the MVP |
 | What are the real slot prices? | Slot price per event, so fee models can be tested with real numbers |
+| Do vendors host their own pop-ups? (added 2026-11-17) | Pop-ups announced per week; hosts approved by review versus earned; repeat hosts (pop-ups made with Duplicate) |
+| Are pop-ups trustworthy? | Fake or misleading event reports per announced pop-up; pop-ups hidden; host approvals revoked |
+| Do attendees look at pop-ups? | Pop-up page views, next to market page views |
 
 **Suggested trigger for revisiting monetization** (a guess, adjust it): about 8–10 active organizers and 25 or more events with applications through the platform, with some repeat organizers.
 

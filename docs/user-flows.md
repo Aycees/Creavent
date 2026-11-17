@@ -2,9 +2,9 @@
 
 **Status:** First draft. Kept simple on purpose: the main path for each task, plus the edge cases ordinary users are likely to hit. The rules behind each step are in the [Feature specification](feature-specification.md). If this file and the spec disagree, the spec wins.
 
-Last updated: 2026-11-14
+Last updated: 2026-11-17
 
-Acceptance criteria are written per flow as each phase is built. Flows 1, 2, and the approval part of 11 have them (Phase 1), flow 3 and the finding part of flow 4 (Phase 2), and flows 4 to 9 as Phase 3 is built. Each criterion has a test in `apps/api/test/integration` or next to the screen in `apps/web/src`.
+Acceptance criteria are written per flow as each phase is built. Flows 1, 2, and the approval part of 11 have them (Phase 1), flow 3 and the finding part of flow 4 (Phase 2), and flows 4 to 9 as Phase 3 is built. Flow 12 and the pop-up parts of flows 10 and 11 have them for Phase 6, written before it is built. Each criterion has a test in `apps/api/test/integration` or next to the screen in `apps/web/src`.
 
 ## How to read this
 
@@ -26,9 +26,12 @@ Acceptance criteria are written per flow as each phase is built. Flows 1, 2, and
 | 8 | Announce the event | Organizer |
 | 9 | Release, remove, change, or cancel | Vendor, organizer |
 | 10 | Discover events and vendors | Attendee |
-| 11 | Approve organizers, handle reports, suspend | Admin |
+| 11 | Approve organizers and hosts, handle reports, suspend | Admin |
+| 12 | Host a pop-up | Vendor |
 
 The full path to a confirmed spot: **1 → 2 → 3 → 4 → 5 → 6 → 7 → 8.** Vendors skip flow 2.
+
+The path to a public pop-up: **1 → 12 → 10.** No organizer is involved.
 
 ---
 
@@ -109,7 +112,7 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 
 *Organizer. Works on a phone.*
 
-1. Create a draft: name, event type (Flea market, Bazaar, or Pop-up; Flea market is pre-selected), dates and daily hours (1 to 7 days in a row, same hours each day, for example Fri to Sun, 4 PM to 10 PM), location, description, cover image, contact details for vendors, and optionally an applications close date and ingress details (for example, "From 3 PM, Gate 2").
+1. Create a draft: name, event type (Flea market or Bazaar; Flea market is pre-selected. Pop-up is for vendors, flow 12), dates and daily hours (1 to 7 days in a row, same hours each day, for example Fri to Sun, 4 PM to 10 PM), location, description, cover image, contact details for vendors, and optionally an applications close date and ingress details (for example, "From 3 PM, Gate 2").
 2. Set vendor requirements: allowed product categories, limits on similar vendors, required permits (each for every vendor, or for one category only).
 3. Check the cancellation and withdrawal policy. It is copied from the organizer's last event. On a first event, edit the example and save it.
 4. Optional: upload the vendor floor plan image (layout with empty, numbered slots) at the top of the Slots tab. It stays next to the slot list as a reference while adding slots.
@@ -362,10 +365,11 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 
 *Attendee. No account.*
 
-1. Open Creavent → see upcoming announced events, soonest first. Switch between **List** (This weekend, Next weekend, Later) and **Calendar**, and use the "Next 7 days" strip. A Friday to Sunday market shows on each of its days in the calendar. Filter by event type (All, Flea markets, Bazaars, Pop-ups), location, and date. Spec §7.3.
+1. Open Creavent → see upcoming announced events, soonest first. Switch between **List** (This weekend, Next weekend, Later) and **Calendar**, and use the "Next 7 days" strip. A Friday to Sunday market shows on each of its days in the calendar. Filter by event type (All, Flea markets, Bazaars, Pop-ups), location, and date. A pop-up card shows the host's shop name instead of an organizer. Spec §7.3.
 2. Open an event: type, schedule, location with directions, description, organizer with the "Approved by Creavent" badge, public floor plan image, and the vendor list with each vendor's category and slot number (filter by category).
 3. Tap the organizer to open their organizer page: about, social links, upcoming and past events. Spec §7.1.
 4. Tap a vendor's name in the vendor list to open their vendor page: shop details, photos, social links, where to find them next, and where they've sold. Spec §7.2.
+5. Or open a pop-up: schedule, location with directions, description, and the host block (shop, badge, "Joined Nov 2026 · Sold at 3 Creavent events", categories, photos, social links), with a link to the vendor page. Spec §4.7, §7.
 
 **Edge cases**
 - **Attendee wants to ask a vendor a question:** there's no contact option. The page shows the public details and social links only. Spec §7.2.
@@ -374,6 +378,8 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - **Attendee wants to ask the organizer a question:** there's no contact option in the MVP. The page shows the public details and social links only. Spec §7.
 - **Attendee wants to report a fake event:** they email the support address shown on the page. Spec §7.
 - **An event link is shared before announcement:** attendees can't see it yet. **(screen: "This event isn't public yet")**
+- **Attendee suspects a pop-up is fake:** they email the support address. Signed-in users pick "Fake or misleading event" on the report button. Spec §2.2.
+- **A pop-up was canceled:** its page stays up marked canceled, with the host's note. Spec §4.7.
 
 **Acceptance criteria (Phase 4: public discovery)**
 - `/` lists visible announced events that end today or later (Manila days), soonest first, grouped as This weekend, Next weekend, and Later (spec §7.3). Each card shows the cover, type tag, date or date range with the number of days, hours, venue and city, and the organizer with the "Approved by Creavent" seal.
@@ -386,9 +392,16 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - `/organizers/[slug]` shows the profile, the seal (when approved and not suspended), the count of completed events, upcoming announced events, and past completed events. Not found while the organizer role is suspended or the account is deleted.
 - `/vendors/[slug]` shows the profile, up to 8 photos, "Find them next at" with the slot numbers, and "Where they've sold" (data model §7). With no events, that section is left out. Phone, email, applications, documents, and payments are never shown. Not found while the vendor role is suspended or the account is deleted.
 - Changing an event, a profile, or a reserved slot refreshes the affected public pages right away (decision Q1).
-- `/approved`, `/terms`, `/privacy`, and `/support` match the mockups. Terms and privacy show their current version and date, with placeholder text until the legal review.
+- `/approved`, `/terms`, `/privacy`, and `/support` match the mockups.
 
-## 11. Approve organizers, handle reports, suspend
+**Acceptance criteria (Phase 6: pop-ups in discovery)**
+- An announced, visible pop-up is on `/`, the calendar, and the "Next 7 days" strip like any event, with the Pop-up tag and the host's shop name and badge on its card. The Pop-ups type chip counts only pop-ups. Search matches the host's shop name.
+- `/events/[slug]` for a pop-up shows the public view with the host block, and no vendor count, vendor list, floor plan, vendor view, or contact details, to every viewer. The badge shows only while the host is approved and not suspended. The history line uses the vendor page's count.
+- The host sees the public view with "Manage pop-up". A draft or hidden pop-up is Not found to everyone else, except admins.
+- `/vendors/[slug]` lists the vendor's announced pop-up in "Find them next at" (marked "Pop-up", when it is their next event) and announced or completed pop-ups in "Where they've sold" and its count. Canceled and hidden pop-ups are left out.
+- Announcing, editing, canceling, hiding, or showing a pop-up refreshes the listing, its page, and the host's vendor page right away (decision Q1). Terms and privacy show their current version and date, with placeholder text until the legal review.
+
+## 11. Approve organizers and hosts, handle reports, suspend
 
 *Admin.*
 
@@ -401,15 +414,29 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 - The detail page shows the links to check, the profile, the contact details, the account, and "N of M in queue" with Next.
 - Approve or reject (a reason is required) writes the review, an audit log row with the before and after status, and the approved or rejected email in one transaction. Only a `pending_review` request can be decided.
 
+**Pop-up host approval** (spec §4.7)
+1. Open the same queue → host requests are tagged "Pop-up host" → check the vendor's social links, profile, photos, and past events → approve, or reject with a reason.
+
+**Acceptance criteria for host approval (Phase 6)**
+- `pending_review` vendor rows appear in `/admin/approvals` with organizer requests, oldest first, tagged "Pop-up host". The detail page shows the vendor profile, photos, social links, and events sold at.
+- Approve or reject (a reason is required) sets `approval_source` `reviewed`, writes the review, a `host_approval.*` audit row, and the `host_approved` or `host_rejected` email in one transaction. Only a `pending_review` request can be decided.
+- On the vendor's user page, an admin can **Revoke host approval** of an approved host with a required reason. It sets `rejected` with the reason and `host_revoked_at`, hides every announced pop-up of that host with the same reason, writes the audit rows, and sends `host_approval_revoked` (and no `event_hidden` emails). The vendor role keeps working.
+- Suspending a vendor role hides that vendor's announced pop-ups with the suspension reason, without `event_hidden` emails. Reinstating leaves them hidden.
+
 **Reports**
 1. A report arrives from the report button, or the admin adds one from a support email.
-2. Open the report (reports on the same event or user are grouped) → look at the user or event → add an internal note → dismiss, hide the event, or suspend the user's role.
-3. Hiding an event needs a reason, which is emailed to the organizer.
+2. Open the report (reports on the same event or user are grouped) → look at the user or event → add an internal note → dismiss, hide the event, suspend the user's role, or, for a pop-up or its host, revoke host approval.
+3. Hiding an event needs a reason, which is emailed to the organizer, or to the host of a pop-up.
 
 **Acceptance criteria for reports (Phase 5)**
 - Signed-in users see "Report this event" (or organizer, or vendor) at the bottom of the public page, choose a reason, and get a reference number. Signed-out visitors, and the page's owner, see the support email instead. One open report per person and target.
 - Only admins can open the queue, add a report from a support email, or decide. Open reports are grouped by target, oldest first. A decision resolves every open report in the group, writes `report.resolve` audit rows, and saves the internal note.
 - Hiding the event needs a reason, which is emailed to the organizer. Suspending needs a reason, shown in the app: an event report suspends the organizer role, a user report one of the user's roles. A resolved group can't be decided again, and shows who decided and when.
+
+**Acceptance criteria for reports on pop-ups (Phase 6)**
+- The report reasons are Fake account, Fake or misleading event, Scam, Inappropriate content, and Something else. Existing `fake_account` reports keep their reason.
+- On a report about a pop-up, suspending suspends the host's vendor role (which hides their pop-ups), and **Revoke host approval** is offered. On a report about a vendor who is an approved host, Revoke host approval is offered too. The report is recorded as `host_approval_revoked`.
+- Hiding a pop-up from a report emails its host the reason.
 
 **Suspending a role**
 1. Choose the role to suspend (vendor or organizer) and write a reason. The user sees the reason in the app. The other role keeps working.
@@ -427,3 +454,40 @@ With both roles, a switch moves the user between the vendor and organizer dashbo
 **Edge cases**
 - **A user needs a data fix the admin pages can't do:** the team fixes it directly in the database. Spec §2.
 - **A user asks to delete their account:** the team deletes it by hand. Spec §1.
+
+## 12. Host a pop-up
+
+*Vendor. Works on a phone. Spec §4.7.*
+
+1. From the vendor menu, open **Pop-ups** → tap **Host a pop-up**.
+2. The first time, Creavent checks the earned route. A vendor who has sold at a completed Creavent event sees "You're approved to host pop-ups" and goes on. Everyone else can still create a draft, and is shown how to get approved.
+3. Fill in the pop-up: name, description, cover (crop to 16:9), start and end date (1 to 7 days), daily hours, and venue. Categories come from the vendor profile.
+4. If not approved yet, tap **Get approved** → add at least one social link that shows the shop's real activity → **Submit for review**. The status is "Pending review", with the 1 to 2 business day target. The admin approves (email) or rejects with a reason (email, and the vendor can resubmit).
+5. Once approved and the checklist is complete, tap **Announce**. The pop-up is on the event listing right away.
+6. Share the link. Edit the details if plans change (the page shows "Details updated"), or **Cancel pop-up** with an optional note.
+7. After it ends, the pop-up is marked completed and counts in "Where they've sold". For next week, open it and tap **Duplicate**, then set the new dates and hours.
+
+**Edge cases**
+- **A vendor who isn't approved tries to announce:** the button leads to "Get approved to announce" instead. The draft is kept. Spec §4.7.
+- **The vendor has no social links yet:** the approval page asks for at least one, and says it will show on their vendor page. **(screen)**
+- **An approved host changes their shop name or adds a new social link:** they go back to "Pending review". Their announced pop-ups stay up but can't be edited, and the badge hides until an admin approves again. Spec §4.7.
+- **Host approval is revoked, or the vendor role is suspended:** their announced pop-ups are hidden. The vendor sees the reason on their pop-ups and can resubmit for review (after a revoke). Spec §4.7.
+- **The pop-up clashes with a market where the vendor has a slot:** nothing stops it. **(screen: no warning)**
+- **The vendor wants other vendors at their pop-up:** not possible. They add the organizer role and create a Bazaar or Flea market. Spec §4.7.
+- **A pop-up is hidden by an admin:** the host gets an email with the reason, sees a notice, and can't change it. Spec §2.
+
+**Acceptance criteria (Phase 6)**
+- Only a vendor whose vendor role isn't suspended can create, edit, announce, cancel, duplicate, or delete their own pop-ups. Organizers can't pick the Pop-up type, and the API refuses a pop-up type on an organizer event or an organizer type on a pop-up.
+- Opening Host a pop-up approves a vendor through the earned route when they have a `reserved` assignment at a `completed`, visible event and `host_revoked_at` is null: `approved`, source `earned`, the current links saved as reviewed, no email, no audit row. Otherwise nothing changes.
+- Submit for review needs at least one social link, saves the links on the vendor profile, and sets `pending_review`. A pending or approved host can't submit again. A rejected one sees the reason and can resubmit, which clears it.
+- An approved host who changes the shop name, or adds a link not in the reviewed links, goes back to `pending_review`. Removing a link or changing anything else keeps the approval.
+- A pop-up draft can be created before approval with only a name. Saving checks the date rules (1 to 7 days, closing after opening) as on every event. A pop-up has no categories, requirements, policy, payment options, slots, floor plans, or applications, and the API refuses them.
+- Announce works only from `draft`, before the pop-up ends, while not hidden, with every checklist item done, the host `approved` and not suspended, and the vendor's shop name, phone, and a category set. It sets `announced_at`.
+- An announced pop-up can be edited while the host is `approved` and the pop-up isn't hidden. Saving sends no email and updates "Details updated". The type can't change.
+- Cancel works from `announced`, takes an optional reason, sets `canceled_at`, sends no email, and leaves the page up marked canceled. A canceled pop-up can't be edited or announced.
+- Delete works only on drafts and removes the pop-up for good after a confirmation.
+- Duplicate makes a new draft with the name, description, and venue, no dates or hours, and a copy of the cover as a new file of the host's.
+- The hourly job marks announced pop-ups `completed` after they end.
+- `/vendor/popups` lists the host's pop-ups in Upcoming and Past tabs with status and next step. The vendor menu and the phone tab bar have Pop-ups.
+- Account deletion is refused while the vendor hosts an announced pop-up that hasn't ended.
+
