@@ -27,7 +27,7 @@ async function View({ params }: { params: Promise<{ slug: string }> }) {
     <VendorPageView
       page={page}
       supportEmail={config.supportEmail}
-      report={<ReportLink targetType="user" targetId={page.vendor.userId} ownerUserId={page.vendor.userId} noun="vendor" supportEmail={config.supportEmail} />}
+      report={<ReportLink targetType="vendor" targetId={page.vendor.id} supportEmail={config.supportEmail} />}
     />
   ) : <NotFoundView what="vendor" />
 }

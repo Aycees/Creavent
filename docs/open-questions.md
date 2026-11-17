@@ -233,7 +233,7 @@ Decisions are written into the [Feature specification](feature-specification.md)
 | Q9 | There is no general "unannounce": once announced, an event stays public until it ends or is canceled, so shared links and vendors' "Find them next at" don't vanish without a word. For an announcement made by mistake or too early, the organizer can undo it for 10 minutes (`UNDO_ANNOUNCE_MINUTES`), from Undo on the confirmation or Undo announce in More actions. Undoing goes back to open to vendors, keeps slots, payments, and applications, and emails nobody. After that, they edit or cancel the event. | 2026-11-16 |
 | Q8 | The change email is sent when the dates, hours, venue, address, or city change on an event that is open to vendors or announced, and shows the old and new values. | 2026-11-16 |
 
-**Admin and operations on 2026-11-17 (R1 to R10).** Settled before building Phase 5, from the Phase 5 mockups (R8 while building, R9 and R10 in review).
+**Admin and operations on 2026-11-17 (R1 to R13).** Settled before building Phase 5, from the Phase 5 mockups (R8 while building, R9 and R10 in review, R11 to R13 in the security review).
 
 | # | Decision | Date |
 |---|---|---|
@@ -246,6 +246,9 @@ Decisions are written into the [Feature specification](feature-specification.md)
 | R7 | The worker runs on Render's Docker runtime with `postgresql-client-17`, so the nightly `pg_dump` matches the database. The 30-day lifecycle rule on the backups bucket is set by hand in R2. | 2026-11-17 |
 | R9 | A report decision whose action is already in place (the event was hidden, or the role suspended, from its own page) is recorded as actioned without doing it again or emailing. Found in review. | 2026-11-17 |
 | R10 | Admin views of a document or proof keep the event and shop on the audit row, so they stay in the event's history after the retention job deletes the file. Found in review. | 2026-11-17 |
+| R11 | The report link names the event, or the organizer or vendor page, by that page's id. Public responses carry no user ids; the API finds the person, and tells the page whether it is the viewer's own. Pages that are down (suspended, deleted) can't be reported. Found in the security review. | 2026-11-17 |
+| R12 | The retention job also deletes the sent emails that carried payment amounts, slots or account details (slot assigned and released, proof uploaded, payment approved and rejected) for the purged event. Found in the security review. | 2026-11-17 |
+| R13 | The worker container runs as the `node` user. The backups bucket has its own R2 token, write-only to that bucket, in a secrets group only the worker gets. The dump streams to R2 instead of sitting in memory, and a failed dump is removed. Found in the security review. | 2026-11-17 |
 | R8 | A suspended role keeps read access to its own pages (dashboard, applications, events) behind a notice with the reason. Every change is refused. Found while building: the API refused reads too. | 2026-11-17 |
 
 ### D9. Editing an approved organizer's name and links (resolved 2026-11-13)

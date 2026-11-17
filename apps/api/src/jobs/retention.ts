@@ -1,13 +1,17 @@
 import { appConfig } from '../config.js';
-import { Prisma, type PrismaClient } from '../generated/prisma/client.js';
+import { Prisma, type NotificationType, type PrismaClient } from '../generated/prisma/client.js';
 import type { PrismaService } from '../prisma/prisma.service.js';
 
 const DAY = 24 * 3_600_000;
 
+// Emails whose payloads hold payment amounts, slots or payment details.
+const PAYMENT_EMAILS: NotificationType[] = ['slot_assigned', 'slot_released', 'proof_uploaded', 'payment_approved', 'payment_rejected'];
+
 // The retention job (spec §6.7, data model §8): `proof_retention_days` after an
 // event's last day, or after it was canceled, its payment records go:
 // proofs, payments, payment QR images, the payment details copied onto each
-// assignment, and the application documents. Who had which slot stays.
+// assignment, the application documents, and the sent emails that carried
+// payment details. Who had which slot stays.
 // Files are marked removed; the cleanup job deletes the objects. Returns the
 // number of events purged.
 export async function purgeExpiredPaymentRecords(prisma: PrismaClient | PrismaService, now = new Date(), days = appConfig().proofRetentionDays) {
@@ -23,6 +27,21 @@ export async function purgeExpiredPaymentRecords(prisma: PrismaClient | PrismaSe
       )`;
   for (const { id } of events) {
     await prisma.$transaction(async (tx) => {
+      const [payments, applications] = await Promise.all([
+        tx.payment.findMany({ where: { eventId: id }, select: { id: true } }),
+        tx.application.findMany({ where: { eventId: id }, select: { id: true } }),
+      ]);
+      // The sent emails that carried amounts, slots and account numbers.
+      await tx.emailNotification.deleteMany({
+        where: {
+          status: { not: 'queued' },
+          type: { in: PAYMENT_EMAILS },
+          OR: [
+            { relatedEntityType: 'payment', relatedEntityId: { in: payments.map((p) => p.id) } },
+            { relatedEntityType: 'application', relatedEntityId: { in: applications.map((a) => a.id) } },
+          ],
+        },
+      });
       const [proofs, methods, documents] = await Promise.all([
         tx.paymentProof.findMany({ where: { eventId: id }, select: { fileId: true } }),
         tx.eventPaymentMethod.findMany({ where: { eventId: id, qrFileId: { not: null } }, select: { qrFileId: true } }),

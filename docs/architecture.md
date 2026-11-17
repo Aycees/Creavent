@@ -237,7 +237,7 @@ The upload rules are in [Feature specification §11](feature-specification.md#11
 - **Errors:** Sentry on web and API (free tier).
 - **Logs:** structured JSON logs from Nest's built-in logger in production (readable text in development), read in Render's log view.
 - **Uptime:** an external uptime check on the web app and on an API health endpoint.
-- **Rate limits** (NestJS throttler): login, signup, password reset, email verification resend, uploads, and reports.
+- **Rate limits:** login, signup, password reset, and email verification resend (Better Auth's limits); uploads and reports are counted in the database per user (reports: 10 an hour, taken under a per-user lock).
 - **Security headers:** Nest's built-in `useSecurityHeaders()` on the API (Helmet's defaults, no extra package), and matching headers on the web app.
 - **Private documents:** each time an admin opens an application document or a proof of payment, a `*.view` row is written to the audit log (spec §2). This supports the Data Privacy Act work (open question G3).
 

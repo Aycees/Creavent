@@ -7691,8 +7691,6 @@ export interface operations {
                             coverUrl: string | null;
                             publicFloorPlanUrl: string | null;
                             organizer: {
-                                /** Format: uuid */
-                                userId: string;
                                 displayName: string;
                                 slug: string | null;
                                 logoUrl: string | null;
@@ -11534,8 +11532,6 @@ export interface operations {
                                 coverUrl: string | null;
                                 publicFloorPlanUrl: string | null;
                                 organizer: {
-                                    /** Format: uuid */
-                                    userId: string;
                                     displayName: string;
                                     slug: string | null;
                                     logoUrl: string | null;
@@ -11615,7 +11611,7 @@ export interface operations {
                         tags: string[];
                         organizer: {
                             /** Format: uuid */
-                            userId: string;
+                            id: string;
                             displayName: string;
                             slug: string;
                             logoUrl: string | null;
@@ -11694,7 +11690,7 @@ export interface operations {
                         tags: string[];
                         vendor: {
                             /** Format: uuid */
-                            userId: string;
+                            id: string;
                             shopName: string;
                             slug: string;
                             avatarUrl: string | null;
@@ -11772,7 +11768,7 @@ export interface operations {
             content: {
                 "application/json": {
                     /** @enum {string} */
-                    targetType: "user" | "event";
+                    targetType: "event" | "organizer" | "vendor";
                     /** Format: uuid */
                     targetId: string;
                     /** @enum {string} */
@@ -11814,7 +11810,7 @@ export interface operations {
     ReportsController_mine: {
         parameters: {
             query: {
-                targetType: "user" | "event";
+                targetType: "event" | "organizer" | "vendor";
                 targetId: string;
             };
             header?: never;
@@ -11830,6 +11826,7 @@ export interface operations {
                 content: {
                     "application/json": {
                         number: number | null;
+                        own: boolean;
                     };
                 };
             };

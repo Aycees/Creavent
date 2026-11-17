@@ -7,7 +7,8 @@ import { reportReasonSchema } from './reports.js';
 
 export const ADMIN_PAGE_SIZE = 25;
 
-const pageSchema = z.coerce.number().int().min(1).default(1);
+// Capped, so a huge page number never reaches the database as an offset.
+const pageSchema = z.coerce.number().int().min(1).max(10_000).default(1);
 
 // One line of an admin's history of a user or event, from the audit log and reports.
 const historyItemSchema = z.object({ at: z.string(), text: z.string() });

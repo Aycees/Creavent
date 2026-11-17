@@ -77,7 +77,7 @@ describe('reports', () => {
       const { organizer } = await announcedEvent();
       const { browser } = await vendorBrowser();
 
-      const res = await browser.post('/api/reports').send({ targetType: 'user', targetId: organizer.user.id, reason: 'fake_account' });
+      const res = await browser.post('/api/reports').send({ targetType: 'organizer', targetId: organizer.profile.id, reason: 'fake_account' });
 
       expect(res.status).toBe(201);
       expect((await prisma.report.findFirstOrThrow()).targetUserId).toBe(organizer.user.id);
@@ -100,17 +100,57 @@ describe('reports', () => {
       const browser = await signInAs(app, organizer.user.email);
 
       expect((await browser.post('/api/reports').send({ targetType: 'event', targetId: event.id, reason: 'scam' })).status).toBe(400);
-      expect((await browser.post('/api/reports').send({ targetType: 'user', targetId: organizer.user.id, reason: 'scam' })).status).toBe(400);
+      expect((await browser.post('/api/reports').send({ targetType: 'organizer', targetId: organizer.profile.id, reason: 'scam' })).status).toBe(400);
     });
 
-    it('only reports what people can see: not drafts or users without a public role', async () => {
+    it('only reports what people can see: not drafts, user ids, or pages that are down', async () => {
       const organizer = await createOrganizer(prisma);
       const draft = await readyEvent(prisma, organizer.profile.id);
-      const plain = await createUser(prisma);
+      const suspended = await createOrganizer(prisma, { suspendedAt: new Date() });
+      const deleted = await createVendor(prisma);
+      await prisma.user.update({ where: { id: deleted.user.id }, data: { deletedAt: new Date() } });
       const { browser } = await vendorBrowser();
+      const send = (targetType: string, targetId: string) => browser.post('/api/reports').send({ targetType, targetId, reason: 'scam' });
 
-      expect((await browser.post('/api/reports').send({ targetType: 'event', targetId: draft, reason: 'scam' })).status).toBe(404);
-      expect((await browser.post('/api/reports').send({ targetType: 'user', targetId: plain.id, reason: 'scam' })).status).toBe(404);
+      expect((await send('event', draft)).status).toBe(404);
+      // People are reported through their public page, never by user id.
+      expect((await send('user', organizer.user.id)).status).toBe(400);
+      expect((await send('organizer', suspended.profile.id)).status).toBe(404);
+      expect((await send('vendor', deleted.profile.id)).status).toBe(404);
+      expect(await prisma.report.count()).toBe(0);
+    });
+
+    it("public pages carry the event and profile ids the report link needs, never a user id", async () => {
+      const { organizer, event } = await announcedEvent();
+      const vendor = await createVendor(prisma);
+      const org = await prisma.organizerProfile.findUniqueOrThrow({ where: { id: organizer.profile.id } });
+      const shop = await prisma.vendorProfile.findUniqueOrThrow({ where: { id: vendor.profile.id } });
+
+      const pages = [
+        await agent(app).get(`/api/public/events/${event.slug}`),
+        await agent(app).get(`/api/public/organizers/${org.slug}`),
+        await agent(app).get(`/api/public/vendors/${shop.slug}`),
+      ];
+
+      expect(pages.map((p) => p.status)).toEqual([200, 200, 200]);
+      for (const p of pages) {
+        expect(JSON.stringify(p.body)).not.toContain(organizer.user.id);
+        expect(JSON.stringify(p.body)).not.toContain(vendor.user.id);
+      }
+      expect(pages[0]!.body.page.event.id).toBe(event.id);
+      expect(pages[1]!.body.organizer.id).toBe(organizer.profile.id);
+      expect(pages[2]!.body.vendor.id).toBe(vendor.profile.id);
+    });
+
+    it("tells the page whether the viewer owns it, so it doesn't offer a report", async () => {
+      const { organizer, event } = await announcedEvent();
+      const browser = await signInAs(app, organizer.user.email);
+
+      const own = await browser.get(`/api/reports/mine?targetType=event&targetId=${event.id}`);
+      const page = await browser.get(`/api/reports/mine?targetType=organizer&targetId=${organizer.profile.id}`);
+
+      expect(own.body).toEqual({ number: null, own: true });
+      expect(page.body).toEqual({ number: null, own: true });
     });
 
     it('takes at most 10 reports per person an hour', async () => {
@@ -118,7 +158,7 @@ describe('reports', () => {
       const targets = await Promise.all(Array.from({ length: 11 }, () => createVendor(prisma)));
 
       const statuses: number[] = [];
-      for (const t of targets) statuses.push((await browser.post('/api/reports').send({ targetType: 'user', targetId: t.user.id, reason: 'scam' })).status);
+      for (const t of targets) statuses.push((await browser.post('/api/reports').send({ targetType: 'vendor', targetId: t.profile.id, reason: 'scam' })).status);
 
       expect(statuses.slice(0, 10).every((s) => s === 201)).toBe(true);
       expect(statuses[10]).toBe(429);
@@ -133,18 +173,34 @@ describe('reports', () => {
       await browser.post('/api/reports').send({ targetType: 'event', targetId: event.id, reason: 'scam' });
       const after = await browser.get(`/api/reports/mine?targetType=event&targetId=${event.id}`);
 
-      expect(before.body).toEqual({ number: null });
-      expect(after.body).toEqual({ number: 1 });
+      expect(before.body).toEqual({ number: null, own: false });
+      expect(after.body).toEqual({ number: 1, own: false });
     });
   });
 
   describe('admin', () => {
-    it('is only for admins', async () => {
+    it('is only for admins, on every route', async () => {
       const notAdmin = await signInAs(app, (await createUser(prisma)).email);
+      const { event } = await announcedEvent();
+      await (await vendorBrowser()).browser.post('/api/reports').send({ targetType: 'event', targetId: event.id, reason: 'scam' });
+      const id = (await prisma.report.findFirstOrThrow()).id;
+      const routes: [string, string][] = [
+        ['get', '/api/admin/reports'],
+        ['post', '/api/admin/reports'],
+        ['get', `/api/admin/reports/${id}`],
+        ['post', `/api/admin/reports/${id}/resolve`],
+      ];
 
-      expect((await agent(app).get('/api/admin/reports')).status).toBe(401);
-      expect((await notAdmin.get('/api/admin/reports')).status).toBe(403);
-      expect((await notAdmin.post('/api/admin/reports').send({})).status).toBe(403);
+      for (const [method, path] of routes) {
+        expect((await agent(app)[method as 'get'](path).send({ decision: 'dismiss' })).status, `${method} ${path} signed out`).toBe(401);
+        expect((await notAdmin[method as 'get'](path).send({ decision: 'dismiss' })).status, `${method} ${path} not admin`).toBe(403);
+      }
+      expect((await prisma.report.findFirstOrThrow()).status).toBe('open');
+    });
+
+    it('the report button and its status need a signed-in user', async () => {
+      const { event } = await announcedEvent();
+      expect((await agent(app).get(`/api/reports/mine?targetType=event&targetId=${event.id}`)).status).toBe(401);
     });
 
     it('adds a report from a support email', async () => {
@@ -249,7 +305,7 @@ describe('reports', () => {
       const reported = await createVendor(prisma);
       const reporter = await vendorBrowser();
       await reporter.browser.post('/api/reports').send({ targetType: 'event', targetId: event.id, reason: 'scam' });
-      await reporter.browser.post('/api/reports').send({ targetType: 'user', targetId: reported.user.id, reason: 'scam' });
+      await reporter.browser.post('/api/reports').send({ targetType: 'vendor', targetId: reported.profile.id, reason: 'scam' });
       const [eventReport, userReport] = await prisma.report.findMany({ orderBy: { number: 'asc' } });
 
       const a = await browser.post(`/api/admin/reports/${eventReport!.id}/resolve`).send({ decision: 'suspend_role', role: 'organizer', reason: 'Took deposits and stopped replying' });
@@ -295,7 +351,7 @@ describe('reports', () => {
     it('refuses decisions that make no sense for the report', async () => {
       const { browser } = await admin();
       const reported = await createVendor(prisma);
-      await (await vendorBrowser()).browser.post('/api/reports').send({ targetType: 'user', targetId: reported.user.id, reason: 'scam' });
+      await (await vendorBrowser()).browser.post('/api/reports').send({ targetType: 'vendor', targetId: reported.profile.id, reason: 'scam' });
       const id = (await prisma.report.findFirstOrThrow()).id;
 
       expect((await browser.post(`/api/admin/reports/${id}/resolve`).send({ decision: 'hide_event', reason: 'x' })).status).toBe(400);

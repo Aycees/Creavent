@@ -3,7 +3,7 @@ import { ConsoleLogger, Logger, Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { completeEndedEvents } from './events/complete-events.js';
 import { R2Storage } from './files/storage.js';
-import { backupDatabase } from './jobs/backup.js';
+import { backupDatabase, createR2BackupStore } from './jobs/backup.js';
 import { cleanUpFiles } from './jobs/cleanup.js';
 import { purgeExpiredPaymentRecords } from './jobs/retention.js';
 import { BACKUP_QUEUE, BossService, CLEANUP_FILES_QUEUE, COMPLETE_EVENTS_QUEUE, RETENTION_QUEUE, SEND_EMAIL_QUEUE } from './notifications/boss.service.js';
@@ -56,9 +56,10 @@ await boss.work(CLEANUP_FILES_QUEUE, async () => {
 // Nightly backup, where a backups bucket is set (staging and production).
 if (process.env.R2_BACKUPS_BUCKET && process.env.DATABASE_URL) {
   const databaseUrl = process.env.DATABASE_URL;
+  const backups = createR2BackupStore();
   await boss.schedule(BACKUP_QUEUE, '0 2 * * *', null, { tz: 'Asia/Manila' });
   await boss.work(BACKUP_QUEUE, async () => {
-    const key = await backupDatabase(storage, { databaseUrl });
+    const key = await backupDatabase(backups, { databaseUrl });
     new Logger('Backup').log(`Saved ${key}`);
   });
 } else {

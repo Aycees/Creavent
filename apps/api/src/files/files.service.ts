@@ -16,6 +16,7 @@ import {
 } from '@creavent/shared';
 import { fileTypeFromBuffer } from 'file-type';
 import type { File } from '../generated/prisma/client.js';
+import { writeAuditLog } from '../audit/audit-log.js';
 import { PrismaService, type Tx } from '../prisma/prisma.service.js';
 import {
   processImage,
@@ -251,14 +252,12 @@ export class FilesService {
           : await this.prisma.applicationDocument
               .findFirst({ where: { fileId: file.id }, select: { application: { select: { eventId: true, vendorProfile: { select: { shopName: true } } } } } })
               .then((d) => d?.application ?? null);
-      await this.prisma.auditLog.create({
-        data: {
-          actorUserId: user.id,
-          action: `${file.purpose}.view`,
-          entityType: 'file',
-          entityId: file.id,
-          changes: owner ? { eventId: owner.eventId, shopName: owner.vendorProfile.shopName } : undefined,
-        },
+      await writeAuditLog(this.prisma, {
+        actorUserId: user.id,
+        action: `${file.purpose}.view`,
+        entityType: 'file',
+        entityId: file.id,
+        changes: owner ? { eventId: owner.eventId, shopName: owner.vendorProfile.shopName } : undefined,
       });
     }
     // PDFs always download, named from the purpose and date (spec §11.6).

@@ -1,6 +1,6 @@
 "use client"
 
-import { REPORT_REASON_LABELS, reportNumber, type ReportReason, type ReportTarget } from "@creavent/shared"
+import { REPORT_REASON_LABELS, reportNumber, type ReportButtonTarget, type ReportReason } from "@creavent/shared"
 import { CheckIcon } from "@phosphor-icons/react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import * as React from "react"
@@ -21,7 +21,7 @@ const hints: Record<ReportReason, string | null> = {
   other: null,
 }
 
-type Noun = "event" | "organizer" | "vendor"
+type Noun = ReportButtonTarget
 
 function EmailSupport({ noun, supportEmail }: { noun: Noun; supportEmail: string }) {
   return (
@@ -36,40 +36,31 @@ function EmailSupport({ noun, supportEmail }: { noun: Noun; supportEmail: string
 }
 
 // The report button at the bottom of the event, organizer and vendor pages
-// (spec §2.2, decided 2026-11-17). Signed-out visitors, and the page's own
-// owner, see the support email instead.
-export function ReportLink({
-  targetType,
-  targetId,
-  ownerUserId,
-  noun,
-  supportEmail,
-}: {
-  targetType: ReportTarget
-  targetId: string
-  ownerUserId: string
-  noun: Noun
-  supportEmail: string
-}) {
+// (spec §2.2, decided 2026-11-17). It names the event or the organizer or
+// vendor page by its own id, never a user id. Signed-out visitors, and the
+// page's owner, see the support email instead.
+export function ReportLink({ targetType, targetId, supportEmail }: { targetType: ReportButtonTarget; targetId: string; supportEmail: string }) {
+  const noun: Noun = targetType
   const { data: me } = useMe()
-  const canReport = !!me && me.id !== ownerUserId && !me.needsLegal
+  const signedIn = !!me && !me.needsLegal
   const mineKey = ["reports", "mine", targetType, targetId]
   const queryClient = useQueryClient()
-  const { data: mine } = useQuery({
+  const { data: status } = useQuery({
     queryKey: mineKey,
-    enabled: canReport,
+    enabled: signedIn,
     queryFn: async () => {
       const { data } = await api.GET("/api/reports/mine", { params: { query: { targetType, targetId } } })
-      return data?.number ?? null
+      return data ?? { number: null, own: false }
     },
   })
+  const mine = status?.number ?? null
   const [open, setOpen] = React.useState(false)
   const [reason, setReason] = React.useState<ReportReason | null>(null)
   const [details, setDetails] = React.useState("")
   const [error, setError] = React.useState<string | null>(null)
   const [sending, setSending] = React.useState(false)
 
-  if (!canReport) return <EmailSupport noun={noun} supportEmail={supportEmail} />
+  if (!signedIn || !status || status.own) return <EmailSupport noun={noun} supportEmail={supportEmail} />
 
   if (mine) {
     return (
@@ -89,7 +80,7 @@ export function ReportLink({
     const res = await api.POST("/api/reports", { body: { targetType, targetId, reason, details } })
     setSending(false)
     if (!res.data) return setError((res.error as { message?: string } | undefined)?.message ?? "Something went wrong. Try again.")
-    queryClient.setQueryData(mineKey, res.data.number)
+    queryClient.setQueryData(mineKey, { number: res.data.number, own: false })
     setOpen(false)
     toast.success(`Report sent. Your reference is ${reportNumber(res.data.number)}.`)
   }

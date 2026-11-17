@@ -77,6 +77,20 @@ describe('jobs', () => {
       expect(await prisma.slotAssignment.count({ where: { id: old.assignment.id } })).toBe(1);
     });
 
+    it('also deletes the emails that carried payment amounts and details, keeping the others', async () => {
+      const old = await eventWithRecords(new Date(now.getTime() - 91 * DAY));
+      const payment = await prisma.payment.findFirstOrThrow({ where: { eventId: old.eventId } });
+      const email = (type: 'payment_approved' | 'slot_assigned' | 'application_submitted', relatedEntityType: string, relatedEntityId: string) =>
+        prisma.emailNotification.create({ data: { toEmail: 'v@example.com', type, payload: { amount: '₱800' }, status: 'sent', relatedEntityType, relatedEntityId } });
+      await email('payment_approved', 'payment', payment.id);
+      await email('slot_assigned', 'application', old.application.id);
+      const kept = await email('application_submitted', 'application', old.application.id);
+
+      await purgeExpiredPaymentRecords(prisma, now);
+
+      expect((await prisma.emailNotification.findMany()).map((e) => e.id)).toEqual([kept.id]);
+    });
+
     it('keeps records of events that ended less than 90 days ago', async () => {
       const recent = await eventWithRecords(new Date(now.getTime() - 89 * DAY));
 

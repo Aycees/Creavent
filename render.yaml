@@ -100,6 +100,8 @@ projects:
                   name: creavent-db-staging
                   property: connectionString
               - fromGroup: creavent-staging-secrets
+              # The backups bucket's own key: only the worker gets it (architecture §9.3).
+              - fromGroup: creavent-staging-worker-secrets
 
         databases:
           - name: creavent-db-staging
@@ -118,4 +120,10 @@ projects:
           # Render Dashboard and never committed. Non-secret shared settings
           # can be listed with `value`.
           - name: creavent-staging-secrets
+            envVars: []
+          # The worker's own secrets: R2_BACKUPS_BUCKET, R2_BACKUPS_ACCESS_KEY_ID
+          # and R2_BACKUPS_SECRET_ACCESS_KEY, for an R2 token scoped to the
+          # backups bucket. Kept out of the shared group so the web app and API
+          # can't read the dumps.
+          - name: creavent-staging-worker-secrets
             envVars: []

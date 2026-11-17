@@ -1,6 +1,7 @@
 import { BadRequestException, ConflictException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import {
   reportNumber,
+  type ReportButtonTarget,
   type ReportDetail,
   type ReportGroup,
   type ReportTarget,
@@ -15,6 +16,8 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { PublicRefreshService } from '../public/public-refresh.service.js';
 
 const MAX_REPORTS_PER_HOUR = 10;
+// Reports in the Resolved list.
+const RESOLVED_LIMIT = 200;
 
 export const statusWords: Record<string, string> = {
   draft: 'draft',
@@ -67,43 +70,58 @@ export class ReportsService {
   ) {}
 
   async create(userId: string, input: z.output<typeof createReportSchema>) {
-    // A rate limit, counted in the database like uploads (architecture §10).
-    const lastHour = await this.prisma.report.count({ where: { reporterUserId: userId, createdAt: { gt: new Date(Date.now() - 3_600_000) } } });
-    if (lastHour >= MAX_REPORTS_PER_HOUR) throw new HttpException('You sent a lot of reports in the last hour. Try again later.', HttpStatus.TOO_MANY_REQUESTS);
-    await this.assertReportable(input.targetType, input.targetId, userId);
-    const existing = await this.prisma.report.findFirst({
-      where: { reporterUserId: userId, status: 'open', ...targetWhere(input.targetType, input.targetId) },
-    });
-    if (existing) throw alreadyReported(existing.number);
+    const target = await this.publicTarget(input.targetType, input.targetId);
+    if (!target) throw new NotFoundException(input.targetType === 'event' ? 'Event not found' : 'Page not found');
+    if (target.ownerUserId === userId) throw new BadRequestException(input.targetType === 'event' ? "You can't report your own event" : "You can't report your own page");
     try {
-      const report = await this.prisma.report.create({
-        data: {
-          source: 'report_button',
-          reporterUserId: userId,
-          targetType: input.targetType,
-          ...targetWhere(input.targetType, input.targetId),
-          reason: input.reason,
-          details: input.details ?? null,
-        },
+      return await this.prisma.$transaction(async (tx) => {
+        // One reporter's requests run one at a time, so the hourly limit
+        // (architecture §10, counted in the database like uploads) holds
+        // against requests sent together.
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`report:${userId}`}::text))`;
+        const lastHour = await tx.report.count({ where: { reporterUserId: userId, createdAt: { gt: new Date(Date.now() - 3_600_000) } } });
+        if (lastHour >= MAX_REPORTS_PER_HOUR) throw new HttpException('You sent a lot of reports in the last hour. Try again later.', HttpStatus.TOO_MANY_REQUESTS);
+        const existing = await tx.report.findFirst({ where: { reporterUserId: userId, status: 'open', ...target.where } });
+        if (existing) throw alreadyReported(existing.number);
+        const report = await tx.report.create({
+          data: { source: 'report_button', reporterUserId: userId, targetType: target.type, ...target.where, reason: input.reason, details: input.details ?? null },
+        });
+        return { number: report.number };
       });
-      return { number: report.number };
     } catch (error) {
       // Two reports sent at once: the partial unique index keeps one.
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-        const report = await this.prisma.report.findFirstOrThrow({
-          where: { reporterUserId: userId, status: 'open', ...targetWhere(input.targetType, input.targetId) },
-        });
+        const report = await this.prisma.report.findFirstOrThrow({ where: { reporterUserId: userId, status: 'open', ...target.where } });
         throw alreadyReported(report.number);
       }
       throw error;
     }
   }
 
-  async mine(userId: string, targetType: ReportTarget, targetId: string) {
-    const report = await this.prisma.report.findFirst({
-      where: { reporterUserId: userId, status: 'open', ...targetWhere(targetType, targetId) },
-    });
-    return { number: report?.number ?? null };
+  async mine(userId: string, targetType: ReportButtonTarget, targetId: string) {
+    const target = await this.publicTarget(targetType, targetId);
+    if (!target) return { number: null, own: false };
+    const report = await this.prisma.report.findFirst({ where: { reporterUserId: userId, status: 'open', ...target.where } });
+    return { number: report?.number ?? null, own: target.ownerUserId === userId };
+  }
+
+  // What the report button points at, as visitors see it: an event that is
+  // public, or an organizer or vendor page that is shown. Null otherwise, so
+  // ids of drafts, hidden events and pages that are down can't be probed.
+  private async publicTarget(type: ReportButtonTarget, id: string) {
+    if (type === 'event') {
+      const event = await this.prisma.event.findUnique({ where: { id }, include: { organizerProfile: true } });
+      if (!event || event.status === 'draft' || event.moderationState === 'hidden') return null;
+      return { type: 'event' as const, where: { targetEventId: id }, ownerUserId: event.organizerProfile.userId };
+    }
+    const profile =
+      type === 'organizer'
+        ? await this.prisma.organizerProfile.findUnique({ where: { id }, select: { userId: true, slug: true } })
+        : await this.prisma.vendorProfile.findUnique({ where: { id }, select: { userId: true, slug: true } });
+    if (!profile?.slug) return null;
+    const role = await this.prisma.userRole.findFirst({ where: { userId: profile.userId, role: type, suspendedAt: null, user: { deletedAt: null } } });
+    if (!role) return null;
+    return { type: 'user' as const, where: { targetUserId: profile.userId }, ownerUserId: profile.userId };
   }
 
   async addFromEmail(adminId: string, input: z.output<typeof addEmailReportSchema>) {
@@ -125,11 +143,18 @@ export class ReportsService {
   // Open: one group per target, oldest first. Resolved: one group per
   // decision, newest first.
   async groups(status: 'open' | 'resolved'): Promise<{ items: ReportGroup[]; openCount: number; resolvedCount: number }> {
-    const rows = await this.prisma.report.findMany({
-      where: status === 'open' ? { status: 'open' } : { status: { not: 'open' } },
-      include: targetInclude,
-      orderBy: [{ createdAt: 'asc' }, { number: 'asc' }],
-    });
+    // Resolved: the latest decisions only, so the list stays a fixed size.
+    const rows =
+      status === 'open'
+        ? await this.prisma.report.findMany({ where: { status: 'open' }, include: targetInclude, orderBy: [{ createdAt: 'asc' }, { number: 'asc' }] })
+        : (
+            await this.prisma.report.findMany({
+              where: { status: { not: 'open' } },
+              include: targetInclude,
+              orderBy: [{ resolvedAt: 'desc' }, { number: 'desc' }],
+              take: RESOLVED_LIMIT,
+            })
+          ).reverse();
     const groups = new Map<string, typeof rows>();
     for (const r of rows) {
       const key = status === 'open' ? targetKey(r) : `${targetKey(r)}:${r.resolvedAt?.toISOString()}`;
@@ -277,25 +302,12 @@ export class ReportsService {
     return this.detail(id);
   }
 
-  // The report button reaches only what the reporter can see, and not
-  // themselves.
-  private async assertReportable(type: ReportTarget, id: string, reporterId: string) {
-    if (type === 'event') {
-      const event = await this.prisma.event.findUnique({ where: { id }, include: { organizerProfile: true } });
-      if (!event || event.status === 'draft' || event.moderationState === 'hidden') throw new NotFoundException('Event not found');
-      if (event.organizerProfile.userId === reporterId) throw new BadRequestException("You can't report your own event");
-      return;
-    }
-    if (id === reporterId) throw new BadRequestException("You can't report yourself");
-    await this.assertExists('user', id);
-  }
-
   private async assertExists(type: ReportTarget, id: string) {
     if (type === 'event') {
       if (!(await this.prisma.event.findUnique({ where: { id } }))) throw new NotFoundException('Event not found');
       return;
     }
-    const roles = await this.prisma.userRole.count({ where: { userId: id } });
+    const roles = await this.prisma.userRole.count({ where: { userId: id, user: { deletedAt: null } } });
     if (!roles) throw new NotFoundException('User not found');
   }
 }

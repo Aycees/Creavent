@@ -102,7 +102,7 @@ export class ModerationService {
       reason,
     });
     const refresh = [tags.listing];
-    if (role === 'vendor' && found.user.vendorProfile) refresh.push(tags.vendor(found.user.vendorProfile.id));
+    if (role === 'vendor' && found.user.vendorProfile) refresh.push(...(await vendorPageTags(tx, found.user.vendorProfile.id)));
     if (role === 'organizer' && found.user.organizerProfile) {
       const profileId = found.user.organizerProfile.id;
       refresh.push(tags.organizer(profileId));
@@ -130,10 +130,17 @@ export class ModerationService {
       changes: { role, suspended: { from: true, to: false } },
     });
     const refresh = [tags.listing];
-    if (found.user.vendorProfile) refresh.push(tags.vendor(found.user.vendorProfile.id));
+    if (role === 'vendor' && found.user.vendorProfile) refresh.push(...(await vendorPageTags(tx, found.user.vendorProfile.id)));
     if (found.user.organizerProfile) refresh.push(tags.organizer(found.user.organizerProfile.id));
     return refresh;
   }
+}
+
+// A vendor's page and the event pages that list them (reserved slots), which
+// link to it.
+async function vendorPageTags(tx: Tx, vendorProfileId: string) {
+  const events = await tx.slotAssignment.findMany({ where: { vendorProfileId, status: 'reserved' }, select: { eventId: true }, distinct: ['eventId'] });
+  return [tags.vendor(vendorProfileId), ...events.map((e) => tags.event(e.eventId))];
 }
 
 // An organizer's live events: open to vendors or announced, visible, and not

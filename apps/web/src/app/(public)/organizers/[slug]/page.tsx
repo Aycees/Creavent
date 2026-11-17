@@ -26,7 +26,7 @@ async function View({ params }: { params: Promise<{ slug: string }> }) {
     <OrganizerPageView
       page={page}
       supportEmail={config.supportEmail}
-      report={<ReportLink targetType="user" targetId={page.organizer.userId} ownerUserId={page.organizer.userId} noun="organizer" supportEmail={config.supportEmail} />}
+      report={<ReportLink targetType="organizer" targetId={page.organizer.id} supportEmail={config.supportEmail} />}
     />
   ) : <NotFoundView what="organizer" />
 }

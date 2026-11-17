@@ -28,7 +28,6 @@ export function publicEventFixture(overrides: Partial<PublicEvent> = {}): Public
     coverUrl: null,
     publicFloorPlanUrl: "https://files.example/floor.webp",
     organizer: {
-      userId: "6e0c7b2a-3f4d-4c8e-9a1b-2c3d4e5f6a7b",
       displayName: "Sari-Sari Collective",
       slug: "sari-sari-collective",
       logoUrl: null,

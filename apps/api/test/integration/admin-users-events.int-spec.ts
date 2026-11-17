@@ -41,12 +41,26 @@ describe('admin users and events', () => {
     const notAdmin = await signInAs(app, (await createUser(prisma)).email);
     const vendor = await createVendor(prisma);
 
-    for (const path of ['/api/admin/users', `/api/admin/users/${vendor.user.id}`, '/api/admin/events']) {
-      expect((await agent(app).get(path)).status).toBe(401);
-      expect((await notAdmin.get(path)).status).toBe(403);
+    const organizer = await createOrganizer(prisma);
+    const eventId = await readyEvent(prisma, organizer.profile.id, { status: 'announced' });
+    const routes: [string, string][] = [
+      ['get', '/api/admin/users'],
+      ['get', `/api/admin/users/${vendor.user.id}`],
+      ['post', `/api/admin/users/${vendor.user.id}/roles/vendor/suspend`],
+      ['post', `/api/admin/users/${vendor.user.id}/roles/vendor/reinstate`],
+      ['get', '/api/admin/events'],
+      ['get', `/api/admin/events/${eventId}`],
+      ['post', `/api/admin/events/${eventId}/hide`],
+      ['post', `/api/admin/events/${eventId}/show`],
+      ['get', '/api/admin/search?q=a'],
+    ];
+
+    for (const [method, path] of routes) {
+      expect((await agent(app)[method as 'get'](path).send({ reason: 'x' })).status, `${method} ${path} signed out`).toBe(401);
+      expect((await notAdmin[method as 'get'](path).send({ reason: 'x' })).status, `${method} ${path} not admin`).toBe(403);
     }
-    expect((await notAdmin.post(`/api/admin/users/${vendor.user.id}/roles/vendor/suspend`).send({ reason: 'x' })).status).toBe(403);
     expect((await role(vendor.user.id, 'vendor')).suspendedAt).toBeNull();
+    expect((await prisma.event.findUniqueOrThrow({ where: { id: eventId } })).moderationState).toBe('visible');
   });
 
   describe('users', () => {
@@ -70,12 +84,18 @@ describe('admin users and events', () => {
       expect(found.body.items[0]).toMatchObject({ fullName: 'Jun Reyes', roles: [{ role: 'vendor', name: "Lola's Ukay", suspended: false }] });
     });
 
+    it('refuses a page number past any real list', async () => {
+      const { browser } = await admin();
+      expect((await browser.get('/api/admin/users?page=1000000000')).status).toBe(400);
+      expect((await browser.get('/api/admin/events?page=1000000000')).status).toBe(400);
+    });
+
     it('shows a user with contact details, roles, activity, reports and history', async () => {
       const { browser } = await admin();
       const organizer = await createOrganizer(prisma, { displayName: 'Mega Sale DVO' });
       await readyEvent(prisma, organizer.profile.id, { status: 'announced', name: 'Black Friday Mega Ukay' });
       const reporter = await signInAs(app, (await createVendor(prisma)).user.email);
-      await reporter.post('/api/reports').send({ targetType: 'user', targetId: organizer.user.id, reason: 'scam' });
+      await reporter.post('/api/reports').send({ targetType: 'organizer', targetId: organizer.profile.id, reason: 'scam' });
 
       const res = await browser.get(`/api/admin/users/${organizer.user.id}`);
 
@@ -158,6 +178,7 @@ describe('admin users and events', () => {
       const browser = await signInAs(app, vendor.user.email);
 
       expect((await browser.get('/api/vendor/dashboard')).status).toBe(200);
+      expect((await browser.get('/api/vendor/events')).status).toBe(200);
       expect((await browser.get('/api/vendor/applications')).status).toBe(200);
       expect((await browser.get(`/api/vendor/applications/${application.id}`)).status).toBe(200);
       expect((await browser.get(`/api/vendor/events/${event.slug}/apply`)).status).toBe(403);

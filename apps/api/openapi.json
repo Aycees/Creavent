@@ -23580,11 +23580,6 @@
                             "organizer": {
                               "type": "object",
                               "properties": {
-                                "userId": {
-                                  "type": "string",
-                                  "format": "uuid",
-                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-                                },
                                 "displayName": {
                                   "type": "string"
                                 },
@@ -23616,7 +23611,6 @@
                                 }
                               },
                               "required": [
-                                "userId",
                                 "displayName",
                                 "slug",
                                 "logoUrl",
@@ -38625,11 +38619,6 @@
                                 "organizer": {
                                   "type": "object",
                                   "properties": {
-                                    "userId": {
-                                      "type": "string",
-                                      "format": "uuid",
-                                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-                                    },
                                     "displayName": {
                                       "type": "string"
                                     },
@@ -38661,7 +38650,6 @@
                                     }
                                   },
                                   "required": [
-                                    "userId",
                                     "displayName",
                                     "slug",
                                     "logoUrl",
@@ -38931,7 +38919,7 @@
                     "organizer": {
                       "type": "object",
                       "properties": {
-                        "userId": {
+                        "id": {
                           "type": "string",
                           "format": "uuid",
                           "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
@@ -38973,7 +38961,7 @@
                         }
                       },
                       "required": [
-                        "userId",
+                        "id",
                         "displayName",
                         "slug",
                         "logoUrl",
@@ -39205,7 +39193,7 @@
                     "vendor": {
                       "type": "object",
                       "properties": {
-                        "userId": {
+                        "id": {
                           "type": "string",
                           "format": "uuid",
                           "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
@@ -39260,7 +39248,7 @@
                         }
                       },
                       "required": [
-                        "userId",
+                        "id",
                         "shopName",
                         "slug",
                         "avatarUrl",
@@ -39501,8 +39489,9 @@
                   "targetType": {
                     "type": "string",
                     "enum": [
-                      "user",
-                      "event"
+                      "event",
+                      "organizer",
+                      "vendor"
                     ]
                   },
                   "targetId": {
@@ -39621,8 +39610,9 @@
             "schema": {
               "type": "string",
               "enum": [
-                "user",
-                "event"
+                "event",
+                "organizer",
+                "vendor"
               ]
             }
           },
@@ -39650,10 +39640,14 @@
                       "type": "integer",
                       "minimum": -9007199254740991,
                       "maximum": 9007199254740991
+                    },
+                    "own": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "number"
+                    "number",
+                    "own"
                   ],
                   "additionalProperties": false
                 }

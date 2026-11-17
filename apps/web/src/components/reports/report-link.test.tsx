@@ -11,17 +11,16 @@ vi.mock("sonner", () => ({ toast: { success: vi.fn() } }))
 
 const SUPPORT = "support@creavent.example"
 const eventId = "5e0c7b2a-3f4d-4c8e-9a1b-2c3d4e5f6a7b"
-const ownerId = "6e0c7b2a-3f4d-4c8e-9a1b-2c3d4e5f6a7b"
 
-function serve({ me = signedInMe as unknown, mine = null as number | null } = {}) {
+function serve({ me = signedInMe as unknown, mine = null as number | null, own = false } = {}) {
   vi.mocked(api.GET).mockImplementation(((path: string) => {
     if (path === "/api/me") return Promise.resolve(me ? { data: me, response: { status: 200 } } : { data: undefined, response: { status: 401 } })
-    return Promise.resolve({ data: { number: mine }, response: { status: 200 } })
+    return Promise.resolve({ data: { number: mine, own }, response: { status: 200 } })
   }) as never)
 }
 
 function renderLink() {
-  return renderWithQuery(<ReportLink targetType="event" targetId={eventId} ownerUserId={ownerId} noun="event" supportEmail={SUPPORT} />)
+  return renderWithQuery(<ReportLink targetType="event" targetId={eventId} supportEmail={SUPPORT} />)
 }
 
 beforeEach(() => vi.clearAllMocks())
@@ -37,7 +36,7 @@ describe("ReportLink", () => {
   })
 
   it("doesn't offer to report your own event", async () => {
-    serve({ me: { ...signedInMe, id: ownerId } })
+    serve({ own: true })
     renderLink()
 
     expect(await screen.findByRole("link", { name: SUPPORT })).toBeInTheDocument()
