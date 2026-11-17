@@ -4,7 +4,6 @@ import type { EventSetup } from "@creavent/shared"
 export const eventTypes = [
   { id: "11111111-1111-4111-8111-111111111111", name: "Flea market", slug: "flea-market" },
   { id: "22222222-2222-4222-8222-222222222222", name: "Bazaar", slug: "bazaar" },
-  { id: "33333333-3333-4333-8333-333333333333", name: "Pop-up", slug: "pop-up" },
 ]
 
 export const categories = [
