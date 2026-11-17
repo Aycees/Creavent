@@ -3,7 +3,7 @@ import type { PrismaService, Tx } from '../prisma/prisma.service.js';
 
 // The one way to write the audit log (docs/architecture.md §4.5): who, what,
 // which record, the values before and after, and the reason. Rows are never
-// updated or deleted.
+// deleted; only the retention job blanks payment details in them (decision R14).
 export async function writeAuditLog(
   tx: Tx | PrismaService,
   entry: {

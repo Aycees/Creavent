@@ -791,7 +791,7 @@ Moderation actions are stored where they apply: `user_roles.suspended_*` for sus
 
 ### 5.10 Audit log
 
-**audit_logs**: append-only record of admin actions (spec §2), including each time an admin opens an application document or a proof of payment. Rows are never updated or deleted.
+**audit_logs**: append-only record of admin actions (spec §2), including each time an admin opens an application document or a proof of payment. Rows are never deleted. The one change ever made to them: the retention job blanks payment details (`changes` and `reason` on payment and proof rows, the price on assignment rows) with the rest of the event's payment records (decision R14).
 
 | Attribute | Type | Notes |
 |---|---|---|
@@ -890,6 +890,7 @@ Values worked out from other tables instead of being stored.
   - the QR images in `event_payment_methods`, and `slot_assignments.payment_instructions_snapshot`, which is set to null
   - the application documents (permits) in storage, their `files` rows, and `application_documents`
   - the sent `email_notifications` rows that carried payment amounts, slots or account details for that event (decision R12)
+  - the payment details in `audit_logs`: `changes` and `reason` on its payment and proof rows, and the price on its assignment rows; who acted, what and when stay (decision R14)
 
   The `slot_assignments` and `applications` rows themselves stay, as the record of who joined the event and had which slot. The job works from the events: an event's records go when its `ends_at`, or its `canceled_at` if it was canceled, is more than `proof_retention_days` ago (decision R6). It sets `deleted_at` on the files, and the cleanup job deletes the objects. `files.delete_after` is not used (changed 2026-11-17).
 - **Cleanup job (daily, spec §11.7):** deletes the object and then the row for files with `deleted_at` older than 24 hours, and deletes `pending` files older than 24 hours. A removed file that a row still points to is kept, because its `ON DELETE SET NULL` keys would quietly empty a picture. A lifecycle rule on the private bucket's `incoming/` area also expires leftover uploads after 1 day, as a safety net. Replacing a cover, logo, avatar, floor plan, or photo sets `deleted_at` on the old file. Deleting an account sets it on the avatar.

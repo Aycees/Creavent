@@ -953,7 +953,8 @@ model Report {
 
 // ─── Audit log (data model §5.10) ──────────────────────────────────────────
 
-// Append-only.
+// Append-only. Rows are never deleted; the retention job only blanks payment
+// details in them (data model §8, decision R14).
 model AuditLog {
   id          String   @id @default(uuid()) @db.Uuid
   actorUserId String   @map("actor_user_id") @db.Uuid

@@ -10,8 +10,9 @@ const PAYMENT_EMAILS: NotificationType[] = ['slot_assigned', 'slot_released', 'p
 // The retention job (spec §6.7, data model §8): `proof_retention_days` after an
 // event's last day, or after it was canceled, its payment records go:
 // proofs, payments, payment QR images, the payment details copied onto each
-// assignment, the application documents, and the sent emails that carried
-// payment details. Who had which slot stays.
+// assignment, the application documents, the sent emails that carried
+// payment details, and those details in the audit log. Who had which slot
+// stays.
 // Files are marked removed; the cleanup job deletes the objects. Returns the
 // number of events purged.
 export async function purgeExpiredPaymentRecords(prisma: PrismaClient | PrismaService, now = new Date(), days = appConfig().proofRetentionDays) {
@@ -27,10 +28,30 @@ export async function purgeExpiredPaymentRecords(prisma: PrismaClient | PrismaSe
       )`;
   for (const { id } of events) {
     await prisma.$transaction(async (tx) => {
-      const [payments, applications] = await Promise.all([
+      const [payments, applications, proofIds, assignments] = await Promise.all([
         tx.payment.findMany({ where: { eventId: id }, select: { id: true } }),
         tx.application.findMany({ where: { eventId: id }, select: { id: true } }),
+        tx.paymentProof.findMany({ where: { eventId: id }, select: { id: true } }),
+        tx.slotAssignment.findMany({ where: { eventId: id }, select: { id: true } }),
       ]);
+      // The audit log keeps who did what and when, but loses the payment
+      // details: statuses and notes on payments and proofs, and the price on
+      // assignments (decision R14). The only change ever made to audit rows.
+      await tx.auditLog.updateMany({
+        where: {
+          OR: [
+            { entityType: 'payment', entityId: { in: payments.map((p) => p.id) } },
+            { entityType: 'payment_proof', entityId: { in: proofIds.map((p) => p.id) } },
+          ],
+        },
+        data: { changes: Prisma.DbNull, reason: null },
+      });
+      const assignmentIds = assignments.map((a) => a.id);
+      if (assignmentIds.length) {
+        await tx.$executeRaw`
+          UPDATE audit_logs SET changes = changes - 'price'
+          WHERE entity_type = 'slot_assignment' AND entity_id = ANY(${assignmentIds}::uuid[]) AND changes ? 'price'`;
+      }
       // The sent emails that carried amounts, slots and account numbers.
       await tx.emailNotification.deleteMany({
         where: {

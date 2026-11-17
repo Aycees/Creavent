@@ -91,6 +91,32 @@ describe('jobs', () => {
       expect((await prisma.emailNotification.findMany()).map((e) => e.id)).toEqual([kept.id]);
     });
 
+    it("blanks the payment details in the audit log, keeping who did what and when", async () => {
+      const old = await eventWithRecords(new Date(now.getTime() - 91 * DAY));
+      const payment = await prisma.payment.findFirstOrThrow({ where: { eventId: old.eventId } });
+      const proof = await prisma.paymentProof.findFirstOrThrow({ where: { eventId: old.eventId } });
+      const actorUserId = (await prisma.event.findUniqueOrThrow({ where: { id: old.eventId }, include: { organizerProfile: true } })).organizerProfile.userId;
+      const log = (action: string, entityType: string, entityId: string, changes: object, reason: string | null = null) =>
+        prisma.auditLog.create({ data: { actorUserId, action, entityType, entityId, changes, reason } });
+      await log('payment.mark_paid', 'payment', payment.id, { status: { from: 'pending', to: 'approved' } }, 'Paid ₱800 in cash at the gate');
+      await log('proof.reject', 'payment_proof', proof.id, { status: { from: 'submitted', to: 'rejected' } }, 'Blurry GCash receipt');
+      await log('assignment.assign', 'slot_assignment', old.assignment.id, { status: { from: null, to: 'assigned' }, slot: 'A-01', price: 800 });
+      const other = await log('application.approve', 'application', old.application.id, { status: { from: 'submitted', to: 'approved' } }, 'Welcome');
+
+      await purgeExpiredPaymentRecords(prisma, now);
+
+      const rows = await prisma.auditLog.findMany();
+      const byAction = Object.fromEntries(rows.map((r) => [r.action, { changes: r.changes, reason: r.reason }]));
+      expect(byAction).toEqual({
+        'payment.mark_paid': { changes: null, reason: null },
+        'proof.reject': { changes: null, reason: null },
+        'assignment.assign': { changes: { status: { from: null, to: 'assigned' }, slot: 'A-01' }, reason: null },
+        'application.approve': { changes: { status: { from: 'submitted', to: 'approved' } }, reason: 'Welcome' },
+      });
+      expect(rows.every((r) => r.actorUserId === actorUserId)).toBe(true);
+      expect(rows.find((r) => r.action === 'application.approve')!.id).toBe(other.id);
+    });
+
     it('keeps records of events that ended less than 90 days ago', async () => {
       const recent = await eventWithRecords(new Date(now.getTime() - 89 * DAY));
 
