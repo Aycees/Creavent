@@ -230,6 +230,10 @@ The class names are those in `creavent.css`. Build the app's components to match
 - **Real controls:** `<button>`, `<a href>`, `<input>` with `<label>`, `<fieldset>` and `<legend>` for groups. Icon-only buttons have an `aria-label`. Hidden text for screen readers uses a 1 px clipped span.
 - **Not color alone:** every state has a word or icon (badges, slot tiles, checklist steps).
 - **Motion:** 120 ms for hover and press, 200 ms ease-out for menus, sheets, and toasts. No bounce or parallax. With `prefers-reduced-motion`, only opacity changes.
+  - **Curves:** `ease-out` is `cubic-bezier(0.23, 1, 0.32, 1)` (the built-in is too weak), `ease-in-out` is `cubic-bezier(0.77, 0, 0.175, 1)`, and `--ease-drawer` is `cubic-bezier(0.32, 0.72, 0, 1)`, all in `tokens.css`. Never `ease-in`, never `transition: all`.
+  - **Press:** buttons, chips, cards and day links scale to 0.97 (cards 0.985) on `:active`. Hover effects only apply on devices that hover.
+  - **Entrances:** `animate-rise` (fade plus an 8 px rise, 300 ms) once per container, never a parent and its children. Set the delay with `[--cv-delay:60ms]`. Stagger only the first three cards, 40 ms apart. Content below the fold does not animate.
+  - **Phone action bar:** the event page pins "Get directions" and "Copy link" to the bottom of the screen on phones. They are the same elements as in the summary card (`max-md:` classes), and the bar slides up with `animate-sheet`.
 
 ## 14. Mobile-first guidelines
 
