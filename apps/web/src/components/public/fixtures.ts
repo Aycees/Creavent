@@ -36,6 +36,7 @@ export function publicEventFixture(overrides: Partial<PublicEvent> = {}): Public
       socialLinks: ["https://facebook.com/sarisari"],
       eventsHeld: 9,
     },
+    host: null,
     vendors: [
       vendor("Lola's Ukay", "A-03", ["Preloved clothing"]),
       vendor("Second Spin Records", "A-07", ["Vintage"]),
@@ -45,6 +46,38 @@ export function publicEventFixture(overrides: Partial<PublicEvent> = {}): Public
     canceled: null,
     ...overrides,
   }
+}
+
+// A vendor's own pop-up (spec §4.7): a host instead of an organizer, and no
+// other vendors.
+export function popupEventFixture(overrides: Partial<PublicEvent> = {}): PublicEvent {
+  return publicEventFixture({
+    slug: "lolas-ukay-at-habi-cafe",
+    name: "Lola's Ukay at Habi Café",
+    typeName: "Pop-up",
+    startDate: "2026-11-21",
+    endDate: "2026-11-21",
+    opensAt: "14:00",
+    closesAt: "20:00",
+    venueName: "Habi Café",
+    addressLine: "Quirino Avenue, Obrero",
+    publicFloorPlanUrl: null,
+    organizer: null,
+    host: {
+      shopName: "Lola's Ukay",
+      slug: "lolas-ukay",
+      avatarUrl: null,
+      approved: true,
+      categories: ["Preloved clothing", "Vintage"],
+      products: "Tops, denim, jackets, bags",
+      photos: ["https://files.example/p1.webp", "https://files.example/p2.webp"],
+      socialLinks: ["https://instagram.com/lolasukay"],
+      joinedAt: "2026-03-02T02:00:00Z",
+      eventsSoldAt: 6,
+    },
+    vendors: [],
+    ...overrides,
+  })
 }
 
 export const manyVendors = Array.from({ length: 12 }, (_, i) => vendor(`Shop ${i + 1}`, `B-${String(i + 1).padStart(2, "0")}`, ["Handmade"]))

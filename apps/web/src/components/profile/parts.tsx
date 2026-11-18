@@ -38,6 +38,7 @@ export function SaveBar({
   error,
   onDiscard,
   className,
+  submitLabel = "Save changes",
 }: {
   dirty: boolean
   changes: string[]
@@ -45,6 +46,7 @@ export function SaveBar({
   error: string | null
   onDiscard: () => void
   className?: string
+  submitLabel?: string
 }) {
   return (
     <div className={cn("sticky bottom-0 z-10 -mx-4 flex flex-col gap-2 border-t border-border bg-surface px-4 pt-3 pb-4 shadow-up md:mx-0 md:flex-row md:items-center md:gap-3 md:rounded-lg md:border md:px-5 md:pb-3", className)}>
@@ -59,7 +61,7 @@ export function SaveBar({
           </Button>
         )}
         <Button type="submit" className="flex-1 md:flex-none md:px-7" disabled={!dirty || saving}>
-          Save changes
+          {submitLabel}
         </Button>
       </div>
     </div>

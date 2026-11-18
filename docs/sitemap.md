@@ -2,7 +2,7 @@
 
 **Status:** First draft, agreed on 2026-11-12 and simplified the same day (spec §9). Lists every page in the MVP, who can open it, and how pages connect. The rules behind each page are in the [Feature specification](feature-specification.md), and the steps are in the [User flows](user-flows.md). If this file and the spec disagree, the spec wins.
 
-Last updated: 2026-11-14
+Last updated: 2026-11-17
 
 ## 1. Principles
 
@@ -38,6 +38,10 @@ Vendor (vendor role)
 ├── /vendor/applications           Application list
 ├── /vendor/applications/[id]      Application detail, assigned slot, and payment
 ├── /vendor/applications/[id]/slot Pick another or a first preferred slot
+├── /vendor/popups                 My pop-ups (Upcoming, Past), Host a pop-up
+├── /vendor/popups/new             Create a pop-up draft
+├── /vendor/popups/[id]            Pop-up form: Announce, Cancel, Duplicate, Delete draft
+├── /vendor/host-approval          Get approved to host pop-ups
 └── /vendor/profile                Vendor profile
 
 Organizer (organizer role)
@@ -68,7 +72,7 @@ Admin
   - Calendar is a month grid with today marked, events shown in each day, and a panel that lists the selected day's events. On phones it is a compact month with dots on event days, and the selected day's events are listed below.
 - **"Next 7 days" strip** beside the page title: the next 7 days with today marked, a mark on days that have announced events, and a link to the calendar.
 - **"Sell at these events"** link to sign up, showing how many events are open to vendors. Signed-out visitors see the number only. For a signed-in vendor the link goes to `/vendor/events`.
-- Each card: cover, name, event type tag, date (or date range and number of days for a multi-day event), venue and city, organizer name with the "Approved by Creavent" badge.
+- Each card: cover, name, event type tag, date (or date range and number of days for a multi-day event), venue and city, organizer name with the "Approved by Creavent" badge. A pop-up's card shows the host's shop name with the badge instead, and search matches the shop name (spec §4.7).
 - Links to event pages and organizer pages.
 
 ### `/events/[slug]` Event page
@@ -77,12 +81,13 @@ Admin
 |---|---|---|---|---|
 | Signed-out visitor | Not found | "This event isn't public yet" | Public view | Public view, marked past or canceled |
 | Vendor | Not found | Vendor view | Vendor view | Vendor view, marked past or canceled |
-| The event's organizer | Link to setup | Public view plus "Manage event" | Same | Same |
+| The event's organizer, or a pop-up's host | Link to setup | Public view plus "Manage event" | Same | Same |
 | Admin | Everything, plus admin actions | | | |
 
 - **Public view:** cover, event type tag, schedule, venue with "Get directions", "Copy link", number of confirmed vendors, description, organizer card with badge, about, and social links (links to the organizer page), public floor plan image, accepted-vendor list with each vendor's category and slot number, filterable by category (each name links to that vendor's page, or shows without a link when that page is not available), "Details updated" date, report button (signed in), and the support email for reports from visitors.
 - **Vendor view:** public view, plus a note when the event is not public yet, the applications close date, requirements (accepted categories with limit and spots left, and the documents to upload, some for one category only), the slots grouped by section with size, note, price, and open count (with "You can choose a preferred slot when you apply" when the organizer allows it), the vendor floor plan image, the event policy, a summary (fee range, applications close, pay within, paid to), the organizer's contact details for vendors, and **Apply**, or the vendor's current status with a link to the application. Attendees never see these parts.
-- Hidden events are "Not found" to everyone except their organizer and admins (spec §2).
+- **Pop-up view** (spec §4.7, §7): a pop-up is never `open_to_vendors`, and every viewer gets the public view, with a **host block** instead of the organizer card: avatar, shop name, "Approved by Creavent" badge, history line ("Joined Nov 2026 · Sold at 3 Creavent events"), categories, products, photos, social links, and a link to the vendor page. No vendor count, vendor list, floor plan, vendor view, or contact details.
+- Hidden events are "Not found" to everyone except their organizer (or host) and admins (spec §2).
 
 ### `/organizers/[slug]` Organizer page
 Everything a visitor needs to get to know the organizer (spec §7.1):
@@ -95,14 +100,15 @@ Everything a visitor needs to get to know the organizer (spec §7.1):
 ### `/vendors/[slug]` Vendor page
 Everything an attendee needs to get to know a vendor (spec §7.2). There is no vendor directory or search, so the page is reached from the accepted-vendor list on an event page, or from a shared link.
 - Avatar, shop name, product categories, about text, products, up to 8 vendor photos, social media links, city, when they joined Creavent, and the number of events they have sold at.
-- **Find them next at:** the vendor's next upcoming event, with the slot number (event `announced`, slot `reserved`).
-- **Where they've sold:** events where the vendor had a `reserved` slot and the event was announced (`announced` or `completed`). Never `draft`, `open_to_vendors`, or events canceled before being announced, or events canceled after being announced.
+- **Find them next at:** the vendor's next upcoming event, with the slot number (event `announced`, slot `reserved`), or their next announced pop-up, marked "Pop-up".
+- **Where they've sold:** events where the vendor had a `reserved` slot and the event was announced (`announced` or `completed`), and pop-ups they hosted that were announced or completed. Never `draft`, `open_to_vendors`, or events canceled before being announced, or events canceled after being announced.
 - Never shown: phone number, email, applications, application documents, payments, or events applied to without a reserved slot.
 - Report button (signed in). No contact form and no messaging.
 - Not found while the vendor role is suspended or the account is deleted.
 
 ### `/approved`
 - A short explanation: Creavent reviewed the organizer's public pages and past events. It is not a guarantee. Payments happen outside Creavent (spec §2.1, §6.6).
+- A second part for pop-up hosts: Creavent reviewed the vendor's public pages, or they have already sold at an event on Creavent (spec §4.7). It is not a guarantee that the pop-up takes place.
 
 ### Sign-in pages
 - `/signup`: first asks "I'm signing up to: Sell at events (vendor account) or Run events (organizer account)". This only pre-selects the role in onboarding. Then the form: full name, Google or email and password, and checkboxes to accept the terms and privacy notice and to confirm "I'm 18 or older" (spec §1).
@@ -135,6 +141,14 @@ Header actions, depending on status: **Preview as vendor**, **Delete draft** (dr
 
 `/organizer/events/[id]/vendors` has tabs for Applications, Vendors and slots, and Event setup, and header actions **Close applications** and **Announce event**. It starts with **slots at a glance** (how many slots are reserved, assigned, overdue, open, and set aside). It then shows approved vendors without a slot (with how many slots they asked for, their preferred slots, if any, and **Assign slot**, which selects the preferred slots that are still open, up to the number asked for), and every slot with its vendor, amount, payment status (Waiting, Proof submitted, Proof rejected with the reason, **Overdue**), and deadline, filtered by All, Needs attention, Reserved, or Open. The proof review panel shows the receipt, amount due, the option the vendor paid with, the amount and reference they entered, and **Approve payment** or **Reject**. Approving a payment without a proof image is the **Mark paid** action, which needs a note (spec §6.3). **Remove** frees the slot.
 
+### Pop-up pages
+
+`/vendor/popups/new` and `/vendor/popups/[id]` are one form, with no tabs (spec §4.7): name, description, cover (16:9 crop step), start and end date (1 to 7 days), daily opening and closing time, and venue (name, address, city, optional map pin). It has an **Announce** checklist (the fields, plus approved host and the vendor profile basics). Header actions, depending on status: **Delete draft** (drafts only), **Announce** (needs host approval: before it, the button leads to `/vendor/host-approval`), **Cancel pop-up** (announced, with an optional reason), and **Duplicate** (any status; copies the name, description, cover, and venue into a new draft, without dates or hours). There is no Preview as vendor, because vendors and attendees see the same page.
+
+`/vendor/popups` lists the host's pop-ups in Upcoming and Past tabs, with the type tag, dates, status, and next step (for example, "Add a cover" or "Get approved to announce"), and a **Host a pop-up** button. Opening it the first time checks the earned route (spec §4.7) and says so when the vendor is approved automatically.
+
+`/vendor/host-approval` mirrors `/organizer/approval`: the vendor's social links (at least one, saved to the vendor page), a "What we check" list, the 1 to 2 business day target, **Submit for review**, and the status (not submitted, pending review, approved with how it was granted, rejected or revoked with the reason). An approved host sees "Approved by Creavent" and the date.
+
 ### Dashboards and lists
 - `/organizer` shows to-do counts per event (applications to review, proofs to check, overdue payments, approved vendors with no slot), and Upcoming and Past event tabs with status, slot fill, and next step (spec §3.8).
 - `/vendor` shows what needs action, the applications table, the next confirmed event with ingress details, and events open to vendors (spec §4.6).
@@ -149,7 +163,7 @@ Header actions, depending on status: **Preview as vendor**, **Delete draft** (dr
 | Public, signed out | Logo, Events, Log in, Sign up | |
 | Signed in, no role | Logo, Events, account menu | Account menu: Account, Become a vendor, Become an organizer, Log out |
 | Account menu, any signed-in user | | Vendor dashboard and Organizer dashboard (for each role the user has), Admin (admins), Account, Become a vendor or Become an organizer (for each role the user doesn't have), Log out (added 2026-11-13) |
-| Vendor | Logo, role switch, account menu | Dashboard, Browse events, Applications, Profile |
+| Vendor | Logo, role switch, account menu | Dashboard, Browse events, Applications, Pop-ups, Profile. The phone tab bar gets Pop-ups too |
 | Organizer | Logo, role switch, account menu | Dashboard, Events, Profile, Approval (shows the approval status) |
 | Admin | Logo, "Admin" label, search (users, organizers, events), account menu | Overview, Approvals, Reports, Users, Events (Approvals and Reports show counts) |
 
@@ -158,10 +172,10 @@ The footer on every page has Terms, Privacy, and Support.
 ## 6. Admin pages
 
 - **Overview:** counts of organizers waiting (and how many are over the 2-day target), open reports, and resubmissions, then the approval queue and open reports.
-- **Approvals:** the organizer approval queue, sorted by oldest first, with links count and waiting time. The detail page ("1 of 7 in queue", **Next**) shows the links to check, the organizer's profile and contact details, the account (created date, other roles, draft events), and the decision: approve, or reject with a reason, plus an optional internal note.
-- **Reports:** Open and Resolved tabs. Open reports are grouped by event or user, oldest first, with their source (report button or support email). The detail page shows the reference number, what each person said, an internal note, and dismiss, hide event, or suspend. Admins can add a report from a support email.
-- **Users:** search by name, email, or shop, filtered by All, Vendors, Organizers, Suspended. The detail page shows contact details, roles, approval, activity, open reports, and history, with suspend or reinstate for each role (the reason is shown to the user).
-- **Events:** every event, including drafts and hidden ones, filtered by status (Open to vendors, Announced, Reported, Hidden, Drafts). The detail page shows the organizer, vendors, reports, and applications, with hide (the reason is emailed to the organizer) and show again. Opening an application document or proof of payment from here is logged (spec §2).
+- **Approvals:** the organizer and pop-up host approval queue, sorted by oldest first, with links count and waiting time. Host requests are tagged "Pop-up host", and their detail page shows the vendor profile, photos, social links, and past events instead of the organizer details. The detail page ("1 of 7 in queue", **Next**) shows the links to check, the organizer's profile and contact details, the account (created date, other roles, draft events), and the decision: approve, or reject with a reason, plus an optional internal note.
+- **Reports:** Open and Resolved tabs. Open reports are grouped by event or user, oldest first, with their source (report button or support email). The detail page shows the reference number, what each person said, an internal note, and dismiss, hide event, suspend, or, for a pop-up or its host, revoke host approval. Admins can add a report from a support email.
+- **Users:** search by name, email, or shop, filtered by All, Vendors, Organizers, Suspended. The detail page shows contact details, roles, approval (organizer approval and pop-up host approval), activity, open reports, and history, with suspend or reinstate for each role (the reason is shown to the user) and **Revoke host approval** for an approved host.
+- **Events:** every event, including drafts and hidden ones, filtered by status (Open to vendors, Announced, Reported, Hidden, Drafts). Pop-ups are listed with their host, and can be filtered to Pop-ups. The detail page shows the organizer (or host), vendors, reports, and applications, with hide (the reason is emailed to the organizer or host) and show again. Opening an application document or proof of payment from here is logged (spec §2).
 
 Categories, settings, and the audit log are managed in seed data, configuration, and the database, not from admin pages (spec §2).
 

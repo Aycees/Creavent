@@ -1,6 +1,6 @@
 "use client"
 
-import { REPORT_REASON_LABELS, reportNumber, suspendRoleSchema, type AdminUser, type RoleType } from "@creavent/shared"
+import { REPORT_REASON_LABELS, reportNumber, revokeHostSchema, suspendRoleSchema, type AdminUser, type RoleType } from "@creavent/shared"
 import { ArrowLeftIcon } from "@phosphor-icons/react"
 import { useQueryClient } from "@tanstack/react-query"
 import Link from "next/link"
@@ -24,7 +24,7 @@ type Role = AdminUser["roles"][number]
 
 const roleWord: Record<RoleType, string> = { vendor: "vendor", organizer: "organizer" }
 const effects: Record<RoleType, string> = {
-  vendor: "They can't apply or manage slots, and their vendor page is hidden. Organizers of events they joined aren't emailed.",
+  vendor: "They can't apply or manage slots, and their vendor page is hidden. Their announced pop-ups are hidden too. Organizers of events they joined aren't emailed.",
   organizer: "They can't manage events or applications, and their organizer page is hidden.",
 }
 
@@ -97,6 +97,106 @@ function SuspendDialog({ user, role, open, onOpenChange }: { user: AdminUser; ro
   )
 }
 
+// Revoke pop-up host approval (spec §4.7, mockup P6AdminRevokePhone).
+function RevokeHostDialog({ user, open, onOpenChange }: { user: AdminUser; open: boolean; onOpenChange: (o: boolean) => void }) {
+  const queryClient = useQueryClient()
+  const [reason, setReason] = React.useState("")
+  const [reasonError, setReasonError] = React.useState<string | null>(null)
+  const [error, setError] = React.useState<string | null>(null)
+  const [saving, setSaving] = React.useState(false)
+  const shop = user.roles.find((r) => r.role === "vendor")?.name ?? user.fullName
+  const first = user.fullName.split(" ")[0]
+  const count = user.host?.announcedPopups ?? 0
+
+  async function revoke() {
+    const parsed = revokeHostSchema.safeParse({ reason })
+    if (!parsed.success) return setReasonError(parsed.error.issues[0]?.message ?? "Write the reason they will see")
+    setReasonError(null)
+    setSaving(true)
+    const res = await api.POST("/api/admin/users/{id}/revoke-host", { params: { path: { id: user.id } }, body: { reason } })
+    setSaving(false)
+    if (!res.data) return setError((res.error as { message?: string } | undefined)?.message ?? "Something went wrong. Try again.")
+    queryClient.setQueryData([...adminUsersKey, user.id], res.data)
+    await Promise.all([queryClient.invalidateQueries({ queryKey: adminUsersKey }), queryClient.invalidateQueries({ queryKey: adminEventsKey }), queryClient.invalidateQueries({ queryKey: reportsKey })])
+    toast.success(`${shop}'s host approval is revoked`)
+    onOpenChange(false)
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="md:max-w-[520px]">
+        <DialogHeader>
+          <DialogTitle>{`Revoke host approval for ${shop}?`}</DialogTitle>
+          <DialogDescription>They can&apos;t announce pop-ups until an admin approves them again.</DialogDescription>
+        </DialogHeader>
+        <ul className="flex list-disc flex-col gap-1.5 pl-5 text-sm">
+          <li>{`Hides their ${count} announced ${count === 1 ? "pop-up" : "pop-ups"}, with this reason`}</li>
+          <li>Turns off approval by selling at an event, for good</li>
+          <li>They keep applying to and selling at other events, and can resubmit for review</li>
+        </ul>
+        <Field label="Reason they'll see" htmlFor="revoke-reason" help="Shown in the app and in the email." error={reasonError}>
+          <Textarea id="revoke-reason" value={reason} maxLength={1000} onChange={(e) => setReason(e.target.value)} />
+        </Field>
+        {error && (
+          <p role="alert" className="text-help text-danger-ink">
+            {error}
+          </p>
+        )}
+        <DialogFooter className="flex flex-col-reverse gap-2 md:flex-row md:justify-end">
+          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button type="button" variant="danger" disabled={saving} onClick={revoke}>
+            {`Revoke and email ${first}`}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+const hostStatusWords = { approved: "Approved", pending_review: "Waiting for review", rejected: "Not approved", not_submitted: "Not submitted" } as const
+
+// Pop-up host approval on the vendor role (spec §4.7, sitemap §6).
+function HostPanel({ user }: { user: AdminUser }) {
+  const [revoking, setRevoking] = React.useState(false)
+  const h = user.host!
+  const on = h.decidedAt ? adminDay.format(new Date(h.decidedAt)) : null
+  const how =
+    h.status === "approved"
+      ? h.source === "earned"
+        ? `Earned${on ? ` ${on}` : ""}${h.earnedFrom ? `: sold at ${h.earnedFrom}` : ": sold at a completed event"}`
+        : `Reviewed${on ? ` ${on}` : ""}`
+      : h.status === "rejected" && on
+        ? `${h.revoked ? "Revoked" : "Rejected"} ${on}`
+        : null
+  return (
+    <AdminPanel title="Pop-up host">
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge tone={h.status === "approved" ? "success" : h.status === "pending_review" ? "warning" : h.status === "rejected" ? "danger" : "neutral"}>
+          {h.revoked ? "Revoked" : hostStatusWords[h.status]}
+        </Badge>
+        {h.status === "pending_review" && (
+          <Link href={`/admin/approvals/${user.id}?kind=host`} className="text-sm underline underline-offset-2">
+            Review
+          </Link>
+        )}
+      </div>
+      {how && <p className="text-sm text-muted">{how}</p>}
+      {h.rejectionReason && <p className="text-sm">&ldquo;{h.rejectionReason}&rdquo;</p>}
+      <p className="text-sm text-muted">{`${h.announcedPopups} announced ${h.announcedPopups === 1 ? "pop-up" : "pop-ups"}`}</p>
+      {h.status === "approved" && (
+        <>
+          <Button type="button" variant="danger-ghost" className="self-start" onClick={() => setRevoking(true)}>
+            Revoke host approval
+          </Button>
+          <RevokeHostDialog key={String(revoking)} user={user} open={revoking} onOpenChange={setRevoking} />
+        </>
+      )}
+    </AdminPanel>
+  )
+}
+
 function RoleCard({ user, role }: { user: AdminUser; role: Role }) {
   const queryClient = useQueryClient()
   const [suspending, setSuspending] = React.useState(false)
@@ -161,9 +261,14 @@ function RoleCard({ user, role }: { user: AdminUser; role: Role }) {
           </Button>
         </>
       ) : (
-        <Button type="button" variant="danger-ghost" className="self-start" onClick={() => setSuspending(true)}>
-          {`Suspend ${roleWord[role.role]} role`}
-        </Button>
+        <>
+          <Button type="button" variant="danger-ghost" className="self-start" onClick={() => setSuspending(true)}>
+            {`Suspend ${roleWord[role.role]} role`}
+          </Button>
+          {role.role === "vendor" && user.popups.length > 0 && (
+            <p className="text-cap text-muted">Suspending the vendor role also hides their announced pop-ups.</p>
+          )}
+        </>
       )}
       {error && (
         <p role="alert" className="text-help text-danger-ink">
@@ -224,9 +329,10 @@ export function AdminUserDetail({ userId }: { userId: string }) {
               <RoleCard key={r.role} user={u} role={r} />
             ))}
           </AdminPanel>
+          {u.host && <HostPanel user={u} />}
         </div>
         <div className="flex flex-col gap-6">
-          {(u.events.length > 0 || u.applications.length > 0) && (
+          {(u.events.length > 0 || u.applications.length > 0 || u.popups.length > 0) && (
             <AdminPanel title="Activity">
               <ul className="flex flex-col divide-y divide-border">
                 {u.events.map((e) => (
@@ -238,6 +344,18 @@ export function AdminUserDetail({ userId }: { userId: string }) {
                       <span className="text-cap text-muted">
                         Organizer · {e.applied} applied, {e.confirmed} confirmed
                       </span>
+                    </span>
+                    <EventStatusBadge status={e.status} />
+                    {e.hidden && <Badge tone="danger">Hidden</Badge>}
+                  </li>
+                ))}
+                {u.popups.map((e) => (
+                  <li key={e.id} className="flex flex-wrap items-center gap-2 py-2.5">
+                    <span className="flex min-w-0 flex-1 flex-col">
+                      <Link href={`/admin/events/${e.id}`} className="font-semibold underline underline-offset-2">
+                        {e.name}
+                      </Link>
+                      <span className="text-cap text-muted">Pop-up host{e.startsAt ? ` · ${adminDay.format(new Date(e.startsAt))}` : ""}</span>
                     </span>
                     <EventStatusBadge status={e.status} />
                     {e.hidden && <Badge tone="danger">Hidden</Badge>}

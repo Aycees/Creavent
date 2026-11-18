@@ -29,7 +29,9 @@ const already = "This records the decision. Nobody is emailed again."
 const roleWords: Record<RoleType, string> = { vendor: "vendor", organizer: "organizer" }
 
 // The decisions this report allows (spec §2.2): dismiss, hide the event, or
-// suspend a role (the organizer's for an event, any of a user's roles).
+// suspend a role (the organizer's for an event, the host's vendor role for a
+// pop-up, any of a user's roles), or for a pop-up or an approved host,
+// revoke host approval (spec §4.7).
 function choicesFor(d: ReportDetail): Choice[] {
   const n = d.reports.length
   const many = n === 1 ? "" : ` ${n} reports`
@@ -48,7 +50,7 @@ function choicesFor(d: ReportDetail): Choice[] {
       label: "Hide the event",
       hint: d.target.hidden
         ? `Already hidden. ${already}`
-        : 'It leaves listings and its link shows "Not found". The reason is emailed to the organizer. You can show it again later.',
+        : `It leaves listings and its link shows "Not found". The reason is emailed to the ${d.target.host ? "host" : "organizer"}. You can show it again later.`,
       input: (reason, note) => ({ decision: "hide_event", reason, note }),
       button: `Hide event and resolve${many || " report"}`,
     })
@@ -59,6 +61,18 @@ function choicesFor(d: ReportDetail): Choice[] {
         label: "Suspend the organizer role",
         hint: suspended ? `Already suspended. ${already}` : `${d.target.organizer.name} can't manage events and their organizer page is hidden. The reason shows in the app.`,
         input: (reason, note, hideEvents) => ({ decision: "suspend_role", role: "organizer", reason, note, ...(suspended ? {} : { hideUpcomingEvents: hideEvents }) }),
+        button: "Suspend and resolve",
+      })
+    }
+    if (d.target.host) {
+      const host = d.target.host
+      list.push({
+        key: "suspend-vendor",
+        label: "Suspend the vendor role",
+        hint: host.suspended
+          ? `Already suspended. ${already}`
+          : `${host.name} can't apply or manage slots, their vendor page is hidden, and their announced pop-ups are hidden. The reason shows in the app.`,
+        input: (reason, note) => ({ decision: "suspend_role", role: "vendor", reason, note }),
         button: "Suspend and resolve",
       })
     }
@@ -76,6 +90,15 @@ function choicesFor(d: ReportDetail): Choice[] {
         button: "Suspend and resolve",
       })
     }
+  }
+  if (d.target.host?.approved) {
+    list.push({
+      key: "revoke-host",
+      label: "Revoke host approval",
+      hint: `${d.target.host.name} can't announce pop-ups, and this hides their announced pop-ups. They keep selling at other events and can resubmit. The reason is shown in the app and emailed.`,
+      input: (reason, note) => ({ decision: "revoke_host", reason, note }),
+      button: "Revoke and resolve",
+    })
   }
   return list
 }
@@ -134,7 +157,9 @@ function Decision({ d }: { d: ReportDetail }) {
           label={
             <>
               Reason{" "}
-              <span className="font-normal text-muted">{choice.key === "hide" ? "(emailed to the organizer)" : "(shown to them in the app)"}</span>
+              <span className="font-normal text-muted">
+                {choice.key === "hide" ? `(emailed to the ${d.target.host ? "host" : "organizer"})` : choice.key === "revoke-host" ? "(shown in the app and emailed)" : "(shown to them in the app)"}
+              </span>
             </>
           }
           htmlFor="decision-reason"
@@ -202,6 +227,11 @@ export function ReportReview({ reportId }: { reportId: string }) {
             {t.organizer && (
               <Button asChild variant="secondary">
                 <Link href={`/admin/users/${t.organizer.userId}`}>Open organizer</Link>
+              </Button>
+            )}
+            {t.host && (
+              <Button asChild variant="secondary">
+                <Link href={`/admin/users/${t.host.userId}`}>Open host</Link>
               </Button>
             )}
           </>

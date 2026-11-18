@@ -14,6 +14,7 @@ import { slotLabel } from './slot-status.js';
 import { vendorProfile } from './vendor-profile.js';
 import { PublicRefreshService } from '../public/public-refresh.service.js';
 import { tags } from '../public/tags.js';
+import { organizerOf } from '../events/event-status.js';
 
 // Proof of payment and the organizer's decision (spec §6.2 to §6.4).
 // Creavent never handles the money: these only track what each side says.
@@ -63,7 +64,7 @@ export class PaymentsService {
         },
       });
       await changePaymentStatus(tx, { paymentId: payment.id, from: payment.status, action: 'submit', actorUserId: userId, reason: `Proof ${proof.id}` });
-      const organizer = assignment.event.organizerProfile.user;
+      const organizer = organizerOf(assignment.event).user;
       const config = appConfig();
       await this.outbox.queue(tx, {
         userId: organizer.id,

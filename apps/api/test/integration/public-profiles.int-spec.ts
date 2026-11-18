@@ -1,4 +1,5 @@
 import type { INestApplication } from '@nestjs/common';
+import { manilaParts } from '@creavent/shared';
 import request from 'supertest';
 import type { App } from 'supertest/types.js';
 import type { PrismaClient } from '../../src/generated/prisma/client.js';
@@ -15,7 +16,11 @@ describe('the organizer and vendor pages', () => {
   let app: INestApplication<App>;
 
   const day = 86_400_000;
-  const soon = (days: number, hours = 6) => ({ startsAt: new Date(Date.now() + days * day), endsAt: new Date(Date.now() + days * day + hours * 3_600_000) });
+  // 10 AM Manila on the day, so the hours never run past midnight (rule 6.13).
+  const soon = (days: number, hours = 6) => {
+    const startsAt = new Date(`${manilaParts(new Date(Date.now() + days * day)).date}T10:00:00+08:00`);
+    return { startsAt, endsAt: new Date(startsAt.getTime() + hours * 3_600_000) };
+  };
 
   beforeAll(() => {
     prisma = createTestPrisma();

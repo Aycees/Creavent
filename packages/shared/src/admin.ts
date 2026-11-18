@@ -85,6 +85,22 @@ export const adminUserSchema = z.object({
       slotLabels: z.array(z.string()),
     }),
   ),
+  // Pop-up host approval on the vendor role (spec §4.7), null without one.
+  host: z
+    .object({
+      status: approvalStatusSchema,
+      source: z.enum(['reviewed', 'earned']).nullable(),
+      decidedAt: z.string().nullable(),
+      // The completed event an earned approval came from.
+      earnedFrom: z.string().nullable(),
+      rejectionReason: z.string().nullable(),
+      revoked: z.boolean(),
+      // For "Hides their N announced pop-ups".
+      announcedPopups: z.number().int(),
+    })
+    .nullable(),
+  // The pop-ups they host, newest first.
+  popups: z.array(z.object({ id: z.uuid(), name: z.string(), startsAt: z.string().nullable(), status: eventStatusSchema, hidden: z.boolean() })),
   reports: z.array(z.object({ id: z.uuid(), number: z.number().int(), reason: reportReasonSchema, open: z.boolean(), about: z.string() })),
   history: z.array(historyItemSchema),
 });
@@ -92,7 +108,7 @@ export type AdminUser = z.infer<typeof adminUserSchema>;
 
 export const adminEventsQuerySchema = z.object({
   q: z.string().trim().max(100).optional(),
-  filter: z.enum(['all', 'open', 'announced', 'reported', 'hidden', 'drafts']).default('all'),
+  filter: z.enum(['all', 'open', 'announced', 'popups', 'reported', 'hidden', 'drafts']).default('all'),
   page: pageSchema,
 });
 export type AdminEventsFilter = z.infer<typeof adminEventsQuerySchema>['filter'];
@@ -105,7 +121,9 @@ export const adminEventsSchema = z.object({
       startsAt: z.string().nullable(),
       typeName: z.string(),
       venueName: z.string().nullable(),
+      // The organizer, or a pop-up's host shop (spec §4.7).
       organizerName: z.string(),
+      isPopup: z.boolean(),
       status: eventStatusSchema,
       hidden: z.boolean(),
       slots: z.number().int(),
@@ -120,6 +138,7 @@ export const adminEventsSchema = z.object({
     all: z.number().int(),
     open: z.number().int(),
     announced: z.number().int(),
+    popups: z.number().int(),
     reported: z.number().int(),
     hidden: z.number().int(),
     drafts: z.number().int(),
@@ -141,6 +160,9 @@ export const adminEventSchema = z.object({
   moderationReason: z.string().nullable(),
   moderatedAt: z.string().nullable(),
   moderatedByName: z.string().nullable(),
+  // A pop-up has a host instead of an organizer: the vendor, with their host
+  // approval and vendor role (spec §4.7).
+  isPopup: z.boolean(),
   organizer: z.object({ userId: z.uuid(), name: z.string(), fullName: z.string(), approved: z.boolean(), suspended: z.boolean() }),
   slots: z.object({ total: z.number().int(), assigned: z.number().int(), reserved: z.number().int() }),
   applications: z.array(

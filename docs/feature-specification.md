@@ -2,14 +2,14 @@
 
 **Status:** Draft for MVP. The MVP is centered on organizers (flea market organizers first) and kept as simple as possible: features that are not needed to run a first event are deferred (section 9). For a short summary, see [Project details](project-details.md). For the payment approach, see [Revenue model](revenue-model.md).
 
-Last updated: 2026-11-14
+Last updated: 2026-11-17
 
 ## 1. Roles and accounts
 
 | Role | Account | Before they can work |
 |---|---|---|
 | Organizer | Required | Approved by an admin before opening an event to vendors (section 2.1) |
-| Vendor | Required | Nothing extra. A vendor can apply right after creating a profile (section 1.1) |
+| Vendor | Required | Nothing extra to apply to events. A vendor can apply right after creating a profile (section 1.1). Hosting a pop-up needs a one-time host approval (section 4.7) |
 | Attendee | None in the MVP | Browses without an account |
 | Admin | Internal (Creavent team) | n/a |
 
@@ -22,7 +22,7 @@ Last updated: 2026-11-14
 - **One account, more than one role:** a person has one login and can add the vendor role, the organizer role, or both (many flea market organizers also sell at other markets). The user switches between the vendor and organizer dashboards.
 - **Contact number:** a mobile number is required for either role and is asked in onboarding (section 1.1). Organizers see the contact number of vendors who apply to their events, and vendors see the organizer's contact details for the event (section 8.2). A vendor's number is never shown on their public page (section 7.2).
 - Admins are created by the Creavent team, not through public signup.
-- **Closing an account:** there is no self-serve option in the MVP. The user emails support, and the team deletes the account by hand: personal data is wiped and the account cannot come back. It is not done while the user has a slot assigned or reserved, or runs an event that is open to vendors or announced. Records that other people rely on (reports, audit logs, application documents and payment records until their retention ends) are kept. Details are in the [Data model](data-model.md#51-accounts-and-roles).
+- **Closing an account:** there is no self-serve option in the MVP. The user emails support, and the team deletes the account by hand: personal data is wiped and the account cannot come back. It is not done while the user has a slot assigned or reserved, runs an event that is open to vendors or announced, or hosts an announced pop-up that hasn't ended (section 4.7). Records that other people rely on (reports, audit logs, application documents and payment records until their retention ends) are kept. Details are in the [Data model](data-model.md#51-accounts-and-roles).
 - Launch area: Davao City first. Currency is PHP (₱), time zone is Asia/Manila, and the interface is in English with simple wording.
 - The MVP is free for everyone. The terms of use say that fees may be introduced later with notice.
 - Users reach the Creavent team through a support email address shown in the app (footer, account pages, and approval emails).
@@ -89,6 +89,7 @@ The Creavent team is a small group of admins, all with the same full access. The
 Admins keep the platform trustworthy and support users. An admin can view everything other roles can see, including events, applications, application documents, and proof-of-payment images. Admin actions are limited to the list below. Rare data fixes are done by the team directly in the database.
 
 - Review organizer approval requests (section 2.1): approve, or reject with a reason shown to the user, and re-review after a resubmission. An optional internal note is kept with the review (admins only).
+- Review pop-up host requests the same way (section 4.7), and revoke a vendor's host approval with a reason shown to the vendor
 - Suspend or reinstate a user's vendor role or organizer role (each role separately), with a reason shown to the user
 - Hide an event that breaks platform rules, with a reason that is emailed to the organizer, or show it again
 - View and handle user reports (fake account, scam, inappropriate content). Reports come from the report button and from the support inbox (section 2.2)
@@ -113,7 +114,7 @@ Approval states (organizer role only): `not submitted` → `pending review` → 
 
 **Editing after approval:** an approved organizer edits their profile freely. Changing the display name, or adding a link that wasn't reviewed, sends them back to pending review, and the badge hides until an admin approves again. Removing a link, or changing the page link, city, about, logo, or contact email, keeps the approval (decided 2026-11-13, open question D9).
 
-**Suspended roles:** an admin suspends one role at a time (vendor or organizer), with a reason that the user sees in the app. A suspended vendor cannot apply or manage slots, and their vendor page is not shown (section 7.2). A suspended organizer cannot manage events or applications, and their organizer page is not shown (section 7.1). The user's other role keeps working, and the suspended role still sees its own pages behind a notice with the reason, without changing anything (decision R8). Organizers of events a suspended vendor joined are not emailed automatically. When an organizer with upcoming events is suspended, the admin can hide those events in the same step (decision R1) and emails the affected vendors from the support address. While an event is hidden, its organizer and vendors see a notice, and nothing about it can be changed (decision R2). Reinstating and showing again send no email (decision R4). There is no automatic freeze in the MVP.
+**Suspended roles:** an admin suspends one role at a time (vendor or organizer), with a reason that the user sees in the app. A suspended vendor cannot apply or manage slots, and their vendor page is not shown (section 7.2). A suspended organizer cannot manage events or applications, and their organizer page is not shown (section 7.1). The user's other role keeps working, and the suspended role still sees its own pages behind a notice with the reason, without changing anything (decision R8). Organizers of events a suspended vendor joined are not emailed automatically. When an organizer with upcoming events is suspended, the admin can hide those events in the same step (decision R1) and emails the affected vendors from the support address. While an event is hidden, its organizer and vendors see a notice, and nothing about it can be changed (decision R2). Reinstating and showing again send no email (decision R4). There is no automatic freeze of organizer events in the MVP. Pop-ups are different: when a vendor role is suspended, that vendor's announced pop-ups are hidden automatically, with the suspension reason, because no other vendor depends on them (section 4.7).
 
 **Appeals:** there is no separate appeal process. A rejected organizer resubmits with better links, or emails support to contest the decision. An admin re-reviews either way.
 
@@ -121,8 +122,8 @@ Approval states (organizer role only): `not submitted` → `pending review` → 
 
 - Signed-in users report an event or user with the report button. Attendees and anyone else email the support address, and an admin adds that email as a report (source "support email") so every report is handled in one queue.
 - Each report has a short reference number (for example, RPT-0142).
-- Open reports about the same event or user are shown together, oldest first, with what each person said. One decision handles them all: dismiss, hide the event, or suspend the user's role. The admin can add an internal note on what they checked.
-- The report link is at the bottom of the event, organizer, and vendor pages, for signed-in users. The reasons are fake event or account, scam, inappropriate content, and something else. A person has one open report per event or user, and can't report themselves or their own event. People who report aren't emailed about the decision (decisions R3, R5).
+- Open reports about the same event or user are shown together, oldest first, with what each person said. One decision handles them all: dismiss, hide the event, suspend the user's role, or, for a pop-up or its host, revoke host approval (section 4.7). The admin can add an internal note on what they checked.
+- The report link is at the bottom of the event, organizer, and vendor pages, for signed-in users. The reasons are fake account, fake or misleading event, scam, inappropriate content, and something else (fake event and fake account were one reason until 2026-11-17). A person has one open report per event or user, and can't report themselves or their own event. People who report aren't emailed about the decision (decisions R3, R5).
 
 Notes:
 - Payment disputes and refunds between organizers and vendors are not Creavent's responsibility (see section 6). Admin access is for support, moderation, and fraud reports.
@@ -133,7 +134,7 @@ Notes:
 ### 3.1 Account and event setup
 - Add the organizer role, fill in the organizer profile that feeds the public organizer page (section 7.1), and request approval (section 2.1).
 - Create and manage events: name, event type, dates and daily hours (section 3.1.1), location, description, cover image, contact details (shown to vendors, not to attendees), an optional applications close date (section 3.3), and optional ingress details for vendors (for example, "From 3 PM, Gate 2"), shown to vendors with a slot
-- **Event type:** each event has one type. The initial list is Flea market, Bazaar, and Pop-up. Flea markets stay the MVP focus. The organizer picks the type on the Details tab of event setup, and Flea market is the default. The type can be changed until the event is announced. The type list is managed in seed data and configuration, like product categories (no admin page). The type shows as a small tag on event cards, event rows, event pages, and organizer dashboards. Attendees can filter by type (section 7.3).
+- **Event type:** each event has one type. The list is Flea market, Bazaar, and Pop-up. Flea markets stay the MVP focus. Each type says who can host it: Flea market and Bazaar are organizer events, and Pop-up is a vendor's own event (section 4.7), so organizers can't pick it. The organizer picks the type on the Details tab of event setup, and Flea market is the default. The type can be changed until the event is announced. The type list is managed in seed data and configuration, like product categories (no admin page). The type shows as a small tag on event cards, event rows, event pages, and organizer dashboards. Attendees can filter by type (section 7.3).
 - Event states: `draft` → `open to vendors` → `announced` → `completed`, or `canceled`
   - **Open to vendors:** signed-in vendors can find the event, apply, and pay for their assigned slot. Attendees cannot see it. This is when the organizer fills and finalizes the vendor list. Opening needs organizer approval. The setup screen has an **"Open to vendors" checklist** ("4 of 5 required steps done") with five required steps: name, date, venue and cover; vendor requirements (at least one accepted category); the cancellation and withdrawal policy; at least one slot; and payment instructions. The vendor floor plan is listed as optional.
   - **Preview as vendor:** from event setup, the organizer can see the event page as a vendor will see it, at any status.
@@ -213,7 +214,7 @@ The organizer dashboard (`/organizer`) shows:
 ## 4. Vendor
 
 ### 4.1 Account and profile
-- Add the vendor role through onboarding (section 1.1), with a contact number. No approval or documents are needed.
+- Add the vendor role through onboarding (section 1.1), with a contact number. No approval or documents are needed to apply to events. Hosting pop-ups needs a one-time host approval (section 4.7).
 - Create and manage a vendor profile: shop name, about text, products, product categories, avatar, up to 8 photos, social media links, and city. The profile feeds the public vendor page (section 7.2).
 - The page link is `/vendors/[slug]`. It is generated from the shop name and can be edited (slug rules are in section 7.2).
 - City is optional. It is edited on the profile page and is not asked in onboarding.
@@ -257,6 +258,43 @@ The vendor dashboard (`/vendor`) shows:
 - **Open to vendors:** events open to vendors that accept the vendor's categories, with their applications close date.
 
 The application page (`/vendor/applications/[id]`) shows a progress timeline: applied, approved, slot assigned, pay and upload proof, slot reserved. Until a slot is assigned, it also shows the vendor's preferred slot, if they chose one.
+
+### 4.7 Pop-up events
+
+A pop-up is an event a vendor hosts for their own shop: where and when attendees can find their stall. It has exactly one store, the host's, and no organizer. So it has no applications, requirements, policy, slots, floor plans, or payments. Pop-up is the only event type a vendor can host, and organizers can't create pop-ups (section 3.1). A vendor who wants to run an event with other vendors adds the organizer role instead. Decided 2026-11-17 ([Open questions](open-questions.md#u-pop-up-events) U1 to U23).
+
+**Why host approval.** Anyone can sign up as a vendor, so a pop-up could be fake: a listing for a stall that doesn't exist, spam, or bait. There is no money between users, so the risk is smaller than with organizers, but attendees may still travel to a place for nothing. Creavent answers this in three layers: a gate (host approval), a signal (who the host is and their history, on the pop-up's page), and a response (reports, hiding, revoking, and suspension).
+
+**Host approval.** A vendor is approved once to host pop-ups, not once per pop-up. There are two routes:
+- **Reviewed:** from `/vendor/host-approval`, the vendor submits at least one social media link that shows the shop's real activity (posts, past stalls). Social links stay optional for vendors who don't host. The links are saved as the social links on their vendor page, and the page says so. An admin reviews the request in the same queue as organizer approvals, tagged "Pop-up host", with the same checks and the same 1 to 2 business day target (section 2.1).
+- **Earned:** a vendor who had a `reserved` slot at an event that reached `completed` and was never hidden is approved automatically, the first time they open **Host a pop-up**. A real organizer already checked them. There is no review and no email: the screen says they're approved. A vendor whose host approval was ever revoked can't use this route.
+- **States:** `not submitted` → `pending review` → `approved` | `rejected` (can resubmit), like organizer approval. The approval records whether it was reviewed or earned, so admins can see how it was granted.
+- **Editing after approval:** the organizer rule applies (section 2.1). Changing the shop name, or adding a social link that wasn't reviewed, sends the host back to `pending review`, and the badge hides until an admin approves again. While pending, their announced pop-ups stay up but can't be edited, and no new pop-up can be announced. Removing a link, and changing anything else on the profile, keep the approval. For an earned host, every link on the profile at the time counts as reviewed.
+- **Revoke host approval:** an admin can revoke it, from the vendor's user page or from a report, with a reason shown to the vendor in the app and in an email. It sets host approval to `rejected`, hides the host's announced pop-ups with the same reason, and turns off the earned route for good. The vendor keeps applying to and selling at other events, and can resubmit for review.
+- **Suspended vendor role:** the vendor's announced pop-ups are hidden automatically, with the suspension reason (section 2.1). Reinstating doesn't show them again. An admin shows each one again by hand, which sends no email (decision R4).
+- **Drafts are allowed before approval.** A vendor can create and edit pop-up drafts at any time. **Announce** is blocked with a "Request host approval" step until they're approved, so the first pop-up is often the reason they ask.
+
+**Creating a pop-up** (`/vendor/popups/new`). One form, no tabs:
+- Name, description, cover image (16:9, the same crop step as other events, section 11.5), dates and daily hours (the same rules as every event: 1 to 7 days in a row, the same hours each day, nothing past midnight, section 3.1.1), and venue (name, address, city, and an optional map pin).
+- The product categories shown on the pop-up are the vendor's profile categories. They aren't entered here.
+- There are no contact details. Attendees reach the host through the social links on their vendor page.
+- **Announce checklist:** name, description, cover, dates and hours, and venue are all required, and the vendor must be an approved host who isn't suspended. The vendor also needs a shop name, a mobile number, and at least one category, the same as for applying (section 1.1).
+
+**Statuses:** `draft` → `announced` → `completed`, or `canceled`. A pop-up is never `open to vendors`. An admin can hide it, like any event.
+- **Announce** puts it on the event listing right away. Announcing works only from `draft`, before the pop-up ends, and not while it is hidden.
+- **Editing after announcing** is allowed, while the host's approval is `approved`. The event page shows "Details updated" with the date, as on every event. No email is sent, because attendees have no accounts and there are no other vendors. The type stays Pop-up.
+- **Cancel** takes an optional reason. The page stays up marked canceled, with the reason as the host's note, so anyone with the link sees it was called off. A canceled pop-up can't be edited or announced again.
+- **Delete a draft:** a pop-up draft was never public, so it is deleted for good after a confirmation, like an organizer's draft.
+- **Completed:** the hourly job marks an announced pop-up `completed` after it ends, like other events.
+- **Duplicate:** from any pop-up, makes a new draft with the same name, description, cover, and venue, and no dates or hours (they are stored together, section 3.1.1). The cover is copied as a new file, so replacing one pop-up's cover never changes the other's. This is how a weekly pop-up is posted again. Recurring pop-ups stay out of scope (section 9).
+
+**Limits.** There is no limit on how many pop-ups a host can have announced. There is no check against events where the vendor has a reserved slot at the same time: a helper or another branch may run the stall. The approval gate, reports, and automatic hiding cover abuse, and a limit is added if abuse shows up.
+
+**Where pop-ups show**
+- `/vendor/popups`: the host's pop-ups in Upcoming and Past tabs, each with its status and next step, and a **Host a pop-up** button.
+- The event listing, calendar, and "Next 7 days" strip, with the Pop-up type tag (section 7.3).
+- The event page, with a host block instead of the organizer block (section 7).
+- The vendor page, in "Find them next at" and "Where they've sold" (section 7.2).
 
 ## 5. Slot assignment
 
@@ -331,9 +369,10 @@ Amount due, amount paid, status, payer, payee, proof image, organizer's decision
 Attendees do not have accounts in the MVP.
 
 - Browse upcoming announced events on the event listing, sorted by date (soonest first), and filter by event type, location, and date range (section 7.3). Events that are only open to vendors are not shown.
-- View an event page: event type, schedule, location (with a "Get directions" link), description, organizer, the number of confirmed vendors, the public floor plan image (once the organizer uploads it and the event is announced), and when the details were last updated ("Details updated Tue, Nov 10"). A "Copy link" button helps share it.
+- View an event page: event type, schedule, location (with a "Get directions" link), description, organizer (or, for a pop-up, its host), the number of confirmed vendors, the public floor plan image (once the organizer uploads it and the event is announced), and when the details were last updated ("Details updated Tue, Nov 10"). A "Copy link" button helps share it.
 - See the list of accepted vendors on the event page (vendors with a `reserved` slot only), with the category they sell under at this event and their slot number. The list can be filtered by category, and long lists show the first vendors with "Show all". Each name links to that vendor's page (section 7.2). If a vendor's page is not shown (suspended or deleted), the name stays in the list without a link, and a deleted account shows "Deleted user".
-- See the "Approved by Creavent" badge on organizers
+- See the "Approved by Creavent" badge on organizers and on pop-up hosts
+- **Pop-up event page:** a pop-up (section 4.7) shows a **host block** in place of the organizer block: the vendor's avatar, shop name, the "Approved by Creavent" badge (while the host is approved and not suspended), a history line ("Joined Nov 2026 · Sold at 3 Creavent events", the count from the vendor page), product categories, products, photos, social links, and a link to the vendor page. There is no confirmed-vendor count, vendor list, floor plan, or contact details. Schedule, venue with Get directions, Copy link, "Details updated", the report button, and Open Graph tags work as on every event page.
 - See changes to event details on the event page
 - Attendees cannot contact organizers. There is no attendee messaging or contact form in the MVP.
 - **Reports:** signed-in vendors and organizers can report an event or user with a report button. Attendees report through the support email address shown on every page.
@@ -357,8 +396,9 @@ Every vendor has a public page (`/vendors/[slug]`), so attendees can get to know
 - Products (free text) and up to 8 vendor photos
 - Social media links (optional)
 - City, when they joined Creavent, and the number of events they have sold at (the events in "Where they've sold")
-- **Find them next at:** the vendor's next upcoming event, with the slot number. Only an event that is `announced` and where the vendor's slot is `reserved` is shown.
+- **Find them next at:** the vendor's next upcoming event, with the slot number. Only an event that is `announced` and where the vendor's slot is `reserved` is shown, or an `announced` pop-up the vendor hosts (shown with "Pop-up" instead of a slot number, section 4.7).
 - **Where they've sold:** only events where the vendor had a `reserved` slot and the event was announced (status `announced` or `completed`). Events that are `draft` or `open to vendors`, or that were canceled before being announced, are never shown. Hidden events (section 2) are never public, so they are not listed either. Events canceled after being announced are not shown either, because the vendor did not sell at an event that never took place.
+- Pop-ups the vendor hosts follow the same rules: an `announced` or `completed` pop-up that isn't hidden is listed and counted. Drafts, canceled pop-ups, and hidden ones are not (section 4.7).
 - Report button (signed-in users)
 
 **Never shown publicly:** phone number, email, applications, application documents, payments, and events the vendor applied to but did not get a reserved slot at.
@@ -371,14 +411,14 @@ The vendor edits the page from their vendor profile (section 4.1). There is no c
 
 ### 7.3 Event listing
 
-The home page (`/`) lists upcoming announced events, soonest first. Attendees can search by event name, venue, address, city, or organizer name (decision Q5), and filter by event type (All, Flea markets, Bazaars, Pop-ups), city, and date range. The type options are All plus the active event types, each with its number of events. The date options are Any date, This weekend, Next 2 weeks, the next month (for example, December), and Pick dates. A multi-day event matches a date filter when any of its days falls in the range (section 3.1.1).
+The home page (`/`) lists upcoming announced events, soonest first. Attendees can search by event name, venue, address, city, or organizer name, which for a pop-up is the host's shop name (decision Q5), and filter by event type (All, Flea markets, Bazaars, Pop-ups), city, and date range. The type options are All plus the active event types, each with its number of events. The date options are Any date, This weekend, Next 2 weeks, the next month (for example, December), and Pick dates. A multi-day event matches a date filter when any of its days falls in the range (section 3.1.1).
 
 - **List and Calendar views**, switched with a toggle.
   - **List** groups events as This weekend, Next weekend, and Later. City and date are menus beside the type chips. On phones, Next weekend is a compact list, and Later is a row of cards that slowly scrolls, and stops on hover, touch, or focus (it does not move for people who prefer reduced motion). There is no Pause button. The weekend is Saturday and Sunday. Events on other days of the current week go under Later. A multi-day event goes under a weekend when any of its days is that Saturday or Sunday (a Friday to Sunday market is under that weekend), and it is listed once, by its first day.
   - **Calendar** is a month grid with today marked, events shown in each day (a multi-day event shows on every one of its days), and a panel that lists the selected day's events. On phones, it is a compact month with dots on event days, and the selected day's events are listed below it.
 - **"Next 7 days" strip** beside the page title: the next 7 days with today marked, a mark on days that have announced events (counting every day of a multi-day event), and a link to the calendar.
 - **"Sell at these events"** link to sign up as a vendor, showing how many events are open to vendors. Signed-out visitors see the number only (no names or details), because the events themselves stay hidden until announced. For a signed-in vendor the link goes to Browse events.
-- Each event card and row shows the event type tag.
+- Each event card and row shows the event type tag. A pop-up's card shows the host's shop name, with the "Approved by Creavent" badge, where other cards show the organizer.
 
 ## 8. Notifications and contact
 
@@ -393,6 +433,8 @@ All notifications are sent by email through [Resend](https://resend.com). There 
 | Signup, or a new email address (link to verify it) | User |
 | Forgot password (reset link) | User |
 | Organizer approved or rejected | Organizer |
+| Pop-up host approved or rejected (reviewed route only) | Vendor (a rejection includes the reason) |
+| Pop-up host approval revoked by an admin | Vendor (includes the reason) |
 | New application submitted | Organizer |
 | Application withdrawn by the vendor | Organizer |
 | Application approved or declined | Vendor |
@@ -402,7 +444,7 @@ All notifications are sent by email through [Resend](https://resend.com). There 
 | Payment approved or rejected | Vendor (a rejection includes the reason) |
 | Vendor removed from event | Vendor |
 | Event canceled, or date, time, or location changed | Applied and confirmed vendors |
-| Event hidden by an admin | Organizer (includes the reason) |
+| Event hidden by an admin | Organizer, or the host of a pop-up (includes the reason). Pop-ups hidden automatically by a suspension or a revoked host approval send no separate email: the vendor sees the reason in the app, and a revoke has its own email |
 
 ### 8.2 Contact between organizers and vendors
 - There is no in-app messaging in the MVP. Organizers and vendors talk outside Creavent (phone, SMS, Messenger).
@@ -435,14 +477,16 @@ All notifications are sent by email through [Resend](https://resend.com). There 
 - Organizer analytics and platform success dashboards (page views, follows, conversion)
 - Ratings and reviews
 - Push and SMS notifications
-- Recurring events and event series
+- Recurring events and event series, including recurring pop-ups (Duplicate is used instead, section 4.7)
+- Pop-ups with more than one vendor: co-hosting, or a host inviting other vendors (a vendor who wants that adds the organizer role)
+- Telling attendees when a pop-up changes or is canceled, other than on its page
 - Single-day slots or prices in multi-day events, different hours on different days, events past midnight, and events on non-consecutive dates (section 3.1.1)
 
 ## 10. Decisions and open questions
 
 ### Decided
 - **MVP simplification (2026-11-12):** identity verification, vendor slot selection, the floor plan editor, deadline enforcement, messaging, attendee accounts, admin extras, the automatic freeze, self-serve account closing, HEIC, multiple image sizes, and bounce tracking are deferred (section 9).
-- Organizers are approved by an admin from their social media and past event links. No documents are uploaded. Vendors need no approval (section 2.1).
+- Organizers are approved by an admin from their social media and past event links. No documents are uploaded. Vendors need no approval to apply to events (section 2.1). Hosting a pop-up needs a one-time host approval (section 4.7).
 - The badge reads "Approved by Creavent" and links to what it means. No "verified" wording.
 - Vendors upload permits and documents when applying. Requirements are shown only to signed-in vendors.
 - Slots are a list, filled by organizer assignment. The organizer can let vendors choose a preferred slot when applying (section 3.4). Floor plans are two optional images: one for vendors (empty slots) and one for attendees (vendors placed).
@@ -513,6 +557,7 @@ All notifications are sent by email through [Resend](https://resend.com). There 
 - **Event policy prefill (2026-11-14):** a new event copies the policy of the organizer's most recent event. A first event starts from an example to edit. No global policy setting (section 3.7). See [Open questions](open-questions.md#n-event-policy).
 - **Deleting events (2026-11-15):** only drafts can be deleted, for good. Events that were opened to vendors are canceled instead, never deleted (section 3.1).
 - **Event cover crop (2026-11-15):** one cover per event, framed by the organizer at 16:9 in a crop step after picking the photo. The same frame shows on event cards and the event page (16:9 at every width). No separate thumbnail or banner upload (section 11.5).
+- **Pop-up events (2026-11-17):** a vendor can host a pop-up: an event for their own shop, with no applications, requirements, policy, slots, floor plans, or payments. Pop-up becomes a vendor-only type. Hosting needs a one-time host approval, reviewed by an admin from the vendor's social links, or earned automatically by selling at a completed Creavent event. Pop-up pages show the host with the badge and their history. Admins can revoke host approval, and a suspended vendor's pop-ups are hidden automatically. A new report reason, "Fake or misleading event" (sections 2.2, 4.7, 7). See [Open questions](open-questions.md#u-pop-up-events).
 - **Preferred slots (2026-11-14):** each event has a slot mode, "I assign slots" or "Vendors choose a preferred slot". A preference holds nothing, and the organizer still assigns every slot (sections 3.4, 4.3, 5). Slots get an optional section for grouping. The vendor floor plan is uploaded on the Slots tab and shown there as a reference. Prompted by an organizer's registration form with a clickable floor plan. See [Open questions](open-questions.md#m-preferred-slots).
 
 ### Open
@@ -529,7 +574,7 @@ Every upload follows the same rules. The tables behind it are in the [Data model
 
 | Purpose | Used for | Uploaded by | Who can open it | Types | Max size | Limit |
 |---|---|---|---|---|---|---|
-| Event cover | Banner and card image of an event (3.1) | The event's organizer | Anyone (public) | Image | 10 MB | 1 per event |
+| Event cover | Banner and card image of an event (3.1, 4.7) | The event's organizer, or the pop-up's host | Anyone (public) | Image | 10 MB | 1 per event |
 | Organizer logo | Organizer's public profile (3.1) | The organizer | Anyone (public) | Image | 5 MB | 1 |
 | Avatar | A user's picture, shown on the vendor page (7.2) | The user | Anyone (public) | Image | 5 MB | 1 |
 | Vendor photo | Vendor profile and vendor page (4.1, 7.2) | The vendor | Anyone (public) | Image | 10 MB | 8 per profile |

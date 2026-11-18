@@ -99,7 +99,7 @@ export class EventLifecycleService {
           changes: { assignmentIds: assignments.map((a) => a.id), status: { to: 'canceled' } },
         });
       }
-      const organizer = await tx.organizerProfile.findUniqueOrThrow({ where: { id: event.organizerProfileId } });
+      const organizer = await tx.organizerProfile.findUniqueOrThrow({ where: { id: event.organizerProfileId! } });
       const config = appConfig();
       for (const v of await activeVendors(tx, event.id, assignments)) {
         await this.outbox.queue(tx, {

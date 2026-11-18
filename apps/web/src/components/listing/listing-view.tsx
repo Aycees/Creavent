@@ -140,7 +140,8 @@ export function EventCard({
             <span className="text-h3 md:text-[20px] md:leading-[26px]">{e.name}</span>
             <span className="text-sm text-muted">{cardWhen(e)}</span>
             <span className="text-sm text-muted">{[e.venueName, e.city].filter(Boolean).join(", ")}</span>
-            <span className={cn("mt-1.5 flex flex-wrap items-center gap-2 text-sm", rowOnPhone && "max-md:hidden")}>
+            {/* Phone rows drop the organizer, but keep a pop-up's host: it's who the pop-up is. */}
+            <span className={cn("mt-1.5 flex flex-wrap items-center gap-2 text-sm", rowOnPhone && !e.isPopup && "max-md:hidden")}>
               {e.organizer.displayName}
               {e.organizer.approved && <ApprovedMark compact link={false} />}
             </span>
@@ -167,7 +168,8 @@ export function EventRow({ e, note }: { e: ListingCard; note?: string }) {
           <span className="text-sm text-muted">{[e.typeName, note ?? cardWhen(e)].join(" · ")}</span>
           <span className="text-sm text-muted">{[e.venueName, e.city].filter(Boolean).join(", ")}</span>
           <span className="flex items-center gap-1.5 text-sm text-muted">
-            {e.organizer.displayName}
+            {/* A pop-up's host shop (spec §4.7). */}
+            {e.isPopup ? `by ${e.organizer.displayName}` : e.organizer.displayName}
             {e.organizer.approved && <ApprovedMark sealOnly link={false} />}
           </span>
         </span>

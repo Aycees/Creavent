@@ -139,6 +139,10 @@ export const onboardingStateSchema = z.object({
       products: z.string().nullable(),
       photos: z.array(imageSchema),
       socialLinks: z.array(z.string()),
+      // Pop-up host approval (spec §4.7): an approved host who changes the
+      // shop name or adds a link goes back to review, so the page warns.
+      hostApprovalStatus: approvalStatusSchema,
+      hostReviewedLinks: z.array(z.string()),
     })
     .nullable(),
   organizer: z

@@ -2,7 +2,7 @@
 
 **Status:** Working notes, not legal advice. Development continues while the team discusses these questions. Every item here needs a Philippine lawyer's confirmation **before real users' data is collected** (section 1).
 
-Last updated: 2026-11-12
+Last updated: 2026-11-17
 
 ## 1. The rule until the review is done
 
@@ -30,6 +30,7 @@ What Creavent already does, written so the lawyer can confirm or correct it.
 | P11 | Users accept the terms and privacy notice at signup, and each accepted version is recorded. | Spec §1 |
 | P12 | Users confirm they are at least 18 at signup. | Spec §1 |
 | P13 | A vendor's profile content is public on their vendor page: avatar, shop name, categories, about text, products, up to 8 photos, social media links, city, and the events where they have a reserved slot at an announced event. Vendors are told this during onboarding and in the terms of use. A vendor's phone number, email, applications, application documents, and payments are never public. | Spec §1.1, §7.2 |
+| P14 | Vendors can host pop-ups: public events for their own shop, with a date, venue, and address, and no organizer. Hosting needs a one-time host approval, reviewed by an admin from the vendor's public social links, or earned by selling at a completed Creavent event. Approved hosts show "Approved by Creavent", which is not a guarantee that the pop-up takes place. Creavent doesn't organize pop-ups, and nothing is paid through it (added 2026-11-17). | Spec §4.7 |
 
 ## 3. Questions for the team (before the lawyer)
 
@@ -65,6 +66,8 @@ Answered by the team on 2026-11-12. **All legal concerns and documents will be h
 | L14 | **E-signatures (post-MVP):** is a typed name plus a drawn signature valid? (G1) | Only before contract signing is built. |
 | L15 | **Tax (post-MVP):** when do fees trigger VAT and BIR registration? (G5) | Only before fees start. |
 | L16 | **Public vendor pages:** is a notice in onboarding plus a clause in the terms enough for vendor content to be public (photos that may show people, about text, social links, city)? Is the vendor's consent needed for each item? | Vendors are told in onboarding and in the terms (P13). Vendor pages are new on 2026-11-12. |
+| L17 | **Listings Creavent didn't organize:** pop-ups are published by vendors with only a light review. What is Creavent's responsibility if a pop-up is fake, misleading, or held somewhere without the venue's permission? Is report-and-hide (with a reason) enough as a takedown process? | Pop-ups are new on 2026-11-17 (P14). Ties to L6 and L7. |
+| L18 | **Pop-up hosts publishing a place and time:** a host's venue and dates are public. Is anything needed in the terms or onboarding (for example, the host confirming they may sell at that venue, or a warning about sharing a home address)? | P14. |
 
 ## 5. Minimum legal work before launch
 
@@ -78,6 +81,6 @@ Answered by the team on 2026-11-12. **All legal concerns and documents will be h
 ## 6. Documents to draft
 
 - **Privacy notice** (`/privacy`): drafted from section 2, finalized after L1 to L5, L11 to L13, and L16. It says which vendor and organizer profile content is public.
-- **Terms of use** (`/terms`): drafted from section 2, finalized after L6 to L10 and L16. It says that a vendor's profile content is public.
+- **Terms of use** (`/terms`): drafted from section 2, finalized after L6 to L10, L16, L17, and L18. It says that a vendor's profile content is public, and covers pop-ups that vendors host (P14).
 - **Onboarding text:** the short "these are public" notices on the vendor onboarding steps (spec §1.1), worded with the lawyer.
 - **Breach plan:** internal, after L5.

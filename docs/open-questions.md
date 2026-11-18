@@ -2,7 +2,7 @@
 
 Questions found while checking that the docs line up. They are not blocking the current docs, but each one needs a decision before the related work starts (user flows, domain model, UI, development).
 
-Last updated: 2026-11-15
+Last updated: 2026-11-17
 
 How to use this file: discuss a question in a session, write the decision into the right doc ([Feature specification](feature-specification.md), [Project details](project-details.md), or [Revenue model](revenue-model.md)), then move the question to the "Resolved" section at the bottom with the date.
 
@@ -77,6 +77,10 @@ All questions in this section are resolved. See "Resolved" below (M1 to M5, deci
 ## N. Event policy
 
 All questions in this section are resolved. See "Resolved" below (N1, decided on 2026-11-14).
+
+## U. Pop-up events
+
+All questions in this section are resolved. See "Resolved" below (U1 to U23, decided on 2026-11-17).
 
 ## Resolved
 
@@ -251,6 +255,34 @@ Decisions are written into the [Feature specification](feature-specification.md)
 | R13 | The worker container runs as the `node` user. The backups bucket has its own R2 token, write-only to that bucket, in a secrets group only the worker gets. The dump streams to R2 instead of sitting in memory, and a failed dump is removed. Found in the security review. | 2026-11-17 |
 | R14 | The retention job blanks payment details in the audit log with the rest of the event's payment records: `changes` and `reason` on payment and proof rows (statuses, rejection reasons, mark-paid notes), and the price on assignment rows. Who acted, what and when stay. | 2026-11-17 |
 | R8 | A suspended role keeps read access to its own pages (dashboard, applications, events) behind a notice with the reason. Every change is refused. Found while building: the API refused reads too. | 2026-11-17 |
+
+**Pop-up events on 2026-11-17 (U1 to U23).** Pop-ups are mostly run by vendors, with no organizer. The team chose to add them before launch readiness. The main concern was fake pop-ups from untrusted accounts, answered in three layers: a gate (host approval), a signal (the host and their history on the page), and a response (reports, hiding, revoking, suspension). Written into the spec (sections 1, 2, 2.1, 2.2, 3.1, 4.1, 4.7, 7, 7.2, 7.3, 8.1, 9, 10, 11.1).
+
+| # | Decision | Date |
+|---|---|---|
+| U1 | A pop-up is one vendor's own store, hosted by that vendor. It has no applications, requirements, policy, slots, floor plans, or payments. Co-hosting and inviting other vendors are out of scope: a vendor who wants that adds the organizer role. | 2026-11-17 |
+| U2 | Pop-up becomes a vendor-only event type. Organizers keep Flea market and Bazaar. The organizer pop-ups in the seed become Bazaars. | 2026-11-17 |
+| U3 | Pop-ups live in `events`, with `host_vendor_profile_id` set and `organizer_profile_id` null. Exactly one of the two is set. The listing, event page, search, jobs, reports, and hiding work on them unchanged. | 2026-11-17 |
+| U4 | Pop-ups follow the same date rules as every event (1 to 7 days in a row, same hours, nothing past midnight). No shorter cap. No recurring pop-ups. | 2026-11-17 |
+| U5 | When a vendor role is suspended, that vendor's announced pop-ups are hidden automatically with the suspension reason, unlike organizer events (R1). Reinstating leaves them hidden: an admin shows each again. | 2026-11-17 |
+| U6 | Pop-ups are built as Phase 6, before launch readiness, which becomes Phase 7. The docs are updated first, as the source of truth. | 2026-11-17 |
+| U7 | Hosting needs a one-time host approval. The vendor submits at least one social link showing the shop's real activity (required for hosts, optional for other vendors), saved as their public social links. It is reviewed in the same `/admin/approvals` queue, tagged "Pop-up host", with the organizer approval states and target. The organizer re-review rule (D9) applies: changing the shop name or adding an unreviewed link sends the host back to pending, and their announced pop-ups stay up but can't be edited. | 2026-11-17 |
+| U8 | Earned route: a vendor with a `reserved` slot at an event that reached `completed` and was never hidden is approved automatically when they first open Host a pop-up. The source (`reviewed` or `earned`) is stored. It isn't taken back, except by an admin's revoke or by suspension. | 2026-11-17 |
+| U9 | A pop-up shows the "Approved by Creavent" badge for an approved host, and a history line ("Joined Nov 2026 · Sold at 3 Creavent events"). `/approved` explains the badge for hosts too. | 2026-11-17 |
+| U10 | A vendor can create pop-up drafts before approval. Announce is blocked with a "Get approved" step. | 2026-11-17 |
+| U11 | Statuses `draft` → `announced` → `completed`, or `canceled`. Editing after announcing is allowed and shows "Details updated", with no emails. Cancel takes an optional reason and keeps the page up marked canceled. The type stays Pop-up. | 2026-11-17 |
+| U12 | Pop-ups count on the vendor page: an announced one in "Find them next at" (marked "Pop-up"), announced and completed ones in "Where they've sold" and its count. | 2026-11-17 |
+| U13 | The pop-up page has a host block in place of the organizer block, and no contact fields, vendor list, vendor count, or floor plan. | 2026-11-17 |
+| U14 | Duplicate copies a pop-up into a new draft without dates or hours, with the cover copied as a new file. No limit on announced pop-ups per host. | 2026-11-17 |
+| U15 | Admins can **Revoke host approval** with a reason shown to the vendor. It sets `rejected`, hides their announced pop-ups, and turns off the earned route for good (`host_revoked_at`). The vendor role keeps working, and the vendor can resubmit for review. | 2026-11-17 |
+| U16 | New report reason "Fake or misleading event" (`fake_or_misleading_event`), for every event. The R5 label "fake event or account" becomes "Fake account". Existing reports keep `fake_account`. | 2026-11-17 |
+| U17 | Pages: `/vendor/popups` (Upcoming and Past), `/vendor/popups/new` and `/vendor/popups/[id]` (one form), and `/vendor/host-approval`. "Pop-ups" in the vendor menu and phone tab bar. The public link stays `/events/[slug]`. | 2026-11-17 |
+| U18 | The form has name, description, cover, dates and hours, and venue, all required to announce, with approved host status and the vendor basics. Categories come from the vendor profile. | 2026-11-17 |
+| U19 | No check against a vendor's reserved slots at the same time as their pop-up. | 2026-11-17 |
+| U20 | `event_types` gets `host_kind` (`organizer` or `vendor`), so the type list stays in seed data. The organizer form drops Pop-up. The seed renames "Marfori Pop-ups" and adds hosts in each approval state and pop-ups in every status. Tests that used Pop-up as an organizer type are updated. | 2026-11-17 |
+| U21 | Emails: host approved, host rejected, host approval revoked, and event hidden (to the host, when an admin hides a pop-up directly). No email for an earned approval, for pop-ups hidden automatically by a suspension or revoke, or to attendees. Showing a pop-up again sends no email, as R4 says for every event. | 2026-11-17 |
+| U22 | Account deletion is refused while the vendor hosts an announced pop-up that hasn't ended. Legal questions L17 and L18 are added. Pop-up metrics are added to the revenue model. | 2026-11-17 |
+| U23 | Listing search matches a pop-up host's shop name, and pop-up cards show the shop name with the badge. `/admin/events` lists pop-ups with their host and a Pop-ups filter. Suspending a vendor's organizer role doesn't touch their pop-ups: hosting belongs to the vendor role. | 2026-11-17 |
 
 ### D9. Editing an approved organizer's name and links (resolved 2026-11-13)
 

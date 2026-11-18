@@ -8,6 +8,7 @@ import {
   ShieldCheckIcon,
   SquaresFourIcon,
   StorefrontIcon,
+  TentIcon,
   UserCircleIcon,
   UsersIcon,
 } from "@phosphor-icons/react/dist/ssr"
@@ -35,6 +36,7 @@ export const appNav: Record<Area, NavItem[]> = {
     { label: "Dashboard", href: "/vendor", exact: true, icon: SquaresFourIcon },
     { label: "Browse events", shortLabel: "Browse", href: "/vendor/events", icon: MagnifyingGlassIcon },
     { label: "Applications", href: "/vendor/applications", icon: FileTextIcon },
+    { label: "Pop-ups", href: "/vendor/popups", icon: TentIcon },
     { label: "Profile", href: "/vendor/profile", icon: StorefrontIcon },
   ],
   organizer: [

@@ -1,6 +1,6 @@
 "use client"
 
-import { vendorProfileUpdateSchema, type OnboardingState, type VendorProfileUpdateInput } from "@creavent/shared"
+import { REVIEW_TARGET_TEXT, vendorProfileUpdateSchema, type OnboardingState, type VendorProfileUpdateInput } from "@creavent/shared"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { CheckIcon, EyeIcon, PlusIcon, StarIcon, XIcon } from "@phosphor-icons/react"
 import Link from "next/link"
@@ -78,6 +78,12 @@ function VendorForm({ state }: { state: OnboardingState }) {
   const avatarUrl = values.avatarFileId ? images[values.avatarFileId] ?? null : null
   const categories = state.categories.filter((c) => values.categoryIds?.includes(c.id)).map((c) => c.name)
   const changes = Object.keys(formState.dirtyFields).flatMap((k) => changeNames[k as keyof Form] ?? [])
+  // An approved pop-up host who changes the shop name or adds a link the
+  // admin didn't review goes back to review (spec §4.7).
+  const v = state.vendor
+  const hostReReview =
+    v?.hostApprovalStatus === "approved" &&
+    (values.shopName !== v.shopName || (values.socialLinks ?? []).some((l) => !v.hostReviewedLinks.includes(l)))
 
   function setPhotos(ids: string[]) {
     setValue("photoFileIds", ids, { shouldDirty: true })
@@ -99,7 +105,7 @@ function VendorForm({ state }: { state: OnboardingState }) {
     if (!res.data) return setError((res.error as { message?: string } | undefined)?.message ?? "Something went wrong. Try again.")
     await saved(res.data)
     reset(defaults(res.data))
-    toast.success("Shop profile saved")
+    toast.success(hostReReview ? "Saved and sent for review" : "Shop profile saved")
   }
 
   return (
@@ -273,6 +279,21 @@ function VendorForm({ state }: { state: OnboardingState }) {
               )}
             />
           </Panel>
+
+          {hostReReview && (
+            <Alert tone="warning">
+              <span className="flex flex-col gap-1">
+                <span className="font-semibold">This sends your host approval back for review</span>
+                <span>We&apos;ll check it again, usually in {REVIEW_TARGET_TEXT}. Until then:</span>
+                <span className="flex flex-col pl-4">
+                  <span>· Your announced pop-ups stay up, but you can&apos;t edit them</span>
+                  <span>· You can&apos;t announce a new pop-up</span>
+                  <span>· &quot;Approved by Creavent&quot; is hidden on your pop-ups</span>
+                </span>
+                <span>Removing a link or changing anything else doesn&apos;t need a review.</span>
+              </span>
+            </Alert>
+          )}
         </div>
 
         <aside className="hidden flex-col gap-4 md:sticky md:top-6 md:flex">
@@ -322,6 +343,7 @@ function VendorForm({ state }: { state: OnboardingState }) {
         error={error}
         onDiscard={() => reset()}
         className="bottom-18 md:bottom-0"
+        submitLabel={hostReReview ? "Save and send for review" : "Save changes"}
       />
     </form>
   )

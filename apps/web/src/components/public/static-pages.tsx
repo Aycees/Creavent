@@ -60,6 +60,12 @@ export function ApprovedView({ supportEmail }: { supportEmail: string }) {
           <li>Look at the organizer&apos;s page and their past events.</li>
           <li>Keep your receipt. Upload it as your proof of payment.</li>
         </Point>
+        <Point id="a-hosts" title="On pop-up hosts" icon={<StorefrontIcon aria-hidden="true" className="size-6" />}>
+          <li>A pop-up is a vendor&apos;s own stall. On a pop-up, the seal means one of two things.</li>
+          <li>We reviewed the shop&apos;s social pages, or</li>
+          <li>They already sold at a completed event on Creavent, where an approved organizer checked them.</li>
+          <li>It isn&apos;t a promise the pop-up takes place. If it didn&apos;t, report it from its page.</li>
+        </Point>
         <div className="flex flex-col gap-1 rounded-md bg-sunken px-4 py-4 md:px-5">
           <p className="text-label">Something wrong with an organizer?</p>
           <p className="text-sm text-muted">

@@ -2,21 +2,18 @@
 
 import { eventCities, eventDetailsSchema, type EventDetailsInput, type EventSetup } from "@creavent/shared"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { CalendarBlankIcon, ImageIcon, UploadSimpleIcon } from "@phosphor-icons/react"
+import { CalendarBlankIcon } from "@phosphor-icons/react"
 import * as React from "react"
 import { Controller, useForm, useWatch } from "react-hook-form"
 import { toast } from "sonner"
 
-import { Button } from "@/components/ui/button"
 import { Field } from "@/components/ui/field"
 import { Input, inputClass } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { api } from "@/lib/api"
 import { eventDays, formatSchedule } from "@/lib/event-format"
-import { readPhoto } from "@/lib/read-photo"
-import { useUpload } from "@/lib/use-upload"
 import { cn } from "@/lib/utils"
-import { CoverCropDialog, type PickedPhoto } from "./cover-crop"
+import { CoverField } from "./cover-field"
 import { EventTypeChips, SetupPanel, TabSaveBar } from "./parts"
 import { saveError, useSetupSaved } from "./queries"
 
@@ -50,7 +47,6 @@ const fieldNames = Object.keys(eventDetailsSchema.shape) as (keyof Form)[]
 // The Details tab (spec §3.1, §3.1.1, mockup OrgEventDetails).
 export function DetailsTab({ setup }: { setup: EventSetup }) {
   const saved = useSetupSaved(setup.id)
-  const coverUpload = useUpload("event_cover")
   const [covers, setCovers] = React.useState<Record<string, string>>(() =>
     setup.details.cover ? { [setup.details.cover.id]: setup.details.cover.url } : {}
   )
@@ -60,10 +56,6 @@ export function DetailsTab({ setup }: { setup: EventSetup }) {
     defaultValues: defaults(setup),
   })
   const values = useWatch({ control }) as Form
-  const coverInput = React.useRef<HTMLInputElement>(null)
-  // The picked photo, while the organizer frames it (spec §11.5).
-  const [picked, setPicked] = React.useState<{ file: File; photo: PickedPhoto } | null>(null)
-  const [pickError, setPickError] = React.useState<string | null>(null)
   const coverUrl = values.coverFileId ? covers[values.coverFileId] ?? null : null
   const schedule = {
     startDate: values.startDate || null,
@@ -110,51 +102,15 @@ export function DetailsTab({ setup }: { setup: EventSetup }) {
           <Field label="Description" htmlFor="description" error={err("description")}>
             <Textarea id="description" {...register("description")} />
           </Field>
-          <div className="flex flex-col gap-2">
-            <span className="text-label">Cover image</span>
-            <div className="flex flex-col gap-4 md:flex-row md:items-center">
-              <div className="grid aspect-video w-full flex-none place-items-center overflow-hidden rounded-md border border-border bg-sunken text-muted md:w-48">
-                {/* eslint-disable-next-line @next/next/no-img-element -- R2 addresses, already sized */}
-                {coverUrl ? <img src={coverUrl} alt="Event cover" className="size-full object-cover" /> : <ImageIcon aria-hidden="true" className="size-6" />}
-              </div>
-              <div className="flex flex-col gap-2">
-                <p className="text-help text-muted">At least 1280 × 720 px, up to 10 MB. JPEG, PNG or WebP. You choose the 16:9 part to show. To reframe it later, upload the photo again.</p>
-                <div className="flex flex-wrap gap-2">
-                  <Button type="button" variant="secondary" disabled={coverUpload.pending} onClick={() => coverInput.current?.click()}>
-                    <UploadSimpleIcon aria-hidden="true" className="size-4" />
-                    {coverUpload.pending ? "Uploading…" : coverUrl ? "Replace" : "Upload cover"}
-                  </Button>
-                  {coverUrl && (
-                    <Button type="button" variant="danger-ghost" onClick={() => setValue("coverFileId", null, { shouldDirty: true })}>
-                      Remove
-                    </Button>
-                  )}
-                </div>
-                {(pickError ?? coverUpload.error) && <p className="text-help text-danger-ink">{pickError ?? coverUpload.error}</p>}
-              </div>
-              <input
-                ref={coverInput}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                aria-label="Cover image file"
-                className="sr-only"
-                tabIndex={-1}
-                onChange={async (e) => {
-                  const file = e.target.files?.[0]
-                  e.target.value = ""
-                  if (!file) return
-                  setPickError(null)
-                  const photo = await readPhoto(file)
-                  if (!photo) return setPickError("This file isn't a photo we can open")
-                  if (photo.width < 1280 || photo.height < 720) {
-                    URL.revokeObjectURL(photo.src)
-                    return setPickError("This photo is too small. Use at least 1280 x 720")
-                  }
-                  setPicked({ file, photo })
-                }}
-              />
-            </div>
-          </div>
+          <CoverField
+            url={coverUrl}
+            alt="Event cover"
+            onUploaded={(file) => {
+              setCovers((m) => ({ ...m, [file.id]: file.url }))
+              setValue("coverFileId", file.id, { shouldDirty: true })
+            }}
+            onRemove={() => setValue("coverFileId", null, { shouldDirty: true })}
+          />
         </SetupPanel>
 
         <SetupPanel title="Dates and hours" intro="For a market over several days, pick a later end date. Up to 7 days in a row, with the same hours every day.">
@@ -217,26 +173,6 @@ export function DetailsTab({ setup }: { setup: EventSetup }) {
             </Field>
           </div>
         </SetupPanel>
-
-        {picked && (
-          <CoverCropDialog
-            photo={picked.photo}
-            onCancel={() => {
-              URL.revokeObjectURL(picked.photo.src)
-              setPicked(null)
-            }}
-            onConfirm={async (crop) => {
-              const { file, photo } = picked
-              setPicked(null)
-              const done = await coverUpload.upload(file, { crop })
-              URL.revokeObjectURL(photo.src)
-              if (done) {
-                setCovers((m) => ({ ...m, [done.id]: done.url }))
-                setValue("coverFileId", done.id, { shouldDirty: true })
-              }
-            }}
-          />
-        )}
 
         <TabSaveBar label="Save details" saving={formState.isSubmitting} dirty={formState.isDirty} error={error} />
       </div>

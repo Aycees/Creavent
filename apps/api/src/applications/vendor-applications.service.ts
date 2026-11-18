@@ -27,6 +27,7 @@ import { PaymentsService } from './payments.service.js';
 import { assertVisible } from './organizer-applications.service.js';
 import { vendorProfile } from './vendor-profile.js';
 import { ACTIVE, preferenceStates, slotLabel, sortedSlots, takenSlotIds } from './slot-status.js';
+import { organizerOf } from '../events/event-status.js';
 
 type Db = Tx | PrismaService;
 
@@ -250,7 +251,7 @@ export class VendorApplicationsService {
           slotLabel: slotLabel(a.slots),
           amountDue: Number(a.priceLocked),
           deadlineAt: a.deadlineAt.toISOString(),
-          organizerName: a.event.organizerProfile.displayName,
+          organizerName: organizerOf(a.event).displayName,
           paidTo: channels.length ? channels.join(' or ') : null,
           rejected: a.payment?.status === 'rejected',
         };
@@ -261,8 +262,8 @@ export class VendorApplicationsService {
             applicationId: confirmed.applicationId,
             event: eventSummary(confirmed.event),
             slotLabel: slotLabel(confirmed.slots),
-            organizerName: confirmed.event.organizerProfile.displayName,
-            organizerPhone: confirmed.event.organizerProfile.user.phone,
+            organizerName: organizerOf(confirmed.event).displayName,
+            organizerPhone: organizerOf(confirmed.event).user.phone,
             ingressInfo: confirmed.event.ingressInfo,
             vendorFloorPlanUrl: confirmed.event.vendorFloorPlanFile ? this.files.url(confirmed.event.vendorFloorPlanFile.storageKey) : null,
           }
@@ -304,7 +305,7 @@ export class VendorApplicationsService {
       .filter((p) => !p.file.deletedAt)
       .map((p) => this.payments.toProof(p));
     const active = latest && (latest.status === 'assigned' || latest.status === 'reserved') ? latest : null;
-    const organizer = a.event.organizerProfile.user;
+    const organizer = organizerOf(a.event).user;
     const role = organizer.roles[0];
     const taken = a.preferredSlots.length ? await takenSlotIds(this.prisma, a.eventId) : new Set<string>();
     const instructions = (latest?.paymentInstructionsSnapshot ?? []) as PaymentInstruction[];
@@ -329,7 +330,7 @@ export class VendorApplicationsService {
         hidden: a.event.moderationState === 'hidden',
       },
       organizer: {
-        displayName: a.event.organizerProfile.displayName,
+        displayName: organizerOf(a.event).displayName,
         fullName: organizer.fullName,
         phone: organizer.phone,
         contactEmail: role?.contactEmail ?? organizer.email,
@@ -547,7 +548,7 @@ export class VendorApplicationsService {
     shopName: string,
     extra: Record<string, string> = {},
   ) {
-    const organizer = event.organizerProfile.user;
+    const organizer = organizerOf(event).user;
     const config = appConfig();
     await this.outbox.queue(tx, {
       userId: organizer.id,

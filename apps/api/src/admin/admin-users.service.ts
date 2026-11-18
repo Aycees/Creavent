@@ -3,6 +3,7 @@ import { ADMIN_PAGE_SIZE, reportNumber, type AdminUser, type AdminUsers, type Ad
 import type { Prisma } from '../generated/prisma/client.js';
 import { ModerationService, upcomingEvents } from '../moderation/moderation.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { toHostApproval } from '../popups/host-approval.service.js';
 import { PublicRefreshService } from '../public/public-refresh.service.js';
 
 const roleWord: Record<string, string> = { vendor: 'Vendor', organizer: 'Organizer' };
@@ -13,6 +14,9 @@ const actionWords: Record<string, string> = {
   'user_role.reinstate': 'role reinstated',
   'organizer_approval.approve': 'approved',
   'organizer_approval.reject': 'rejected',
+  'host_approval.approve': 'approved to host pop-ups',
+  'host_approval.reject': 'not approved to host pop-ups',
+  'host_approval.revoke': 'host approval revoked',
 };
 
 export function searchUsers(q: string | undefined): Prisma.UserWhereInput {
@@ -75,7 +79,7 @@ export class AdminUsersService {
       where: { id, deletedAt: null },
       include: {
         roles: { include: { suspendedBy: true } },
-        vendorProfile: true,
+        vendorProfile: { include: { popups: { orderBy: [{ startsAt: { sort: 'desc', nulls: 'first' } }] } } },
         organizerProfile: {
           include: {
             events: {
@@ -101,7 +105,8 @@ export class AdminUsersService {
         })
       : [];
     // Reports the user is part of, by the events they organize too.
-    const eventIds = u.organizerProfile?.events.map((e) => e.id) ?? [];
+    const popups = u.vendorProfile?.popups ?? [];
+    const eventIds = [...(u.organizerProfile?.events.map((e) => e.id) ?? []), ...popups.map((e) => e.id)];
     const eventReports = eventIds.length
       ? await this.prisma.report.findMany({ where: { targetEventId: { in: eventIds } }, include: { targetEvent: true }, orderBy: { createdAt: 'desc' } })
       : [];
@@ -112,6 +117,17 @@ export class AdminUsersService {
     });
     const upcomingCount = u.organizerProfile ? (await upcomingEvents(this.prisma, u.organizerProfile.id)).length : 0;
     const roleOf = new Map(u.roles.map((r) => [r.id, r.role]));
+    const vendorRole = u.roles.find((r) => r.role === 'vendor');
+    const hostStatus = vendorRole?.approvalStatus ?? 'not_submitted';
+    // An earned approval came from a reserved slot at a completed event.
+    const earnedFrom =
+      hostStatus === 'approved' && vendorRole?.approvalSource === 'earned' && u.vendorProfile
+        ? await this.prisma.slotAssignment.findFirst({
+            where: { vendorProfileId: u.vendorProfile.id, status: 'reserved', event: { status: 'completed', moderationState: 'visible' } },
+            include: { event: true },
+            orderBy: { event: { endsAt: 'asc' } },
+          })
+        : null;
 
     const history = [
       ...logs.map((l) => ({
@@ -161,6 +177,18 @@ export class AdminUsersService {
         status: a.assignments[0]?.status ?? a.status,
         slotLabels: a.assignments.flatMap((s) => s.slots.map((x) => x.slot.label)),
       })),
+      host: vendorRole
+        ? {
+            status: hostStatus,
+            source: hostStatus === 'approved' ? vendorRole.approvalSource : null,
+            decidedAt: vendorRole.reviewedAt?.toISOString() ?? null,
+            earnedFrom: earnedFrom?.event.name ?? null,
+            rejectionReason: hostStatus === 'rejected' ? vendorRole.rejectionReason : null,
+            revoked: toHostApproval(vendorRole, []).revoked,
+            announcedPopups: popups.filter((e) => e.status === 'announced' && e.moderationState === 'visible').length,
+          }
+        : null,
+      popups: popups.map((e) => ({ id: e.id, name: e.name, startsAt: e.startsAt?.toISOString() ?? null, status: e.status, hidden: e.moderationState === 'hidden' })),
       reports: [
         ...u.reportsAbout.map((r) => ({ id: r.id, number: r.number, reason: r.reason, open: r.status === 'open', about: u.fullName })),
         ...eventReports.map((r) => ({ id: r.id, number: r.number, reason: r.reason, open: r.status === 'open', about: r.targetEvent!.name })),
@@ -171,6 +199,13 @@ export class AdminUsersService {
 
   async suspend(adminId: string, userId: string, role: RoleType, reason: string, hideUpcomingEvents = false) {
     const refresh = await this.prisma.$transaction((tx) => this.moderation.suspendRole(tx, adminId, userId, role, reason, { hideUpcomingEvents }));
+    void this.refresh.refresh(refresh);
+    return this.detail(userId);
+  }
+
+  // Revoke pop-up host approval (spec §4.7), from the vendor's user page.
+  async revokeHost(adminId: string, userId: string, reason: string) {
+    const refresh = await this.prisma.$transaction((tx) => this.moderation.revokeHost(tx, adminId, userId, reason));
     void this.refresh.refresh(refresh);
     return this.detail(userId);
   }

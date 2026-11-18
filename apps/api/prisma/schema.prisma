@@ -28,6 +28,14 @@ enum ApprovalStatus {
   @@map("approval_status")
 }
 
+// How a vendor's pop-up host approval was granted (spec §4.7).
+enum ApprovalSource {
+  reviewed
+  earned
+
+  @@map("approval_source")
+}
+
 enum LegalDocument {
   terms
   privacy
@@ -170,8 +178,15 @@ model UserRole {
   id                  String          @id @default(uuid()) @db.Uuid
   userId              String          @map("user_id") @db.Uuid
   role                RoleType
-  // Organizers only. Null for vendors.
+  // Organizer approval on the organizer row, pop-up host approval on the
+  // vendor row (spec §2.1, §4.7).
   approvalStatus      ApprovalStatus? @map("approval_status")
+  // Vendors only: reviewed by an admin, or earned by selling at a completed
+  // event. Null until approved.
+  approvalSource      ApprovalSource? @map("approval_source")
+  // Vendors only. Set when an admin revokes host approval, never cleared:
+  // the earned route is off for good (spec §4.7).
+  hostRevokedAt       DateTime?       @map("host_revoked_at") @db.Timestamptz
   contactEmail        String?         @map("contact_email") @db.Citext
   approvalSubmittedAt DateTime?       @map("approval_submitted_at") @db.Timestamptz
   reviewedById        String?         @map("reviewed_by") @db.Uuid
@@ -309,6 +324,7 @@ model VendorProfile {
   applications Application[]
   assignments  SlotAssignment[]
   proofs       PaymentProof[]
+  popups       Event[]                 @relation("PopupHost")
 
   @@map("vendor_profiles")
 }
@@ -349,6 +365,14 @@ enum EventStatus {
   @@map("event_status")
 }
 
+// Who can host an event type (spec §3.1, §4.7).
+enum EventHostKind {
+  organizer
+  vendor
+
+  @@map("event_host_kind")
+}
+
 enum ModerationState {
   visible
   hidden
@@ -364,6 +388,8 @@ model EventType {
   slug      String   @unique
   isActive  Boolean  @default(true) @map("is_active")
   sortOrder Int      @map("sort_order")
+  // Who can host this type: Pop-up is a vendor's own event (spec §3.1, §4.7).
+  hostKind  EventHostKind @default(organizer) @map("host_kind")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -378,7 +404,10 @@ model EventType {
 // last; the event runs every day in between with the same hours (§3.1.1).
 model Event {
   id                    String          @id @default(uuid()) @db.Uuid
-  organizerProfileId    String          @map("organizer_profile_id") @db.Uuid
+  // Exactly one of these is set (rule 6.14): an organizer's event, or a
+  // vendor's pop-up (spec §4.7).
+  organizerProfileId    String?         @map("organizer_profile_id") @db.Uuid
+  hostVendorProfileId   String?         @map("host_vendor_profile_id") @db.Uuid
   eventTypeId           String          @map("event_type_id") @db.Uuid
   name                  String
   slug                  String          @unique
@@ -424,7 +453,8 @@ model Event {
   createdAt             DateTime        @default(now()) @map("created_at") @db.Timestamptz
   updatedAt             DateTime        @updatedAt @map("updated_at") @db.Timestamptz
 
-  organizerProfile    OrganizerProfile           @relation(fields: [organizerProfileId], references: [id])
+  organizerProfile    OrganizerProfile?          @relation(fields: [organizerProfileId], references: [id], onDelete: Restrict)
+  hostVendorProfile   VendorProfile?             @relation("PopupHost", fields: [hostVendorProfileId], references: [id], onDelete: Restrict)
   eventType           EventType                  @relation(fields: [eventTypeId], references: [id])
   coverFile           File?                      @relation("EventCover", fields: [coverFileId], references: [id])
   moderatedBy         User?                      @relation("EventModerator", fields: [moderatedById], references: [id])
@@ -443,6 +473,8 @@ model Event {
   reports             Report[]
 
   @@index([organizerProfileId])
+  // A host's pop-ups use a partial index on (host_vendor_profile_id,
+  // starts_at), and rule 6.14 is a check, both in the migration's SQL.
   @@index([status, moderationState, startsAt])
   @@index([city, startsAt])
   @@map("events")
@@ -849,6 +881,9 @@ enum NotificationType {
   event_changed
   event_canceled
   event_hidden
+  host_approved
+  host_rejected
+  host_approval_revoked
 
   @@map("notification_type")
 }
@@ -891,6 +926,7 @@ enum ReportSource {
 
 enum ReportReason {
   fake_account
+  fake_or_misleading_event
   scam
   inappropriate_content
   other
@@ -910,6 +946,7 @@ enum ReportAction {
   none
   event_hidden
   user_suspended
+  host_approval_revoked
   other
 
   @@map("report_action")

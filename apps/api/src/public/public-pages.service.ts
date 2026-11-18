@@ -21,6 +21,13 @@ const eventInclude = {
   coverFile: true,
   publicFloorPlanFile: true,
   organizerProfile: { include: { logoFile: true, user: { include: { roles: { where: { role: 'organizer' as const } } } } } },
+  hostVendorProfile: {
+    include: {
+      categories: { include: { category: true } },
+      photos: { include: { file: true }, orderBy: { sortOrder: 'asc' as const }, take: 6 },
+      user: { include: { avatarFile: true, roles: { where: { role: 'vendor' as const } } } },
+    },
+  },
   assignments: {
     where: { status: 'reserved' as const },
     include: {
@@ -32,7 +39,8 @@ const eventInclude = {
 } satisfies Prisma.EventInclude;
 
 type FullEvent = Prisma.EventGetPayload<{ include: typeof eventInclude }>;
-type Organizer = FullEvent['organizerProfile'];
+type Organizer = NonNullable<FullEvent['organizerProfile']>;
+type Host = NonNullable<FullEvent['hostVendorProfile']>;
 
 // The pages anyone can open without an account (spec §7, sitemap §3). The
 // web app caches them under the returned tags (decision Q1).
@@ -164,20 +172,29 @@ export class PublicPagesService {
     });
     const role = v?.user.roles[0];
     if (!v || !role || role.suspendedAt || v.user.deletedAt) throw new NotFoundException('Vendor not found');
-    const assignments = await this.prisma.slotAssignment.findMany({
-      where: { vendorProfileId: v.id, status: 'reserved', event: { status: { in: ['announced', 'completed'] }, moderationState: 'visible' } },
-      include: { slots: { include: { slot: true } }, event: { include: listingInclude } },
-    });
+    const [assignments, popups] = await Promise.all([
+      this.prisma.slotAssignment.findMany({
+        where: { vendorProfileId: v.id, status: 'reserved', event: { status: { in: ['announced', 'completed'] }, moderationState: 'visible' } },
+        include: { slots: { include: { slot: true } }, event: { include: listingInclude } },
+      }),
+      // Their own pop-ups count too (spec §4.7, §7.2).
+      this.prisma.event.findMany({
+        where: { hostVendorProfileId: v.id, status: { in: ['announced', 'completed'] }, moderationState: 'visible' },
+        include: listingInclude,
+      }),
+    ]);
     const startOfToday = manilaStart(manilaParts(now).date);
-    const sold = assignments
-      .map((a) => ({
+    const isUpcoming = (e: { status: string; endsAt: Date | null }) => e.status === 'announced' && e.endsAt !== null && e.endsAt >= startOfToday;
+    const sold = [
+      ...assignments.map((a) => ({
         event: a.event,
         slotLabel: sortedSlots(a.slots)
           .map((x) => x.slot.label)
-          .join(', '),
-        upcoming: a.event.status === 'announced' && a.event.endsAt !== null && a.event.endsAt >= startOfToday,
-      }))
-      .sort((a, b) => (b.event.startsAt?.getTime() ?? 0) - (a.event.startsAt?.getTime() ?? 0));
+          .join(', ') as string | null,
+        upcoming: isUpcoming(a.event),
+      })),
+      ...popups.map((e) => ({ event: e, slotLabel: null, upcoming: isUpcoming(e) })),
+    ].sort((a, b) => (b.event.startsAt?.getTime() ?? 0) - (a.event.startsAt?.getTime() ?? 0));
     const next = sold.filter((s) => s.upcoming).at(-1) ?? null;
     return {
       tags: [tags.vendor(v.id), ...sold.map((s) => tags.event(s.event.id))],
@@ -198,8 +215,9 @@ export class PublicPagesService {
       next: next ? { event: this.card(next.event), slotLabel: next.slotLabel } : null,
       sold: sold.map((s) => ({
         ...profileEvent(s.event),
-        organizerName: s.event.organizerProfile.displayName,
+        organizerName: s.event.organizerProfile?.displayName ?? v.shopName,
         slotLabel: s.slotLabel,
+        isPopup: s.event.hostVendorProfileId !== null,
         upcoming: s.upcoming,
       })),
     };
@@ -214,11 +232,14 @@ export class PublicPagesService {
       venueName: e.venueName,
       city: e.city,
       coverUrl: e.coverFile ? this.files.url(e.coverFile.storageKey) : null,
-      organizer: { displayName: e.organizerProfile.displayName, approved: approved(e.organizerProfile.user.roles[0]) },
+      organizer: e.organizerProfile
+        ? { displayName: e.organizerProfile.displayName, approved: approved(e.organizerProfile.user.roles[0]) }
+        : { displayName: e.hostVendorProfile!.shopName, approved: approved(e.hostVendorProfile!.user.roles[0]) },
+      isPopup: e.hostVendorProfileId !== null,
     };
   }
 
-  // Event ids whose name, venue, address, city, or organizer matches every
+  // Event ids whose name, venue, address, city, organizer, or pop-up host shop matches every
   // word of the search, each as a prefix: "vint" finds "Vintage" (decision
   // Q5). Only letters and digits reach the query, so its syntax can't break.
   private async search(q: string) {
@@ -227,8 +248,9 @@ export class PublicPagesService {
     const tsquery = words.map((w) => `${w}:*`).join(' & ');
     const rows = await this.prisma.$queryRaw<{ id: string }[]>(Prisma.sql`
       SELECT e.id FROM events e
-      JOIN organizer_profiles o ON o.id = e.organizer_profile_id
-      WHERE to_tsvector('simple', concat_ws(' ', e.name, e.venue_name, e.address_line, e.city, o.display_name))
+      LEFT JOIN organizer_profiles o ON o.id = e.organizer_profile_id
+      LEFT JOIN vendor_profiles v ON v.id = e.host_vendor_profile_id
+      WHERE to_tsvector('simple', concat_ws(' ', e.name, e.venue_name, e.address_line, e.city, o.display_name, v.shop_name))
         @@ to_tsquery('simple', ${tsquery})`);
     return rows.map((r) => r.id);
   }
@@ -249,8 +271,10 @@ export class PublicPagesService {
       description: e.description,
       coverUrl: e.coverFile ? this.files.url(e.coverFile.storageKey) : null,
       publicFloorPlanUrl: e.publicFloorPlanFile ? this.files.url(e.publicFloorPlanFile.storageKey) : null,
-      organizer: await this.organizer(e.organizerProfile),
-      // A canceled event's slots ended with it, so nobody is listed.
+      organizer: e.organizerProfile ? await this.organizer(e.organizerProfile) : null,
+      host: e.hostVendorProfile ? await this.host(e.hostVendorProfile) : null,
+      // A canceled event's slots ended with it, so nobody is listed. A pop-up
+      // has no other vendors.
       vendors: e.status === 'canceled' ? [] : this.vendors(e),
       updatedAt: e.updatedAt.toISOString(),
       canceled: canceled(e),
@@ -282,6 +306,24 @@ export class PublicPagesService {
       .map((v) => v.row);
   }
 
+  // The host block on a pop-up (spec §7).
+  private async host(v: Host) {
+    const role = v.user.roles[0];
+    const pageAvailable = v.user.deletedAt === null && role?.suspendedAt == null;
+    return {
+      shopName: v.shopName,
+      slug: pageAvailable ? v.slug : null,
+      avatarUrl: v.user.avatarFile ? this.files.url(v.user.avatarFile.storageKey) : null,
+      approved: approved(role),
+      categories: v.categories.sort((a, b) => a.category.sortOrder - b.category.sortOrder).map((c) => c.category.name),
+      products: v.products,
+      photos: v.photos.filter((p) => !p.file.deletedAt).map((p) => this.files.url(p.file.storageKey)),
+      socialLinks: links(v.socialLinks),
+      joinedAt: (role?.createdAt ?? v.createdAt).toISOString(),
+      eventsSoldAt: await eventsSoldAt(this.prisma, v.id),
+    };
+  }
+
   private async organizer(o: Organizer) {
     const role = o.user.roles[0];
     const pageAvailable = o.user.deletedAt === null && role?.suspendedAt == null;
@@ -301,7 +343,19 @@ const listingInclude = {
   eventType: true,
   coverFile: true,
   organizerProfile: { include: { user: { include: { roles: { where: { role: 'organizer' as const } } } } } },
+  hostVendorProfile: { include: { user: { include: { roles: { where: { role: 'vendor' as const } } } } } },
 } satisfies Prisma.EventInclude;
+
+// "Sold at 3 Creavent events" (data model §7): announced or completed,
+// visible events with a reserved slot, and the vendor's own pop-ups.
+export async function eventsSoldAt(db: Pick<PrismaService, 'slotAssignment' | 'event'>, vendorProfileId: string) {
+  const visibleSold = { status: { in: ['announced' as const, 'completed' as const] }, moderationState: 'visible' as const };
+  const [slots, popups] = await Promise.all([
+    db.slotAssignment.findMany({ where: { vendorProfileId, status: 'reserved', event: visibleSold }, select: { eventId: true }, distinct: ['eventId'] }),
+    db.event.count({ where: { hostVendorProfileId: vendorProfileId, ...visibleSold } }),
+  ]);
+  return slots.length + popups;
+}
 
 // "Approved by Creavent" (data model §7).
 function approved(role: { approvalStatus: string | null; suspendedAt: Date | null } | undefined) {

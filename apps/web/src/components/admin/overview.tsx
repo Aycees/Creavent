@@ -6,7 +6,7 @@ import * as React from "react"
 
 import { Alert } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
-import { useApprovalQueue, useReportGroups } from "./queries"
+import { approvalHref, useApprovalQueue, useReportGroups } from "./queries"
 
 const today = new Intl.DateTimeFormat("en-PH", { timeZone: "Asia/Manila", weekday: "long", month: "short", day: "numeric" })
 const day = new Intl.DateTimeFormat("en-PH", { timeZone: "Asia/Manila", weekday: "short", month: "short", day: "numeric" })
@@ -44,7 +44,7 @@ export function AdminOverview() {
       {queue && reports && (
         <>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <Stat href="/admin/approvals" label="Organizers waiting" value={queue.length}>
+            <Stat href="/admin/approvals" label="Approvals waiting" value={queue.length}>
               {over > 0 ? <Badge tone="warning">{`${over} over target`}</Badge> : `Target ${REVIEW_TARGET_TEXT}`}
             </Stat>
             <Stat href="/admin/reports" label="Open reports" value={reports.openCount}>
@@ -65,16 +65,21 @@ export function AdminOverview() {
               )}
             </div>
             {queue.length === 0 ? (
-              <p className="rounded-lg border border-border bg-surface p-5 text-sm text-muted">No organizers are waiting for review.</p>
+              <p className="rounded-lg border border-border bg-surface p-5 text-sm text-muted">Nobody is waiting for review.</p>
             ) : (
               <ul className="flex flex-col divide-y divide-border overflow-hidden rounded-lg border border-border bg-surface">
                 {queue.slice(0, 5).map((q) => (
-                  <li key={q.userId}>
-                    <Link href={`/admin/approvals/${q.userId}`} className="flex min-h-14 flex-wrap items-center gap-2 px-4 py-3 no-underline hover:bg-sunken md:gap-4">
+                  <li key={`${q.kind}-${q.userId}`}>
+                    <Link href={approvalHref(q.userId, q.kind)} className="flex min-h-14 flex-wrap items-center gap-2 px-4 py-3 no-underline hover:bg-sunken md:gap-4">
                       <span className="flex min-w-0 flex-1 flex-col">
                         <span className="text-label font-semibold text-ink">{q.displayName}</span>
                         <span className="text-cap text-muted">{`${q.linksCount} ${q.linksCount === 1 ? "link" : "links"} · ${day.format(new Date(q.submittedAt))}`}</span>
                       </span>
+                      {q.kind === "host" && (
+                        <Badge tone="info" dot={false}>
+                          Pop-up host
+                        </Badge>
+                      )}
                       {q.resubmission && <Badge tone="info">Resubmitted</Badge>}
                       <Badge tone={q.daysOverTarget > 0 ? "warning" : "neutral"}>{`${q.businessDaysWaiting} business ${q.businessDaysWaiting === 1 ? "day" : "days"}`}</Badge>
                     </Link>

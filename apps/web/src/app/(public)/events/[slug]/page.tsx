@@ -38,7 +38,7 @@ async function View({ params }: { params: Promise<{ slug: string }> }) {
         <PublicEventView
           event={page.event}
           supportEmail={config.supportEmail}
-          report={<ReportLink targetType="event" targetId={page.event.id} supportEmail={config.supportEmail} />}
+          report={<ReportLink targetType="event" noun={page.event.host ? "pop-up" : "event"} targetId={page.event.id} supportEmail={config.supportEmail} />}
         />
       ) : page.view === "not_public" ? (
         <NotPublicView />

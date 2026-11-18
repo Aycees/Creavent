@@ -158,7 +158,7 @@ The payment deadline is shown, not enforced (spec §6.4). Each assignment stores
 ### 5.3 Migrations and seed data
 
 - Migrations are created with `prisma migrate dev` and applied with `prisma migrate deploy`, run as the API's Render **pre-deploy command**. A failed migration stops the deploy.
-- A seed script creates the product categories, the event types (Flea market, Bazaar, Pop-up), test users for each role (organizers approved and not approved), and events in each status. It is used locally and on staging only.
+- A seed script creates the product categories, the event types (Flea market and Bazaar for organizers, Pop-up for vendors), test users for each role (organizers approved and not approved, and pop-up hosts in each approval state), and events and pop-ups in each status. It is used locally and on staging only.
 
 ## 6. Background jobs and email
 

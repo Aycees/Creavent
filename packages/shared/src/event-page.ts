@@ -99,8 +99,9 @@ export const eventPageSchema = z.discriminatedUnion('view', [
   // Not a vendor, while the event is only open to vendors.
   z.object({ view: z.literal('not_public') }),
   z.object({ view: z.literal('vendor'), preview: z.boolean(), event: vendorEventSchema }),
-  // The public view. For the event's organizer, with "Manage event".
-  z.object({ view: z.literal('public'), event: publicEventSchema, manage: z.object({ eventId: z.uuid() }).nullable() }),
+  // The public view. For the event's organizer, or a pop-up's host, with
+  // "Manage event".
+  z.object({ view: z.literal('public'), event: publicEventSchema, manage: z.object({ eventId: z.uuid(), popup: z.boolean() }).nullable() }),
   // Canceled before it was announced (decision Q2).
   z.object({
     view: z.literal('canceled_notice'),

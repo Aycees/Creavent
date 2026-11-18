@@ -25,6 +25,7 @@ describe("AppShell, vendor area", () => {
     expect(within(menu).getByRole("link", { name: "Dashboard" })).toHaveAttribute("href", "/vendor")
     expect(within(menu).getByRole("link", { name: "Browse events" })).toHaveAttribute("href", "/vendor/events")
     expect(within(menu).getByRole("link", { name: "Applications" })).toHaveAttribute("href", "/vendor/applications")
+    expect(within(menu).getByRole("link", { name: "Pop-ups" })).toHaveAttribute("href", "/vendor/popups")
     expect(within(menu).getByRole("link", { name: "Profile" })).toHaveAttribute("href", "/vendor/profile")
   })
 
@@ -37,7 +38,7 @@ describe("AppShell, vendor area", () => {
     expect(within(menu).getByRole("link", { name: "Dashboard" })).not.toHaveAttribute("aria-current")
   })
 
-  it("shows the phone tab bar with Dashboard, Browse, Applications, and Profile", () => {
+  it("shows the phone tab bar with Dashboard, Browse, Applications, Pop-ups, and Profile", () => {
     onPath("/vendor/events")
     render(<AppShell area="vendor" user={bothRoles}>Page</AppShell>)
     const tabs = screen.getByRole("navigation", { name: "Vendor tabs" })
@@ -46,6 +47,7 @@ describe("AppShell, vendor area", () => {
       "Dashboard",
       "Browse",
       "Applications",
+      "Pop-ups",
       "Profile",
     ])
     expect(within(tabs).getByRole("link", { name: "Browse" })).toHaveAttribute("aria-current", "page")

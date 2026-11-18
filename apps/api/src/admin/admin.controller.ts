@@ -9,6 +9,7 @@ import {
   adminUsersQuerySchema,
   adminUsersSchema,
   hideEventSchema,
+  revokeHostSchema,
   roleTypeSchema,
   suspendRoleSchema,
   type RoleType,
@@ -66,6 +67,13 @@ export class AdminController {
   @ResponseSchema(adminUserSchema)
   reinstate(@CurrentUser() admin: SessionUser, @Param('id', ParseUUIDPipe) id: string, @Param('role', { schema: roleTypeSchema }) role: RoleType) {
     return this.users.reinstate(admin.id, id, role);
+  }
+
+  @Post('users/:id/revoke-host')
+  @HttpCode(200)
+  @ResponseSchema(adminUserSchema)
+  revokeHost(@CurrentUser() admin: SessionUser, @Param('id', ParseUUIDPipe) id: string, @Body({ schema: revokeHostSchema }) body: z.output<typeof revokeHostSchema>) {
+    return this.users.revokeHost(admin.id, id, body.reason);
   }
 
   @Get('events')

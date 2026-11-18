@@ -95,7 +95,7 @@ describe('jobs', () => {
       const old = await eventWithRecords(new Date(now.getTime() - 91 * DAY));
       const payment = await prisma.payment.findFirstOrThrow({ where: { eventId: old.eventId } });
       const proof = await prisma.paymentProof.findFirstOrThrow({ where: { eventId: old.eventId } });
-      const actorUserId = (await prisma.event.findUniqueOrThrow({ where: { id: old.eventId }, include: { organizerProfile: true } })).organizerProfile.userId;
+      const actorUserId = (await prisma.event.findUniqueOrThrow({ where: { id: old.eventId }, include: { organizerProfile: true } })).organizerProfile!.userId;
       const log = (action: string, entityType: string, entityId: string, changes: object, reason: string | null = null) =>
         prisma.auditLog.create({ data: { actorUserId, action, entityType, entityId, changes, reason } });
       await log('payment.mark_paid', 'payment', payment.id, { status: { from: 'pending', to: 'approved' } }, 'Paid ₱800 in cash at the gate');

@@ -59,6 +59,30 @@ describe("ReportLink", () => {
     expect(await screen.findByText(/You reported this event/)).toHaveTextContent("RPT-0143")
   })
 
+  it("offers Fake or misleading event first on an event, and not on a vendor or organizer", async () => {
+    serve()
+    const { unmount } = renderLink()
+
+    await userEvent.click(await screen.findByRole("button", { name: "Report this event" }))
+    const reasons = screen.getAllByRole("radio")
+    expect(reasons[0]).toHaveAccessibleName(/Fake or misleading event/)
+    expect(screen.getByText("It didn't happen, or isn't what it says")).toBeInTheDocument()
+    expect(screen.getByRole("radio", { name: /Fake account/ })).toBeInTheDocument()
+    unmount()
+
+    renderWithQuery(<ReportLink targetType="vendor" targetId={eventId} supportEmail={SUPPORT} />)
+    await userEvent.click(await screen.findByRole("button", { name: "Report this vendor" }))
+    expect(screen.queryByRole("radio", { name: /Fake or misleading event/ })).not.toBeInTheDocument()
+  })
+
+  it("calls a pop-up a pop-up, and its host the host", async () => {
+    serve()
+    renderWithQuery(<ReportLink targetType="event" noun="pop-up" targetId={eventId} supportEmail={SUPPORT} />)
+
+    await userEvent.click(await screen.findByRole("button", { name: "Report this pop-up" }))
+    expect(screen.getByText(/The host isn't told who reported/)).toBeInTheDocument()
+  })
+
   it("asks for a reason before sending", async () => {
     serve()
     renderLink()

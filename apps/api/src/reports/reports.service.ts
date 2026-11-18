@@ -29,7 +29,12 @@ export const statusWords: Record<string, string> = {
 
 // What the admin pages need about a target.
 const targetInclude = {
-  targetEvent: { include: { organizerProfile: { include: { user: { include: { roles: true } } } } } },
+  targetEvent: {
+    include: {
+      organizerProfile: { include: { user: { include: { roles: true } } } },
+      hostVendorProfile: { include: { user: { include: { roles: true } } } },
+    },
+  },
   targetUser: { include: { roles: true, vendorProfile: true, organizerProfile: true } },
 } satisfies Prisma.ReportInclude;
 
@@ -110,9 +115,9 @@ export class ReportsService {
   // ids of drafts, hidden events and pages that are down can't be probed.
   private async publicTarget(type: ReportButtonTarget, id: string) {
     if (type === 'event') {
-      const event = await this.prisma.event.findUnique({ where: { id }, include: { organizerProfile: true } });
+      const event = await this.prisma.event.findUnique({ where: { id }, include: { organizerProfile: true, hostVendorProfile: true } });
       if (!event || event.status === 'draft' || event.moderationState === 'hidden') return null;
-      return { type: 'event' as const, where: { targetEventId: id }, ownerUserId: event.organizerProfile.userId };
+      return { type: 'event' as const, where: { targetEventId: id }, ownerUserId: (event.organizerProfile ?? event.hostVendorProfile)!.userId };
     }
     const profile =
       type === 'organizer'
@@ -188,13 +193,14 @@ export class ReportsService {
       resolutionNote: first.resolutionNote,
       target: {
         ...summary,
-        organizer: first.targetEvent
+        organizer: first.targetEvent?.organizerProfile
           ? {
               userId: first.targetEvent.organizerProfile.userId,
               name: first.targetEvent.organizerProfile.displayName,
               suspended: first.targetEvent.organizerProfile.user.roles.some((r) => r.role === 'organizer' && r.suspendedAt !== null),
             }
           : null,
+        host: hostOf(first),
         hidden: first.targetEvent?.moderationState === 'hidden',
         roles: first.targetUser
           ? first.targetUser.roles
@@ -251,7 +257,7 @@ export class ReportsService {
         FOR UPDATE`;
       const report = await tx.report.findUniqueOrThrow({
         where: { id },
-        include: { targetEvent: { include: { organizerProfile: true } } },
+        include: { targetEvent: { include: { organizerProfile: true, hostVendorProfile: true } } },
       });
       if (report.status !== 'open') throw new ConflictException('These reports were already resolved. Reload to see the decision.');
 
@@ -264,9 +270,10 @@ export class ReportsService {
         if (report.targetEvent!.moderationState !== 'hidden') refresh = await this.moderation.hideEvent(tx, adminId, report.targetEventId!, input.reason);
         action = 'event_hidden';
       } else if (input.decision === 'suspend_role') {
-        const userId = report.targetType === 'event' ? report.targetEvent!.organizerProfile.userId : report.targetUserId!;
-        if (report.targetType === 'event' && input.role !== 'organizer') {
-          throw new BadRequestException('An event report can suspend only the organizer role');
+        const popupHost = report.targetEvent?.hostVendorProfile;
+        const userId = report.targetType === 'event' ? (report.targetEvent!.organizerProfile ?? popupHost)!.userId : report.targetUserId!;
+        if (report.targetType === 'event' && input.role !== (popupHost ? 'vendor' : 'organizer')) {
+          throw new BadRequestException(popupHost ? "A pop-up report can suspend only the host's vendor role" : 'An event report can suspend only the organizer role');
         }
         const role = await tx.userRole.findUnique({ where: { userId_role: { userId, role: input.role } } });
         if (!role) throw new BadRequestException(`This user has no ${input.role} role`);
@@ -275,6 +282,13 @@ export class ReportsService {
           refresh = await this.moderation.suspendRole(tx, adminId, userId, input.role, input.reason, { hideUpcomingEvents: input.hideUpcomingEvents });
         }
         action = 'user_suspended';
+      } else if (input.decision === 'revoke_host') {
+        const userId = report.targetType === 'event' ? report.targetEvent!.hostVendorProfile?.userId : report.targetUserId!;
+        if (!userId) throw new BadRequestException('Only a pop-up or a vendor report can revoke host approval');
+        const role = await tx.userRole.findUnique({ where: { userId_role: { userId, role: 'vendor' } } });
+        if (role?.approvalStatus !== 'approved') throw new BadRequestException('This vendor is not approved to host pop-ups');
+        refresh = await this.moderation.revokeHost(tx, adminId, userId, input.reason);
+        action = 'host_approval_revoked';
       }
 
       const resolvedAt = new Date();
@@ -329,12 +343,25 @@ function summarize(r: TargetRow): ReportTargetSummary {
       type: 'event',
       id: e.id,
       name: e.name,
-      subtitle: `${e.organizerProfile.displayName} · ${statusWords[e.status] ?? e.status}${e.moderationState === 'hidden' ? ', hidden' : ''}`,
+      subtitle: `${e.organizerProfile?.displayName ?? `Pop-up by ${e.hostVendorProfile!.shopName}`} · ${statusWords[e.status] ?? e.status}${e.moderationState === 'hidden' ? ', hidden' : ''}`,
       startsAt: e.startsAt?.toISOString() ?? null,
     };
   }
   const u = r.targetUser!;
   return { type: 'user', id: u.id, name: u.fullName, subtitle: describeRoles(u), startsAt: null };
+}
+
+// The vendor a host action applies to: a pop-up's host, or a reported user
+// with the vendor role.
+function hostOf(r: TargetRow) {
+  const fromEvent = r.targetEvent?.hostVendorProfile;
+  if (fromEvent) {
+    const role = fromEvent.user.roles.find((x) => x.role === 'vendor');
+    return { userId: fromEvent.userId, name: fromEvent.shopName, suspended: role?.suspendedAt != null, approved: role?.approvalStatus === 'approved' };
+  }
+  const role = r.targetUser?.roles.find((x) => x.role === 'vendor');
+  if (!r.targetUser || !role) return null;
+  return { userId: r.targetUser.id, name: r.targetUser.vendorProfile?.shopName ?? r.targetUser.fullName, suspended: role.suspendedAt !== null, approved: role.approvalStatus === 'approved' };
 }
 
 function toGroup(rows: (TargetRow & { reason: ReportReason; source: ReportSource })[]): ReportGroup {

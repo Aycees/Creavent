@@ -14,6 +14,7 @@ import { initialsOf } from "@/lib/shell-user"
 import { eventDays, formatDay, formatSchedule, formatTime, stampDate } from "@/lib/event-format"
 
 import { CopyLinkButton } from "./copy-link-button"
+import { SocialLinks } from "./social-links"
 import { VendorList } from "./vendor-list"
 
 type Schedule = Pick<PublicEvent, "startDate" | "endDate" | "opensAt" | "closesAt">
@@ -62,13 +63,75 @@ export function directionsUrl(e: Pick<PublicEvent, "latitude" | "longitude" | "v
   return query ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}` : null
 }
 
-function OrganizerName({ organizer }: { organizer: PublicEvent["organizer"] }) {
-  return organizer.slug ? (
-    <Link href={`/organizers/${organizer.slug}`} className="font-semibold">
-      {organizer.displayName}
+// The organizer, or a pop-up's host shop, linked to their page when it's up.
+function HostName({ name, href }: { name: string; href: string | null }) {
+  return href ? (
+    <Link href={href} className="font-semibold">
+      {name}
     </Link>
   ) : (
-    <span className="font-semibold">{organizer.displayName}</span>
+    <span className="font-semibold">{name}</span>
+  )
+}
+
+const joined = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Manila", month: "short", year: "numeric" })
+
+// A pop-up's host block, in place of the organizer card (spec §4.7, §7,
+// mockup P6PopupEvent).
+function HostBlock({ host: h }: { host: NonNullable<PublicEvent["host"]> }) {
+  const href = h.slug ? `/vendors/${h.slug}` : null
+  const shown = h.photos.slice(0, 3)
+  return (
+    <section aria-label="Hosted by" className="flex flex-col gap-3.5 rounded-lg border border-border bg-surface p-5">
+      <p className="text-cap font-semibold text-muted uppercase">Hosted by</p>
+      <div className="flex items-center gap-3">
+        <Avatar size="lg">
+          {h.avatarUrl && <AvatarImage src={h.avatarUrl} alt="" />}
+          <AvatarFallback>{initialsOf(h.shopName)}</AvatarFallback>
+        </Avatar>
+        <div className="flex flex-col">
+          <HostName name={h.shopName} href={href} />
+          {h.approved && <ApprovedMark />}
+        </div>
+      </div>
+      <p className="text-sm text-muted">
+        {`Joined ${joined.format(new Date(h.joinedAt))}${h.eventsSoldAt > 0 ? ` · Sold at ${h.eventsSoldAt} Creavent ${h.eventsSoldAt === 1 ? "event" : "events"}` : ""}`}
+      </p>
+      {h.categories.length > 0 && (
+        <ul className="flex flex-wrap gap-1.5">
+          {h.categories.map((c) => (
+            <li key={c}>
+              <Badge dot={false}>{c}</Badge>
+            </li>
+          ))}
+        </ul>
+      )}
+      {h.products && (
+        <p className="text-sm">
+          <span className="text-muted">Sells </span>
+          <span>{h.products}</span>
+        </p>
+      )}
+      {shown.length > 0 && (
+        <ul className="grid grid-cols-3 gap-1.5">
+          {shown.map((url, i) => (
+            <li key={url} className="relative">
+              {/* eslint-disable-next-line @next/next/no-img-element -- R2 addresses, already sized */}
+              <img src={url} alt="" loading="lazy" className="aspect-square w-full rounded-sm object-cover" />
+              {i === shown.length - 1 && h.photos.length > shown.length && (
+                <span className="absolute inset-0 grid place-items-center rounded-sm bg-ink/55 text-label text-on-inverse">{`+${h.photos.length - shown.length}`}</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+      <SocialLinks links={h.socialLinks} />
+      {href && (
+        <Button asChild variant="secondary" block>
+          <Link href={href}>{`See ${h.shopName}'s page`}</Link>
+        </Button>
+      )}
+    </section>
   )
 }
 
@@ -81,13 +144,18 @@ export function PublicEventView({ event: e, supportEmail, report }: { event: Pub
   const canceled = e.status === "canceled"
   const directions = ended || canceled ? null : directionsUrl(e)
   const place = [e.addressLine, e.city].filter(Boolean).join(", ")
+  const host = e.host
+  const kind = host ? "pop-up" : "event"
+  const byline = host
+    ? { name: host.shopName, href: host.slug ? `/vendors/${host.slug}` : null, approved: host.approved }
+    : { name: e.organizer!.displayName, href: e.organizer!.slug ? `/organizers/${e.organizer!.slug}` : null, approved: e.organizer!.approved }
 
   return (
     <article className="flex flex-col gap-6">
       {ended && e.startDate && (
         <Alert tone="info" className="bg-sunken text-ink">
           <span>
-            <span className="font-semibold">This event has ended.</span> It took place {days > 1 ? "from" : "on"} {formatSchedule(e)?.split(" · ")[0]}.
+            <span className="font-semibold">{`This ${kind} has ended.`}</span> It took place {days > 1 ? "from" : "on"} {formatSchedule(e)?.split(" · ")[0]}.
           </span>
         </Alert>
       )}
@@ -95,12 +163,12 @@ export function PublicEventView({ event: e, supportEmail, report }: { event: Pub
         <Alert tone="danger">
           <span className="flex flex-col gap-1">
             <span>
-              <span className="font-semibold">This event is canceled.</span> The organizer canceled it on {manilaDay.format(new Date(e.canceled.at))}. It
-              won&apos;t take place on these dates.
+              <span className="font-semibold">{host ? "This pop-up was canceled." : "This event is canceled."}</span>{" "}
+              {host ? "The host" : "The organizer"} canceled it on {manilaDay.format(new Date(e.canceled.at))}. It won&apos;t take place on these dates.
             </span>
             {e.canceled.reason && (
               <span>
-                <span className="font-semibold">Organizer&apos;s note:</span> <span>{e.canceled.reason}</span>
+                <span className="font-semibold">{host ? `Note from ${host.shopName}:` : "Organizer's note:"}</span> <span>{e.canceled.reason}</span>
               </span>
             )}
           </span>
@@ -120,8 +188,8 @@ export function PublicEventView({ event: e, supportEmail, report }: { event: Pub
         </div>
         <h1 className="max-w-[900px] animate-rise text-display text-balance">{e.name}</h1>
         <p className="flex animate-rise flex-wrap items-center gap-x-2 gap-y-1 text-body [--cv-delay:60ms]">
-          <span>by</span> <OrganizerName organizer={e.organizer} />
-          {e.organizer.approved && <ApprovedMark />}
+          <span>by</span> <HostName name={byline.name} href={byline.href} />
+          {byline.approved && <ApprovedMark />}
         </p>
       </header>
 
@@ -150,7 +218,7 @@ export function PublicEventView({ event: e, supportEmail, report }: { event: Pub
                   {place && <span className="text-sm text-muted">{place}</span>}
                 </span>
               </li>
-              {!canceled && (
+              {!canceled && !host && (
                 <li className="flex items-start gap-3">
                   <StorefrontIcon aria-hidden="true" className="mt-0.5 size-5 flex-none text-muted" />
                   <span>{`${e.vendors.length} ${e.vendors.length === 1 ? "vendor" : "vendors"} confirmed`}</span>
@@ -180,27 +248,31 @@ export function PublicEventView({ event: e, supportEmail, report }: { event: Pub
             <p className="text-cap text-subtle">Details updated {manilaDay.format(new Date(e.updatedAt))}</p>
           </section>
 
-          <section aria-label="Organizer" className="flex flex-col gap-3.5 rounded-lg border border-border bg-surface p-5">
-            <div className="flex items-center gap-3">
-              <Avatar size="lg">
-                {e.organizer.logoUrl && <AvatarImage src={e.organizer.logoUrl} alt="" />}
-                <AvatarFallback>{initialsOf(e.organizer.displayName)}</AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col">
-                <OrganizerName organizer={e.organizer} />
-                {e.organizer.approved && <ApprovedMark />}
+          {host ? (
+            <HostBlock host={host} />
+          ) : (
+            <section aria-label="Organizer" className="flex flex-col gap-3.5 rounded-lg border border-border bg-surface p-5">
+              <div className="flex items-center gap-3">
+                <Avatar size="lg">
+                  {e.organizer!.logoUrl && <AvatarImage src={e.organizer!.logoUrl} alt="" />}
+                  <AvatarFallback>{initialsOf(e.organizer!.displayName)}</AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col">
+                  <HostName name={byline.name} href={byline.href} />
+                  {byline.approved && <ApprovedMark />}
+                </div>
               </div>
-            </div>
-            {e.organizer.about && <p className="line-clamp-3 text-sm text-muted">{e.organizer.about}</p>}
-            {e.organizer.eventsHeld > 0 && (
-              <p className="text-sm text-muted">{`${e.organizer.eventsHeld} ${e.organizer.eventsHeld === 1 ? "event" : "events"} held on Creavent`}</p>
-            )}
-            {e.organizer.slug && (
-              <Button asChild variant="secondary" block>
-                <Link href={`/organizers/${e.organizer.slug}`}>See organizer page</Link>
-              </Button>
-            )}
-          </section>
+              {e.organizer!.about && <p className="line-clamp-3 text-sm text-muted">{e.organizer!.about}</p>}
+              {e.organizer!.eventsHeld > 0 && (
+                <p className="text-sm text-muted">{`${e.organizer!.eventsHeld} ${e.organizer!.eventsHeld === 1 ? "event" : "events"} held on Creavent`}</p>
+              )}
+              {byline.href && (
+                <Button asChild variant="secondary" block>
+                  <Link href={byline.href}>See organizer page</Link>
+                </Button>
+              )}
+            </section>
+          )}
         </aside>
 
         {/* On phones this column dissolves into the page's single column so the cover can lead. */}
@@ -219,9 +291,9 @@ export function PublicEventView({ event: e, supportEmail, report }: { event: Pub
             </section>
           )}
 
-          {!canceled && <VendorList vendors={e.vendors} title={ended ? "Who sold here" : "Who's selling"} />}
+          {!canceled && !host && <VendorList vendors={e.vendors} title={ended ? "Who sold here" : "Who's selling"} />}
 
-          {e.publicFloorPlanUrl && !canceled && (
+          {e.publicFloorPlanUrl && !canceled && !host && (
             <section aria-labelledby="fp-h" className="flex flex-col gap-4">
               <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
@@ -243,7 +315,7 @@ export function PublicEventView({ event: e, supportEmail, report }: { event: Pub
 
           {report ?? (
             <p className="text-sm text-muted">
-              Something wrong with this event? Email us at{" "}
+              {`Something wrong with this ${kind}?`} Email us at{" "}
               <a href={`mailto:${supportEmail}`} className="text-ink underline underline-offset-2">
                 {supportEmail}
               </a>{" "}

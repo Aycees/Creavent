@@ -95,12 +95,26 @@ describe('event drafts and details', () => {
       expect((await prisma.event.findUniqueOrThrow({ where: { id: second } })).slug).toBe('matina-night-flea-2');
     });
 
-    it('lists the active event types, Flea market first', async () => {
+    it('lists the active organizer event types, Flea market first, without Pop-up', async () => {
       const { browser } = await organizer();
 
       const res = await browser.get('/api/event-types');
 
-      expect(res.body.eventTypes.map((t: { name: string }) => t.name)).toEqual(['Flea market', 'Bazaar', 'Pop-up']);
+      expect(res.body.eventTypes.map((t: { name: string }) => t.name)).toEqual(['Flea market', 'Bazaar']);
+    });
+
+    // Pop-up is a vendor's own event (spec §3.1, §4.7, rule 6.15).
+    it('refuses the Pop-up type on an organizer event', async () => {
+      const { browser } = await organizer();
+      const popUp = (await prisma.eventType.findFirstOrThrow({ where: { slug: 'pop-up' } })).id;
+
+      const created = await browser.post('/api/organizer/events').send({ name: 'X market', eventTypeId: popUp });
+      const id = await draft(browser);
+      const saved = await browser.put(`/api/organizer/events/${id}/details`).send(details({ eventTypeId: popUp }));
+
+      expect(created.status).toBe(400);
+      expect(saved.status).toBe(400);
+      expect((await prisma.event.findUniqueOrThrow({ where: { id } })).eventTypeId).toBe(fleaMarket);
     });
 
     it('needs the organizer role, not suspended', async () => {
@@ -146,7 +160,7 @@ describe('event drafts and details', () => {
         status: 'draft',
         details: { name: 'Matina Night Flea, January', eventTypeId: fleaMarket, startDate: null, venueName: null, cover: null },
       });
-      expect(res.body.eventTypes).toHaveLength(3);
+      expect(res.body.eventTypes).toHaveLength(2);
     });
 
     it('saves every detail, in Asia/Manila time', async () => {

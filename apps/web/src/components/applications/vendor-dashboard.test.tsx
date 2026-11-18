@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { api } from "@/lib/api"
 import { renderWithQuery } from "@/test-utils"
+import { hostApproval, popupRow } from "@/components/popups/fixtures"
 import { APPLICATION_ID, vendorApplicationFixture } from "./fixtures"
 import { VendorDashboardPage } from "./vendor-dashboard"
 
@@ -26,9 +27,13 @@ const dashboard = {
   openEvents: [{ slug: "lanang-holiday-flea", name: "Lanang Holiday Flea", startDate: "2026-12-18", endDate: "2026-12-20", applicationsCloseAt: "2026-12-10T23:59", applied: true }],
 }
 
+let summary: unknown = { host: hostApproval({ status: "approved" }), upcoming: [], total: 0 }
+
 beforeEach(() => {
   vi.clearAllMocks()
-  vi.mocked(api.GET).mockResolvedValue({ data: dashboard, response: { status: 200 } } as never)
+  summary = { host: hostApproval({ status: "approved" }), upcoming: [], total: 0 }
+  vi.mocked(api.GET).mockImplementation(((path: string) =>
+    Promise.resolve({ data: path === "/api/vendor/popups/summary" ? summary : dashboard, response: { status: 200 } })) as never)
 })
 
 describe("VendorDashboardPage (/vendor)", () => {
@@ -85,5 +90,27 @@ describe("VendorDashboardPage (/vendor)", () => {
 
     expect(await screen.findByText("Nothing needs your action.")).toBeInTheDocument()
     expect(screen.getByRole("link", { name: "Find events to join" })).toHaveAttribute("href", "/vendor/events")
+  })
+
+  it("shows the next pop-ups with their status and next step, and a line about host approval", async () => {
+    summary = {
+      host: hostApproval({ status: "pending_review" }),
+      upcoming: [popupRow(), popupRow({ id: "e0000000-0000-4000-8000-000000000022", name: "Weekend rack", status: "draft", startDate: null, endDate: null, nextStep: "Set the dates and hours" })],
+      total: 3,
+    }
+    renderWithQuery(<VendorDashboardPage />)
+
+    const popups = await screen.findByRole("region", { name: "Your pop-ups" })
+    expect(within(popups).getByRole("link", { name: "Lola's Ukay at Habi Café" })).toBeInTheDocument()
+    expect(within(popups).getByText("Next: Set the dates and hours")).toBeInTheDocument()
+    expect(within(popups).getByRole("link", { name: "See all" })).toHaveAttribute("href", "/vendor/popups")
+    expect(within(popups).getByRole("link", { name: /Host approval: pending review/ })).toHaveAttribute("href", "/vendor/host-approval")
+  })
+
+  it("invites the vendor to host a pop-up when they have none", async () => {
+    renderWithQuery(<VendorDashboardPage />)
+
+    const popups = await screen.findByRole("region", { name: "Your pop-ups" })
+    expect(within(popups).getByRole("link", { name: "Host a pop-up" })).toHaveAttribute("href", "/vendor/popups/new")
   })
 })

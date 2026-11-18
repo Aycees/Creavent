@@ -62,7 +62,7 @@ export async function addRole(
     data: {
       userId,
       role,
-      approvalStatus: role === 'organizer' ? 'not_submitted' : null,
+      approvalStatus: 'not_submitted',
       ...overrides,
     },
   });

@@ -1,12 +1,12 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import type { organizerProfileUpdateSchema, vendorProfileUpdateSchema } from '@creavent/shared';
 import type { z } from 'zod';
-import { changeApprovalStatus, lockOrganizer, needsReReview } from '../approvals/approval-status.js';
+import { changeApprovalStatus, lockOrganizer, lockVendor, needsReReview } from '../approvals/approval-status.js';
 import { assertAttachable, retireFiles } from '../files/files.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { PublicRefreshService } from '../public/public-refresh.service.js';
 import { tags } from '../public/tags.js';
-import { OnboardingService } from './onboarding.service.js';
+import { hostReReview, OnboardingService } from './onboarding.service.js';
 import { slugAvailable } from './slugs.js';
 
 const TAKEN = 'This link is taken. Try another.';
@@ -28,7 +28,9 @@ export class ProfilesService {
 
   async updateVendor(userId: string, input: z.output<typeof vendorProfileUpdateSchema>) {
     const vendorProfileId = await this.prisma.$transaction(async (tx) => {
-      await this.onboarding.requireRole(tx, userId, 'vendor');
+      await lockVendor(tx, userId);
+      const role = await this.onboarding.requireRole(tx, userId, 'vendor');
+      const current = await tx.vendorProfile.findUnique({ where: { userId } });
       if (!(await slugAvailable(tx, 'vendor', input.slug, userId))) throw new ConflictException(TAKEN);
       const active = await tx.category.count({ where: { id: { in: input.categoryIds }, isActive: true } });
       if (active !== new Set(input.categoryIds).size) throw new ConflictException('Pick categories from the list');
@@ -54,6 +56,9 @@ export class ProfilesService {
       await tx.vendorProfilePhoto.createMany({
         data: photoIds.map((fileId, sortOrder) => ({ vendorProfileId: profile.id, fileId, sortOrder })),
       });
+      // An approved pop-up host who changes the shop name or adds a link the
+      // admin didn't review goes back to review (spec §4.7).
+      if (current) await hostReReview(tx, userId, role, current, input);
       return profile.id;
     });
     // The vendor page, and the event pages that list this vendor (decision Q1).
